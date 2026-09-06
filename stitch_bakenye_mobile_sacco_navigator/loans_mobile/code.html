@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>BND-SACCO - Loans</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#004417",
+                      "primary": "#0e3483",
+                      "surface-bright": "#f9f9fc",
+                      "error": "#ba1a1a",
+                      "primary-fixed-dim": "#b3c5ff",
+                      "inverse-on-surface": "#f0f0f3",
+                      "tertiary-container": "#005e23",
+                      "on-background": "#1a1c1e",
+                      "surface-container-high": "#e8e8ea",
+                      "primary-fixed": "#dbe1ff",
+                      "on-tertiary-fixed": "#002108",
+                      "on-secondary-fixed-variant": "#544600",
+                      "secondary-container": "#fcd400",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-fixed": "#93f99e",
+                      "on-secondary-container": "#6e5c00",
+                      "outline": "#747682",
+                      "on-tertiary-container": "#74d982",
+                      "inverse-surface": "#2f3133",
+                      "on-primary-fixed": "#00174a",
+                      "on-primary-fixed-variant": "#214291",
+                      "secondary-fixed": "#ffe16d",
+                      "background": "#f9f9fc",
+                      "primary-container": "#2d4c9b",
+                      "surface-tint": "#3d5aaa",
+                      "surface-variant": "#e2e2e5",
+                      "surface": "#f9f9fc",
+                      "inverse-primary": "#b3c5ff",
+                      "secondary": "#705d00",
+                      "on-error-container": "#93000a",
+                      "surface-container-low": "#f3f3f6",
+                      "surface-container": "#eeeef0",
+                      "outline-variant": "#c4c6d3",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "on-surface-variant": "#444651",
+                      "on-tertiary-fixed-variant": "#00531e",
+                      "on-primary-container": "#afc1ff",
+                      "tertiary-fixed-dim": "#77dc85",
+                      "surface-container-highest": "#e2e2e5",
+                      "on-surface": "#1a1c1e",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed": "#221b00",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#e9c400",
+                      "error-container": "#ffdad6",
+                      "surface-dim": "#dadadc"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-margin-desktop": "48px",
+                      "unit": "4px",
+                      "container-margin-mobile": "16px",
+                      "gutter": "16px",
+                      "touch-target-primary": "56px",
+                      "touch-target-min": "44px"
+              },
+              "fontFamily": {
+                      "display-currency": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "button-text": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-currency": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "button-text": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: 80px; /* Space for bottom nav */
+            padding-top: 64px; /* Space for top app bar */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-margin-mobile h-touch-target-primary bg-surface dark:bg-on-background border-b border-outline-variant dark:border-outline flat no shadows">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of an African member of a financial cooperative. The individual is dressed in smart casual attire, exuding trust and reliability. The lighting is studio quality, soft and even, highlighting their features naturally. The background is a clean, neutral gray tone that aligns with a modern, corporate aesthetic suitable for a financial app profile picture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqa8MsJAlzIBIcw22oh2A8ALj4JU0Fi0S2ss-V-LfDU2Xql5Fz3xV8VS7XjTNX1MsOOXwgCnwEY0pCUI9OL0m7ObPkcofNwe_GxjFsnr4GfaaET2HSKV7zoqQRS76VxxjTmtMBOVfkvaGHQ1MHEV9lDQ3CQwF4sraYMOWmP9453vLOCmtfuPJWIdRH_goRrLW7uLT4qoscV2CeHJae4WzTGJ7OIYYoJoA9yPu-YlpEk45UdQNBQ7yO"/>
+</div>
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile font-bold text-primary dark:text-primary-fixed">BND-SACCO</h1>
+</div>
+<button aria-label="Notifications" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="px-container-margin-mobile py-6 space-y-6 max-w-3xl mx-auto">
+<!-- Page Title -->
+<div>
+<h2 class="text-headline-lg font-headline-lg text-on-surface">My Loans</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Manage your active loans and track repayments.</p>
+</div>
+<!-- Active Loan Card (High-Impact Level 2) -->
+<div class="bg-primary rounded-xl p-5 shadow-[0_4px_12px_rgba(14,52,131,0.15)] relative overflow-hidden">
+<!-- Decorative background element -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container rounded-full blur-2xl opacity-50 -mr-10 -mt-10 pointer-events-none"></div>
+<div class="relative z-10 flex justify-between items-start mb-4">
+<div>
+<span class="text-label-md font-label-md text-primary-fixed block mb-1">Development Loan</span>
+<div class="text-display-currency font-display-currency text-on-primary">UGX 1,200,000</div>
+<span class="text-body-md font-body-md text-primary-fixed-dim">Outstanding Balance</span>
+</div>
+<div class="bg-tertiary-container text-on-tertiary-container px-2 py-1 rounded text-label-md font-label-md flex items-center gap-1 shadow-sm border border-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span> Active
+                </div>
+</div>
+<!-- Progress Bar -->
+<div class="mb-4 relative z-10">
+<div class="flex justify-between text-label-md font-label-md text-on-primary mb-1">
+<span>Progress</span>
+<span>60% Paid</span>
+</div>
+<div class="w-full bg-primary-container rounded-full h-2 overflow-hidden">
+<div class="bg-secondary-container h-2 rounded-full" style="width: 60%"></div>
+</div>
+<div class="flex justify-between text-label-md font-label-md text-primary-fixed-dim mt-1">
+<span>UGX 800,000 Paid</span>
+<span>Total: UGX 2,000,000</span>
+</div>
+</div>
+<!-- Next Payment Info -->
+<div class="bg-primary-container bg-opacity-50 rounded-lg p-3 mb-5 flex justify-between items-center relative z-10 border border-primary-fixed-dim/20">
+<div>
+<span class="text-label-md font-label-md text-primary-fixed block">Next Payment</span>
+<span class="text-body-lg font-body-lg font-bold text-on-primary">UGX 150,000</span>
+</div>
+<div class="text-right flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]" data-icon="calendar_today">calendar_today</span>
+<div>
+<span class="text-label-md font-label-md text-primary-fixed block">Due Date</span>
+<span class="text-body-md font-body-md font-semibold text-on-primary">15 Sep 2026</span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex gap-3 relative z-10">
+<button class="flex-1 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary-container text-button-text font-button-text h-touch-target-min rounded-lg flex items-center justify-center transition-colors shadow-sm">
+                    Make Repayment
+                </button>
+<button class="flex-1 bg-transparent border border-primary-fixed text-primary-fixed hover:bg-primary-container text-button-text font-button-text h-touch-target-min rounded-lg flex items-center justify-center transition-colors">
+                    View Schedule
+                </button>
+</div>
+</div>
+<!-- Apply for Loan Action -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:border-primary cursor-pointer transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</div>
+<div>
+<h3 class="text-body-lg font-body-lg font-semibold text-on-surface">Apply for a New Loan</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Explore our loan products</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Loan History Section -->
+<div>
+<h3 class="text-headline-lg-mobile font-headline-lg-mobile text-on-surface mb-3 flex items-center justify-between">
+<span>Recent Applications</span>
+<button class="text-primary text-label-md font-label-md uppercase tracking-wider hover:underline">View All</button>
+</h3>
+<div class="space-y-3">
+<!-- History Item 1 -->
+<div class="bg-surface-container-lowest rounded-lg p-3 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+</div>
+<div>
+<div class="text-body-lg font-body-lg font-semibold text-on-surface">Emergency Loan</div>
+<div class="text-body-md font-body-md text-on-surface-variant">Applied 10 Mar 2025</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-body-lg font-body-lg font-semibold text-on-surface">UGX 500,000</div>
+<div class="text-label-md font-label-md text-primary font-bold">Approved</div>
+</div>
+</div>
+<!-- History Item 2 -->
+<div class="bg-surface-container-lowest rounded-lg p-3 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant flex items-center justify-between opacity-70">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<div class="text-body-lg font-body-lg font-semibold text-on-surface">Agriculture Loan</div>
+<div class="text-body-md font-body-md text-on-surface-variant">Cleared 05 Jan 2024</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-body-lg font-body-lg font-semibold text-on-surface">UGX 3,000,000</div>
+<div class="text-label-md font-label-md text-on-surface-variant">Cleared</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 pb-safe bg-surface dark:bg-on-background shadow-[0_-2px_8px_rgba(0,0,0,0.05)] shadow-lg rounded-t-xl md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-label-md font-label-md mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="text-label-md font-label-md mt-1">Savings</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-4 py-1 scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined filled" data-icon="payments" data-weight="fill" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="text-label-md font-label-md mt-1 font-bold">Loans</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-label-md font-label-md mt-1">Transactions</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+<span class="text-label-md font-label-md mt-1">More</span>
+</a>
+</nav>
+</body></html>

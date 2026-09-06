@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Member Profile - BND-SACCO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#e8e8ea",
+                        "primary-fixed": "#dbe1ff",
+                        "secondary-container": "#fcd400",
+                        "inverse-primary": "#b3c5ff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#74d982",
+                        "surface-variant": "#e2e2e5",
+                        "on-surface-variant": "#444651",
+                        "surface-tint": "#3d5aaa",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e2e2e5",
+                        "secondary-fixed": "#ffe16d",
+                        "inverse-surface": "#2f3133",
+                        "secondary-fixed-dim": "#e9c400",
+                        "on-secondary-container": "#6e5c00",
+                        "tertiary-fixed-dim": "#77dc85",
+                        "primary": "#0e3483",
+                        "on-surface": "#1a1c1e",
+                        "tertiary-fixed": "#93f99e",
+                        "tertiary-container": "#005e23",
+                        "on-background": "#1a1c1e",
+                        "on-primary-fixed": "#00174a",
+                        "surface-bright": "#f9f9fc",
+                        "on-secondary-fixed": "#221b00",
+                        "secondary": "#705d00",
+                        "surface-container-low": "#f3f3f6",
+                        "on-primary-fixed-variant": "#214291",
+                        "background": "#f9f9fc",
+                        "tertiary": "#004417",
+                        "on-primary-container": "#afc1ff",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#dadadc",
+                        "primary-container": "#2d4c9b",
+                        "on-tertiary-fixed-variant": "#00531e",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "surface-container": "#eeeef0",
+                        "surface": "#f9f9fc",
+                        "on-secondary-fixed-variant": "#544600",
+                        "outline-variant": "#c4c6d3",
+                        "inverse-on-surface": "#f0f0f3",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#747682",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#002108"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "touch-target-min": "44px",
+                        "unit": "4px",
+                        "touch-target-primary": "56px",
+                        "container-margin-mobile": "16px",
+                        "container-margin-desktop": "48px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-currency": ["Inter"],
+                        "label-md": ["Inter"],
+                        "button-text": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-currency": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "button-text": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background antialiased pb-24 md:pb-0 pt-touch-target-primary">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-on-background border-b border-outline-variant dark:border-outline fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-margin-mobile h-touch-target-primary">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="A small, circular avatar image showing a professional headshot of a person, suitable for a mobile app profile picture. The lighting is soft and corporate, matching a clean, modern UI aesthetic with deep blue brand accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAb3wf__0VmRF3ZAENdywEms-FGmSsbQDcKKEFNi1H_GeHJpUJ3FvkuPBQaZLqnEhgQ1fcrSauK0MF8_cHxHFpwelr59CB0CoSksSUPRg1VLO1156nEr3u6r5PY2_l8Xle_QBGbtP8vqm6G72aI0JaiUcJcvJPlf4__GioPXun3iZQghh3fb_lEE65gXEtHIQ0mcwDnub9R9d8Sj26tFo-VV1hW2HiOWYV2HItPAZaY9yZePbf1Q5oE"/>
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile font-bold text-primary dark:text-primary-fixed">BND-SACCO</h1>
+</div>
+<button aria-label="Notifications" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors active:opacity-80 active:scale-95 text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</header>
+<main class="max-w-3xl mx-auto px-container-margin-mobile py-6 flex flex-col gap-6">
+<!-- Profile Header Section -->
+<section class="flex flex-col items-center justify-center py-6 bg-surface-container-lowest rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container-high relative overflow-hidden">
+<!-- Decorative background pattern -->
+<div class="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary via-surface to-surface"></div>
+<div class="relative z-10 mb-4">
+<img class="w-24 h-24 rounded-full border-4 border-surface shadow-md object-cover" data-alt="A large, clear circular portrait photograph of a confident professional individual, serving as the main profile picture for a secure financial application. The background is a soft, neutral gradient complementing the deep corporate blue branding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAE3fCkkfm3a5YjXLcQ2zJkpJ3AqZkz0IB81QdsZISTrTtrlRBCMMRevSGztYv7oI-ldK3ALUfw0P9l0_GC6giNsQ7pBi42HN_r06xKBEI5qEQTyw3FhFHW-akFOL_BxKpR7a7tRpdFjYPCCbUvJMii8thkg_N9_GTh5T6M7FVwycvLdhJ0PDfhRKYuUS-BqMd_gbacWMicEqFPv8Q5axCDnJdhTS4QnmwavUpzeS7ly94zFzGaxyTT"/>
+<button aria-label="Edit Profile Picture" class="absolute bottom-0 right-0 w-8 h-8 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-md hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="text-center relative z-10">
+<h2 class="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">Alex Kiprotich</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Member ID: BND-8492-MK</p>
+<div class="inline-flex items-center gap-1 mt-2 bg-tertiary-container/10 text-tertiary px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]" data-icon="verified">verified</span>
+<span class="text-label-md font-label-md">Active Member</span>
+</div>
+</div>
+</section>
+<!-- Personal Details -->
+<section class="bg-surface-container-lowest rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container-high overflow-hidden">
+<div class="px-4 py-3 border-b border-surface-container-high bg-surface-container-low/50">
+<h3 class="text-button-text font-button-text text-on-surface">Personal Information</h3>
+</div>
+<div class="divide-y divide-surface-container-high">
+<div class="px-4 py-3 flex justify-between items-center min-h-[44px]">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Phone Number</span>
+<span class="text-body-md font-body-md text-on-surface mt-0.5">+254 712 345 678</span>
+</div>
+<button aria-label="Edit Phone" class="text-primary hover:text-primary-container p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="px-4 py-3 flex justify-between items-center min-h-[44px]">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Email Address</span>
+<span class="text-body-md font-body-md text-on-surface mt-0.5">alex.kip@example.com</span>
+</div>
+<button aria-label="Edit Email" class="text-primary hover:text-primary-container p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="px-4 py-3 flex justify-between items-center min-h-[44px]">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Residential Address</span>
+<span class="text-body-md font-body-md text-on-surface mt-0.5">142 Sunrise Estate, Nairobi</span>
+</div>
+<button aria-label="Edit Address" class="text-primary hover:text-primary-container p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Next of Kin -->
+<section class="bg-surface-container-lowest rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container-high overflow-hidden">
+<div class="px-4 py-3 border-b border-surface-container-high bg-surface-container-low/50">
+<h3 class="text-button-text font-button-text text-on-surface">Next of Kin</h3>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-4 bg-surface-container rounded-lg p-3">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
+<span class="text-headline-lg-mobile font-headline-lg-mobile">M</span>
+</div>
+<div class="flex flex-col flex-grow">
+<span class="text-button-text font-button-text text-on-surface">Mary Njeri Kiprotich</span>
+<span class="text-body-md font-body-md text-on-surface-variant mt-0.5">Spouse • +254 723 456 789</span>
+</div>
+<button aria-label="Edit Next of Kin" class="text-primary hover:text-primary-container p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Account Settings -->
+<section class="bg-surface-container-lowest rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container-high overflow-hidden">
+<div class="px-4 py-3 border-b border-surface-container-high bg-surface-container-low/50">
+<h3 class="text-button-text font-button-text text-on-surface">Account Settings</h3>
+</div>
+<div class="divide-y divide-surface-container-high">
+<button class="w-full px-4 py-4 flex justify-between items-center min-h-[56px] hover:bg-surface-container-low transition-colors text-left group">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="lock">lock</span>
+</div>
+<div class="flex flex-col">
+<span class="text-button-text font-button-text text-on-surface">Change PIN</span>
+<span class="text-body-md font-body-md text-on-surface-variant mt-0.5">Update your security PIN</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full px-4 py-4 flex justify-between items-center min-h-[56px] hover:bg-surface-container-low transition-colors text-left group">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications_active">notifications_active</span>
+</div>
+<div class="flex flex-col">
+<span class="text-button-text font-button-text text-on-surface">Notification Preferences</span>
+<span class="text-body-md font-body-md text-on-surface-variant mt-0.5">Manage SMS and Email alerts</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Logout Action -->
+<button class="w-full min-h-[56px] bg-error-container text-on-error-container rounded-lg flex items-center justify-center gap-2 hover:bg-[#ffb4ab] transition-colors mt-2 mb-8">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-button-text font-button-text">Log Out</span>
+</button>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 pb-safe bg-surface dark:bg-on-background shadow-[0_-2px_8px_rgba(0,0,0,0.05)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined group-active:scale-90 transition-transform duration-150" data-icon="home" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="text-label-md font-label-md mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined group-active:scale-90 transition-transform duration-150" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 0;">account_balance_wallet</span>
+<span class="text-label-md font-label-md mt-1">Savings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined group-active:scale-90 transition-transform duration-150" data-icon="payments" style="font-variation-settings: 'FILL' 0;">payments</span>
+<span class="text-label-md font-label-md mt-1">Loans</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined group-active:scale-90 transition-transform duration-150" data-icon="history" style="font-variation-settings: 'FILL' 0;">history</span>
+<span class="text-label-md font-label-md mt-1">Transactions</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-4 py-1 group" href="#">
+<span class="material-symbols-outlined active:scale-90 transition-transform duration-150" data-icon="menu" style="font-variation-settings: 'FILL' 1;">menu</span>
+<span class="text-label-md font-label-md mt-1">More</span>
+</a>
+</nav>
+</body></html>

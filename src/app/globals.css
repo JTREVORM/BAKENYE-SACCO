@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Carried over verbatim from the inline <style> blocks in every Stitch screen
+ * under `stitch_bakenye_mobile_sacco_navigator`, plus the print and
+ * accessibility rules a real application needs.
+ */
+
+@layer base {
+  html {
+    /* Stitch locked zoom with maximum-scale=1. That breaks pinch-zoom for
+     * low-vision members, which is an accessibility regression we will not
+     * ship, so the viewport meta in layout.tsx allows scaling and we keep
+     * text legible instead. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Material Symbols, as loaded by every Stitch screen. */
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    /* Prevents the glyph name flashing as text before the font arrives -
+     * very visible on a 3G Android device. */
+    font-family: 'Material Symbols Outlined', sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* A visible focus ring everywhere. Stitch's export had none. */
+  :focus-visible {
+    outline: 2px solid theme('colors.primary');
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Money and references read as tabular figures so columns line up. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* --- Stitch utility classes, preserved by name ------------------------- */
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Bottom-nav and top-bar clearance, including the notch/gesture bar. */
+  .safe-pb {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  .safe-pt {
+    padding-top: calc(64px + env(safe-area-inset-top));
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* --- Additions -------------------------------------------------------- */
+
+  /* The Level-1 card shadow from DESIGN.md, as a single named class so the
+   * value is defined once instead of repeated as an arbitrary value. */
+  .elev-1 {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  .elev-2 {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .skeleton {
+    @apply bg-surface-container-high rounded animate-skeleton-pulse;
+  }
+
+  /* Sticky form footer for mobile - keeps the primary action in the thumb
+   * zone without covering the last field. */
+  .sticky-actions {
+    @apply sticky bottom-0 -mx-container-margin-mobile mt-6 border-t border-outline-variant
+           bg-surface px-container-margin-mobile py-3;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  /* Horizontal scroll container for wide data. The page body must never
+   * scroll sideways; the table does. */
+  .scroll-x {
+    @apply -mx-container-margin-mobile overflow-x-auto px-container-margin-mobile
+           md:mx-0 md:px-0;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * Print - receipts, statements and reports must come out clean on A4/Letter.
+ * -------------------------------------------------------------------------- */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+  }
+
+  .no-print,
+  header nav,
+  nav[data-bottom-bar],
+  aside[data-sidebar] {
+    display: none !important;
+  }
+
+  .print-block {
+    display: block !important;
+    box-shadow: none !important;
+    border-color: #ccc !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  main {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+
+  tr,
+  .avoid-break {
+    break-inside: avoid;
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * Respect the user's motion preference. Cheap animations only, and none at all
+ * for anyone who has asked for stillness.
+ * -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

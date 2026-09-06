@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Reports - BND-SACCO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#74d982",
+                    "tertiary": "#004417",
+                    "surface-container-low": "#f3f3f6",
+                    "background": "#f9f9fc",
+                    "inverse-on-surface": "#f0f0f3",
+                    "surface-container-high": "#e8e8ea",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed": "#221b00",
+                    "primary-fixed-dim": "#b3c5ff",
+                    "on-secondary-fixed-variant": "#544600",
+                    "outline-variant": "#c4c6d3",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#b3c5ff",
+                    "surface-variant": "#e2e2e5",
+                    "secondary-container": "#fcd400",
+                    "on-primary-container": "#afc1ff",
+                    "on-background": "#1a1c1e",
+                    "tertiary-container": "#005e23",
+                    "primary": "#0e3483",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f9f9fc",
+                    "on-primary": "#ffffff",
+                    "surface-container-highest": "#e2e2e5",
+                    "on-surface-variant": "#444651",
+                    "outline": "#747682",
+                    "on-tertiary-fixed": "#002108",
+                    "surface-container": "#eeeef0",
+                    "on-tertiary-fixed-variant": "#00531e",
+                    "primary-container": "#2d4c9b",
+                    "on-secondary-container": "#6e5c00",
+                    "tertiary-fixed": "#93f99e",
+                    "on-surface": "#1a1c1e",
+                    "inverse-surface": "#2f3133",
+                    "on-primary-fixed": "#00174a",
+                    "surface-dim": "#dadadc",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#f9f9fc",
+                    "secondary-fixed-dim": "#e9c400",
+                    "surface-tint": "#3d5aaa",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#dbe1ff",
+                    "secondary-fixed": "#ffe16d",
+                    "tertiary-fixed-dim": "#77dc85",
+                    "on-primary-fixed-variant": "#214291",
+                    "secondary": "#705d00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "container-margin-mobile": "16px",
+                    "touch-target-primary": "56px",
+                    "container-margin-desktop": "48px",
+                    "touch-target-min": "44px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "headline-lg-mobile": [
+                            "Inter"
+                    ],
+                    "display-currency": [
+                            "Inter"
+                    ],
+                    "headline-lg": [
+                            "Inter"
+                    ],
+                    "button-text": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "display-currency": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-lg": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "button-text": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "600"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-24 font-body-md text-body-md md:hidden flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-margin-mobile h-touch-target-primary bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<button class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden flex items-center justify-center hover:bg-surface-container-low transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a smiling woman in business attire, well-lit in a modern office environment, high resolution, clean background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuApN2K3XrfkL9-3s8LUheZbsUK1BysKjgpvIIjbhC4EBby0xsaKInFc0IDcfMmOv8l-_QeryMIAktbN__4YyleA9yTGzJPHESrnzm9AzA0g8ZJwujJ1JkZpFgQ9jcB16WcPefCbIzvJmZzmv0vGAtDNzBVUXyRjmxGxLM9Wa_0kI_zywIR6polW_SFgvsw_tChMDxSOdlhByznYGoeQY7UYJ0_r_Te6nGGQ2kDKNiphKZQs07oJKWGO"/>
+</button>
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile font-bold text-primary">BND-SACCO</h1>
+</div>
+<button class="w-touch-target-min h-touch-target-min flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Canvas -->
+<main class="flex-grow pt-[72px] px-container-margin-mobile flex flex-col gap-6">
+<!-- Page Header & Filters -->
+<section class="flex flex-col gap-4 mt-4">
+<h2 class="text-headline-lg-mobile font-headline-lg-mobile text-on-background">Reports Center</h2>
+<!-- Quick Filters (Chips) -->
+<div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-container-margin-mobile px-container-margin-mobile">
+<button class="flex items-center justify-center h-8 px-4 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+                    All Reports
+                </button>
+<button class="flex items-center justify-center h-8 px-4 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-variant transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="account_balance_wallet">account_balance_wallet</span> Savings
+                </button>
+<button class="flex items-center justify-center h-8 px-4 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-variant transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="payments">payments</span> Loans
+                </button>
+<button class="flex items-center justify-center h-8 px-4 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-variant transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="description">description</span> Statements
+                </button>
+</div>
+</section>
+<!-- Reports List (Minimalist Cards) -->
+<section class="flex flex-col gap-3">
+<!-- Report Item 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-button-text text-button-text text-on-surface">Member Statement</h3>
+<span class="font-body-md text-body-md text-on-surface-variant text-sm">Oct 2023 - Present</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 mt-1">
+<button class="flex-1 h-touch-target-min flex items-center justify-center gap-2 border border-outline-variant rounded-lg font-button-text text-button-text text-on-surface hover:bg-surface-container-low transition-colors active:bg-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span> View
+                    </button>
+<button class="flex-1 h-touch-target-min flex items-center justify-center gap-2 bg-primary text-on-primary rounded-lg font-button-text text-button-text hover:opacity-90 transition-opacity active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span> PDF
+                    </button>
+</div>
+</div>
+<!-- Report Item 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-button-text text-button-text text-on-surface">Savings Summary</h3>
+<span class="font-body-md text-body-md text-on-surface-variant text-sm">Year-to-Date 2023</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 mt-1">
+<button class="flex-1 h-touch-target-min flex items-center justify-center gap-2 border border-outline-variant rounded-lg font-button-text text-button-text text-on-surface hover:bg-surface-container-low transition-colors active:bg-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span> View
+                    </button>
+<button class="flex-1 h-touch-target-min flex items-center justify-center gap-2 bg-primary text-on-primary rounded-lg font-button-text text-button-text hover:opacity-90 transition-opacity active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span> PDF
+                    </button>
+</div>
+</div>
+<!-- Report Item 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-button-text text-button-text text-on-surface">Loan History</h3>
+<span class="font-body-md text-body-md text-on-surface-variant text-sm">Active &amp; Closed</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 mt-1">
+<button class="flex-1 h-touch-target-min flex items-center justify-center gap-2 border border-outline-variant rounded-lg font-button-text text-button-text text-on-surface hover:bg-surface-container-low transition-colors active:bg-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span> View
+                    </button>
+<button class="flex-1 h-touch-target-min flex items-center justify-center gap-2 bg-primary text-on-primary rounded-lg font-button-text text-button-text hover:opacity-90 transition-opacity active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span> PDF
+                    </button>
+</div>
+</div>
+<!-- Report Item 4 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col gap-3 opacity-70">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-button-text text-button-text text-on-surface">Annual Report 2022</h3>
+<span class="font-body-md text-body-md text-on-surface-variant text-sm">Archived</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 mt-1">
+<button class="w-full h-touch-target-min flex items-center justify-center gap-2 border border-outline-variant rounded-lg font-button-text text-button-text text-on-surface hover:bg-surface-container-low transition-colors active:bg-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span> PDF Only
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 pb-safe bg-surface shadow-[0_-2px_8px_rgba(0,0,0,0.05)] rounded-t-xl md:hidden">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-colors rounded-lg group">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 transition-transform duration-150" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-colors rounded-lg group">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 transition-transform duration-150" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Savings</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-colors rounded-lg group">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 transition-transform duration-150" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Loans</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-colors rounded-lg group">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 transition-transform duration-150" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Transactions</span>
+</button>
+<!-- Active Tab: More/Reports -->
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 group filled-icon shadow-sm">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 transition-transform duration-150" data-icon="menu" data-weight="fill">menu</span>
+<span class="font-label-md text-label-md font-bold text-primary">More</span>
+</button>
+</nav>
+</body></html>

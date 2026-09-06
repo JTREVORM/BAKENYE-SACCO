@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>BND-SACCO Member Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#004417",
+                      "primary": "#0e3483",
+                      "surface-bright": "#f9f9fc",
+                      "error": "#ba1a1a",
+                      "primary-fixed-dim": "#b3c5ff",
+                      "inverse-on-surface": "#f0f0f3",
+                      "tertiary-container": "#005e23",
+                      "on-background": "#1a1c1e",
+                      "surface-container-high": "#e8e8ea",
+                      "primary-fixed": "#dbe1ff",
+                      "on-tertiary-fixed": "#002108",
+                      "on-secondary-fixed-variant": "#544600",
+                      "secondary-container": "#fcd400",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-fixed": "#93f99e",
+                      "on-secondary-container": "#6e5c00",
+                      "outline": "#747682",
+                      "on-tertiary-container": "#74d982",
+                      "inverse-surface": "#2f3133",
+                      "on-primary-fixed": "#00174a",
+                      "on-primary-fixed-variant": "#214291",
+                      "secondary-fixed": "#ffe16d",
+                      "background": "#f9f9fc",
+                      "primary-container": "#2d4c9b",
+                      "surface-tint": "#3d5aaa",
+                      "surface-variant": "#e2e2e5",
+                      "surface": "#f9f9fc",
+                      "inverse-primary": "#b3c5ff",
+                      "secondary": "#705d00",
+                      "on-error-container": "#93000a",
+                      "surface-container-low": "#f3f3f6",
+                      "surface-container": "#eeeef0",
+                      "outline-variant": "#c4c6d3",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "on-surface-variant": "#444651",
+                      "on-tertiary-fixed-variant": "#00531e",
+                      "on-primary-container": "#afc1ff",
+                      "tertiary-fixed-dim": "#77dc85",
+                      "surface-container-highest": "#e2e2e5",
+                      "on-surface": "#1a1c1e",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed": "#221b00",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#e9c400",
+                      "error-container": "#ffdad6",
+                      "surface-dim": "#dadadc"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-margin-desktop": "48px",
+                      "unit": "4px",
+                      "container-margin-mobile": "16px",
+                      "gutter": "16px",
+                      "touch-target-primary": "56px",
+                      "touch-target-min": "44px"
+              },
+              "fontFamily": {
+                      "display-currency": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "button-text": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-currency": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "button-text": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        /* Hide scrollbar for clean horizontal scrolling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .safe-pb { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+        .safe-pt { padding-top: calc(64px + env(safe-area-inset-top)); }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased md:hidden h-screen overflow-hidden flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-margin-mobile h-touch-target-primary bg-surface dark:bg-on-background border-b border-outline-variant dark:border-outline">
+<div class="flex items-center gap-2">
+<img alt="BND-SACCO Logo" class="h-8 w-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzzAIuxGxxro3EpOTJEz4zGvIbgT8utZSA8AlRQkx9e-UWePNSqyKWpJD3JxNb8V1ur5EBQ9lPUooXFONWwL4eIr4OQrcHZtkcK1kmDxn5Xmw3_Ri_adSIu3vkHK-JSindn3AHk5NXMaSWfktmxgl3MKfQO2KQw6NHuPK-AQeEcJUROFLmF4zXhCmEIs0dnUzGAxNkRsr1A90JFFeZJ-ucqCKNnHsUyYQjGNAznldT0Izj_ffMBeO610MdTvyr0Qeqxw"/>
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile font-bold text-primary dark:text-primary-fixed">BND-SACCO</h1>
+</div>
+<button aria-label="Notifications" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto safe-pt safe-pb px-container-margin-mobile">
+<!-- Greeting -->
+<section class="py-4">
+<h2 class="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">Hello, John 👋</h2>
+<p class="text-body-md font-body-md text-on-surface-variant">Here is your financial overview.</p>
+</section>
+<!-- Main Balance Cards (Stacked/Bento approach) -->
+<section class="flex flex-col gap-unit mb-6">
+<!-- Total Savings -->
+<div class="bg-primary text-on-primary rounded-xl p-4 shadow-[0_4px_12px_rgba(0,0,0,0.1)] relative overflow-hidden flex flex-col justify-between h-32">
+<div class="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-5 rounded-full blur-xl pointer-events-none"></div>
+<div>
+<p class="text-body-md font-body-md opacity-90">Total Savings</p>
+<h3 class="text-display-currency font-display-currency mt-1">UGX 2,450,000</h3>
+</div>
+<div class="flex items-center gap-1 text-label-md font-label-md opacity-80">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>+12% this month</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-unit">
+<!-- Shares -->
+<div class="bg-surface-container-high rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container-highest">
+<p class="text-label-md font-label-md text-on-surface-variant">Shares</p>
+<h4 class="text-headline-lg-mobile font-headline-lg-mobile text-on-surface mt-1">UGX 500,000</h4>
+</div>
+<!-- Loan Balance -->
+<div class="bg-surface-container-high rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container-highest">
+<p class="text-label-md font-label-md text-on-surface-variant">Loan Balance</p>
+<h4 class="text-headline-lg-mobile font-headline-lg-mobile text-error mt-1">UGX 1,200,000</h4>
+</div>
+</div>
+</section>
+<!-- Next Payment Card -->
+<section class="mb-6">
+<div class="bg-surface rounded-xl p-4 border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex items-center justify-between">
+<div>
+<h4 class="text-button-text font-button-text text-on-surface">Next Payment</h4>
+<p class="text-body-md font-body-md text-on-surface-variant">Due 15 Sep 2026</p>
+</div>
+<div class="text-right">
+<span class="text-headline-lg-mobile font-headline-lg-mobile text-primary">UGX 150,000</span>
+</div>
+</div>
+</section>
+<!-- Quick Actions Grid -->
+<section class="mb-6">
+<h3 class="text-button-text font-button-text text-on-surface mb-3">Quick Actions</h3>
+<div class="grid grid-cols-3 gap-unit">
+<!-- Action 1 -->
+<button class="bg-surface-container rounded-lg p-3 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors h-24">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="savings">savings</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface text-center">Save Money</span>
+</button>
+<!-- Action 2 -->
+<button class="bg-surface-container rounded-lg p-3 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors h-24">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="pie_chart">pie_chart</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface text-center">Buy Shares</span>
+</button>
+<!-- Action 3 -->
+<button class="bg-surface-container rounded-lg p-3 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors h-24">
+<div class="w-10 h-10 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="request_quote">request_quote</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface text-center">Apply Loan</span>
+</button>
+<!-- Action 4 -->
+<button class="bg-surface-container rounded-lg p-3 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors h-24">
+<div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface text-center">Repay Loan</span>
+</button>
+<!-- Action 5 -->
+<button class="bg-surface-container rounded-lg p-3 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors h-24">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface text-center">Statement</span>
+</button>
+<!-- Action 6 -->
+<button class="bg-surface-container rounded-lg p-3 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors h-24">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface text-center">Alerts</span>
+</button>
+</div>
+</section>
+<!-- Recent Transactions -->
+<section class="mb-6">
+<div class="flex justify-between items-center mb-3">
+<h3 class="text-button-text font-button-text text-on-surface">Recent Transactions</h3>
+<button class="text-label-md font-label-md text-primary">View All</button>
+</div>
+<div class="flex flex-col gap-2">
+<!-- Transaction 1 -->
+<div class="bg-surface rounded-xl p-3 flex items-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" data-icon="savings">savings</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-body-md font-body-md text-on-surface truncate font-semibold">Weekly Savings</h4>
+<p class="text-label-md font-label-md text-on-surface-variant">Today, 10:45 AM</p>
+</div>
+<div class="text-right shrink-0">
+<span class="text-body-md font-body-md text-tertiary font-bold">+UGX 50,000</span>
+<div class="mt-1">
+<span class="inline-block bg-tertiary-container/20 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full">Success</span>
+</div>
+</div>
+</div>
+<!-- Transaction 2 -->
+<div class="bg-surface rounded-xl p-3 flex items-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container">
+<div class="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" data-icon="credit_score">credit_score</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-body-md font-body-md text-on-surface truncate font-semibold">Loan Repayment</h4>
+<p class="text-label-md font-label-md text-on-surface-variant">Yesterday</p>
+</div>
+<div class="text-right shrink-0">
+<span class="text-body-md font-body-md text-on-surface font-bold">-UGX 150,000</span>
+<div class="mt-1">
+<span class="inline-block bg-tertiary-container/20 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full">Success</span>
+</div>
+</div>
+</div>
+<!-- Transaction 3 -->
+<div class="bg-surface rounded-xl p-3 flex items-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-container">
+<div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" data-icon="pie_chart">pie_chart</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-body-md font-body-md text-on-surface truncate font-semibold">Share Purchase</h4>
+<p class="text-label-md font-label-md text-on-surface-variant">12 Sep 2024</p>
+</div>
+<div class="text-right shrink-0">
+<span class="text-body-md font-body-md text-on-surface font-bold">-UGX 100,000</span>
+<div class="mt-1">
+<span class="inline-block bg-surface-variant text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded-full">Pending</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 pb-safe bg-surface dark:bg-on-background shadow-[0_-2px_8px_rgba(0,0,0,0.05)] rounded-t-xl">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-4 py-1 scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="home" data-weight="fill" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-label-md font-label-md mt-1">Home</span>
+</a>
+<!-- Savings -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="text-label-md font-label-md mt-1">Savings</span>
+</a>
+<!-- Loans -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-label-md font-label-md mt-1">Loans</span>
+</a>
+<!-- Transactions -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-label-md font-label-md mt-1">Transactions</span>
+</a>
+<!-- More -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+<span class="text-label-md font-label-md mt-1">More</span>
+</a>
+</nav>
+</body></html>

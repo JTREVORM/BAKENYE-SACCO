@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Roles &amp; Permissions - BND-SACCO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#e8e8ea",
+                        "primary-fixed": "#dbe1ff",
+                        "secondary-container": "#fcd400",
+                        "inverse-primary": "#b3c5ff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#74d982",
+                        "surface-variant": "#e2e2e5",
+                        "on-surface-variant": "#444651",
+                        "surface-tint": "#3d5aaa",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e2e2e5",
+                        "secondary-fixed": "#ffe16d",
+                        "inverse-surface": "#2f3133",
+                        "secondary-fixed-dim": "#e9c400",
+                        "on-secondary-container": "#6e5c00",
+                        "tertiary-fixed-dim": "#77dc85",
+                        "primary": "#0e3483",
+                        "on-surface": "#1a1c1e",
+                        "tertiary-fixed": "#93f99e",
+                        "tertiary-container": "#005e23",
+                        "on-background": "#1a1c1e",
+                        "on-primary-fixed": "#00174a",
+                        "surface-bright": "#f9f9fc",
+                        "on-secondary-fixed": "#221b00",
+                        "secondary": "#705d00",
+                        "surface-container-low": "#f3f3f6",
+                        "on-primary-fixed-variant": "#214291",
+                        "background": "#f9f9fc",
+                        "tertiary": "#004417",
+                        "on-primary-container": "#afc1ff",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#dadadc",
+                        "primary-container": "#2d4c9b",
+                        "on-tertiary-fixed-variant": "#00531e",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "surface-container": "#eeeef0",
+                        "surface": "#f9f9fc",
+                        "on-secondary-fixed-variant": "#544600",
+                        "outline-variant": "#c4c6d3",
+                        "inverse-on-surface": "#f0f0f3",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#747682",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#002108"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "touch-target-min": "44px",
+                        "unit": "4px",
+                        "touch-target-primary": "56px",
+                        "container-margin-mobile": "16px",
+                        "container-margin-desktop": "48px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-currency": ["Inter"],
+                        "label-md": ["Inter"],
+                        "button-text": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-currency": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "button-text": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill-1 {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="h-full bg-background text-on-background font-body-lg flex overflow-hidden">
+<!-- Sidebar (Desktop Navigation) -->
+<aside class="hidden md:flex flex-col w-64 bg-surface-container-low border-r border-outline-variant h-full flex-shrink-0 z-10">
+<div class="h-touch-target-primary flex items-center px-6 border-b border-outline-variant">
+<span class="font-headline-lg text-primary font-bold tracking-tight">BND-SACCO</span>
+</div>
+<nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+<!-- Simulated Sidebar Items for Desktop context -->
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-button-text text-button-text">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-button-text text-button-text">Members</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-button-text text-button-text">Loans</span>
+</a>
+<div class="pt-4 pb-2">
+<span class="px-3 font-label-md text-label-md text-outline uppercase tracking-wider">Administration</span>
+</div>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg bg-primary-container text-on-primary-container font-bold" href="#">
+<span class="material-symbols-outlined icon-fill-1" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-button-text text-button-text">Roles &amp; Permissions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-button-text text-button-text">System Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A professional headshot of a mature male financial administrator with glasses, wearing a sharp navy blue suit and a subtle silver tie, set against a blurred modern office background with bright, clean light-mode corporate aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWNb3mjQQ6Mrqp-eyUjANXFp5_LDIRWePIaPJ9t_9GpFoZ2ddO9UQam6bQcZYb9Hied2lKq-kpOlhfvi4xdd6vZJBhO53aUmMtxl8i9SsXVVD5rMXtH3FEkfU8vQr5BqJy7JBNFhTriLQJuIRYiWr_wngyenikpRs_x7Hy1wc5N0Sn57BiJX_y9mp-e5Oh1JlpzRHPGt1RdMJOv_IBd3DE9iyYiHcp-8ILULZsYQVYKur9a7vdypaP"/>
+<div>
+<p class="font-button-text text-button-text text-on-surface">Admin User</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Super Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-full relative overflow-hidden">
+<!-- TopAppBar (Mobile Only - Desktop has sidebar) -->
+<header class="md:hidden fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-margin-mobile h-touch-target-primary bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<img class="w-8 h-8 rounded-full" data-alt="A tiny 32x32 pixel perfect corporate user profile icon showing a generic silhouette in dark blue against a light blue circular background, adhering to strict minimalist flat design principles." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB64RmxHMD3RwY6sryNQls6-NNVdN3UrwckFynD-LYz8HQAKBfV_9itk1JMD7tzpD-R1j0dyEMqgdboxwBDLjUcTQ4FpSwJWO820BlybeW35XtPaziQh9fhM4z2RHu8Gs_6yAKVf_dkNxDsCgS6SZhm7wVxH6bqmnyeCEQxnfdgyp174wlOT0ZSohWvdgaCNA9X7iO-c7cpuzXMgmIBsz81vL0PRRYYRGQD62pYpZbxOY3T37UPKaG0"/>
+<span class="text-headline-lg-mobile font-headline-lg-mobile font-bold text-primary">BND-SACCO</span>
+</div>
+<button class="text-on-surface-variant p-2 hover:bg-surface-container-low rounded-full transition-colors active:opacity-80 active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 overflow-y-auto bg-surface-container-lowest pt-touch-target-primary md:pt-0 p-container-margin-mobile md:p-container-margin-desktop pb-24 md:pb-container-margin-desktop">
+<div class="max-w-7xl mx-auto space-y-8">
+<!-- Page Header & Actions -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Roles &amp; Permissions</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage staff access levels and system privileges.</p>
+</div>
+<button class="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-6 h-touch-target-primary rounded-lg font-button-text text-button-text shadow-sm hover:opacity-90 transition-opacity whitespace-nowrap">
+<span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+                        Add New Staff
+                    </button>
+</div>
+<!-- Stats Overview Bento Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-surface p-6 rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Staff</span>
+<span class="material-symbols-outlined text-primary" data-icon="group">group</span>
+</div>
+<p class="font-display-currency text-display-currency text-on-surface">24</p>
+</div>
+<div class="bg-surface p-6 rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Super Admins</span>
+<span class="material-symbols-outlined text-error" data-icon="admin_panel_settings">admin_panel_settings</span>
+</div>
+<p class="font-display-currency text-display-currency text-on-surface">3</p>
+</div>
+<div class="bg-surface p-6 rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Loan Officers</span>
+<span class="material-symbols-outlined text-tertiary-container" data-icon="assignment_ind">assignment_ind</span>
+</div>
+<p class="font-display-currency text-display-currency text-on-surface">12</p>
+</div>
+<div class="bg-surface p-6 rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Cashiers</span>
+<span class="material-symbols-outlined text-secondary" data-icon="point_of_sale">point_of_sale</span>
+</div>
+<p class="font-display-currency text-display-currency text-on-surface">9</p>
+</div>
+</div>
+<!-- Users Table Section -->
+<div class="bg-surface rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col">
+<!-- Table Toolbar -->
+<div class="p-4 border-b border-outline-variant flex flex-col sm:flex-row gap-4 justify-between items-center bg-surface-bright">
+<div class="relative w-full sm:w-72">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full h-touch-target-min pl-10 pr-4 rounded-lg border border-outline-variant bg-surface text-on-surface font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Search users by name or email..." type="text"/>
+</div>
+<div class="flex items-center gap-2 w-full sm:w-auto">
+<button class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 h-touch-target-min border border-outline-variant rounded-lg font-button-text text-button-text text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+                                Filter Role
+                            </button>
+</div>
+</div>
+<!-- Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider whitespace-nowrap">User</th>
+<th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider whitespace-nowrap">Assigned Role</th>
+<th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider whitespace-nowrap">Status</th>
+<th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider whitespace-nowrap">Last Login</th>
+<th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider whitespace-nowrap text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold">EK</div>
+<div>
+<p class="font-button-text text-button-text">Emmanuel K.</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">emmanuel@bndsacco.com</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error-container text-on-error-container">
+                                            Super Admin
+                                        </span>
+</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex items-center gap-1.5 text-tertiary-container">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+                                            Active
+                                        </div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap text-on-surface-variant">Today, 08:42 AM</td>
+<td class="py-3 px-6 whitespace-nowrap text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low" title="Edit Permissions">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed font-bold">SJ</div>
+<div>
+<p class="font-button-text text-button-text">Sarah J.</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">sarah.j@bndsacco.com</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container text-on-primary-container">
+                                            Manager
+                                        </span>
+</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex items-center gap-1.5 text-tertiary-container">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+                                            Active
+                                        </div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap text-on-surface-variant">Yesterday</td>
+<td class="py-3 px-6 whitespace-nowrap text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low" title="Edit Permissions">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed font-bold">DO</div>
+<div>
+<p class="font-button-text text-button-text">David O.</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">david.o@bndsacco.com</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-variant text-on-surface-variant">
+                                            Loan Officer
+                                        </span>
+</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                                            Offline
+                                        </div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap text-on-surface-variant">Oct 24, 2023</td>
+<td class="py-3 px-6 whitespace-nowrap text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low" title="Edit Permissions">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant font-bold">MA</div>
+<div>
+<p class="font-button-text text-button-text">Mary A.</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">mary.a@bndsacco.com</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border border-outline-variant text-on-surface">
+                                            Cashier
+                                        </span>
+</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex items-center gap-1.5 text-tertiary-container">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+                                            Active
+                                        </div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap text-on-surface-variant">Today, 09:15 AM</td>
+<td class="py-3 px-6 whitespace-nowrap text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low" title="Edit Permissions">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-4 border-t border-outline-variant flex items-center justify-between bg-surface">
+<span class="font-body-md text-body-md text-on-surface-variant">Showing 1 to 4 of 24 users</span>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant text-outline disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container-low">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) - Suppressed because this is an admin/desktop focused view in the prompt context, but included per structural JSON rules for mobile fallback if active. Since prompt asks for Admin settings with Sidebar, we hide BottomNav on md:flex. We will map "More" as active for settings. -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 pb-safe bg-surface border-t border-outline-variant shadow-[0_-2px_8px_rgba(0,0,0,0.05)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-label-md text-label-md mt-1">Savings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md mt-1">Loans</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-md text-label-md mt-1">Transactions</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined icon-fill-1" data-icon="menu">menu</span>
+<span class="font-label-md text-label-md mt-1">More</span>
+</a>
+</nav>
+</div>
+</body></html>

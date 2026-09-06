@@ -1,0 +1,111 @@
+'use client';
+
+import { useActionState, useState } from 'react';
+import { reverseTransaction } from '@/app/actions/financial';
+import { Alert } from '@/components/ui/states';
+import { Modal } from '@/components/ui/Modal';
+import { Button, Field, SubmitButton, Textarea } from '@/components/ui/form';
+import { formatUGX } from '@/lib/money';
+import type { ActionResult } from '@/lib/errors';
+
+/**
+ * Reverse a posted transaction.
+ *
+ * The brief is explicit: a completed financial transaction is never silently
+ * modified or deleted. Reversal writes a compensating entry, marks the original
+ * as reversed, links the two, rolls back the derived aggregates and records the
+ * reason in the audit log. Both rows stay visible forever.
+ *
+ * The reason field has a real minimum length because "correction" tells whoever
+ * audits this in two years' time nothing at all.
+ */
+export function ReverseTransaction({
+  transactionId,
+  reference,
+  amount,
+  memberName,
+}: {
+  transactionId: string;
+  reference: string;
+  amount: number;
+  memberName: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const [state, action] = useActionState<
+    ActionResult<{ reversal_reference: string; original_reference: string }> | null,
+    FormData
+  >(reverseTransaction, null);
+
+  const err = state && !state.ok ? state : null;
+
+  return (
+    <>
+      <div className="border-error/30 bg-error-container/30 rounded-xl border p-4">
+        <h2 className="text-button-text font-button-text text-on-surface">Correction</h2>
+        <p className="text-body-md font-body-md text-on-surface-variant mt-1">
+          This transaction cannot be edited or deleted. If it was recorded in error, post a
+          reversal — both entries stay on the record.
+        </p>
+        <Button variant="danger" className="mt-3" icon="undo" onClick={() => setOpen(true)}>
+          Reverse this transaction
+        </Button>
+      </div>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Reverse transaction"
+        description={`${reference} · ${formatUGX(amount)}${memberName ? ` · ${memberName}` : ''}`}
+      >
+        {state?.ok ? (
+          <div className="flex flex-col gap-4">
+            <Alert tone="success" title="Transaction reversed">
+              {state.message}
+            </Alert>
+            <Button size="lg" block onClick={() => setOpen(false)}>
+              Close
+            </Button>
+          </div>
+        ) : (
+          <form action={action} className="flex flex-col gap-5" noValidate>
+            <input type="hidden" name="transaction_id" value={transactionId} />
+
+            {err && !err.field ? <Alert tone="error">{err.error}</Alert> : null}
+
+            <Alert tone="warning" title="This cannot be undone">
+              A reversing entry of {formatUGX(amount)} will be posted. Balances, savings periods and
+              loan status all move back accordingly. Both entries remain visible to the member.
+            </Alert>
+
+            <Field
+              label="Reason for reversal"
+              htmlFor="reversal-reason"
+              required
+              hint="Recorded permanently in the audit log. Be specific — say what went wrong."
+              error={err?.field === 'reason' ? err.error : null}
+            >
+              <Textarea
+                id="reversal-reason"
+                name="reason"
+                required
+                minLength={10}
+                maxLength={1000}
+                invalid={err?.field === 'reason'}
+                placeholder="e.g. Recorded against the wrong member; the payment belonged to BND-M-0000482."
+              />
+            </Field>
+
+            <div className="flex gap-3">
+              <Button variant="outline" size="lg" className="flex-1" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <SubmitButton size="lg" variant="danger" className="flex-1" pendingLabel="Reversing…">
+                Confirm reversal
+              </SubmitButton>
+            </div>
+          </form>
+        )}
+      </Modal>
+    </>
+  );
+}

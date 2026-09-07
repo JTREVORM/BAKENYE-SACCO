@@ -25,6 +25,7 @@ export function TopAppBar({
 }) {
   return (
     <header
+      data-app-header
       className={clsx(
         'bg-surface border-outline-variant pt-safe fixed left-0 top-0 z-50 w-full border-b',
         'px-container-margin-mobile flex items-center justify-between',

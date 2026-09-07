@@ -4,6 +4,7 @@ import { TxnStatusBadge } from '@/components/ui/status';
 import { ReceiptActions } from './ReceiptActions';
 import { formatDateTime, formatDate, TXN_LABELS, PAYMENT_METHOD_LABELS } from '@/lib/format';
 import { formatUGX } from '@/lib/money';
+import { documentName } from '@/lib/print';
 import type { ReceiptPayload } from '@/types/db';
 
 /**
@@ -166,6 +167,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
         receiptNo={payload.receipt_no}
         amount={formatUGX(t.amount)}
         type={TXN_LABELS[t.type]}
+        documentTitle={documentName('Receipt', `${payload.receipt_no} ${t.member_name ?? ''}`)}
       />
     </div>
   );

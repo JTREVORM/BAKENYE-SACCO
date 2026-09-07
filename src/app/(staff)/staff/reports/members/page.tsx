@@ -5,6 +5,8 @@ import { PageTitle } from '@/components/ui/primitives';
 import { MemberStatusBadge } from '@/components/ui/status';
 import { EmptyState, ErrorState } from '@/components/ui/states';
 import { ExportButtons } from '@/components/ExportButtons';
+import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
+import { documentName } from '@/lib/print';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import type { MemberFinancialsRow, MemberStatus } from '@/types/db';
@@ -24,7 +26,7 @@ export default async function MemberRegisterPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
-  await requirePermission('members.view');
+  const user = await requirePermission('members.view');
   const sp = await searchParams;
 
   const supabase = await createClient();
@@ -76,16 +78,27 @@ export default async function MemberRegisterPage({
           subtitle={`${rows.length} ${rows.length === 1 ? 'member' : 'members'}${
             rows.length === 1000 ? ' (showing the first 1,000)' : ''
           }`}
-          action={<ExportButtons rows={csv} filename="bnd-member-register" />}
+          action={
+            <ExportButtons
+              rows={csv}
+              filename="bnd-member-register"
+              documentTitle={documentName('Member Register')}
+            />
+          }
         />
       </div>
 
-      <h1 className="text-headline-lg font-headline-lg text-primary mb-1 hidden print:block">
-        BAKENYE NATIONAL DEVELOPMENT SACCO — Member Register
-      </h1>
-      <p className="text-body-md font-body-md text-on-surface-variant mb-4 hidden print:block">
-        Generated {formatDate(new Date())} · {rows.length} members
-      </p>
+      <PrintLetterhead
+        title="Member Register"
+        subtitle={sp.status ? `${sp.status} members` : 'All members'}
+        generatedBy={user.fullName}
+        meta={[
+          { label: 'Members', value: rows.length.toLocaleString() },
+          { label: 'Total savings', value: formatUGX(totals.savings) },
+          { label: 'Share capital', value: formatUGX(totals.shares) },
+          { label: 'Loans outstanding', value: formatUGX(totals.loans) },
+        ]}
+      />
 
       {rows.length === 0 ? (
         <EmptyState icon="group" title="No members" description="The register is empty." />
@@ -139,6 +152,8 @@ export default async function MemberRegisterPage({
           </div>
         </div>
       )}
+
+      <PrintFooter />
     </div>
   );
 }

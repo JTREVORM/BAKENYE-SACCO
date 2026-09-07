@@ -24,7 +24,7 @@ the visual source of truth, and every screen below names the file it came from.
 | **Transactions** | One immutable ledger, `BND-TX-2026-004582` references, reversal workflow |
 | **Receipts** | Printable / PDF / shareable, with the SACCO crest and full transaction detail |
 | **Finance** | Income by category, expenses with a mandatory approval step, cashbook, profit & loss |
-| **Reports** | Member register, savings performance, loan portfolio, statements, cashbook — all printable and CSV-exportable |
+| **Reports** | Member register, group report, savings performance, schedules, statements, ledgers, cashbook — every one downloadable as a letterheaded PDF and as CSV |
 | **Users & roles** | Seven staff roles with a permission matrix generated from the rules the app actually enforces |
 | **Audit log** | Append-only, with before/after values and a mandatory reason on sensitive actions |
 
@@ -38,7 +38,7 @@ the visual source of truth, and every screen below names the file it came from.
 | **Supabase (Postgres + Auth + RLS)** | The brief asks for member data isolation. Row-level security enforces it in the database, so it holds even if application code forgets a filter. |
 | **Tailwind, compiled** | Stitch shipped the `cdn.tailwindcss.com` runtime — a ~90 KB JIT compiler downloaded on every page load. [`tailwind.config.ts`](tailwind.config.ts) is a verbatim port of its inline config, so identical classes produce identical CSS, compiled ahead of time. |
 | **No chart library** | The dashboard chart is hand-rolled server-rendered SVG. Recharts and friends cost 100–200 KB for what is twelve rectangles. |
-| **No PDF library** | Receipts and statements print through the browser's own engine using the print stylesheet in [`globals.css`](src/app/globals.css). "Save as PDF" is a print destination, not 200 KB of JavaScript. |
+| **No PDF library** | Every document — report, statement, receipt — prints through the browser's own engine using the print stylesheet in [`globals.css`](src/app/globals.css) and the letterhead in [`PrintLetterhead.tsx`](src/components/print/PrintLetterhead.tsx). "Save as PDF" is a print destination, not 300 KB–1 MB of JavaScript on a phone that is already slow. See [Documents and PDFs](#documents-and-pdfs). |
 | **Subsetted icon font** | [`src/lib/icons.ts`](src/lib/icons.ts) lists every glyph used and requests only those from Google Fonts: roughly 15 KB instead of ~350 KB. |
 
 ---
@@ -123,6 +123,50 @@ npm start
 
 ---
 
+## The sign-in screen
+
+`/login`, `/forgot-password` and `/reset-password` share
+[`AuthShell`](src/components/auth/AuthShell.tsx): the brand panel on the left, the task on the
+right, one footer across the bottom.
+
+There is **one** composition at every screen size, designed against 1024px.
+[`ScaledCanvas`](src/components/auth/ScaledCanvas.tsx) shrinks the whole thing to fit anything
+narrower rather than re-laying it out into a portrait stack — a specified requirement, with a real
+cost: at 390px the page renders at 38%, the Sign In button is 21px tall, and the form is legible by
+pinch-zooming rather than by reading. Rotating to landscape roughly doubles it. Above 1024px the
+component is a passthrough and nothing is scaled. Without JavaScript the page renders at full width
+and scrolls sideways, which is the same bargain as any desktop site on a phone.
+
+This is why the responsive audit reports six tap-target failures on `/login` — see
+[`docs/RESPONSIVE.md`](docs/RESPONSIVE.md). They are the requirement, not a regression.
+
+What used to differ by breakpoint, and no longer does:
+
+| | Now, at every width |
+| --- | --- |
+| Photograph | fills the lower half of the brand panel, navy above |
+| Assurance badges | four across, one line each |
+| Motto | bottom left, on the navy the swoosh lays down |
+| `Welcome Back` | mark above the greeting |
+| Footer | all four items spread across one line |
+
+**It expects one photograph that is not in the repository.** Drop a landscape image at:
+
+```
+public/brand/login-hero.jpg
+```
+
+It fills the lower half of the brand panel — a wide shot works best, since the top of it is blended
+back into the navy. Until that file exists the panel falls back to a CSS sunset gradient, so the
+composition holds either way and nothing ever renders as a broken image.
+
+The motto is set in Caveat, self-hosted by `next/font` exactly as Inter is — see
+[`brand-font.ts`](src/lib/brand-font.ts) — and preloaded only on the routes that use it. The four
+assurance badges carry literal hex values rather than design tokens: they are brand chrome for the
+signed-out screen, and the palette has no purple.
+
+---
+
 ## How money is kept correct
 
 This is the part worth reading before changing anything.
@@ -192,6 +236,37 @@ against the schedule.
 `record_scheduled_savings()`, which validates the amount, refuses a future date, refuses a
 duplicate external reference, posts one immutable ledger row, recomputes the schedule from its
 payment rows and writes the audit entry — all inside one database transaction.
+
+---
+
+## Documents and PDFs
+
+Reports, member statements, ledgers and receipts are documents that leave the building — a member
+takes a statement to a bank, an auditor keeps a register, a manager files a collection report. So
+each one carries a letterhead of its own, rendered by
+[`PrintLetterhead.tsx`](src/components/print/PrintLetterhead.tsx):
+
+- the SACCO crest and full registered name;
+- what the document **is** — *Group Report*, *Member Register*, *Member Financial Ledger*;
+- what it is **about** — the group, the member, the filter applied;
+- the **period** it covers, its headline totals, when it was generated and **by whom**.
+
+It is `hidden` on screen, because the page already has a heading, and `print:block` in the output,
+where that heading is gone. The application chrome is marked `[data-app-header]` and dropped, table
+headings repeat on every page (`thead { display: table-header-group }`), and mobile card layouts are
+suppressed so a printed ledger is always the ledger table.
+
+**Download PDF** goes through the browser's own print engine with "Save as PDF" as the destination.
+Browsers name that file from `document.title`, so [`lib/print.ts`](src/lib/print.ts) swaps in a real
+document name for the duration of the print and restores it afterwards — the file lands as
+`BND-SACCO Member Register 2026-09-07.pdf` rather than `Group report.pdf`, four times over, in the
+same Downloads folder.
+
+Checking the output is a command, not an eyeball:
+
+```bash
+node scripts/report-pdfs.mjs    # real PDFs, plus a PNG of the same print rendering
+```
 
 ---
 
@@ -326,6 +401,7 @@ npm run build                          # production build
 npm run test:db                        # the SQL suites in supabase/tests/
 node scripts/responsive-check.mjs      # audits every page at every width
 node scripts/desktop-shots.mjs         # screenshots the signed-in back office at 1280/1440/1920
+node scripts/report-pdfs.mjs           # renders every report to a real PDF, plus a PNG of the same print output
 ```
 
 `npm run test:db` runs each suite as a real signed-in super administrator, inside a transaction it

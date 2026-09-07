@@ -127,6 +127,8 @@ export function Field({
   error,
   hint,
   required,
+  icon,
+  emphasis = false,
   children,
   className,
 }: {
@@ -135,6 +137,17 @@ export function Field({
   error?: string | null;
   hint?: string;
   required?: boolean;
+  /** Rendered before the label. Used on the sign-in screen. */
+  icon?: IconName;
+  /**
+   * A larger, sentence-case, high-contrast label.
+   *
+   * The dense uppercase label is right inside the app, where a cashier is
+   * filling in the same form for the hundredth time. It is wrong on the
+   * sign-in screen, which is the first thing anyone sees and is read once,
+   * carefully.
+   */
+  emphasis?: boolean;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -142,10 +155,22 @@ export function Field({
     <div className={clsx('flex flex-col gap-1.5', className)}>
       <label
         htmlFor={htmlFor}
-        className="text-label-md font-label-md text-on-surface-variant uppercase"
+        className={clsx(
+          'flex items-center gap-2',
+          emphasis
+            ? 'text-body-md font-body-md text-on-surface font-semibold'
+            : 'text-label-md font-label-md text-on-surface-variant uppercase',
+        )}
       >
+        {icon ? (
+          <Icon
+            name={icon}
+            size={emphasis ? 20 : 16}
+            className={emphasis ? 'text-primary' : 'text-on-surface-variant'}
+          />
+        ) : null}
         {label}
-        {required ? <span className="text-error ml-1">*</span> : null}
+        {required ? <span className={clsx("text-error", !emphasis && "ml-1")}>*</span> : null}
       </label>
       {children}
       {error ? (
@@ -154,7 +179,16 @@ export function Field({
           {error}
         </p>
       ) : hint ? (
-        <p className="text-label-md font-label-md text-on-surface-variant normal-case">{hint}</p>
+        <p
+          className={clsx(
+            'text-on-surface-variant normal-case',
+            emphasis
+              ? 'text-[13px] leading-snug'
+              : 'text-label-md font-label-md',
+          )}
+        >
+          {hint}
+        </p>
       ) : null}
     </div>
   );

@@ -4,13 +4,16 @@ import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveGroups } from '@/lib/queries';
+import { ExportButtons } from '@/components/ExportButtons';
+import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
+import { documentName } from '@/lib/print';
 import { can } from '@/lib/rbac';
 import { PageTitle, Icon, Money, Avatar, ProgressBar } from '@/components/ui/primitives';
 import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
 import { SavingsKindTabs } from './SavingsKindTabs';
 import { OpenPeriodsButton } from './OpenPeriodsButton';
 import { formatUGX, percent, toNumber } from '@/lib/money';
-import { monthStart, toISODate } from '@/lib/format';
+import { formatDate, monthStart, toISODate } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
 import type { SavingsKind, SavingsPerformanceRow } from '@/types/db';
 
@@ -41,6 +44,7 @@ export default async function StaffSavingsPage({
 
   return (
     <div>
+      <div className="print:hidden">
       <PageTitle
         title="Savings"
         subtitle="Contribution performance across the membership."
@@ -71,7 +75,11 @@ export default async function StaffSavingsPage({
         }
       />
 
-      <SavingsKindTabs kind={kind} from={from} to={to} group={group} groups={groups} />
+      </div>
+
+      <div className="print:hidden">
+        <SavingsKindTabs kind={kind} from={from} to={to} group={group} groups={groups} />
+      </div>
 
       <Suspense
         key={`${kind}-${from}-${to}-${group}`}
@@ -83,6 +91,8 @@ export default async function StaffSavingsPage({
           to={to}
           group={group}
           canRecord={can(user.role, 'savings.record')}
+          generatedBy={user.fullName}
+          groupName={groups.find((g) => g.id === group)?.name}
         />
       </Suspense>
     </div>
@@ -95,12 +105,16 @@ async function Performance({
   to,
   group,
   canRecord,
+  generatedBy,
+  groupName,
 }: {
   kind: SavingsKind;
   from: string;
   to: string;
   group: string;
   canRecord: boolean;
+  generatedBy: string;
+  groupName?: string;
 }) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('savings_performance', {
@@ -131,8 +145,56 @@ async function Performance({
     { expected: 0, paid: 0, balance: 0 },
   );
 
+  const csv = [
+    ['Member No', 'Member', 'Group', 'Periods', 'Expected', 'Paid', 'Shortfall', 'Paid periods', 'Missed periods', 'Compliance %'],
+    ...withActivity.map((r) => [
+      r.member_no,
+      r.full_name,
+      r.group_name ?? '',
+      r.periods,
+      toNumber(r.expected),
+      toNumber(r.paid),
+      toNumber(r.balance),
+      r.paid_periods,
+      r.missed_periods,
+      toNumber(r.compliance),
+    ]),
+    [],
+    ['TOTAL', '', '', '', totals.expected, totals.paid, totals.balance],
+  ];
+
+  const scope = groupName ?? 'All groups';
+  const label = kind === 'weekly' ? 'Weekly' : 'Monthly';
+
   return (
     <div className="mt-6 flex flex-col gap-6">
+      <PrintLetterhead
+        title={`${label} Savings Performance`}
+        subtitle={scope}
+        generatedBy={generatedBy}
+        meta={[
+          { label: 'Period', value: `${formatDate(from)} to ${formatDate(to)}` },
+          { label: 'Members', value: String(withActivity.length) },
+          { label: 'Expected', value: formatUGX(totals.expected) },
+          { label: 'Collected', value: formatUGX(totals.paid) },
+          {
+            label: 'Rate',
+            value: `${Math.round(percent(totals.paid, totals.expected))}%`,
+          },
+        ]}
+      />
+
+      <div className="flex justify-end print:hidden">
+        <ExportButtons
+          rows={csv}
+          filename={`savings-performance-${kind}-${from}-to-${to}`}
+          documentTitle={documentName(
+            `${label} Savings Performance`,
+            `${scope} ${from} to ${to}`,
+          )}
+        />
+      </div>
+
       {/* Period totals */}
       <section className="gap-gutter grid grid-cols-2 lg:grid-cols-4">
         <Total label="Expected" value={totals.expected} />
@@ -169,7 +231,7 @@ async function Performance({
       ) : (
         <>
           {/* Mobile: cards */}
-          <ul className="flex flex-col gap-2 lg:hidden">
+          <ul className="flex flex-col gap-2 lg:hidden print:hidden">
             {withActivity.map((r) => (
               <li
                 key={r.member_id}
@@ -300,6 +362,8 @@ async function Performance({
           </div>
         </>
       )}
+
+      <PrintFooter />
     </div>
   );
 }

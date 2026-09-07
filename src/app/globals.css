@@ -147,7 +147,12 @@
     font-size: 11pt;
   }
 
+  /* The application chrome is not part of the document. `[data-app-header]`
+   * marks the shell bars specifically, rather than every `<header>` — the
+   * report letterhead is a `<header>` too, and it is the one thing on the page
+   * that must survive. */
   .no-print,
+  [data-app-header],
   header nav,
   nav[data-bottom-bar],
   aside[data-sidebar] {
@@ -174,6 +179,48 @@
   tr,
   .avoid-break {
     break-inside: avoid;
+  }
+
+  /* A register can run to many pages. Repeat the column headings on each one,
+   * or page four is a wall of unlabelled numbers. */
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  /* The letterhead is the first thing on the document and must not be split
+   * from the content it introduces. */
+  .print-letterhead {
+    break-inside: avoid;
+    break-after: avoid;
+  }
+
+  .print-footer {
+    break-inside: avoid;
+  }
+
+  /* Reports are read as documents, not as an interface: drop the card
+   * chrome so the page is content on paper rather than boxes on paper. */
+  .print-plain,
+  .print-plain * {
+    box-shadow: none !important;
+  }
+
+  /* Keep the brand mark and the ruled letterhead rule; browsers strip
+   * backgrounds and borders from print by default to save ink. */
+  .print-letterhead,
+  .print-letterhead * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Screen-only scroll containers must not clip a printed table. */
+  .overflow-x-auto,
+  .scroll-x {
+    overflow: visible !important;
   }
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
+import { AuthShell } from '@/components/auth/AuthShell';
+import { Icon } from '@/components/ui/primitives';
 import { LoginForm } from './LoginForm';
 
 export const metadata: Metadata = { title: 'Sign in' };
@@ -8,10 +9,9 @@ export const metadata: Metadata = { title: 'Sign in' };
 /**
  * Sign-in.
  *
- * Stitch did not export a login screen, so this one is assembled entirely from
- * the design system it did define: the `primary` royal-blue field, the BND
- * crest, `display-currency` / `headline-lg-mobile` type roles, 56px primary
- * action, and the same card treatment as every other surface.
+ * The brand panel and the footer live in `AuthShell`, shared with the password
+ * screens. This route owns only the card: the greeting, the form, and the two
+ * things a member who cannot get in needs next.
  */
 export default async function LoginPage({
   searchParams,
@@ -21,52 +21,52 @@ export default async function LoginPage({
   const { next, reset } = await searchParams;
 
   return (
-    <div className="bg-primary flex min-h-[100dvh] flex-col">
-      {/* Brand band — the royal blue that anchors the whole app. */}
-      {/* `overflow-hidden` is load-bearing: the decorative blur below is
-          positioned outside the box, and without clipping it widens the
-          document and produces a horizontal scrollbar from 768px up. */}
-      <div className="px-container-margin-mobile relative flex flex-col items-center overflow-hidden pb-10 pt-14 text-center">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
-        <Image
-          src="/brand/bnd-logo.png"
-          alt="Bakenye National Development SACCO"
-          width={96}
-          height={96}
-          priority
-          className="h-20 w-20 rounded-full bg-white object-contain p-1 shadow-lg sm:h-24 sm:w-24"
-        />
-        <h1 className="text-on-primary text-headline-lg-mobile font-headline-lg-mobile mt-4 font-bold">
-          BND-SACCO
+    <AuthShell>
+      <div className="bg-surface-container-lowest rounded-[22px] p-9 shadow-[0_18px_50px_-12px_rgba(10,38,96,0.28)]">
+        <Icon name="person" size={38} className="text-primary mb-3" filled={false} />
+        <h1 className="text-on-surface text-[40px] font-extrabold leading-tight tracking-tight">
+          Welcome Back
         </h1>
-        <p className="text-primary-fixed-dim text-body-md font-body-md mt-1 max-w-xs">
-          Bakenye National Development SACCO
+
+        <p className="text-on-surface-variant mt-2 text-base leading-relaxed">
+          Sign in to access your account and manage your SACCO services.
         </p>
-      </div>
 
-      {/* Sheet — rises over the brand band, matching the Level-3 treatment. */}
-      <div className="bg-background flex flex-1 flex-col rounded-t-[1.5rem] px-container-margin-mobile pt-8 shadow-[0_-4px_16px_rgba(0,0,0,0.15)]">
-        <div className="mx-auto w-full max-w-sm pb-10">
-          <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">
-            Welcome back
-          </h2>
-          <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-            Sign in to view your savings, shares and loans.
-          </p>
+        <LoginForm next={next} resetDone={reset === 'done'} />
 
-          <LoginForm next={next} resetDone={reset === 'done'} />
+        {/* "Not registered yet?" is a rule with a caption on it, exactly as a
+            divider between the form and the help below it. */}
+        <div className="mt-7 flex items-center gap-4">
+          <span className="bg-outline-variant/60 h-px flex-1" />
+          <span className="text-on-surface-variant shrink-0 text-sm">
+            Not registered yet?
+          </span>
+          <span className="bg-outline-variant/60 h-px flex-1" />
+        </div>
 
-          <p className="text-body-md font-body-md text-on-surface-variant mt-8 text-center">
-            Not registered yet? Visit the SACCO office to open your membership.
-          </p>
+        <p className="mt-3 text-center">
+          <Link
+            href="/help"
+            className="text-primary hover:bg-surface-container-high h-touch-target-min inline-flex items-center rounded-lg px-3 text-[15px] font-semibold underline"
+          >
+            Need help signing in?
+          </Link>
+        </p>
 
-          <p className="text-label-md font-label-md text-on-surface-variant mt-6 text-center normal-case">
-            <Link href="/help" className="text-primary underline">
-              Need help signing in?
-            </Link>
-          </p>
+        <div className="bg-primary-fixed/60 mt-6 flex items-start gap-3 rounded-xl p-4">
+          <span className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+            <Icon name="verified_user" size={20} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-primary text-[15px] font-bold">
+              Your information is safe with us.
+            </p>
+            <p className="text-on-surface-variant mt-0.5 text-sm leading-snug">
+              We use industry-standard security measures to protect your data.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </AuthShell>
   );
 }

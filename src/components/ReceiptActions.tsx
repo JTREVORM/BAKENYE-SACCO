@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/form';
 import { Icon } from '@/components/ui/primitives';
+import { printDocument } from '@/lib/print';
 
 /**
  * Receipt actions: print, save as PDF, share, copy reference.
@@ -22,11 +23,13 @@ export function ReceiptActions({
   receiptNo,
   amount,
   type,
+  documentTitle,
 }: {
   reference: string;
   receiptNo: string;
   amount: string;
   type: string;
+  documentTitle?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const canShare = typeof navigator !== 'undefined' && 'share' in navigator;
@@ -62,7 +65,7 @@ export function ReceiptActions({
           size="lg"
           className="flex-1"
           icon="print"
-          onClick={() => window.print()}
+          onClick={() => printDocument(documentTitle)}
         >
           Print
         </Button>
@@ -71,10 +74,10 @@ export function ReceiptActions({
           size="lg"
           className="flex-1"
           icon="download"
-          onClick={() => window.print()}
+          onClick={() => printDocument(documentTitle)}
           title="Choose “Save as PDF” in the print dialog"
         >
-          Save PDF
+          Download PDF
         </Button>
       </div>
 

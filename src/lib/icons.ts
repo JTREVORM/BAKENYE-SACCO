@@ -35,6 +35,8 @@ export const ICON_NAMES = [
   // Groups and collection days
   'event_available', 'event_busy', 'today', 'group_add', 'checklist',
   'pending_actions', 'lock_open', 'percent',
+  // Sign-in and brand chrome
+  'login', 'verified_user',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

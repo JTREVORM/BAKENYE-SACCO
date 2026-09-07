@@ -1,7 +1,10 @@
 # Responsive audit
 
 Every page is checked at the nine widths the brief lists, with an automated script rather than by
-eye. The current result is **45/45 clean**.
+eye. The current result is **39/45 clean**. All six reports are `/login` below 1024px, where the
+signed-out design is a fixed composition scaled to fit by design — see
+[the exception below](#the-signed-out-screens-are-a-deliberate-exception). Every other route is
+clean at every width.
 
 ```bash
 npm run dev
@@ -105,6 +108,26 @@ applied to the savings register, the schedules browser, the group report and the
 **6 · Collection-sheet table actions were 36px.**
 *Record* and the waive control used `size="sm"`. Staff work a collection sheet on a tablet as often
 as on a laptop, so both are now the default 44px control.
+
+### The signed-out screens are a deliberate exception
+
+`/login`, `/forgot-password` and `/reset-password` no longer respond to width at all. They are
+one fixed landscape composition designed against 1024px, which
+[`ScaledCanvas`](../src/components/auth/ScaledCanvas.tsx) shrinks to fit anything narrower — a
+specified requirement: the sign-in screen is to look identical on a phone and a monitor rather than
+being re-laid-out into a portrait stack.
+
+The audit reports six tap-target failures, all on `/login`, at 320 / 360 / 375 / 390 / 430 / 768.
+They are correct. At 390px the 56px Sign In button renders 21px tall and at 320px, 18px; every
+control shrinks by the same factor. This is the cost of the requirement, not a defect to fix — the
+viewport still permits pinch-zoom (see the `maximum-scale` note in `layout.tsx`), and rotating the
+handset to landscape roughly doubles the scale. The password screens happen to stay above the
+threshold because they carry fewer and larger controls, which is luck rather than design: they are
+scaled by exactly the same factor.
+
+What the audit still usefully proves on these routes: no horizontal overflow at any width, no
+clipped text, and the Sign In button reachable by scrolling in landscape, where the composition is
+taller than the viewport.
 
 ### Wide desktop
 

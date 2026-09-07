@@ -6,7 +6,11 @@ import { createClient } from '@/lib/supabase/server';
 import { PageTitle } from '@/components/ui/primitives';
 import { ErrorState, TableSkeleton } from '@/components/ui/states';
 import { SchedulesBrowser } from './SchedulesBrowser';
-import { toNumber } from '@/lib/money';
+import { ExportButtons } from '@/components/ExportButtons';
+import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
+import { documentName } from '@/lib/print';
+import { formatAmount, formatUGX, toNumber } from '@/lib/money';
+import { formatDate } from '@/lib/format';
 import type { SavingsScheduleRow, SavingsStatus } from '@/types/db';
 
 export const metadata: Metadata = { title: 'Savings schedules' };
@@ -31,18 +35,20 @@ export default async function SchedulesPage({
     page?: string;
   }>;
 }) {
-  await requirePermission('savings.view');
+  const user = await requirePermission('savings.view');
   const sp = await searchParams;
 
   return (
     <div>
-      <PageTitle
-        title="Savings schedules"
-        subtitle="What each member was expected to save, what they paid, and what is still owed."
-      />
+      <div className="print:hidden">
+        <PageTitle
+          title="Savings schedules"
+          subtitle="What each member was expected to save, what they paid, and what is still owed."
+        />
+      </div>
 
       <Suspense key={JSON.stringify(sp)} fallback={<TableSkeleton rows={8} cols={7} />}>
-        <Schedules sp={sp} />
+        <Schedules sp={sp} generatedBy={user.fullName} />
       </Suspense>
     </div>
   );
@@ -50,8 +56,10 @@ export default async function SchedulesPage({
 
 async function Schedules({
   sp,
+  generatedBy,
 }: {
   sp: { q?: string; status?: string; group?: string; from?: string; to?: string; page?: string };
+  generatedBy: string;
 }) {
   const page = Math.max(1, Number(sp.page ?? '1') || 1);
   const supabase = await createClient();
@@ -99,14 +107,74 @@ async function Schedules({
     { expected: 0, paid: 0, outstanding: 0 },
   );
 
+  const csv = [
+    ['Member No', 'Member', 'Group', 'Cycle', 'Due', 'Expected', 'Paid', 'Outstanding', 'Status'],
+    ...rows.map((r) => [
+      r.member_no,
+      r.member_name,
+      r.group_name ?? '',
+      r.period_label,
+      r.due_on,
+      formatAmount(r.expected_amount),
+      formatAmount(r.paid_amount),
+      formatAmount(r.outstanding),
+      r.status,
+    ]),
+    [],
+    [
+      'TOTAL (this page)',
+      '',
+      '',
+      '',
+      '',
+      formatAmount(totals.expected),
+      formatAmount(totals.paid),
+      formatAmount(totals.outstanding),
+    ],
+  ];
+
+  const scope = groups.find((g) => g.id === sp.group)?.name ?? 'All groups';
+  const statusLabel = sp.status ? sp.status[0].toUpperCase() + sp.status.slice(1) : 'All statuses';
+
   return (
-    <SchedulesBrowser
-      rows={rows}
-      total={count ?? rows.length}
-      page={page}
-      pageSize={PAGE_SIZE}
-      groups={groups}
-      totals={totals}
-    />
+    <>
+      <PrintLetterhead
+        title="Savings Schedules"
+        subtitle={`${scope} · ${statusLabel}`}
+        generatedBy={generatedBy}
+        meta={[
+          {
+            label: 'Due between',
+            value:
+              sp.from || sp.to
+                ? `${sp.from ? formatDate(sp.from) : 'the beginning'} and ${sp.to ? formatDate(sp.to) : 'today'}`
+                : 'Any date',
+          },
+          { label: 'Schedules', value: String(rows.length) },
+          { label: 'Expected', value: formatUGX(totals.expected) },
+          { label: 'Paid', value: formatUGX(totals.paid) },
+          { label: 'Outstanding', value: formatUGX(totals.outstanding) },
+        ]}
+      />
+
+      <div className="mb-4 flex justify-end print:hidden">
+        <ExportButtons
+          rows={csv}
+          filename="savings-schedules"
+          documentTitle={documentName('Savings Schedules', scope)}
+        />
+      </div>
+
+      <SchedulesBrowser
+        rows={rows}
+        total={count ?? rows.length}
+        page={page}
+        pageSize={PAGE_SIZE}
+        groups={groups}
+        totals={totals}
+      />
+
+      <PrintFooter note="Figures cover the schedules listed on this page. Every one is computed from the member transaction ledger." />
+    </>
   );
 }

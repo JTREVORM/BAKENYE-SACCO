@@ -62,7 +62,7 @@ export function SchedulesBrowser({
   return (
     <div className="flex flex-col gap-4">
       {/* ------------------------------------------------------- controls */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 print:hidden">
         <SearchInput
           defaultValue={q}
           onSearch={(v) => setParam('q', v)}
@@ -144,7 +144,7 @@ export function SchedulesBrowser({
         />
       </section>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 print:hidden">
         <p className="text-label-md font-label-md text-on-surface-variant normal-case">
           {total.toLocaleString()} {total === 1 ? 'schedule' : 'schedules'} on this page of results
         </p>
@@ -170,7 +170,7 @@ export function SchedulesBrowser({
       ) : (
         <>
           {/* Mobile: cards */}
-          <ul className="flex flex-col gap-2 lg:hidden">
+          <ul className="flex flex-col gap-2 lg:hidden print:hidden">
             {rows.map((r) => (
               <li
                 key={r.schedule_id}
@@ -289,7 +289,7 @@ export function SchedulesBrowser({
           </div>
 
           {totalPages > 1 ? (
-            <nav className="flex items-center justify-between gap-3" aria-label="Schedule pages">
+            <nav className="flex items-center justify-between gap-3 print:hidden" aria-label="Schedule pages">
               <Button
                 variant="outline"
                 icon="chevron_left"

@@ -9,6 +9,8 @@ import { EmptyState, ErrorState, TableSkeleton } from '@/components/ui/states';
 import { MemberStatusBadge } from '@/components/ui/status';
 import { StatementRange } from '@/components/StatementRange';
 import { ExportButtons } from '@/components/ExportButtons';
+import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
+import { documentName } from '@/lib/print';
 import { GroupReportPicker } from './GroupReportPicker';
 import { savingDayLabel, SAVING_FREQUENCY_LABELS } from '@/lib/groups';
 import { formatDate, formatPhone, monthStart, toISODate } from '@/lib/format';
@@ -31,7 +33,7 @@ export default async function GroupReportPage({
 }: {
   searchParams: Promise<{ group?: string; from?: string; to?: string }>;
 }) {
-  await requirePermission('groups.view');
+  const user = await requirePermission('groups.view');
   const sp = await searchParams;
 
   const today = new Date();
@@ -49,10 +51,12 @@ export default async function GroupReportPage({
         Reports
       </Link>
 
-      <PageTitle
-        title="Group report"
-        subtitle="Expected against collected for one group, member by member."
-      />
+      <div className="print:hidden">
+        <PageTitle
+          title="Group report"
+          subtitle="Expected against collected for one group, member by member."
+        />
+      </div>
 
       <div className="flex flex-col gap-4 print:hidden">
         <GroupReportPicker groups={groups} selected={sp.group ?? ''} />
@@ -69,14 +73,24 @@ export default async function GroupReportPage({
         </div>
       ) : (
         <Suspense key={`${sp.group}-${from}-${to}`} fallback={<TableSkeleton rows={8} cols={6} />}>
-          <Report groupId={sp.group} from={from} to={to} />
+          <Report groupId={sp.group} from={from} to={to} generatedBy={user.fullName} />
         </Suspense>
       )}
     </div>
   );
 }
 
-async function Report({ groupId, from, to }: { groupId: string; from: string; to: string }) {
+async function Report({
+  groupId,
+  from,
+  to,
+  generatedBy,
+}: {
+  groupId: string;
+  from: string;
+  to: string;
+  generatedBy: string;
+}) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('group_report', {
     p_group_id: groupId,
@@ -126,8 +140,23 @@ async function Report({ groupId, from, to }: { groupId: string; from: string; to
 
   return (
     <div className="space-y-6">
+      <PrintLetterhead
+        title="Group Report"
+        subtitle={`${g.name} · ${g.group_code}`}
+        generatedBy={generatedBy}
+        meta={[
+          { label: 'Period', value: `${formatDate(from)} to ${formatDate(to)}` },
+          { label: 'Saving day', value: savingDayLabel(g.saving_day) },
+          { label: 'Members', value: String(report.totals.members) },
+          {
+            label: 'Officer',
+            value: g.loan_officer_name ?? 'Not assigned',
+          },
+        ]}
+      />
+
       {/* --------------------------------------------------------- header */}
-      <section className="bg-surface border-outline-variant/30 elev-1 rounded-xl border p-5">
+      <section className="bg-surface border-outline-variant/30 elev-1 print-plain rounded-xl border p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">
@@ -143,9 +172,11 @@ async function Report({ groupId, from, to }: { groupId: string; from: string; to
               {g.loan_officer_name ? `officer ${g.loan_officer_name}` : 'no officer assigned'}
             </p>
           </div>
-          <div className="print:hidden">
-            <ExportButtons filename={`group-report-${g.group_code}-${from}-to-${to}`} rows={csv} />
-          </div>
+          <ExportButtons
+            filename={`group-report-${g.group_code}-${from}-to-${to}`}
+            documentTitle={documentName('Group Report', `${g.name} ${from} to ${to}`)}
+            rows={csv}
+          />
         </div>
 
         <dl className="border-outline-variant/40 mt-5 grid grid-cols-2 gap-4 border-t pt-5 lg:grid-cols-4">
@@ -300,6 +331,8 @@ async function Report({ groupId, from, to }: { groupId: string; from: string; to
           </div>
         </>
       )}
+
+      <PrintFooter />
     </div>
   );
 }

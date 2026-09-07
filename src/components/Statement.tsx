@@ -5,6 +5,7 @@ import { StatementActions } from './StatementActions';
 import { formatDate, formatDateTime, TXN_LABELS } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
+import { documentName } from '@/lib/print';
 import type { MemberStatement } from '@/types/db';
 
 /**
@@ -197,7 +198,12 @@ export function Statement({ statement }: { statement: MemberStatement }) {
         reported separately.
       </p>
 
-      <StatementActions />
+      <StatementActions
+        documentTitle={documentName(
+          'Statement',
+          `${statement.member.full_name} ${statement.from} to ${statement.to}`,
+        )}
+      />
     </div>
   );
 }

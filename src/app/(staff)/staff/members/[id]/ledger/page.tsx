@@ -9,6 +9,8 @@ import { EmptyState, ErrorState } from '@/components/ui/states';
 import { TxnStatusBadge } from '@/components/ui/status';
 import { StatementRange } from '@/components/StatementRange';
 import { ExportButtons } from '@/components/ExportButtons';
+import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
+import { documentName } from '@/lib/print';
 import { savingDayLabel } from '@/lib/groups';
 import { formatDate, monthStart, toISODate, TXN_LABELS } from '@/lib/format';
 import { formatAmount, formatUGX, toNumber } from '@/lib/money';
@@ -32,7 +34,7 @@ export default async function MemberLedgerPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
-  await requirePermission('members.view');
+  const user = await requirePermission('members.view');
   const { id } = await params;
   const sp = await searchParams;
 
@@ -97,15 +99,30 @@ export default async function MemberLedgerPage({
         {member.full_name}
       </Link>
 
+      <div className="print:hidden">
       <PageTitle
         title="Financial ledger"
         subtitle={`${member.full_name} · ${member.member_no}${member.group_name ? ` · ${member.group_name} (${savingDayLabel(member.group_saving_day)})` : ''}`}
         action={
           <ExportButtons
             filename={`ledger-${member.member_no}-${from}-to-${to}`}
+            documentTitle={documentName('Member Ledger', `${member.full_name} ${from} to ${to}`)}
             rows={csv}
           />
         }
+      />
+      </div>
+
+      <PrintLetterhead
+        title="Member Financial Ledger"
+        subtitle={`${member.full_name} · ${member.member_no}`}
+        generatedBy={user.fullName}
+        meta={[
+          { label: 'Period', value: `${formatDate(from)} to ${formatDate(to)}` },
+          { label: 'Group', value: member.group_name ?? 'Not in a group' },
+          { label: 'Opening', value: formatUGX(statement.opening_balance) },
+          { label: 'Closing', value: formatUGX(closing) },
+        ]}
       />
 
       <div className="print:hidden">
@@ -113,7 +130,7 @@ export default async function MemberLedgerPage({
       </div>
 
       {/* ------------------------------------------------------- summary */}
-      <section className="bg-surface border-outline-variant/30 elev-1 grid grid-cols-2 gap-4 rounded-xl border p-4 lg:grid-cols-4">
+      <section className="bg-surface border-outline-variant/30 elev-1 print-plain grid grid-cols-2 gap-4 rounded-xl border p-4 lg:grid-cols-4">
         <Total label="Opening balance" value={statement.opening_balance} />
         <Total label="Money in" value={totals.credit} tone="text-tertiary" />
         <Total label="Money out" value={totals.debit} tone="text-error" />
@@ -133,7 +150,7 @@ export default async function MemberLedgerPage({
         <>
           {/* Mobile: one card per movement, since a five-column ledger is
               unreadable at 360px. */}
-          <ul className="flex flex-col gap-2 lg:hidden">
+          <ul className="flex flex-col gap-2 lg:hidden print:hidden">
             {rows.map((r) => {
               const credit = isCredit(r.type);
               return (
@@ -246,6 +263,8 @@ export default async function MemberLedgerPage({
           </div>
         </>
       )}
+
+      <PrintFooter />
     </div>
   );
 }

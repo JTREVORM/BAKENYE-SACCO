@@ -15,7 +15,7 @@ export function LoginForm({ next, resetDone }: { next?: string; resetDone?: bool
   const error = state && !state.ok ? state : null;
 
   return (
-    <form action={action} className="mt-6 flex flex-col gap-4" noValidate>
+    <form action={action} className="mt-7 flex flex-col gap-5" noValidate>
       {resetDone ? (
         <Alert tone="success" title="Password changed">
           Sign in with your new password.
@@ -27,8 +27,10 @@ export function LoginForm({ next, resetDone }: { next?: string; resetDone?: bool
       <input type="hidden" name="next" value={next ?? ''} />
 
       <Field
-        label="Email or member number"
+        label="Email or Member Number"
         htmlFor="identifier"
+        icon="person"
+        emphasis
         required
         error={error?.field === 'identifier' ? error.error : null}
         hint="Members can sign in with their number, e.g. BND-M-0000123."
@@ -51,6 +53,8 @@ export function LoginForm({ next, resetDone }: { next?: string; resetDone?: bool
       <Field
         label="Password"
         htmlFor="password"
+        icon="lock"
+        emphasis
         required
         error={error?.field === 'password' ? error.error : null}
       >
@@ -63,7 +67,7 @@ export function LoginForm({ next, resetDone }: { next?: string; resetDone?: bool
             enterKeyHint="go"
             required
             invalid={error?.field === 'password'}
-            placeholder="••••••••"
+            placeholder="Enter your password"
             className="pr-14"
           />
           <button
@@ -71,26 +75,26 @@ export function LoginForm({ next, resetDone }: { next?: string; resetDone?: bool
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             aria-pressed={showPassword}
-            className="text-on-surface-variant hover:bg-surface-container-high absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full"
+            className="text-primary hover:bg-surface-container-high absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full"
           >
-            <Icon name={showPassword ? 'visibility_off' : 'visibility'} size={20} />
+            <Icon name={showPassword ? 'visibility_off' : 'visibility'} size={20} filled={false} />
           </button>
         </div>
       </Field>
 
-      <div className="-mt-1 flex justify-end">
+      <div className="-mt-2 flex justify-end">
         {/* Padded to a 44px-high target — a 16px-tall text link is below the
             minimum in DESIGN.md and hard to hit one-handed. */}
         <Link
           href="/forgot-password"
-          className="text-label-md font-label-md text-primary hover:bg-surface-container-high -mr-2 flex h-touch-target-min items-center rounded-lg px-2 normal-case underline"
+          className="text-label-md font-label-md text-primary hover:bg-surface-container-high h-touch-target-min -mr-2 flex items-center rounded-lg px-2 text-[14px] normal-case"
         >
           Forgot your password?
         </Link>
       </div>
 
-      <SubmitButton size="lg" block pendingLabel="Signing in…" className="mt-2">
-        Sign in
+      <SubmitButton size="lg" block icon="login" pendingLabel="Signing in…">
+        Sign In
       </SubmitButton>
     </form>
   );

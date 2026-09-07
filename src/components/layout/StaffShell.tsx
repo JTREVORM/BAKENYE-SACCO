@@ -36,7 +36,11 @@ export function StaffShell({
       <Sidebar items={nav} open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <div className="bg-background flex h-full flex-1 flex-col overflow-hidden">
-        <header className="bg-surface border-outline-variant/50 px-container-margin-mobile md:px-container-margin-desktop z-30 flex h-16 shrink-0 items-center justify-between border-b shadow-sm md:h-20">
+        {/* The bar spans the viewport; its contents share the content
+            container, so the account block lines up with the right edge of the
+            page rather than floating off at the edge of a 1920px monitor. */}
+        <header className="bg-surface border-outline-variant/50 z-30 shrink-0 border-b shadow-sm">
+          <div className="px-container-margin-mobile md:px-container-margin-desktop max-w-content mx-auto flex h-16 w-full items-center justify-between md:h-20">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
@@ -150,10 +154,11 @@ export function StaffShell({
               ) : null}
             </div>
           </div>
+          </div>
         </header>
 
         <main className="p-container-margin-mobile md:p-container-margin-desktop flex-1 overflow-y-auto">
-          {children}
+          <div className="max-w-content mx-auto w-full">{children}</div>
         </main>
       </div>
     </div>

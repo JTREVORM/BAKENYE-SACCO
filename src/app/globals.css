@@ -97,11 +97,28 @@
   }
 
   /* Sticky form footer for mobile - keeps the primary action in the thumb
-   * zone without covering the last field. */
+   * zone without covering the last field.
+   *
+   * From `md` up it stops being sticky. A desktop form is scrolled with a
+   * mouse and has no thumb zone, so pinning the bar to the bottom of the
+   * viewport parks it in the middle of the form and hides the fields
+   * underneath it - which is exactly what it did to the target amounts on the
+   * group form. */
   .sticky-actions {
     @apply sticky bottom-0 -mx-container-margin-mobile mt-6 border-t border-outline-variant
            bg-surface px-container-margin-mobile py-3;
     padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 768px) {
+    .sticky-actions {
+      position: static;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+      padding-bottom: 0.75rem;
+    }
   }
 
   /* Horizontal scroll container for wide data. The page body must never

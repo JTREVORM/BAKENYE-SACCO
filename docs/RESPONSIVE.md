@@ -106,6 +106,32 @@ applied to the savings register, the schedules browser, the group report and the
 *Record* and the waive control used `size="sm"`. Staff work a collection sheet on a tablet as often
 as on a laptop, so both are now the default 44px control.
 
+### Wide desktop
+
+The audit measures overflow and tap targets, which are mobile failure modes. It cannot see that a
+layout is *stretched* — a 1,580px search field passes every check it runs. So the back office was
+also inspected as a signed-in user at 1280 / 1440 / 1920 through
+[`scripts/desktop-shots.mjs`](../scripts/desktop-shots.mjs), which screenshots the real
+authenticated screens rather than the fixture harness. Three defects, all fixed.
+
+**7 · Nothing capped the content width.**
+Stitch designed at 1440px. On a 1920px monitor the staff area ran the full 1,664px beside the
+sidebar: stat cards became 400px of empty space around a single number, the member search field ran
+1,580px, and the eye had to cross the whole screen from a page title on the left to its action
+button on the right. `max-w-content` (1440px, in `tailwind.config.ts`) now caps and centres the
+content, and the header bar shares the same container so the account block lines up with the right
+edge of the page instead of floating at the edge of the glass. Below ~1740px nothing changes.
+
+**8 · The sticky action bar covered form fields on desktop.**
+`.sticky-actions` pins the primary action to the bottom of the viewport — right for a thumb, wrong
+for a mouse. On the group form it parked itself mid-page over *Weekly target per member*. From
+`md` up it is now static and simply ends the form.
+
+**9 · The collection-date controls wrapped onto three rows.**
+The date input carries `w-full` from `CONTROL_BASE`, which beat the `w-auto` passed to it, so it
+filled the row and pushed the arrows either side of it onto lines of their own. It is now sized by
+a wrapper instead of by fighting that class.
+
 ---
 
 ## Layout decisions this verified

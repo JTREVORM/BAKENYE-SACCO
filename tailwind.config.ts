@@ -91,6 +91,19 @@ const config: Config = {
         'touch-target-primary': '56px',
         'touch-target-min': '44px',
       },
+      maxWidth: {
+        /**
+         * The widest the back office ever gets.
+         *
+         * Stitch designed for 1440px. Left to fill a 1920px monitor, a stat
+         * card becomes 400px of empty space around one number, a search field
+         * runs 1,580px, and the eye has to travel the whole screen between a
+         * page title on the left and its action button on the right. Capping
+         * the content and centring it keeps the composition the design
+         * intended, and still leaves eight-column tables room to breathe.
+         */
+        content: '1440px',
+      },
       fontFamily: {
         'display-currency': ['Inter', 'system-ui', 'sans-serif'],
         'headline-lg': ['Inter', 'system-ui', 'sans-serif'],

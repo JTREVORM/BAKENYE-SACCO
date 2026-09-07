@@ -50,13 +50,18 @@ export function TodayControls({ date, canRecord }: { date: string; canRecord: bo
           <Icon name="chevron_left" size={20} />
         </Button>
 
-        <Input
-          type="date"
-          aria-label="Collection date"
-          value={date}
-          onChange={(e) => e.target.value && go(e.target.value)}
-          className="w-auto min-w-[10rem] flex-1 sm:flex-none"
-        />
+        {/* The control carries `w-full` from CONTROL_BASE, so it is sized by
+            its wrapper rather than by fighting that class. Left to fill the
+            row it ran the width of the screen and pushed the buttons either
+            side of it onto lines of their own. */}
+        <div className="min-w-0 flex-1 sm:w-52 sm:flex-none">
+          <Input
+            type="date"
+            aria-label="Collection date"
+            value={date}
+            onChange={(e) => e.target.value && go(e.target.value)}
+          />
+        </div>
 
         <Button variant="outline" aria-label="Next day" onClick={() => shift(1)}>
           <Icon name="chevron_right" size={20} />

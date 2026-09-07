@@ -250,6 +250,8 @@ integration would slot in.
 Mobile is the primary platform, not a breakpoint.
 
 - Verified at **320 / 360 / 375 / 390 / 430 / 768 / 1024 / 1440 / 1920** — `45/45` checks clean.
+- The back office is capped at **1440px** and centred (`max-w-content`). Stitch designed at that
+  width; left to fill a 1920px monitor a stat card becomes 400px of empty space around one number.
   See [`docs/RESPONSIVE.md`](docs/RESPONSIVE.md).
 - Wide tables become cards below `md`; the full Stitch table returns above it. Where a table must
   stay, it scrolls inside its own container — the page body never scrolls sideways.
@@ -323,6 +325,7 @@ npm run typecheck                      # strict TypeScript over the whole app
 npm run build                          # production build
 npm run test:db                        # the SQL suites in supabase/tests/
 node scripts/responsive-check.mjs      # audits every page at every width
+node scripts/desktop-shots.mjs         # screenshots the signed-in back office at 1280/1440/1920
 ```
 
 `npm run test:db` runs each suite as a real signed-in super administrator, inside a transaction it

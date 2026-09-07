@@ -6,7 +6,7 @@ import { PageTitle, Avatar, Badge } from '@/components/ui/primitives';
 import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
 import { CreateStaffButton } from './CreateStaffButton';
 import { UserRowActions } from './UserRowActions';
-import { ROLE_LABELS, ROLE_PERMISSIONS, type Role } from '@/lib/rbac';
+import { ROLE_LABELS, ROLE_PERMISSIONS, STAFF_ROLES, type Role } from '@/lib/rbac';
 import { formatAgo, formatDate } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
 import type { AppUserRow } from '@/types/db';
@@ -198,6 +198,9 @@ const MATRIX_ROWS: { label: string; permission: keyof typeof PERMISSION_LOOKUP }
   { label: 'View members', permission: 'members.view' },
   { label: 'Register & edit members', permission: 'members.manage' },
   { label: 'Change member status', permission: 'members.status' },
+  { label: 'View groups', permission: 'groups.view' },
+  { label: 'Create & edit groups', permission: 'groups.manage' },
+  { label: 'Waive a savings schedule', permission: 'savings.waive' },
   { label: 'Sell shares', permission: 'shares.sell' },
   { label: 'Record savings', permission: 'savings.record' },
   { label: 'Assess loan applications', permission: 'loans.assess' },
@@ -220,7 +223,7 @@ const PERMISSION_LOOKUP = ROLE_PERMISSIONS.super_admin.reduce(
   {} as Record<(typeof ROLE_PERMISSIONS)['super_admin'][number], true>,
 );
 
-const MATRIX_ROLES: Role[] = ['super_admin', 'manager', 'loan_officer', 'cashier'];
+const MATRIX_ROLES: Role[] = [...STAFF_ROLES];
 
 function PermissionMatrix() {
   return (

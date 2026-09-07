@@ -67,6 +67,15 @@ const memberSchema = z.object({
     .transform((v) => (v ? normalisePhone(v) : undefined)),
   next_of_kin_relation: optionalText(60),
   photo_url: optionalText(500),
+  group_id: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : undefined))
+    .refine(
+      (v) => v === undefined || z.string().uuid().safeParse(v).success,
+      'Choose a group from the list.',
+    ),
   create_login: z.enum(['on', 'off']).optional(),
 });
 
@@ -147,10 +156,32 @@ export async function createMember(
     return fail(error);
   }
 
+  const result = data as { member_id: string; member_no: string };
+
+  // Placement is a separate, audited step - assign_member_group() records who
+  // put this member in which group, and moves their pending schedules with
+  // them if they are ever moved again.
+  if (d.group_id) {
+    const { error: groupError } = await supabase.rpc('assign_member_group', {
+      p_member_id: result.member_id,
+      p_group_id: d.group_id,
+      p_reason: 'Set at registration',
+    });
+    if (groupError) {
+      // The member exists and is usable; only the placement failed.
+      revalidatePath('/staff/members');
+      return {
+        ok: false,
+        error: `${d.full_name} was registered as ${result.member_no}, but could not be placed in the group. Assign the group from their profile.`,
+        field: 'group_id',
+      };
+    }
+  }
+
   revalidatePath('/staff/members');
+  revalidatePath('/staff/groups');
   revalidatePath('/staff');
 
-  const result = data as { member_id: string; member_no: string };
   return succeed(
     { ...result, temp_password: tempPassword },
     `${d.full_name} registered as ${result.member_no}.`,
@@ -212,6 +243,26 @@ export async function updateMember(
 
   const { error } = await supabase.from('members').update(patch).eq('id', memberId);
   if (error) return fail(error);
+
+  // Group placement never rides along on a column update - it goes through the
+  // audited RPC, which also decides which schedules follow the member.
+  if (can(user.role, 'groups.manage')) {
+    const { data: current } = await supabase
+      .from('members')
+      .select('group_id')
+      .eq('id', memberId)
+      .maybeSingle();
+
+    if ((current?.group_id ?? null) !== (d.group_id ?? null)) {
+      const { error: groupError } = await supabase.rpc('assign_member_group', {
+        p_member_id: memberId,
+        p_group_id: d.group_id ?? null,
+        p_reason: 'Changed while editing the member',
+      });
+      if (groupError) return fail(groupError, 'group_id');
+      revalidatePath('/staff/groups');
+    }
+  }
 
   revalidatePath('/staff/members');
   revalidatePath(`/staff/members/${memberId}`);

@@ -32,6 +32,9 @@ export const ICON_NAMES = [
   'person', 'person_add', 'logout', 'lock', 'badge', 'phone', 'mail',
   'location_on', 'work', 'cake', 'handshake', 'description', 'request_quote',
   'assignment', 'calendar_today', 'calendar_month', 'star', 'help',
+  // Groups and collection days
+  'event_available', 'event_busy', 'today', 'group_add', 'checklist',
+  'pending_actions', 'lock_open', 'percent',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

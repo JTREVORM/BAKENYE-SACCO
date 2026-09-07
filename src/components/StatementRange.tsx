@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Field, Input, Button } from '@/components/ui/form';
 import { monthStart, monthEnd, toISODate } from '@/lib/format';
@@ -22,11 +22,19 @@ export function StatementRange({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const params = useSearchParams();
   const [localFrom, setLocalFrom] = useState(from);
   const [localTo, setLocalTo] = useState(to);
 
   function apply(nextFrom: string, nextTo: string) {
-    router.push(`${pathname}?from=${nextFrom}&to=${nextTo}`);
+    // Keep whatever else is filtering the page — the savings register carries
+    // `kind` and `group` in the URL, and changing the dates should not silently
+    // drop them back to the defaults.
+    const next = new URLSearchParams(params.toString());
+    next.set('from', nextFrom);
+    next.set('to', nextTo);
+    next.delete('page');
+    router.push(`${pathname}?${next.toString()}`);
   }
 
   const today = new Date();

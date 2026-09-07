@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getMemberFinancials } from '@/lib/queries';
+import { getActiveGroups, getMemberFinancials } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
 import { Avatar, Icon, Money, PageTitle } from '@/components/ui/primitives';
@@ -11,6 +11,8 @@ import { EmptyState } from '@/components/ui/states';
 import { TransactionRow } from '@/components/member/TransactionRow';
 import { MemberStatusControl } from './MemberStatusControl';
 import { SavingsPlanControl } from './SavingsPlanControl';
+import { AssignGroupControl } from '@/components/groups/AssignGroupControl';
+import { savingDayLabel } from '@/lib/groups';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
@@ -39,6 +41,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   if (!member) notFound();
 
   const supabase = await createClient();
+  const groups = can(user.role, 'groups.manage') ? await getActiveGroups() : [];
   const [loansRes, txnRes, sharesRes, weeklyRes, monthlyRes, plansRes] = await Promise.all([
     supabase.from('loan_balances').select('*').eq('member_id', id).order('disbursed_on', { ascending: false, nullsFirst: false }),
     supabase
@@ -93,6 +96,12 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
       href: `/staff/loans/new?member=${id}`,
       icon: 'request_quote',
       label: 'New loan',
+      tone: 'bg-surface-container-high text-on-surface-variant',
+    },
+    {
+      href: `/staff/members/${id}/ledger`,
+      icon: 'receipt_long',
+      label: 'Ledger',
       tone: 'bg-surface-container-high text-on-surface-variant',
     },
     {
@@ -152,8 +161,76 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           </dl>
         </div>
 
-        {can(user.role, 'members.status') ? (
-          <MemberStatusControl memberId={id} status={member.status} name={member.full_name} />
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {can(user.role, 'groups.manage') ? (
+            <AssignGroupControl
+              memberId={id}
+              memberName={member.full_name}
+              currentGroupId={member.group_id}
+              groups={groups}
+            />
+          ) : null}
+          {can(user.role, 'members.status') ? (
+            <MemberStatusControl memberId={id} status={member.status} name={member.full_name} />
+          ) : null}
+        </div>
+      </section>
+
+      {/* Group placement — this is what decides when they are collected from. */}
+      <section
+        className={clsx(
+          'flex flex-wrap items-center justify-between gap-4 rounded-xl border p-4',
+          member.group_id
+            ? 'bg-surface border-outline-variant/50'
+            : 'bg-secondary-fixed text-on-secondary-fixed border-transparent',
+        )}
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            className={clsx(
+              'flex h-12 w-12 shrink-0 items-center justify-center rounded-full',
+              member.group_id
+                ? 'bg-primary-fixed text-primary'
+                : 'bg-white/40 text-on-secondary-fixed',
+            )}
+          >
+            <Icon name="groups" size={24} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-label-md font-label-md text-on-surface-variant">Savings group</p>
+            {member.group_id ? (
+              <>
+                <Link
+                  href={`/staff/groups/${member.group_id}`}
+                  className="text-body-lg font-body-lg text-primary block truncate font-semibold"
+                >
+                  {member.group_name}
+                </Link>
+                <p className="text-label-md font-label-md text-on-surface-variant normal-case">
+                  {member.group_code} · collects on {savingDayLabel(member.group_saving_day)}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-body-lg font-body-lg font-semibold">Not in a group</p>
+                <p className="text-label-md font-label-md normal-case">
+                  This member appears on no collection sheet until they are placed in one.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
+        {toNumber(member.savings_outstanding) > 0 ? (
+          <div className="text-right">
+            <p className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+              Savings arrears
+            </p>
+            <Money
+              value={member.savings_outstanding}
+              className="text-headline-lg-mobile font-headline-lg-mobile text-error"
+            />
+          </div>
         ) : null}
       </section>
 

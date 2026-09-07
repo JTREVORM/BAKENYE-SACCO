@@ -54,9 +54,9 @@ through **`/dev/preview`**, a development-only harness that renders the real com
 [`src/lib/fixtures.ts`](../src/lib/fixtures.ts).
 
 That is the harness's whole purpose: it means the member dashboard, the staff member register, the
-loan portfolio, the loan card, the receipt, the dashboard stats and every state component are
-measured as they actually render, without needing a seeded database. It returns a 404 outside
-development.
+group register, the collection sheet, the loan portfolio, the loan card, the receipt, the dashboard
+stats and every state component are measured as they actually render, without needing a seeded
+database. It returns a 404 outside development.
 
 The fixtures are deliberately awkward — a member named *Nakabugo Christine Ssemakula*, an
 eight-figure balance, an overdue loan, a reversed transaction. Layouts break on long names and
@@ -89,6 +89,22 @@ register. Raised to 44px. Table rows were already taller than that, so nothing g
 Two categories of false positive were fixed in the audit itself rather than in the product: an
 element positioned outside a clipping ancestor is not an overflow, and `.sr-only` text is not
 clipped text.
+
+### Phase One — groups and collections
+
+Adding the group register and the collection sheet to the harness caught two more, both since
+fixed and both the same mistake in new code:
+
+**5 · Member-name links on the mobile cards were 24px tall.**
+On a card that also carries action buttons, the whole card cannot be one link, so the name was a
+bare line of text. The name and the member number are now wrapped in a single
+`min-h-touch-target-min` link — one 44px target instead of two small ones. The same pattern was
+applied to the savings register, the schedules browser, the group report and the group cards on
+*Today's Collections*.
+
+**6 · Collection-sheet table actions were 36px.**
+*Record* and the waive control used `size="sm"`. Staff work a collection sheet on a tablet as often
+as on a laptop, so both are now the default 44px control.
 
 ---
 

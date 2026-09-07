@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { getActiveGroups } from '@/lib/queries';
 import { can } from '@/lib/rbac';
 import { PageTitle, Icon } from '@/components/ui/primitives';
 import { TableSkeleton, ErrorState } from '@/components/ui/states';
@@ -16,7 +17,14 @@ const PAGE_SIZE = 20;
 export default async function MembersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; sort?: string; page?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    status?: string;
+    sort?: string;
+    page?: string;
+    /** A group id, or `none` for members not placed in any group. */
+    group?: string;
+  }>;
 }) {
   const user = await requirePermission('members.view');
   const sp = await searchParams;
@@ -52,11 +60,14 @@ async function Directory({
   sp,
   canRegister,
 }: {
-  sp: { q?: string; status?: string; sort?: string; page?: string };
+  sp: { q?: string; status?: string; sort?: string; page?: string; group?: string };
   canRegister: boolean;
 }) {
   const page = Math.max(1, Number(sp.page ?? '1') || 1);
   const supabase = await createClient();
+  const groups = await getActiveGroups();
+
+  const unassigned = sp.group === 'none';
 
   const { data, error } = await supabase.rpc('search_members', {
     p_query: sp.q?.trim() || null,
@@ -64,6 +75,8 @@ async function Directory({
     p_sort: sp.sort ?? 'name',
     p_limit: PAGE_SIZE,
     p_offset: (page - 1) * PAGE_SIZE,
+    p_group_id: unassigned ? null : sp.group || null,
+    p_unassigned: unassigned,
   });
 
   if (error || !data) {
@@ -84,6 +97,7 @@ async function Directory({
       page={page}
       pageSize={PAGE_SIZE}
       canRegister={canRegister}
+      groups={groups}
     />
   );
 }

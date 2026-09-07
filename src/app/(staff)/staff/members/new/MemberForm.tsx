@@ -16,7 +16,9 @@ import {
 } from '@/components/ui/form';
 import { toISODate } from '@/lib/format';
 import type { ActionResult } from '@/lib/errors';
-import type { MemberFinancialsRow } from '@/types/db';
+import { savingDayLabel } from '@/lib/groups';
+import { formatUGX } from '@/lib/money';
+import type { MemberFinancialsRow, SaccoGroupRow } from '@/types/db';
 
 /**
  * Register or edit a member.
@@ -29,7 +31,14 @@ import type { MemberFinancialsRow } from '@/types/db';
  * do get a one-time password shown to the clerk exactly once, which is why the
  * success screen makes a point of it.
  */
-export function MemberForm({ member }: { member?: MemberFinancialsRow }) {
+export function MemberForm({
+  member,
+  groups = [],
+}: {
+  member?: MemberFinancialsRow;
+  /** Empty when the signed-in user may not place members in groups. */
+  groups?: SaccoGroupRow[];
+}) {
   const editing = !!member;
   const [state, action] = useActionState<
     ActionResult<{ member_id: string; member_no: string; temp_password?: string }> | null,
@@ -190,6 +199,34 @@ export function MemberForm({ member }: { member?: MemberFinancialsRow }) {
             </Field>
           </div>
         </Section>
+
+        {groups.length > 0 ? (
+          <Section title="Group">
+            <Field
+              label="Savings group"
+              htmlFor="group_id"
+              error={err?.field === 'group_id' ? err.error : null}
+              hint="The group sets the collection day and the default savings target. A member with no group appears on no collection sheet."
+            >
+              <Select
+                id="group_id"
+                name="group_id"
+                defaultValue={member?.group_id ?? ''}
+                invalid={err?.field === 'group_id'}
+              >
+                <option value="">No group yet</option>
+                {groups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name} · {savingDayLabel(g.saving_day)}
+                    {Number(g.weekly_target) > 0
+                      ? ` · ${formatUGX(g.weekly_target)} a week`
+                      : ''}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </Section>
+        ) : null}
 
         <Section title="Contact">
           <Field

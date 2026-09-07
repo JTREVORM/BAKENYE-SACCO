@@ -53,6 +53,7 @@ const SAVINGS_TONES: Record<SavingsStatus, BadgeTone> = {
   partial: 'warning',
   pending: 'neutral',
   missed: 'error',
+  waived: 'info',
 };
 
 export function SavingsStatusBadge({ status }: { status: SavingsStatus }) {

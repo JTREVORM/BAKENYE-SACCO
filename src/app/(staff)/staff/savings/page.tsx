@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { getActiveGroups } from '@/lib/queries';
 import { can } from '@/lib/rbac';
 import { PageTitle, Icon, Money, Avatar, ProgressBar } from '@/components/ui/primitives';
 import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
@@ -26,15 +27,17 @@ export const metadata: Metadata = { title: 'Savings' };
 export default async function StaffSavingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kind?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ kind?: string; from?: string; to?: string; group?: string }>;
 }) {
   const user = await requirePermission('savings.view');
   const sp = await searchParams;
   const kind: SavingsKind = sp.kind === 'monthly' ? 'monthly' : 'weekly';
+  const group = sp.group ?? '';
 
   const today = new Date();
   const from = isDate(sp.from) ? sp.from! : monthStart(today);
   const to = isDate(sp.to) ? sp.to! : toISODate(today);
+  const groups = await getActiveGroups();
 
   return (
     <div>
@@ -43,6 +46,14 @@ export default async function StaffSavingsPage({
         subtitle="Contribution performance across the membership."
         action={
           <div className="flex flex-wrap gap-2">
+            <Link
+              href="/staff/savings/today"
+              className="border-outline-variant bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg border px-4 font-semibold transition-colors"
+            >
+              <Icon name="event_available" size={20} />
+              <span className="hidden sm:inline">Today’s collections</span>
+              <span className="sm:hidden">Today</span>
+            </Link>
             {can(user.role, 'savings.record') ? (
               <>
                 <OpenPeriodsButton kind={kind} />
@@ -60,10 +71,19 @@ export default async function StaffSavingsPage({
         }
       />
 
-      <SavingsKindTabs kind={kind} from={from} to={to} />
+      <SavingsKindTabs kind={kind} from={from} to={to} group={group} groups={groups} />
 
-      <Suspense key={`${kind}-${from}-${to}`} fallback={<TableSkeleton rows={8} cols={6} />}>
-        <Performance kind={kind} from={from} to={to} canRecord={can(user.role, 'savings.record')} />
+      <Suspense
+        key={`${kind}-${from}-${to}-${group}`}
+        fallback={<TableSkeleton rows={8} cols={6} />}
+      >
+        <Performance
+          kind={kind}
+          from={from}
+          to={to}
+          group={group}
+          canRecord={can(user.role, 'savings.record')}
+        />
       </Suspense>
     </div>
   );
@@ -73,11 +93,13 @@ async function Performance({
   kind,
   from,
   to,
+  group,
   canRecord,
 }: {
   kind: SavingsKind;
   from: string;
   to: string;
+  group: string;
   canRecord: boolean;
 }) {
   const supabase = await createClient();
@@ -85,6 +107,7 @@ async function Performance({
     p_kind: kind,
     p_from: from,
     p_to: to,
+    p_group_id: group || null,
   });
 
   if (error) {
@@ -154,17 +177,18 @@ async function Performance({
               >
                 <div className="flex items-start gap-3">
                   <Avatar name={r.full_name} size={44} />
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/staff/members/${r.member_id}`}
-                      className="text-body-lg font-body-lg text-primary block truncate font-semibold"
-                    >
+                  <Link
+                    href={`/staff/members/${r.member_id}`}
+                    className="min-h-touch-target-min flex min-w-0 flex-1 flex-col justify-center"
+                  >
+                    <span className="text-body-lg font-body-lg text-primary block truncate font-semibold">
                       {r.full_name}
-                    </Link>
-                    <p className="text-label-md font-label-md text-on-surface-variant tabular truncate normal-case">
-                      {r.member_no} · {r.periods} {r.periods === 1 ? 'period' : 'periods'}
-                    </p>
-                  </div>
+                    </span>
+                    <span className="text-label-md font-label-md text-on-surface-variant tabular block truncate normal-case">
+                      {r.member_no} · {r.group_name ?? 'no group'} · {r.periods}{' '}
+                      {r.periods === 1 ? 'period' : 'periods'}
+                    </span>
+                  </Link>
                   {canRecord ? (
                     <Link
                       href={`/staff/savings/record?member=${r.member_id}&kind=${kind}`}
@@ -207,6 +231,7 @@ async function Performance({
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
                     <th className="p-4 font-semibold">Member</th>
+                    <th className="p-4 font-semibold">Group</th>
                     <th className="p-4 text-center font-semibold">Periods</th>
                     <th className="p-4 text-right font-semibold">Expected</th>
                     <th className="p-4 text-right font-semibold">Paid</th>
@@ -229,6 +254,7 @@ async function Performance({
                           </div>
                         </Link>
                       </td>
+                      <td className="text-on-surface-variant p-4">{r.group_name ?? '—'}</td>
                       <td className="tabular p-4 text-center">{r.periods}</td>
                       <td className="tabular p-4 text-right">{formatUGX(r.expected)}</td>
                       <td className="tabular text-tertiary p-4 text-right font-semibold">

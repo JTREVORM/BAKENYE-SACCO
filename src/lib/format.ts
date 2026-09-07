@@ -160,6 +160,7 @@ export const SAVINGS_STATUS_LABELS: Record<SavingsStatus, string> = {
   partial: 'Partial',
   pending: 'Pending',
   missed: 'Missed',
+  waived: 'Waived',
 };
 
 export const GUARANTOR_STATUS_LABELS: Record<GuarantorStatus, string> = {

@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/server';
 import { MemberShell } from '@/components/layout/MemberShell';
 import { Icon, Money, ProgressBar } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/ui/states';
+import { savingDayLabel } from '@/lib/groups';
 import { formatDate, PAYMENT_METHOD_LABELS } from '@/lib/format';
 import { formatUGX, percent, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
@@ -88,6 +89,44 @@ export default async function SavingsPage() {
             </div>
           </div>
         </section>
+
+        {/* Your group — the day you are collected from, and what you owe.
+            A member who does not know their collection day cannot turn up to it. */}
+        {m?.group_id ? (
+          <section className="bg-surface-container-lowest border-surface-container-high elev-1 flex flex-wrap items-center justify-between gap-4 rounded-xl border p-5">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="bg-primary-fixed text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
+                <Icon name="groups" size={24} />
+              </span>
+              <div className="min-w-0">
+                <p className="font-label-md text-label-md text-on-surface-variant">Your group</p>
+                <p className="font-body-lg text-body-lg text-on-surface truncate font-semibold">
+                  {m.group_name}
+                </p>
+                <p className="font-label-md text-label-md text-on-surface-variant normal-case">
+                  Collections every {savingDayLabel(m.group_saving_day)}
+                </p>
+              </div>
+            </div>
+
+            {toNumber(m.savings_outstanding) > 0 ? (
+              <div className="text-right">
+                <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+                  Still owed
+                </p>
+                <Money
+                  value={m.savings_outstanding}
+                  className="font-headline-lg-mobile text-headline-lg-mobile text-error"
+                />
+              </div>
+            ) : (
+              <p className="font-label-md text-label-md text-tertiary flex items-center gap-1 normal-case">
+                <Icon name="check_circle" size={18} />
+                Up to date
+              </p>
+            )}
+          </section>
+        ) : null}
 
         {/* Bento pair */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2">

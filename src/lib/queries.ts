@@ -1,11 +1,16 @@
 import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type {
+  CollectionSheet,
   DashboardMetrics,
+  GroupOverviewRow,
+  GroupSavingToday,
   LoanBalanceRow,
   LoanProductRow,
   MemberFinancialsRow,
   NotificationRow,
+  SaccoGroupRow,
+  SavingsDashboard,
   SavingsPeriodRow,
   TransactionFeedRow,
 } from '@/types/db';
@@ -125,3 +130,75 @@ export const getShareUnitPrice = cache(async (): Promise<number> => {
   const { data } = await supabase.from('share_settings').select('unit_price').single();
   return Number(data?.unit_price ?? 50000);
 });
+
+/* ==========================================================================
+ * Groups and group savings
+ * ======================================================================== */
+
+/** Active groups, for the pickers on member and group forms. */
+export const getActiveGroups = cache(async (): Promise<SaccoGroupRow[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('sacco_groups')
+    .select('*')
+    .neq('status', 'dissolved')
+    .order('name');
+  return data ?? [];
+});
+
+export const getGroupOverview = cache(async (groupId: string): Promise<GroupOverviewRow | null> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('group_overview')
+    .select('*')
+    .eq('id', groupId)
+    .maybeSingle();
+  return data ?? null;
+});
+
+/**
+ * The whole collection screen in one round trip: the group, the cycle, the
+ * member rows and the recent cycles to switch between.
+ */
+export const getCollectionSheet = cache(
+  async (groupId: string, cycleId?: string | null): Promise<CollectionSheet | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('group_collection_sheet', {
+      p_group_id: groupId,
+      p_cycle_id: cycleId ?? null,
+    });
+    if (error || !data) return null;
+    return data as unknown as CollectionSheet;
+  },
+);
+
+/** The groups whose configured saving day falls on `on`. */
+export const getGroupsSavingOn = cache(async (on: string): Promise<GroupSavingToday[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('groups_saving_on', { p_on: on });
+  if (error || !data) return [];
+  return data as unknown as GroupSavingToday[];
+});
+
+export const getSavingsDashboard = cache(
+  async (on: string): Promise<SavingsDashboard | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('savings_dashboard', { p_on: on });
+    if (error || !data) return null;
+    return data as unknown as SavingsDashboard;
+  },
+);
+
+/** Staff accounts that can be assigned to a group as its loan officer. */
+export const getAssignableOfficers = cache(
+  async (): Promise<{ id: string; full_name: string; role: string }[]> => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from('app_users')
+      .select('id, full_name, role')
+      .eq('is_active', true)
+      .in('role', ['super_admin', 'manager', 'loan_officer', 'group_officer', 'cashier'])
+      .order('full_name');
+    return data ?? [];
+  },
+);

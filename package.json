@@ -10,7 +10,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "db:push": "supabase db push",
-    "db:reset": "supabase db reset"
+    "db:reset": "supabase db reset",
+    "db:exec": "node scripts/db-exec.mjs",
+    "test:db": "node scripts/test-db.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

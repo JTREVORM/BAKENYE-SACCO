@@ -5,10 +5,10 @@ import { createStaffUser } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, PhoneInput, Select, SubmitButton } from '@/components/ui/form';
-import { ROLE_LABELS, type Role } from '@/lib/rbac';
+import { ROLE_DESCRIPTIONS, ROLE_LABELS, STAFF_ROLES, type Role } from '@/lib/rbac';
 import type { ActionResult } from '@/lib/errors';
 
-const STAFF_ROLES: Role[] = ['manager', 'loan_officer', 'cashier', 'super_admin'];
+
 
 /**
  * Create a staff account.
@@ -20,6 +20,9 @@ const STAFF_ROLES: Role[] = ['manager', 'loan_officer', 'cashier', 'super_admin'
  */
 export function CreateStaffButton() {
   const [open, setOpen] = useState(false);
+  // Held in state so the hint under the picker describes the role actually
+  // selected — the seven roles are not self-explanatory from their names alone.
+  const [role, setRole] = useState<Role>('cashier');
   const [state, action] = useActionState<
     ActionResult<{ user_id: string; temp_password: string }> | null,
     FormData
@@ -105,8 +108,19 @@ export function CreateStaffButton() {
               <PhoneInput id="staff-phone" name="phone" invalid={err?.field === 'phone'} />
             </Field>
 
-            <Field label="Role" htmlFor="staff-role" required>
-              <Select id="staff-role" name="role" defaultValue="cashier" required>
+            <Field
+              label="Role"
+              htmlFor="staff-role"
+              required
+              hint={ROLE_DESCRIPTIONS[role]}
+            >
+              <Select
+                id="staff-role"
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value as Role)}
+                required
+              >
                 {STAFF_ROLES.map((r) => (
                   <option key={r} value={r}>
                     {ROLE_LABELS[r]}

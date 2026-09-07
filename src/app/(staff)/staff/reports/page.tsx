@@ -54,6 +54,39 @@ export default async function StaffReportsPage() {
       ],
     },
     {
+      heading: 'Groups & collections',
+      reports: [
+        {
+          icon: 'groups',
+          title: 'Group report',
+          description: 'Expected, collected and outstanding for one group, member by member.',
+          href: '/staff/reports/groups',
+          permission: 'groups.view',
+        },
+        {
+          icon: 'event_available',
+          title: 'Today’s collections',
+          description: 'Every group whose saving day falls today, with live progress.',
+          href: '/staff/savings/today',
+          permission: 'savings.view',
+        },
+        {
+          icon: 'calendar_month',
+          title: 'Savings schedules',
+          description: 'Every scheduled contribution — paid, partial, missed or waived.',
+          href: '/staff/savings/schedules',
+          permission: 'savings.view',
+        },
+        {
+          icon: 'warning',
+          title: 'Savings arrears',
+          description: 'Schedules whose due date passed with nothing recorded.',
+          href: '/staff/savings/schedules?status=missed',
+          permission: 'savings.view',
+        },
+      ],
+    },
+    {
       heading: 'Savings & shares',
       reports: [
         {

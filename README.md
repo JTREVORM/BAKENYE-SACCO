@@ -14,16 +14,18 @@ the visual source of truth, and every screen below names the file it came from.
 
 | Area | Covered |
 | --- | --- |
-| **Members** | Register, edit, search, filter, activate/deactivate, full financial history |
+| **Members** | Register, edit, search, filter, activate/deactivate, group placement, full financial history and ledger |
+| **Groups** | The collection unit. Each group has its own saving day, frequency, targets, leader, secretary and officer |
+| **Collections** | Per-group collection sheets on the saving day; manual entry per member, with cash, mobile money, bank or cheque recorded against a reference |
 | **Shares** | Share capital kept separate from savings; lots priced at purchase time; register and receipts |
-| **Savings** | Weekly and monthly periods with targets, paid/partial/pending/missed status, arrears reporting |
+| **Savings** | Group cycles and per-member schedules with targets, paid/partial/pending/missed/waived status, arrears reporting |
 | **Loans** | Applied → Under Review → Approved → Disbursed → Active → Completed, plus Rejected; amortisation schedule; guarantors |
 | **Repayments** | Interest-first allocation, automatic status transitions, guarantor release on completion |
 | **Transactions** | One immutable ledger, `BND-TX-2026-004582` references, reversal workflow |
 | **Receipts** | Printable / PDF / shareable, with the SACCO crest and full transaction detail |
 | **Finance** | Income by category, expenses with a mandatory approval step, cashbook, profit & loss |
 | **Reports** | Member register, savings performance, loan portfolio, statements, cashbook — all printable and CSV-exportable |
-| **Users & roles** | Five roles with a permission matrix generated from the rules the app actually enforces |
+| **Users & roles** | Seven staff roles with a permission matrix generated from the rules the app actually enforces |
 | **Audit log** | Append-only, with before/after values and a mandatory reason on sensitive actions |
 
 ---
@@ -81,6 +83,12 @@ supabase db push
 | `0004_rls.sql` | Row-level security and function grants |
 | `0005_seed.sql` | Loan products, income/expense categories, share price |
 | `0006_app_support.sql` | Search, pagination, receipts, reports |
+| `0007_groups.sql` | Groups, savings cycles, the schedule columns, `payment_intents` |
+| `0008_group_views.sql` | Schedules, cycle summaries, group overview, group on `member_financials` |
+| `0009_group_functions.sql` | Cycles, manual collection, waivers, group admin and read models |
+| `0010_roles.sql` | The accountant, group officer and viewer roles |
+| `0011_rbac_and_rls.sql` | Capability predicates, policies restated against them, RLS for the new tables |
+| `0012_fix_loan_policy_recursion.sql` | Breaks a mutually recursive policy pair on `loans` and `loan_guarantors` |
 
 ### 4. Create the first administrator
 
@@ -148,23 +156,82 @@ formats; Postgres calculates.
 
 ---
 
+## How group savings work
+
+The SACCO does not collect from 500 individuals one at a time. It collects from groups, and every
+group meets on its own day:
+
+```
+SACCO → GROUPS → MEMBERS → SAVINGS PLANS → CYCLES → SCHEDULES → LEDGER
+```
+
+**The saving day is data, not code.** `sacco_groups.saving_day` is an ISO weekday, so a group that
+saves on Monday and one that saves on Saturday run the same code path with a different number.
+Moving a group from Wednesday to Friday is one edit on its profile; nothing is deployed.
+`groups_saving_on(date)` answers "who is collecting today" by comparing that column against the
+date, and biweekly groups alternate on the parity of the ISO week rather than on a stored calendar.
+
+**A cycle is an expectation, not an account.** `open_group_cycle()` creates one `savings_cycles`
+row for the group and one schedule row per active member, each carrying what that member is
+expected to bring — their own savings plan if they have one, otherwise the target of the group.
+Opening the sheet *before* the meeting is what turns a member who pays nothing into a measurable
+`missed` schedule rather than no row at all.
+
+**A group has no balance.** Expected, collected and outstanding are all `SUM()`s over the member
+schedules, in `group_cycle_summary` and `group_overview`. 25 members at UGX 20,000 is UGX 500,000
+expected; 23 who pay make UGX 460,000 collected and UGX 40,000 outstanding — computed, never typed.
+Because there is no second copy, a group total cannot drift away from what its members can see on
+their own phones.
+
+**Schedules are never deleted.** Paid, partial, missed and waived are all states of the same row,
+so a week somebody missed in July is still visible in September with its shortfall attached. A
+waiver needs a manager and a written reason, and is refused outright once any money has been paid
+against the schedule.
+
+**Collection is manual, and one door wide.** The collection screen calls exactly one function,
+`record_scheduled_savings()`, which validates the amount, refuses a future date, refuses a
+duplicate external reference, posts one immutable ledger row, recomputes the schedule from its
+payment rows and writes the audit entry — all inside one database transaction.
+
+---
+
+## Payments: Phase One is manual
+
+There is **no payment-provider integration**. Choosing "Mobile Money" on the collection screen
+records that a transfer was already received; it does not call MTN, Airtel, Flutterwave or anything
+else, and nothing in this application marks a payment confirmed that a person has not confirmed.
+Mobile-money and bank entries require the reference from the confirmation message, and a partial
+unique index means the same reference cannot be banked twice.
+
+The seam for Phase Two is real and already in use. Every collected payment opens and settles a
+`payment_intents` row with `provider = 'manual'`, because a cashier holding the cash *is* the
+confirmation. A gateway added later moves the same row `pending → processing → successful` and
+calls the same settlement function; the savings, ledger, audit and UI code does not change.
+
+---
+
 ## Who can see what
 
-Five roles, defined once in [`src/lib/rbac.ts`](src/lib/rbac.ts) and enforced three times:
-navigation hides what you cannot use, `requirePermission()` guards the route, and RLS guards the
-data.
+Seven staff roles and the member, defined once in [`src/lib/rbac.ts`](src/lib/rbac.ts) and enforced
+three times: navigation hides what you cannot use, `requirePermission()` guards the route, and RLS
+guards the data. The database expresses the same rules as capability predicates —
+`can_view_operations()`, `can_record_savings()`, `can_manage_groups()`, `can_view_finance()`,
+`can_view_audit()` — so adding the next role is one edit rather than a search across the schema.
 
-| | Super Admin | Manager | Loan Officer | Cashier | Member |
-| --- | :-: | :-: | :-: | :-: | :-: |
-| Members | ● | ● | view | view | own |
-| Savings & shares | ● | ● | view | ● | own |
-| Loan assessment | ● | ● | ● | view | apply |
-| Loan approval & disbursement | ● | ● | — | — | — |
-| Repayments | ● | ● | ● | ● | own |
-| Deposits & withdrawals | ● | ● | — | ● | — |
-| Finance | ● | ● | — | record | — |
-| Reversals | ● | ● | — | — | — |
-| Users & audit | ● | audit | — | — | — |
+| | Super Admin | Manager | Loan Officer | Cashier | Accountant | Group Officer | Viewer | Member |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| Members | ● | ● | view | view | view | view | view | own |
+| Groups | ● | ● | view | view | view | view | view | own |
+| Collections | ● | ● | view | ● | view | ● | view | own |
+| Savings & shares | ● | ● | view | ● | view | savings | view | own |
+| Loan assessment | ● | ● | ● | view | view | — | view | apply |
+| Loan approval & disbursement | ● | ● | — | — | — | — | — | — |
+| Repayments | ● | ● | ● | ● | — | — | — | own |
+| Deposits & withdrawals | ● | ● | — | ● | — | — | — | — |
+| Finance | ● | ● | — | record | ● | — | — | — |
+| Reversals | ● | ● | — | — | — | — | — | — |
+| Users | ● | — | — | — | — | — | — | — |
+| Audit log | ● | ● | — | — | ● | — | — | — |
 
 A member can read exactly their own rows — plus the loans they have agreed to guarantee, because
 that is a real obligation of theirs. Everything else returns nothing, at the database.
@@ -192,14 +259,10 @@ Mobile is the primary platform, not a breakpoint.
 - Skeletons that match the real layout, so nothing jumps when data lands.
 - Installable as a PWA — home-screen access without a Play Store download.
 
-```bash
-npm run dev
-node scripts/responsive-check.mjs      # audits every page at every width
-```
-
 The authenticated screens are audited through a development-only harness at **`/dev/preview`**,
-which renders the real components against [`src/lib/fixtures.ts`](src/lib/fixtures.ts). It returns
-a 404 in production.
+which renders the real components against [`src/lib/fixtures.ts`](src/lib/fixtures.ts) — including
+the group register and the collection sheet. It returns a 404 in production. See
+[Testing](#testing) below for how to run the audit.
 
 ---
 
@@ -216,16 +279,20 @@ src/
 ├── components/
 │   ├── ui/             primitives carrying the Stitch design tokens
 │   ├── layout/         TopAppBar, BottomNav, Sidebar, shells
+│   ├── groups/         group register, form, status, placement, cycle opening
+│   ├── collections/    the collection sheet and its record/waive dialogs
 │   └── forms/          financial forms, all wrapped in FinancialForm
 ├── lib/
 │   ├── rbac.ts         roles, permissions, navigation — one source of truth
+│   ├── groups.ts       saving days, frequencies, group vocabulary
 │   ├── money.ts        UGX formatting and input parsing
 │   ├── auth.ts         session and permission guards
 │   └── icons.ts        the icon subset
 └── types/db.ts         schema and RPC signatures
 
-supabase/migrations/    schema → functions → views → RLS → reference data → support
-scripts/                responsive-check.mjs
+supabase/migrations/    schema → functions → views → RLS → reference data → groups → roles
+supabase/tests/         SQL suites, run in a transaction that is always rolled back
+scripts/                responsive-check.mjs, db-exec.mjs, test-db.mjs
 docs/                   setup, architecture, responsive results
 ```
 
@@ -233,23 +300,53 @@ docs/                   setup, architecture, responsive results
 
 ## Scheduled work
 
-Two functions expect to be run on a schedule — with `pg_cron`, or any external scheduler:
+These expect to be run on a schedule — with `pg_cron`, or any external scheduler:
 
 ```sql
-select run_daily_maintenance();              -- nightly: mark missed periods, flag defaults
-select open_savings_periods('weekly');       -- start of each week
-select open_savings_periods('monthly');      -- start of each month
+select run_daily_maintenance();              -- nightly: mark missed schedules, flag loan
+                                             -- defaults, and open today's group sheets
+select open_cycles_for_day(current_date);    -- every morning, if run separately
+select open_savings_periods('weekly');       -- members with no group
+select open_savings_periods('monthly');      -- members with no group
 ```
 
-Opening periods in advance matters: a member who pays nothing then has a `missed` period rather
+`run_daily_maintenance()` already calls `open_cycles_for_day()`, so a single nightly job is enough.
+Opening sheets in advance matters: a member who pays nothing then has a `missed` schedule rather
 than no row at all, which is the difference between a measurable shortfall and a silent gap.
+
+---
+
+## Testing
+
+```bash
+npm run typecheck                      # strict TypeScript over the whole app
+npm run build                          # production build
+npm run test:db                        # the SQL suites in supabase/tests/
+node scripts/responsive-check.mjs      # audits every page at every width
+```
+
+`npm run test:db` runs each suite as a real signed-in super administrator, inside a transaction it
+always rolls back, so it exercises the same `auth.uid()` and role checks the application hits and
+leaves nothing behind. The group savings suite covers the scenarios that matter: 25 members on one
+sheet, expected totalling correctly, a full payment, a partial payment, a missed schedule, a
+duplicate submission, a duplicate external reference, a future-dated payment, a closed cycle, and
+an ordinary member being refused every operational action. A second suite checks row-level
+security end to end: staff read everything, a member reads only their own rows plus the loans they
+guarantee, and the books, the audit log and the statement of anyone else stay closed to them.
+
+`scripts/db-exec.mjs` applies a migration or runs a statement from `DATABASE_URL` directly, with
+`--as <user_id>` to run it as a given user — useful when the Supabase CLI has no linked project.
 
 ---
 
 ## Known limits
 
-- **No payment gateway.** Mobile money and bank transfers are reconciled by a cashier. The member
-  screens are built so a gateway can be added without redesigning them.
+- **No payment gateway — deliberately.** Phase One records payments that already happened.
+  `payment_intents` is the seam a provider plugs into in Phase Two; nothing calls one today.
+- **Biweekly groups alternate on ISO-week parity**, anchored to the week the group was created.
+  A group that needs a different rhythm — first and third Tuesday, say — needs a rule of its own.
+- **Group history stays with the group that collected it.** Moving a member carries only their
+  unpaid, not-yet-due schedules across, so an old collection sheet never rewrites itself.
 - **Excel export is CSV.** Opens natively in Excel, with a UTF-8 BOM so member names with accents
   survive. A true `.xlsx` writer was not worth ~200 KB for flat reports.
 - **Loan interest is flat-rate by default.** `quote_loan()` also implements reducing-balance

@@ -49,25 +49,55 @@ export function Sidebar({
     <nav className="space-y-1 overflow-y-auto px-4 py-6" aria-label="Sections">
       {items.map((item) => {
         const active = isActive(item.href);
+        const children = item.children ?? [];
+
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? 'page' : undefined}
-            className={clsx(
-              'text-button-text font-button-text group flex items-center gap-3 rounded-lg px-4 py-3 transition-colors',
-              active
-                ? 'bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed-dim font-semibold'
-                : 'text-on-surface-variant hover:bg-surface-container-high',
-            )}
-          >
-            <Icon
-              name={item.icon}
-              filled={active}
-              className={clsx(!active && 'group-hover:text-primary transition-colors')}
-            />
-            {item.label}
-          </Link>
+          <div key={item.href}>
+            <Link
+              href={item.href}
+              aria-current={active ? 'page' : undefined}
+              className={clsx(
+                'text-button-text font-button-text group flex items-center gap-3 rounded-lg px-4 py-3 transition-colors',
+                active
+                  ? 'bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed-dim font-semibold'
+                  : 'text-on-surface-variant hover:bg-surface-container-high',
+              )}
+            >
+              <Icon
+                name={item.icon}
+                filled={active}
+                className={clsx(!active && 'group-hover:text-primary transition-colors')}
+              />
+              {item.label}
+            </Link>
+
+            {/* Sub-sections appear only while their parent is the open section,
+                so the sidebar stays the ten-item list Stitch drew. */}
+            {active && children.length > 0 ? (
+              <ul className="border-outline-variant/50 ml-7 mt-1 space-y-0.5 border-l pl-3">
+                {children.map((child) => {
+                  const childActive = pathname === child.href;
+                  return (
+                    <li key={child.href}>
+                      <Link
+                        href={child.href}
+                        aria-current={childActive ? 'page' : undefined}
+                        className={clsx(
+                          'text-label-md font-label-md min-h-touch-target-min flex items-center gap-2 rounded-lg px-3 normal-case transition-colors',
+                          childActive
+                            ? 'text-primary font-semibold'
+                            : 'text-on-surface-variant hover:bg-surface-container-high',
+                        )}
+                      >
+                        <Icon name={child.icon} size={18} filled={childActive} />
+                        {child.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+          </div>
         );
       })}
     </nav>

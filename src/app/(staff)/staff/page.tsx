@@ -2,14 +2,14 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getCollectionsTrend, getDashboardMetrics } from '@/lib/queries';
+import { getCollectionsTrend, getDashboardMetrics, getGroupsSavingOn } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
-import { Icon, Money, Avatar, PageTitle } from '@/components/ui/primitives';
+import { Icon, Money, Avatar, PageTitle, ProgressBar } from '@/components/ui/primitives';
 import { StatGridSkeleton, ListSkeleton, ErrorState, EmptyState } from '@/components/ui/states';
 import { TrendChart } from '@/components/staff/TrendChart';
-import { formatAgo, formatDate, LOAN_STATUS_LABELS } from '@/lib/format';
-import { formatUGX, toNumber } from '@/lib/money';
+import { formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/format';
+import { formatUGX, percent, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { AuditLogRow } from '@/types/db';
 
@@ -40,6 +40,10 @@ export default async function StaffDashboard() {
 
       <Suspense fallback={<StatGridSkeleton />}>
         <Metrics />
+      </Suspense>
+
+      <Suspense fallback={<div className="skeleton h-32 rounded-xl" />}>
+        <CollectingToday />
       </Suspense>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -144,7 +148,10 @@ async function Metrics() {
 
       {/* Things that need someone's attention. Shown only when non-zero — an
           alert strip that is always present stops being an alert. */}
-      {m.overdue_count > 0 || m.pending_loans > 0 || m.pending_expenses > 0 ? (
+      {m.overdue_count > 0 ||
+      m.pending_loans > 0 ||
+      m.pending_expenses > 0 ||
+      m.savings_arrears > 0 ? (
         <section className="flex flex-wrap gap-3">
           {m.overdue_count > 0 ? (
             <AttentionChip
@@ -164,6 +171,15 @@ async function Metrics() {
               detail="awaiting review"
             />
           ) : null}
+          {m.savings_arrears > 0 ? (
+            <AttentionChip
+              href="/staff/savings/schedules?status=missed"
+              icon="savings"
+              tone="error"
+              label="Savings arrears"
+              detail={formatUGX(m.savings_arrears)}
+            />
+          ) : null}
           {m.pending_expenses > 0 ? (
             <AttentionChip
               href="/staff/finance?tab=expenses&approval=pending"
@@ -176,6 +192,105 @@ async function Metrics() {
         </section>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Which groups are collecting today.
+ *
+ * Derived from the saving day each group configured, so a manager arriving in
+ * the morning sees the round for the day without asking anyone. Nothing here is
+ * keyed to a hard-coded weekday.
+ */
+async function CollectingToday() {
+  const today = toISODate();
+  const groups = await getGroupsSavingOn(today);
+
+  if (groups.length === 0) {
+    return (
+      <section className="bg-surface-container-lowest border-outline-variant/50 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
+        <div className="flex items-center gap-3">
+          <span className="bg-surface-container text-on-surface-variant flex h-10 w-10 items-center justify-center rounded-full">
+            <Icon name="event_busy" size={20} />
+          </span>
+          <div>
+            <p className="text-button-text font-button-text text-on-surface">
+              No group collects today
+            </p>
+            <p className="text-label-md font-label-md text-on-surface-variant normal-case">
+              Groups save on the day set in their profile.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/staff/savings/today"
+          className="text-label-md font-label-md text-primary hover:underline normal-case"
+        >
+          Check another day →
+        </Link>
+      </section>
+    );
+  }
+
+  const expected = groups.reduce((n, g) => n + toNumber(g.expected_amount), 0);
+  const collected = groups.reduce((n, g) => n + toNumber(g.collected_amount), 0);
+
+  return (
+    <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
+      <div className="border-outline-variant/40 flex flex-wrap items-center justify-between gap-3 border-b p-4">
+        <div>
+          <h2 className="text-button-text font-button-text text-on-surface">
+            Collecting today · {groups.length} {groups.length === 1 ? 'group' : 'groups'}
+          </h2>
+          <p className="text-label-md font-label-md text-on-surface-variant mt-0.5 normal-case">
+            {formatUGX(collected)} of {formatUGX(expected)} expected
+          </p>
+        </div>
+        <Link
+          href="/staff/savings/today"
+          className="bg-primary text-on-primary hover:bg-primary-container h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors"
+        >
+          <Icon name="event_available" size={20} />
+          Open collections
+        </Link>
+      </div>
+
+      <ul className="divide-outline-variant/30 divide-y">
+        {groups.slice(0, 5).map((g) => {
+          const rate = percent(g.collected_amount, g.expected_amount);
+          return (
+            <li key={g.group_id}>
+              <Link
+                href={`/staff/groups/${g.group_id}/collect`}
+                className="hover:bg-surface-container-lowest min-h-touch-target-min flex items-center gap-3 p-4 transition-colors"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="text-body-md font-body-md text-primary block truncate font-semibold">
+                    {g.name}
+                  </span>
+                  <span className="text-label-md font-label-md text-on-surface-variant block truncate normal-case">
+                    {g.cycle_id
+                      ? `${g.paid_members} of ${g.members_expected} paid`
+                      : `${g.active_members} members · sheet not opened`}
+                  </span>
+                </span>
+                <span className="w-24 shrink-0">
+                  <ProgressBar
+                    value={rate}
+                    tone={rate >= 80 ? 'tertiary' : rate >= 40 ? 'secondary' : 'error'}
+                    label={`${g.name} collection rate`}
+                  />
+                </span>
+                <span className="text-body-md font-body-md text-on-surface tabular w-14 shrink-0 text-right font-semibold">
+                  {rate.toFixed(0)}%
+                </span>
+                <Icon name="chevron_right" size={20} className="text-on-surface-variant shrink-0" />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

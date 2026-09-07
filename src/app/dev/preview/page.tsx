@@ -9,9 +9,14 @@ import { Receipt } from '@/components/Receipt';
 import { TrendChart } from '@/components/staff/TrendChart';
 import { MembersBrowser } from '@/app/(staff)/staff/members/MembersBrowser';
 import { LoansBrowser } from '@/app/(staff)/staff/loans/LoansBrowser';
+import { GroupsBrowser } from '@/components/groups/GroupsBrowser';
+import { CollectionSheet } from '@/components/collections/CollectionSheet';
 import { PreviewControls } from './PreviewControls';
 
 import {
+  FIXTURE_COLLECTION_SHEET,
+  FIXTURE_GROUPS,
+  FIXTURE_GROUP_OVERVIEWS,
   FIXTURE_LOAN_BALANCE,
   FIXTURE_MEMBERS,
   FIXTURE_PORTFOLIO,
@@ -170,7 +175,32 @@ export default function PreviewPage() {
             page={1}
             pageSize={20}
             canRegister
+            groups={FIXTURE_GROUPS}
           />
+        </Section>
+
+        {/* --------------------------------------------------- staff groups */}
+        <Section
+          id="staff-groups"
+          title="Staff · group register"
+          note="Each group carries its own saving day"
+        >
+          <GroupsBrowser
+            rows={FIXTURE_GROUP_OVERVIEWS}
+            total={FIXTURE_GROUP_OVERVIEWS.length}
+            page={1}
+            pageSize={20}
+            canManage
+          />
+        </Section>
+
+        {/* ----------------------------------------------- collection sheet */}
+        <Section
+          id="staff-collections"
+          title="Staff · collection sheet"
+          note="The screen a cashier works from on a saving day"
+        >
+          <CollectionSheet sheet={FIXTURE_COLLECTION_SHEET} canRecord canWaive />
         </Section>
 
         {/* ---------------------------------------------------- staff loans */}

@@ -52,7 +52,7 @@ export default async function StaffSavingsPage({
           <div className="flex flex-wrap gap-2">
             <Link
               href="/staff/savings/today"
-              className="border-outline-variant bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg border px-4 font-semibold transition-colors"
+              className="bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors shadow-neu-sm"
             >
               <Icon name="event_available" size={20} />
               <span className="hidden sm:inline">Today’s collections</span>
@@ -200,7 +200,7 @@ async function Performance({
         <Total label="Expected" value={totals.expected} />
         <Total label="Collected" value={totals.paid} tone="text-tertiary" />
         <Total label="Shortfall" value={totals.balance} tone="text-error" />
-        <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+        <div className="bg-surface shadow-card rounded-xl p-5">
           <p className="text-label-md font-label-md text-on-surface-variant mb-1">
             Collection rate
           </p>
@@ -217,7 +217,7 @@ async function Performance({
       </section>
 
       {withActivity.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="savings"
             title="No savings activity in this period"
@@ -287,7 +287,7 @@ async function Performance({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
@@ -348,7 +348,7 @@ async function Performance({
                         <td className="p-4 text-center">
                           <Link
                             href={`/staff/savings/record?member=${r.member_id}&kind=${kind}`}
-                            className="bg-surface-container-high hover:bg-surface-container border-outline-variant text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
+                            className="bg-surface-container-high hover:bg-surface-container text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg px-3 font-semibold transition-colors shadow-neu-sm"
                           >
                             Record
                           </Link>
@@ -370,7 +370,7 @@ async function Performance({
 
 function Total({ label, value, tone = 'text-on-surface' }: { label: string; value: number; tone?: string }) {
   return (
-    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+    <div className="bg-surface shadow-card rounded-xl p-5">
       <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>

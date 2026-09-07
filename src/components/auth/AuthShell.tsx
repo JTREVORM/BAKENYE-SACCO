@@ -64,7 +64,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         <DesktopBrandPanel />
 
         {/* ------------------------------------------------------ the task */}
-        <section className="relative isolate flex flex-1 items-start justify-center overflow-hidden bg-gradient-to-br from-[#eaf1fb] via-[#f5f9fd] to-[#d9e7f8] px-4 pb-8 pt-4 sm:px-6 lg:w-[46%] lg:items-center lg:px-8 lg:py-12">
+        <section className="bg-background relative isolate flex flex-1 items-start justify-center overflow-hidden px-4 pb-10 pt-6 sm:px-6 lg:w-[46%] lg:items-center lg:px-8 lg:py-12">
           <svg
             viewBox="0 0 400 400"
             preserveAspectRatio="none"
@@ -132,7 +132,7 @@ function MobileBrandStrip() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-7 w-full"
       >
-        <path d="M0,60 C320,-15 820,95 1200,15 L1200,120 L0,120 Z" fill="#eaf1fb" />
+        <path d="M0,60 C320,-15 820,95 1200,15 L1200,120 L0,120 Z" fill="#e4e9f2" />
         <path
           d="M0,60 C320,-15 820,95 1200,15"
           fill="none"

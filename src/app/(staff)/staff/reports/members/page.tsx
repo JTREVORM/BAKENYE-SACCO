@@ -103,7 +103,7 @@ export default async function MemberRegisterPage({
       {rows.length === 0 ? (
         <EmptyState icon="group" title="No members" description="The register is empty." />
       ) : (
-        <div className="bg-surface border-outline-variant shadow-card print-block overflow-hidden rounded-xl border">
+        <div className="bg-surface shadow-card print-block overflow-hidden rounded-xl">
           <div className="scroll-x">
             <table className="w-full border-collapse text-left">
               <thead>

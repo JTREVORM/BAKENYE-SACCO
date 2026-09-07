@@ -296,7 +296,7 @@ export default function PreviewPage() {
         <Section id="staff-dashboard" title="Staff · dashboard stats" note="staff_dashboard_desktop">
           <div className="flex flex-col gap-6">
             <div className="gap-gutter grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="bg-surface border-outline-variant shadow-card flex flex-col justify-between rounded-xl border p-5">
+              <div className="bg-surface shadow-card flex flex-col justify-between rounded-xl p-5">
                 <div className="mb-4 flex items-start justify-between gap-2">
                   <div className="bg-primary-container/20 text-primary-container rounded-lg p-2">
                     <Icon name="group" />
@@ -335,7 +335,7 @@ export default function PreviewPage() {
                 </div>
               </div>
 
-              <div className="bg-surface border-outline-variant shadow-card flex flex-col justify-between rounded-xl border p-5">
+              <div className="bg-surface shadow-card flex flex-col justify-between rounded-xl p-5">
                 <div className="mb-4">
                   <div className="bg-secondary-container/30 text-on-secondary-container w-fit rounded-lg p-2">
                     <Icon name="account_balance_wallet" />
@@ -353,7 +353,7 @@ export default function PreviewPage() {
                 </div>
               </div>
 
-              <div className="bg-surface border-outline-variant shadow-card flex flex-col justify-between rounded-xl border p-5">
+              <div className="bg-surface shadow-card flex flex-col justify-between rounded-xl p-5">
                 <div className="mb-4 flex items-start justify-between gap-2">
                   <div className="bg-error-container/30 text-on-error-container rounded-lg p-2">
                     <Icon name="payments" />
@@ -375,7 +375,7 @@ export default function PreviewPage() {
               </div>
             </div>
 
-            <div className="bg-surface-container-lowest border-outline-variant grid grid-cols-2 gap-4 rounded-xl border p-4 shadow-sm md:grid-cols-4">
+            <div className="bg-surface-container-lowest grid grid-cols-2 gap-4 rounded-xl p-4 shadow-sm md:grid-cols-4">
               {[
                 ['Outstanding Loans', 86500000, 'text-on-surface'],
                 ["Today's Collections", 3800000, 'text-tertiary-container'],
@@ -397,7 +397,7 @@ export default function PreviewPage() {
               ))}
             </div>
 
-            <div className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+            <div className="bg-surface shadow-card overflow-hidden rounded-xl">
               <div className="border-outline-variant bg-surface border-b p-5">
                 <h2 className="text-button-text font-button-text text-on-surface font-bold">
                   Collections
@@ -413,14 +413,14 @@ export default function PreviewPage() {
         {/* -------------------------------------------------- states */}
         <Section id="states" title="Loading, empty and error states">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="bg-surface border-outline-variant rounded-xl border">
+            <div className="bg-surface rounded-xl shadow-neu-sm">
               <EmptyState
                 icon="receipt_long"
                 title="No transactions yet"
                 description="Your transactions will appear here."
               />
             </div>
-            <div className="bg-surface border-outline-variant rounded-xl border">
+            <div className="bg-surface rounded-xl shadow-neu-sm">
               <ErrorState />
             </div>
             <ListSkeleton rows={3} />

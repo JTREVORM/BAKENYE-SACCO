@@ -214,7 +214,7 @@ export function LoanWizard({
           {state.message} A loan officer will review it and you will be notified of the decision.
         </p>
 
-        <div className="bg-surface-container-low border-outline-variant mt-6 w-full max-w-sm rounded-xl border p-4">
+        <div className="bg-surface-container-low mt-6 w-full max-w-sm rounded-xl p-4 shadow-neu-sm">
           <p className="text-label-md font-label-md text-on-surface-variant">Application number</p>
           <p className="text-button-text font-button-text text-on-surface tabular mt-1 select-all font-mono">
             {state.data.loan_no}
@@ -230,7 +230,7 @@ export function LoanWizard({
           </Link>
           <Link
             href="/loans"
-            className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg border font-semibold"
+            className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg font-semibold shadow-neu-sm"
           >
             Back to my loans
           </Link>
@@ -395,7 +395,7 @@ export function LoanWizard({
           </Field>
 
           {/* Your standing at the SACCO, so the ask is informed. */}
-          <div className="bg-surface-container-low border-outline-variant grid grid-cols-2 gap-3 rounded-xl border p-4">
+          <div className="bg-surface-container-low grid grid-cols-2 gap-3 rounded-xl p-4 shadow-neu-sm">
             <div>
               <p className="text-label-md font-label-md text-on-surface-variant">Your savings</p>
               <Money value={savingsBalance} className="text-body-lg font-body-lg text-on-surface font-semibold" />
@@ -467,7 +467,7 @@ export function LoanWizard({
           </Field>
 
           {quoting ? (
-            <div className="bg-surface-container-low border-outline-variant space-y-3 rounded-xl border p-5">
+            <div className="bg-surface-container-low space-y-3 rounded-xl p-5 shadow-neu-sm">
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-9 w-48" />
               <Skeleton className="h-3 w-full" />
@@ -496,7 +496,7 @@ export function LoanWizard({
           />
 
           {quote ? (
-            <div className="bg-surface-container-low border-outline-variant rounded-xl border p-4">
+            <div className="bg-surface-container-low rounded-xl p-4 shadow-neu-sm">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <span className="text-body-md font-body-md text-on-surface-variant">
                   Amount to cover
@@ -521,7 +521,7 @@ export function LoanWizard({
           {guarantors.map((g, i) => (
             <div
               key={g.member.id}
-              className="bg-surface border-outline-variant flex flex-col gap-3 rounded-xl border p-4"
+              className="bg-surface flex flex-col gap-3 rounded-xl p-4 shadow-neu-sm"
             >
               <div className="flex items-center gap-3">
                 <Avatar name={g.member.full_name} src={g.member.photo_url} size={44} />
@@ -584,7 +584,7 @@ export function LoanWizard({
             subtitle="Optional. Bring the originals to the office when you collect your funds."
           />
 
-          <div className="bg-surface-container-low border-outline-variant rounded-xl border border-dashed p-6 text-center">
+          <div className="bg-surface-container shadow-neu-inset rounded-2xl p-6 text-center">
             <Icon name="upload_file" size={32} className="text-on-surface-variant mx-auto" />
             <p className="text-body-md font-body-md text-on-surface mt-3 font-semibold">
               Attach a document
@@ -618,7 +618,7 @@ export function LoanWizard({
               {documents.map((d, i) => (
                 <li
                   key={`${d.name}-${i}`}
-                  className="bg-surface border-outline-variant flex items-center gap-3 rounded-lg border p-3"
+                  className="bg-surface flex items-center gap-3 rounded-lg p-3 shadow-neu-sm"
                 >
                   <Icon name="description" className="text-on-surface-variant shrink-0" />
                   <span className="text-body-md font-body-md text-on-surface min-w-0 flex-1 truncate">
@@ -658,7 +658,7 @@ export function LoanWizard({
 
           {quote ? <QuoteCard quote={quote} emphasised /> : null}
 
-          <div className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
+          <div className="bg-surface overflow-hidden rounded-xl shadow-neu-sm">
             <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
               Loan Details
             </h3>
@@ -678,7 +678,7 @@ export function LoanWizard({
             </dl>
           </div>
 
-          <div className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
+          <div className="bg-surface overflow-hidden rounded-xl shadow-neu-sm">
             <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
               Guarantors ({guarantors.length})
             </h3>
@@ -707,7 +707,7 @@ export function LoanWizard({
           </div>
 
           {documents.length > 0 ? (
-            <div className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
+            <div className="bg-surface overflow-hidden rounded-xl shadow-neu-sm">
               <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
                 Documents ({documents.length})
               </h3>
@@ -741,7 +741,7 @@ export function LoanWizard({
         ) : (
           <Link
             href="/loans"
-            className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex flex-1 items-center justify-center rounded-lg border font-semibold"
+            className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex flex-1 items-center justify-center rounded-lg font-semibold shadow-neu-sm"
           >
             Cancel
           </Link>

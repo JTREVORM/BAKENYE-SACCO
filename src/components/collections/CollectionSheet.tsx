@@ -73,7 +73,7 @@ export function CollectionSheet({
 
   if (!cycle) {
     return (
-      <div className="bg-surface border-outline-variant rounded-xl border">
+      <div className="bg-surface rounded-xl shadow-neu-sm">
         <EmptyState
           icon="event_available"
           title="No collection sheet yet"
@@ -91,7 +91,7 @@ export function CollectionSheet({
       {/* ------------------------------------------------------- the totals */}
       <section
         aria-label="Collection summary"
-        className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border"
+        className="bg-surface shadow-card overflow-hidden rounded-xl"
       >
         <div className="border-outline-variant flex flex-wrap items-start justify-between gap-3 border-b p-4">
           <div className="min-w-0">
@@ -214,7 +214,7 @@ export function CollectionSheet({
 
       {/* --------------------------------------------------------- the rows */}
       {visible.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="group"
             title="No members match"
@@ -305,7 +305,7 @@ export function CollectionSheet({
           </ul>
 
           {/* Desktop: the full sheet */}
-          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>

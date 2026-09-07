@@ -103,7 +103,7 @@ export function GroupsBrowser({
             <select
               value={day}
               onChange={(e) => setParam('day', e.target.value)}
-              className="bg-surface-container-low border-outline-variant text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
+              className="bg-surface-container text-label-md font-label-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-min rounded-full border-0 py-0 pl-4 pr-8 normal-case outline-none"
             >
               <option value="">Any day</option>
               {SAVING_DAYS.map((d) => (
@@ -123,7 +123,7 @@ export function GroupsBrowser({
       </p>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="groups"
             title={filtered ? 'No matching groups' : 'No groups yet'}
@@ -224,7 +224,7 @@ export function GroupsBrowser({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>

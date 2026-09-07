@@ -109,7 +109,7 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
         </p>
 
         {state.data?.reference ? (
-          <div className="bg-surface-container-low border-outline-variant mt-6 w-full max-w-sm rounded-xl border p-4">
+          <div className="bg-surface-container-low mt-6 w-full max-w-sm rounded-xl p-4 shadow-neu-sm">
             <p className="text-label-md font-label-md text-on-surface-variant">
               Transaction reference
             </p>
@@ -133,7 +133,7 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
           {doneHref ? (
             <Link
               href={doneHref}
-              className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg border font-semibold"
+              className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg font-semibold shadow-neu-sm"
             >
               {doneLabel}
             </Link>
@@ -188,7 +188,7 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
             />
           </div>
 
-          <dl className="bg-surface border-outline-variant divide-outline-variant/70 mb-5 divide-y rounded-xl border px-4">
+          <dl className="bg-surface divide-outline-variant/70 mb-5 divide-y rounded-xl px-4 shadow-neu-sm">
             {lines.map((l) => (
               <div key={l.label} className="flex items-start justify-between gap-4 py-3">
                 <dt className="text-body-md font-body-md text-on-surface-variant shrink-0">

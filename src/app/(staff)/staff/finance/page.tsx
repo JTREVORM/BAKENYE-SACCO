@@ -154,7 +154,7 @@ function Total({
   tone: 'tertiary' | 'error';
 }) {
   return (
-    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+    <div className="bg-surface shadow-card rounded-xl p-5">
       <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>
@@ -186,7 +186,7 @@ function CategoryPanel({
   emptyBody: string;
 }) {
   return (
-    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+    <section className="bg-surface shadow-card overflow-hidden rounded-xl">
       <div className="border-outline-variant bg-surface flex items-center justify-between gap-3 border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface font-bold">{title}</h2>
         <Money
@@ -264,7 +264,7 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      <div className="bg-surface border-outline-variant shadow-card flex items-baseline justify-between gap-3 rounded-xl border p-4">
+      <div className="bg-surface shadow-card flex items-baseline justify-between gap-3 rounded-xl p-4">
         <span className="text-body-md font-body-md text-on-surface-variant">
           {rows.length} {rows.length === 1 ? 'entry' : 'entries'} between {formatDate(from)} and{' '}
           {formatDate(to)}
@@ -273,7 +273,7 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="trending_up"
             title="No income in this period"
@@ -281,7 +281,7 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
           />
         </div>
       ) : (
-        <ul className="bg-surface border-outline-variant shadow-card divide-outline-variant/70 divide-y overflow-hidden rounded-xl border">
+        <ul className="bg-surface shadow-card divide-outline-variant/70 divide-y overflow-hidden rounded-xl">
           {rows.map((r) => (
             <li key={r.id} className="flex items-start justify-between gap-3 p-4">
               <div className="min-w-0">
@@ -356,7 +356,7 @@ async function ExpenseLedger({
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      <div className="bg-surface border-outline-variant shadow-card flex flex-wrap items-baseline justify-between gap-3 rounded-xl border p-4">
+      <div className="bg-surface shadow-card flex flex-wrap items-baseline justify-between gap-3 rounded-xl p-4">
         <div>
           <p className="text-label-md font-label-md text-on-surface-variant">Approved</p>
           <Money value={total} className="text-headline-lg-mobile font-headline-lg-mobile text-error" />
@@ -375,7 +375,7 @@ async function ExpenseLedger({
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="trending_down"
             title="No expenses in this period"

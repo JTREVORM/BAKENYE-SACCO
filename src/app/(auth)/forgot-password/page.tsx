@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Reset your password' };
 export default function ForgotPasswordPage() {
   return (
     <AuthShell>
-      <div className="bg-surface-container-lowest rounded-[20px] p-5 shadow-[0_18px_50px_-12px_rgba(10,38,96,0.28)] sm:p-7">
+      <div className="bg-surface rounded-[32px] p-5 shadow-neu-lg sm:p-8">
         <Link
           href="/login"
           className="text-primary hover:bg-surface-container-high h-touch-target-min -ml-2 mb-4 inline-flex items-center gap-2 rounded-lg px-2 text-[15px] font-semibold"

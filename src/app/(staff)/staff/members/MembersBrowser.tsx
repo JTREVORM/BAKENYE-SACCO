@@ -114,7 +114,7 @@ export function MembersBrowser({
             <select
               value={group}
               onChange={(e) => setParam('group', e.target.value)}
-              className="bg-surface-container-low border-outline-variant text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min max-w-[12rem] rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
+              className="bg-surface-container text-label-md font-label-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-min max-w-[12rem] rounded-full border-0 py-0 pl-4 pr-8 normal-case outline-none"
             >
               <option value="">All groups</option>
               <option value="none">Not in a group</option>
@@ -131,7 +131,7 @@ export function MembersBrowser({
             <select
               value={sort}
               onChange={(e) => setParam('sort', e.target.value)}
-              className="bg-surface-container-low border-outline-variant text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
+              className="bg-surface-container text-label-md font-label-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-min rounded-full border-0 py-0 pl-4 pr-8 normal-case outline-none"
             >
               {SORTS.map((s) => (
                 <option key={s.value} value={s.value}>
@@ -149,7 +149,7 @@ export function MembersBrowser({
       </p>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="group"
             title={filtered ? 'No matching members' : 'No members yet'}
@@ -220,7 +220,7 @@ export function MembersBrowser({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border md:block">
+          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl md:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>

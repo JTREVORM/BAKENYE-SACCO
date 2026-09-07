@@ -1,7 +1,5 @@
 import { TopAppBar } from './TopAppBar';
-import { BottomNav } from './BottomNav';
 import { MemberDesktopRail } from './MemberDesktopRail';
-import { MEMBER_NAV } from '@/lib/rbac';
 import { clsx } from '@/lib/clsx';
 
 /**
@@ -9,9 +7,12 @@ import { clsx } from '@/lib/clsx';
  *
  * The Stitch member screens were exported with `md:hidden` on `<body>` — they
  * were mobile-only previews. Members do open the app on a laptop at the branch
- * office, so instead of hiding everything above 768px we keep the exact mobile
+ * office, so instead of hiding everything above 768px we keep the mobile
  * composition and give the wider viewport a left rail plus a centred column.
- * Nothing about the mobile rendering changes.
+ *
+ * Mobile navigation is the drawer behind the menu button in `TopAppBar`. There
+ * is no bottom tab bar: it took 80px off the bottom of every screen, and the
+ * drawer reaches every destination rather than four of them.
  */
 export function MemberShell({
   children,
@@ -44,17 +45,15 @@ export function MemberShell({
         <main
           className={clsx(
             'safe-pt safe-pb flex-1 overflow-y-auto',
-            // Desktop has the rail instead of the fixed bars, so it needs
-            // neither the top offset nor the bottom-bar clearance.
-            // Utilities layer after components, so these override safe-pt/safe-pb.
+            // Desktop has the rail instead of the fixed top bar, so it needs no
+            // top offset. Utilities layer after components, so these override
+            // safe-pt/safe-pb.
             'md:pb-8 md:pt-8',
             !bare && 'px-container-margin-mobile md:px-8',
           )}
         >
           <div className={clsx(!bare && 'mx-auto w-full max-w-2xl')}>{children}</div>
         </main>
-
-        <BottomNav items={MEMBER_NAV} />
       </div>
     </div>
   );

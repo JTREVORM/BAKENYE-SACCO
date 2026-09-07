@@ -31,7 +31,7 @@ export function GroupReportPicker({
           else next.delete('group');
           router.push(`/staff/reports/groups?${next.toString()}`);
         }}
-        className="bg-surface-container-lowest border-outline-variant text-body-lg font-body-lg text-on-surface focus:border-primary focus:ring-primary h-touch-target-primary w-full rounded-lg border px-4 outline-none focus:ring-1"
+        className="bg-surface-container text-body-lg font-body-lg text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-primary w-full rounded-full border-0 px-5 outline-none"
       >
         <option value="">Choose a group…</option>
         {groups.map((g) => (

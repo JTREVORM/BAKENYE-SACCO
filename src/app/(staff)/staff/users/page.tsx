@@ -59,7 +59,7 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
 
   if (users.length === 0) {
     return (
-      <div className="bg-surface border-outline-variant rounded-xl border">
+      <div className="bg-surface rounded-xl shadow-neu-sm">
         <EmptyState
           icon="manage_accounts"
           title="No users"
@@ -123,7 +123,7 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
       </ul>
 
       {/* Desktop: table */}
-      <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
+      <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
@@ -227,7 +227,7 @@ const MATRIX_ROLES: Role[] = [...STAFF_ROLES];
 
 function PermissionMatrix() {
   return (
-    <section className="bg-surface border-outline-variant shadow-card mt-8 overflow-hidden rounded-xl border">
+    <section className="bg-surface shadow-card mt-8 overflow-hidden rounded-xl">
       <div className="border-outline-variant bg-surface border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface font-bold">
           What each role can do

@@ -1,4 +1,6 @@
 import type { Config } from 'tailwindcss';
+import forms from '@tailwindcss/forms';
+import containerQueries from '@tailwindcss/container-queries';
 
 /**
  * BAKENYE UNITY AND DEVELOPMENT SACCO — design tokens.
@@ -49,17 +51,24 @@ const config: Config = {
         'ink-line': '#1d3f74',
 
         /* --- Page and card surfaces ---------------------------------------
-         * `background` is the page, `surface` is a card. These MUST differ. */
-        background: '#f4f6fb',
-        surface: '#ffffff',
-        'surface-bright': '#ffffff',
-        'surface-container-lowest': '#ffffff',
-        'surface-container-low': '#fafbfd',
-        'surface-container': '#f4f6fb',
-        'surface-container-high': '#eef1f7',
-        'surface-container-highest': '#e5e9f2',
-        'surface-variant': '#eef1f7',
-        'surface-dim': '#dfe4ee',
+         * The soft-UI ground. `background` is the page and `surface` is a card
+         * sitting a shade above it; the separation is carried by the paired
+         * light/dark shadows in `boxShadow` below rather than by a hard border,
+         * which is what makes a panel read as moulded out of the page.
+         *
+         * They still differ, by design: an exact match is the neumorphism that
+         * disappears on a dim outdoor phone screen. A card is one step lighter
+         * than the page, and a recessed control one step darker. */
+        background: '#e4e9f2',
+        surface: '#eff2f8',
+        'surface-bright': '#f7f9fd',
+        'surface-container-lowest': '#f4f7fb',
+        'surface-container-low': '#eaeef6',
+        'surface-container': '#e4e9f2',
+        'surface-container-high': '#dce2ee',
+        'surface-container-highest': '#d2dae9',
+        'surface-variant': '#e4e9f2',
+        'surface-dim': '#d2dae9',
         'inverse-surface': '#1b2537',
         'inverse-on-surface': '#f1f4f9',
 
@@ -67,8 +76,11 @@ const config: Config = {
         'on-background': '#111827',
         'on-surface': '#111827',
         'on-surface-variant': '#5b647a',
-        outline: '#8a93a8',
-        'outline-variant': '#dbe1ec',
+        outline: '#8d97ac',
+        /* Deliberately close to the surfaces it separates. Most chrome is now
+         * drawn with shadow; where a border survives (tables, dividers) it is a
+         * hairline that steadies the eye rather than a drawn box. */
+        'outline-variant': '#d7dee9',
 
         /* --- Money in (green) ---------------------------------------------- */
         tertiary: '#0f7a4a',
@@ -104,12 +116,16 @@ const config: Config = {
         'on-warning-container': '#7a4200',
       },
 
+      /* Softer throughout. Soft UI is defined as much by its radii as by its
+       * shadows: a 4px corner cannot catch a highlight, so it reads as a flat
+       * rectangle no matter what shadow is on it. Controls that are a single
+       * line tall go all the way to `full` and become pills. */
       borderRadius: {
-        DEFAULT: '0.375rem',
-        lg: '0.625rem',
-        xl: '0.875rem',
-        '2xl': '1.125rem',
-        '3xl': '1.5rem',
+        DEFAULT: '0.5rem',
+        lg: '0.75rem',
+        xl: '1rem',
+        '2xl': '1.375rem',
+        '3xl': '1.75rem',
         full: '9999px',
       },
 
@@ -161,11 +177,41 @@ const config: Config = {
         'label-sm': ['11px', { lineHeight: '15px', letterSpacing: '0.04em', fontWeight: '650' }],
       },
 
+      /* The soft-UI elevation ramp.
+       *
+       * Every raised shadow is a pair: a cool grey cast down and to the right,
+       * and a white highlight up and to the left, as if one light sits above
+       * the top-left corner of the screen. Recessed controls invert the same
+       * pair inwards. Keeping the light in one place is the whole trick — a
+       * panel lit from the left next to a field lit from the right stops
+       * reading as a surface and starts reading as a mistake.
+       *
+       * `card` / `card-hover` / `pop` keep their names because ~160 files
+       * already reference them; only the values are new. */
       boxShadow: {
-        card: '0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)',
-        'card-hover': '0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.04)',
-        pop: '0 12px 32px rgba(16, 24, 40, 0.14), 0 4px 8px rgba(16, 24, 40, 0.06)',
-        brand: '0 8px 24px rgba(18, 58, 134, 0.24)',
+        card: '6px 6px 14px rgba(157, 171, 194, 0.40), -6px -6px 14px rgba(255, 255, 255, 0.92)',
+        'card-hover':
+          '9px 9px 20px rgba(157, 171, 194, 0.44), -8px -8px 18px rgba(255, 255, 255, 0.95)',
+        pop: '16px 16px 36px rgba(140, 155, 180, 0.42), -10px -10px 26px rgba(255, 255, 255, 0.90)',
+        brand: '8px 8px 20px rgba(18, 58, 134, 0.28), -6px -6px 16px rgba(255, 255, 255, 0.55)',
+
+        /* Named directly for the places that need to say what they mean. */
+        neu: '6px 6px 14px rgba(157, 171, 194, 0.40), -6px -6px 14px rgba(255, 255, 255, 0.92)',
+        'neu-sm': '3px 3px 7px rgba(157, 171, 194, 0.38), -3px -3px 7px rgba(255, 255, 255, 0.90)',
+        'neu-lg':
+          '16px 16px 36px rgba(140, 155, 180, 0.42), -10px -10px 26px rgba(255, 255, 255, 0.90)',
+        /* Wells: text fields, search bars, track backgrounds. */
+        'neu-inset':
+          'inset 4px 4px 9px rgba(157, 171, 194, 0.50), inset -4px -4px 9px rgba(255, 255, 255, 0.92)',
+        'neu-inset-sm':
+          'inset 2px 2px 5px rgba(157, 171, 194, 0.45), inset -2px -2px 5px rgba(255, 255, 255, 0.90)',
+        /* A raised control while it is held down. */
+        'neu-pressed':
+          'inset 3px 3px 7px rgba(140, 155, 180, 0.55), inset -2px -2px 6px rgba(255, 255, 255, 0.80)',
+        /* Dark pills (the primary action) carry their own softer pair — a white
+         * highlight on navy would look like a smudge. */
+        'neu-dark': '6px 6px 14px rgba(10, 33, 72, 0.30), -4px -4px 12px rgba(255, 255, 255, 0.75)',
+        'neu-dark-sm': '3px 3px 8px rgba(10, 33, 72, 0.28), -2px -2px 7px rgba(255, 255, 255, 0.70)',
       },
 
       backgroundImage: {
@@ -195,7 +241,11 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/container-queries')],
+  // Imported at the top rather than `require`d here: under Node's ESM
+  // loader this file has no `require`, and Tailwind re-reads the config on
+  // every CSS rebuild — so a `require` call here takes the dev server down
+  // on the first edit after it starts.
+  plugins: [forms, containerQueries],
 };
 
 export default config;

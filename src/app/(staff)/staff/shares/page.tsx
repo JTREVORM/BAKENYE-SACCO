@@ -105,7 +105,7 @@ async function Register({ canSell }: { canSell: boolean }) {
       </section>
 
       {/* Recent purchases */}
-      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <section className="bg-surface shadow-card overflow-hidden rounded-xl">
         <div className="border-outline-variant bg-surface border-b p-4">
           <h2 className="text-button-text font-button-text text-on-surface font-bold">
             Recent purchases
@@ -151,7 +151,7 @@ async function Register({ canSell }: { canSell: boolean }) {
       </section>
 
       {/* Holders */}
-      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <section className="bg-surface shadow-card overflow-hidden rounded-xl">
         <div className="border-outline-variant bg-surface border-b p-4">
           <h2 className="text-button-text font-button-text text-on-surface font-bold">
             Shareholders ({holders.length})
@@ -239,7 +239,7 @@ async function Register({ canSell }: { canSell: boolean }) {
                         <td className="p-4 text-center">
                           <Link
                             href={`/staff/shares/sell?member=${h.id}`}
-                            className="bg-surface-container-high hover:bg-surface-container border-outline-variant text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
+                            className="bg-surface-container-high hover:bg-surface-container text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg px-3 font-semibold transition-colors shadow-neu-sm"
                           >
                             Sell
                           </Link>
@@ -259,7 +259,7 @@ async function Register({ canSell }: { canSell: boolean }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+    <div className="bg-surface shadow-card rounded-xl p-5">
       <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>

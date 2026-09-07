@@ -96,7 +96,7 @@ export function MemberPicker({
     return (
       <Field label={label} error={error}>
         <input type="hidden" name={name} value={selected.id} />
-        <div className="bg-surface-container-low border-outline-variant flex items-center gap-3 rounded-lg border p-3">
+        <div className="bg-surface-container-low flex items-center gap-3 rounded-lg p-3 shadow-neu-sm">
           <Avatar name={selected.full_name} src={selected.photo_url} size={44} />
           <div className="min-w-0 flex-1">
             <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
@@ -152,7 +152,7 @@ export function MemberPicker({
 
         {open && !loading ? (
           <div
-            className="bg-surface border-outline-variant animate-slide-up absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-xl border shadow-lg"
+            className="bg-surface animate-slide-up absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-xl shadow-lg"
             role="listbox"
           >
             {results.length === 0 ? (

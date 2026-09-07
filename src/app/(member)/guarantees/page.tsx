@@ -94,7 +94,7 @@ export default async function GuaranteesPage() {
         ) : null}
 
         {rows.length === 0 ? (
-          <div className="bg-surface border-outline-variant rounded-xl border">
+          <div className="bg-surface rounded-xl shadow-neu-sm">
             <EmptyState
               icon="handshake"
               title="No guarantees"
@@ -106,7 +106,7 @@ export default async function GuaranteesPage() {
             {rows.map((g) => (
               <li
                 key={g.id}
-                className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border"
+                className="bg-surface shadow-card overflow-hidden rounded-xl"
               >
                 <Link
                   href={`/loans/${g.loan_id}`}
@@ -160,7 +160,7 @@ export default async function GuaranteesPage() {
           </ul>
         )}
 
-        <div className="bg-surface-container-low border-outline-variant rounded-xl border p-4">
+        <div className="bg-surface-container-low rounded-xl p-4 shadow-neu-sm">
           <h2 className="text-button-text font-button-text text-on-surface flex items-center gap-2">
             <Icon name="info" size={20} className="text-primary" />
             What guaranteeing means

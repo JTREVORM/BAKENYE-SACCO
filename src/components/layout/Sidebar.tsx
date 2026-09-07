@@ -17,9 +17,9 @@ import type { NavItem } from '@/lib/rbac';
  * pill with a gold edge marker — the marker is what survives when the pill is
  * hard to see on a dim outdoor phone screen.
  *
- * Below `md` the same list becomes a slide-in drawer. It never covers the whole
- * screen: it is 300px wide with the page dimmed behind, so the user keeps their
- * place.
+ * Below `md` the same list becomes a slide-in drawer, and it is the whole of
+ * the mobile navigation. It never covers the whole screen: it is 300px wide
+ * with the page dimmed behind, so the user keeps their place.
  */
 export function Sidebar({
   items,
@@ -170,7 +170,7 @@ function BrandLockup({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-4">
       <Link href="/staff" className="flex min-w-0 flex-1 items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/95 p-1 shadow-card">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-1">
           <Image
             src="/brand/bnd-logo.png"
             alt=""

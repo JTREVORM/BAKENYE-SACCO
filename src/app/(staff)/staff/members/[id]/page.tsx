@@ -121,7 +121,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           can(user.role, 'members.manage') ? (
             <Link
               href={`/staff/members/${id}/edit`}
-              className="border-outline-variant bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg border px-4 font-semibold transition-colors"
+              className="bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors shadow-neu-sm"
             >
               <Icon name="edit" size={20} />
               Edit
@@ -131,7 +131,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
       />
 
       {/* Identity card */}
-      <section className="bg-surface border-outline-variant shadow-card flex flex-wrap items-start gap-4 rounded-xl border p-5">
+      <section className="bg-surface shadow-card flex flex-wrap items-start gap-4 rounded-xl p-5">
         <Avatar name={member.full_name} src={member.photo_url} size={72} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -499,7 +499,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+    <section className="bg-surface shadow-card overflow-hidden rounded-xl">
       <div className="border-outline-variant bg-surface flex items-center justify-between gap-3 border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface font-bold">{title}</h2>
         {action ??

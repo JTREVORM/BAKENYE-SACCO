@@ -85,7 +85,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
 
   if (rows.length === 0) {
     return (
-      <div className="bg-surface border-outline-variant mt-6 rounded-xl border">
+      <div className="bg-surface mt-6 rounded-xl shadow-neu-sm">
         <EmptyState
           icon="policy"
           title={sp.q || sp.module ? 'No matching entries' : 'No activity recorded yet'}
@@ -147,7 +147,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
       </ul>
 
       {/* Desktop: table */}
-      <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
+      <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>

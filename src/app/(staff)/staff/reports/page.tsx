@@ -224,7 +224,7 @@ export default async function StaffReportsPage() {
                 <Link
                   key={r.href + r.title}
                   href={r.href}
-                  className="bg-surface border-outline-variant shadow-card hover:border-primary flex items-start gap-3 rounded-xl border p-4 transition-colors"
+                  className="bg-surface shadow-neu hover:shadow-card-hover active:shadow-neu-pressed flex items-start gap-3 rounded-2xl p-4 transition-shadow"
                 >
                   <span className="bg-primary-fixed text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
                     <Icon name={r.icon} size={20} />

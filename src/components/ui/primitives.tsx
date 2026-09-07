@@ -97,6 +97,10 @@ export function SignedMoney({
 
 /* ---------------------------------------------------------------------------
  * Card — the standard surface.
+ *
+ * Moulded out of the page rather than drawn on it: no border, and the paired
+ * light/dark shadow does the separating. A border on top of that shadow draws
+ * the same edge twice and flattens the card back into a box.
  * ------------------------------------------------------------------------- */
 export function Card({
   children,
@@ -114,7 +118,7 @@ export function Card({
   return (
     <As
       className={clsx(
-        'rounded-2xl border border-outline-variant bg-surface shadow-card',
+        'rounded-2xl bg-surface shadow-neu',
         padded && 'p-5',
         interactive && 'card-interactive',
         className,
@@ -155,14 +159,14 @@ export function Panel({
     <section
       id={id}
       className={clsx(
-        'flex flex-col overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-card',
+        'flex flex-col overflow-hidden rounded-2xl bg-surface shadow-neu',
         className,
       )}
     >
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant px-5 py-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/70 px-5 py-4">
         <div className="flex min-w-0 items-center gap-2.5">
           {icon ? (
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface text-primary shadow-neu-sm">
               <Icon name={icon} size={18} />
             </span>
           ) : null}
@@ -208,9 +212,11 @@ export function KpiCard({
   href?: string;
   className?: string;
 }) {
+  // The chip is its own small raised object on the card, so a tile reads as
+  // two moulded pieces rather than as a coloured square printed on a panel.
   const chip = {
-    neutral: 'bg-surface-container-high text-on-surface-variant',
-    primary: 'bg-primary/10 text-primary',
+    neutral: 'bg-surface-container-low text-on-surface-variant',
+    primary: 'bg-primary-fixed text-primary',
     success: 'bg-tertiary-fixed text-tertiary',
     warning: 'bg-warning-container text-warning',
     danger: 'bg-error-container text-error',
@@ -222,7 +228,7 @@ export function KpiCard({
       <div className="mb-3 flex items-start justify-between gap-2 sm:mb-4">
         <span
           className={clsx(
-            'flex h-9 w-9 items-center justify-center rounded-xl sm:h-10 sm:w-10',
+            'flex h-9 w-9 items-center justify-center rounded-2xl shadow-neu-sm sm:h-10 sm:w-10',
             chip,
           )}
         >
@@ -248,7 +254,7 @@ export function KpiCard({
   );
 
   const shell = clsx(
-    'group flex flex-col rounded-2xl border border-outline-variant bg-surface p-4 shadow-card sm:p-5',
+    'group flex flex-col rounded-2xl bg-surface p-4 shadow-neu sm:p-5',
     href && 'card-interactive',
     className,
   );
@@ -285,7 +291,7 @@ export function KpiCardFeature({
         className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"
       />
       <div className="relative z-10 mb-3 flex items-start justify-between sm:mb-4">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-white sm:h-10 sm:w-10">
+        <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/15 text-white shadow-[inset_-2px_-2px_6px_rgba(255,255,255,0.18),inset_2px_2px_6px_rgba(4,15,35,0.35)] sm:h-10 sm:w-10">
           <Icon name={icon} size={19} />
         </span>
       </div>
@@ -329,7 +335,7 @@ export function DeltaPill({ value, label }: { value: number; label?: string }) {
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1 rounded-full px-2 py-1 text-label-sm',
+        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-label-sm shadow-neu-inset-sm',
         tone,
       )}
     >
@@ -366,7 +372,7 @@ export function MiniStat({
     </>
   );
   return href ? (
-    <Link href={href} className="min-w-0 rounded-lg px-1 py-0.5 transition-colors hover:bg-surface-container">
+    <Link href={href} className="min-w-0 rounded-xl px-2 py-1 transition-shadow hover:bg-surface hover:shadow-neu-sm">
       {body}
     </Link>
   ) : (
@@ -444,7 +450,7 @@ export function Avatar({
         height={size}
         style={dim}
         className={clsx(
-          'shrink-0 rounded-full border border-outline-variant object-cover',
+          'shrink-0 rounded-full object-cover shadow-neu-sm',
           className,
         )}
       />
@@ -455,7 +461,7 @@ export function Avatar({
     <span
       style={{ ...dim, fontSize: Math.max(10, Math.round(size * 0.36)) }}
       className={clsx(
-        'flex shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary ring-1 ring-inset ring-primary/10',
+        'flex shrink-0 items-center justify-center rounded-full bg-surface font-bold text-primary shadow-neu-sm',
         className,
       )}
       aria-hidden="true"
@@ -497,7 +503,7 @@ export function ViewAllLink({ href, children = 'View all' }: { href: string; chi
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-label-md font-semibold text-primary transition-colors hover:bg-primary/10"
+      className="inline-flex h-9 items-center gap-1 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
     >
       {children}
       <Icon name="arrow_forward" size={15} />
@@ -530,7 +536,11 @@ export function ProgressBar({
 
   return (
     <div
-      className={clsx('h-2 w-full overflow-hidden rounded-full bg-surface-container-highest', className)}
+      className={clsx(
+        // A track is a groove in the page, and the fill sits in it.
+        'h-2.5 w-full overflow-hidden rounded-full bg-surface-container shadow-neu-inset-sm',
+        className,
+      )}
       role="progressbar"
       aria-valuenow={Math.round(pct)}
       aria-valuemin={0}
@@ -585,7 +595,7 @@ export function PageTitle({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           {icon ? (
-            <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:flex">
+            <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface text-primary shadow-neu sm:flex">
               <Icon name={icon} size={22} />
             </span>
           ) : null}
@@ -646,7 +656,7 @@ export function QuickAction({
   tone?: 'primary' | 'success' | 'accent' | 'danger' | 'neutral';
 }) {
   const chip = {
-    primary: 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-on-primary',
+    primary: 'bg-primary-fixed text-primary group-hover:bg-ink group-hover:text-white',
     success:
       'bg-tertiary-fixed text-tertiary group-hover:bg-tertiary group-hover:text-on-tertiary',
     accent:
@@ -659,11 +669,11 @@ export function QuickAction({
   return (
     <Link
       href={href}
-      className="card-interactive group flex flex-col items-center gap-2.5 rounded-2xl border border-outline-variant bg-surface px-3 py-4 text-center"
+      className="card-interactive group flex flex-col items-center gap-2.5 rounded-2xl bg-surface px-3 py-4 text-center shadow-neu"
     >
       <span
         className={clsx(
-          'flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-150',
+          'flex h-11 w-11 items-center justify-center rounded-2xl shadow-neu-sm transition-colors duration-150',
           chip,
         )}
       >
@@ -691,17 +701,19 @@ export function TabBar({
         className,
       )}
     >
-      <span className="inline-flex gap-1 rounded-2xl border border-outline-variant bg-surface p-1 shadow-card">
+      {/* The strip is a groove and the chosen tab is the one pill standing
+          out of it — the segmented control from the reference bar. */}
+      <span className="inline-flex gap-1 rounded-full bg-surface-container p-1.5 shadow-neu-inset">
         {items.map((t) => (
           <Link
             key={t.href}
             href={t.href}
             aria-current={t.active ? 'page' : undefined}
             className={clsx(
-              'inline-flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-button-text transition-colors',
+              'inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-button-text transition-[box-shadow,background-color,color]',
               t.active
-                ? 'bg-primary text-on-primary shadow-card'
-                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface',
+                ? 'bg-ink text-white shadow-neu-dark-sm'
+                : 'text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm',
             )}
           >
             {t.label}
@@ -709,7 +721,7 @@ export function TabBar({
               <span
                 className={clsx(
                   'rounded-full px-1.5 py-0.5 text-label-sm',
-                  t.active ? 'bg-white/20' : 'bg-surface-container-highest',
+                  t.active ? 'bg-white/20' : 'bg-surface-container-high',
                 )}
               >
                 {t.count}
@@ -743,7 +755,7 @@ export function DataTable({
   return (
     <div
       className={clsx(
-        'overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-card',
+        'overflow-hidden rounded-2xl bg-surface shadow-neu',
         className,
       )}
     >
@@ -788,7 +800,7 @@ export function Toolbar({
   return (
     <div
       className={clsx(
-        'mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant bg-surface p-3 shadow-card',
+        'mb-4 flex flex-wrap items-center gap-3 rounded-3xl bg-surface p-3 shadow-neu',
         className,
       )}
     >

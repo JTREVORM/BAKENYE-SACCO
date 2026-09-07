@@ -16,7 +16,7 @@ export default async function StaffProfilePage() {
     <div className="mx-auto flex max-w-xl flex-col gap-6">
       <PageTitle title="My Profile" subtitle="Your account and access." />
 
-      <section className="bg-surface border-outline-variant shadow-card flex items-center gap-4 rounded-xl border p-5">
+      <section className="bg-surface shadow-card flex items-center gap-4 rounded-xl p-5">
         <Avatar name={user.fullName} src={user.photoUrl} size={64} />
         <div className="min-w-0">
           <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface truncate">
@@ -36,7 +36,7 @@ export default async function StaffProfilePage() {
         </div>
       </section>
 
-      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <section className="bg-surface shadow-card overflow-hidden rounded-xl">
         <div className="border-outline-variant bg-surface-container-low border-b px-4 py-3">
           <h2 className="text-button-text font-button-text text-on-surface">
             What you can do ({permissions.length})

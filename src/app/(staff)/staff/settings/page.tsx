@@ -99,7 +99,7 @@ function SettingsNav() {
         <a
           key={s.id}
           href={`#${s.id}`}
-          className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-outline-variant bg-surface px-3.5 py-2 text-label-md font-semibold text-on-surface-variant shadow-card transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-surface px-4 py-2 text-label-md font-semibold text-on-surface-variant shadow-neu-sm transition-shadow hover:text-primary hover:shadow-card active:shadow-neu-pressed"
         >
           <Icon name={s.icon} size={16} />
           {s.label}
@@ -114,7 +114,7 @@ function SettingsNav() {
 function Organisation() {
   return (
     <Panel title="Organisation" icon="apartment" className="scroll-mt-24" id="organisation">
-      <div className="mb-5 flex items-center gap-4 rounded-2xl border border-outline-variant bg-surface-container-low p-4">
+      <div className="mb-5 flex items-center gap-4 rounded-2xl bg-surface-container p-4 shadow-neu-inset-sm">
         <Image
           src="/brand/bnd-logo.png"
           alt=""
@@ -177,7 +177,7 @@ async function UsersAndRoles({ canManage }: { canManage: boolean }) {
         canManage ? (
           <Link
             href="/staff/users"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 text-label-md font-semibold text-primary transition-colors hover:bg-surface-container-high"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
           >
             Manage
             <Icon name="chevron_right" size={15} />
@@ -189,7 +189,7 @@ async function UsersAndRoles({ canManage }: { canManage: boolean }) {
         {STAFF_ROLES.map((role) => (
           <li
             key={role}
-            className="flex items-start gap-3 rounded-2xl border border-outline-variant bg-surface-container-low p-3"
+            className="flex items-start gap-3 rounded-2xl bg-surface-container p-3 shadow-neu-inset-sm"
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Icon name="badge" size={16} />
@@ -246,7 +246,7 @@ function Notifications() {
       action={
         <Link
           href="/staff/notifications"
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 text-label-md font-semibold text-primary transition-colors hover:bg-surface-container-high"
+          className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
         >
           Inbox
           <Icon name="chevron_right" size={15} />
@@ -493,7 +493,7 @@ function SystemPreferences() {
         {facts.map((f) => (
           <div
             key={f.label}
-            className="flex items-start gap-3 rounded-2xl border border-outline-variant bg-surface-container-low p-3.5"
+            className="flex items-start gap-3 rounded-2xl bg-surface-container p-3.5 shadow-neu-inset-sm"
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant">
               <Icon name={f.icon} size={16} />

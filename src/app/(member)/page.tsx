@@ -232,7 +232,7 @@ async function RecentTransactions({ memberId }: { memberId: string }) {
 
   if (rows.length === 0) {
     return (
-      <div className="bg-surface border-outline-variant rounded-xl border">
+      <div className="bg-surface rounded-xl shadow-neu-sm">
         <EmptyState
           icon="receipt_long"
           title="No transactions yet"

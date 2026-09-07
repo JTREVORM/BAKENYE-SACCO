@@ -243,7 +243,7 @@ async function Metrics() {
 
       {/* Secondary figures. Grouped in one strip rather than four more cards:
           they are context for the row above, not headline numbers. */}
-      <section className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-2xl border border-outline-variant bg-surface p-5 shadow-card md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-2xl bg-surface p-5 shadow-neu md:grid-cols-4">
         <MiniStat
           icon="account_balance"
           label="Outstanding Loans"
@@ -844,7 +844,7 @@ async function PendingLoans() {
                   <td className="text-right">
                     <Link
                       href={`/staff/loans/${r.id}`}
-                      className="inline-flex h-9 items-center gap-1 rounded-lg border border-outline-variant bg-surface px-3 text-label-md font-semibold text-primary transition-colors hover:bg-surface-container-high"
+                      className="inline-flex h-9 items-center gap-1 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
                     >
                       {canReview ? 'Review' : 'View'}
                       <Icon name="chevron_right" size={15} />

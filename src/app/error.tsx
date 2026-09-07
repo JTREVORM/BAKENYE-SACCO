@@ -62,7 +62,7 @@ export default function GlobalError({
         </Button>
         <Link
           href="/"
-          className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg border font-semibold"
+          className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg font-semibold shadow-neu-sm"
         >
           Go to the home screen
         </Link>

@@ -32,7 +32,7 @@ export default async function MorePage() {
         {/* Profile summary */}
         <Link
           href="/profile"
-          className="bg-surface border-outline-variant shadow-card hover:bg-surface-container-low flex items-center gap-4 rounded-xl border p-4 transition-colors"
+          className="bg-surface shadow-card hover:bg-surface-container-low flex items-center gap-4 rounded-xl p-4 transition-colors"
         >
           <Avatar name={user.fullName} src={m?.photo_url} size={56} />
           <div className="min-w-0 flex-1">
@@ -50,7 +50,7 @@ export default async function MorePage() {
         </Link>
 
         {/* Everything else */}
-        <nav className="bg-surface border-outline-variant shadow-card divide-outline-variant/70 divide-y overflow-hidden rounded-xl border">
+        <nav className="bg-surface shadow-card divide-outline-variant/70 divide-y overflow-hidden rounded-xl">
           {MEMBER_MORE_NAV.map((item) => (
             <Link
               key={item.href}

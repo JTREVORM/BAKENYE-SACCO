@@ -84,7 +84,7 @@ export function GroupForm({
           </Link>
           <Link
             href="/staff/groups"
-            className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg border font-semibold"
+            className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg font-semibold shadow-neu-sm"
           >
             Back to groups
           </Link>
@@ -135,7 +135,7 @@ export function GroupForm({
       </section>
 
       {/* ------------------------------------------------------ saving day */}
-      <section className="bg-surface-container-low border-outline-variant rounded-xl border p-4">
+      <section className="bg-surface-container-low rounded-xl p-4 shadow-neu-sm">
         <fieldset>
           <legend className="text-label-md font-label-md text-on-surface-variant mb-1">
             Saving day <span className="text-error">*</span>
@@ -299,7 +299,7 @@ export function GroupForm({
       <StickyActions>
         <Link
           href={group ? `/staff/groups/${group.id}` : '/staff/groups'}
-          className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex flex-1 items-center justify-center rounded-lg border font-semibold"
+          className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex flex-1 items-center justify-center rounded-lg font-semibold shadow-neu-sm"
         >
           Cancel
         </Link>

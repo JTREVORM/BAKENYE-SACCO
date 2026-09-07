@@ -98,7 +98,7 @@ export function RecordRepaymentForm({
 
       <div className="flex flex-col gap-5">
         {/* Loan position, restated so the operator is never guessing. */}
-        <div className="bg-surface-container-low border-outline-variant rounded-xl border p-4">
+        <div className="bg-surface-container-low rounded-xl p-4 shadow-neu-sm">
           <div className="mb-3 flex items-baseline justify-between gap-3">
             <div>
               <p className="text-label-md font-label-md text-on-surface-variant">

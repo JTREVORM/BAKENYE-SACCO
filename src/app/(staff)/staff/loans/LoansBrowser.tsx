@@ -108,7 +108,7 @@ export function LoansBrowser({
       </p>
 
       {visible.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="payments"
             title={status || q ? 'No matching loans' : 'No loans yet'}
@@ -169,7 +169,7 @@ export function LoansBrowser({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
@@ -223,7 +223,7 @@ export function LoansBrowser({
                       <td className="p-4 text-center">
                         <Link
                           href={`/staff/loans/${l.id}`}
-                          className="bg-surface-container-high hover:bg-surface-container border-outline-variant text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
+                          className="bg-surface-container-high hover:bg-surface-container text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg px-3 font-semibold transition-colors shadow-neu-sm"
                         >
                           {canReview && ['applied', 'under_review'].includes(l.status)
                             ? 'Review'

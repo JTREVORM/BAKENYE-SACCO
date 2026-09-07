@@ -107,7 +107,7 @@ export function CashMovementForm({
         )}
 
         {isWithdrawal && picked ? (
-          <div className="bg-surface-container-low border-outline-variant rounded-xl border p-4">
+          <div className="bg-surface-container-low rounded-xl p-4 shadow-neu-sm">
             <p className="text-label-md font-label-md text-on-surface-variant">
               Available savings balance
             </p>

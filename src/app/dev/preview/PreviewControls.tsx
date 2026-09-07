@@ -48,7 +48,7 @@ export function PreviewControls() {
   return (
     <div
       data-preview-chrome
-      className="bg-surface border-outline-variant flex flex-wrap items-center gap-3 rounded-xl border p-4"
+      className="bg-surface flex flex-wrap items-center gap-3 rounded-xl p-4 shadow-neu-sm"
     >
       <span className="text-button-text font-button-text text-on-surface tabular">
         {width ?? '—'}px · {breakpoint}

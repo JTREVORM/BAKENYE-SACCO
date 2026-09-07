@@ -36,7 +36,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
   return (
     <div className="flex flex-col gap-5">
       {/* Letterhead */}
-      <div className="bg-surface border-outline-variant print-block rounded-xl border p-4">
+      <div className="bg-surface print-block rounded-xl p-4 shadow-neu-sm">
         <div className="flex items-center gap-3">
           <Image
             src="/brand/bnd-logo.png"
@@ -72,7 +72,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="description"
             title="No activity in this period"
@@ -90,7 +90,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
                 <div
                   key={r.reference}
                   className={clsx(
-                    'bg-surface border-outline-variant rounded-xl border p-3',
+                    'bg-surface rounded-xl p-3 shadow-neu-sm',
                     r.status !== 'posted' && 'opacity-60',
                   )}
                 >
@@ -128,7 +128,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
           </div>
 
           {/* Desktop / print: the ledger table */}
-          <div className="bg-surface border-outline-variant print-block hidden overflow-hidden rounded-xl border md:block">
+          <div className="bg-surface print-block hidden overflow-hidden rounded-xl md:block shadow-neu-sm">
             <div className="scroll-x">
               <table className="w-full border-collapse text-left">
                 <thead>

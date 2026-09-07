@@ -106,9 +106,14 @@
     scrollbar-width: none;
   }
 
-  /* Bottom-nav and top-bar clearance, including the notch/gesture bar. */
+  /* Top-bar clearance and the notch/gesture bar.
+   *
+   * `safe-pb` used to reserve 80px for the mobile bottom bar. That bar is gone
+   * — mobile navigation is the drawer behind the menu button — so this is now
+   * ordinary end-of-page breathing room plus whatever the device's gesture
+   * area needs. */
   .safe-pb {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
   }
   .safe-pt {
     padding-top: calc(64px + env(safe-area-inset-top));
@@ -121,18 +126,31 @@
   }
 
   /* --- Elevation ---------------------------------------------------------
-   * A two-step ramp, defined once. Cards sit at 1; anything that floats over
-   * the page (menus, dialogs, drawers) sits at 2. Financial UI should feel
-   * flat and precise, so there is deliberately no step above that. */
+   * A two-step ramp, defined once, now in the soft-UI idiom: a grey cast down
+   * and right, a white highlight up and left, one light source for the whole
+   * product. Cards sit at 1; anything that floats over the page (menus,
+   * dialogs, drawers) sits at 2. */
   .elev-1 {
-    box-shadow:
-      0 1px 2px rgba(16, 24, 40, 0.04),
-      0 1px 3px rgba(16, 24, 40, 0.06);
+    @apply shadow-neu;
   }
   .elev-2 {
-    box-shadow:
-      0 12px 32px rgba(16, 24, 40, 0.14),
-      0 4px 8px rgba(16, 24, 40, 0.06);
+    @apply shadow-neu-lg;
+  }
+
+  /* --- Soft-UI surfaces --------------------------------------------------
+   * Three states, and everything moulded out of the page is one of them.
+   *   `.neu-raised`  — a panel or control standing proud of the page.
+   *   `.neu-well`    — a recess: text fields, search bars, tracks, tab strips.
+   *   `.neu-flat`    — level with the page; the resting state of a soft button
+   *                    that rises on hover. */
+  .neu-raised {
+    @apply rounded-2xl bg-surface shadow-neu;
+  }
+  .neu-well {
+    @apply rounded-2xl bg-surface-container shadow-neu-inset;
+  }
+  .neu-flat {
+    @apply rounded-2xl bg-surface-container;
   }
 
   /* Interactive card lift. Kept to a shadow change plus 1px of travel — on a
@@ -141,10 +159,12 @@
     @apply transition-[box-shadow,transform,border-color] duration-150;
   }
   .card-interactive:hover {
-    @apply -translate-y-px border-primary/25;
-    box-shadow:
-      0 4px 12px rgba(16, 24, 40, 0.08),
-      0 2px 4px rgba(16, 24, 40, 0.04);
+    @apply -translate-y-px shadow-card-hover;
+  }
+  /* Press pushes the surface into the page rather than shrinking it — the
+   * gesture soft UI is built around. */
+  .card-interactive:active {
+    @apply translate-y-0 shadow-neu-pressed;
   }
 
   .skeleton {
@@ -222,7 +242,6 @@
   .no-print,
   [data-app-header],
   header nav,
-  nav[data-bottom-bar],
   aside[data-sidebar] {
     display: none !important;
   }
@@ -273,7 +292,10 @@
   /* Reports are read as documents, not as an interface: drop the card
    * chrome so the page is content on paper rather than boxes on paper. */
   .print-plain,
-  .print-plain * {
+  .print-plain *,
+  .neu-raised,
+  .neu-well,
+  .neu-flat {
     box-shadow: none !important;
   }
 

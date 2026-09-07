@@ -64,7 +64,7 @@ export default async function GroupReportPage({
       </div>
 
       {!sp.group ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="groups"
             title="Choose a group"
@@ -156,7 +156,7 @@ async function Report({
       />
 
       {/* --------------------------------------------------------- header */}
-      <section className="bg-surface border-outline-variant shadow-card print-plain rounded-xl border p-5">
+      <section className="bg-surface shadow-card print-plain rounded-xl p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">
@@ -206,7 +206,7 @@ async function Report({
 
       {/* ----------------------------------------------------------- rows */}
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="group"
             title="No members in this group"
@@ -255,7 +255,7 @@ async function Report({
           </ul>
 
           {/* Desktop and print */}
-          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block print:block">
+          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block print:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>

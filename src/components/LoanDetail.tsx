@@ -52,7 +52,7 @@ export function LoanDetail({
       <div
         className={clsx(
           'relative overflow-hidden rounded-xl p-5',
-          live ? 'bg-primary text-on-primary' : 'bg-surface border-outline-variant border',
+          live ? 'bg-primary text-on-primary' : 'bg-surface shadow-neu-sm',
         )}
       >
         {live ? (
@@ -124,7 +124,7 @@ export function LoanDetail({
       {actions}
 
       {/* Terms */}
-      <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
+      <section className="bg-surface overflow-hidden rounded-xl shadow-neu-sm">
         <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           Loan Terms
         </h3>
@@ -161,7 +161,7 @@ export function LoanDetail({
       </section>
 
       {/* Guarantors */}
-      <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
+      <section className="bg-surface overflow-hidden rounded-xl shadow-neu-sm">
         <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           Guarantors ({guarantors.length})
         </h3>
@@ -202,7 +202,7 @@ export function LoanDetail({
 
       {/* Repayment schedule */}
       {schedule.length > 0 ? (
-        <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
+        <section className="bg-surface overflow-hidden rounded-xl shadow-neu-sm">
           <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
             Repayment Schedule
           </h3>
@@ -284,7 +284,7 @@ export function LoanDetail({
       ) : null}
 
       {/* Repayment history */}
-      <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
+      <section className="bg-surface overflow-hidden rounded-xl shadow-neu-sm">
         <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           Repayment History ({repayments.length})
         </h3>

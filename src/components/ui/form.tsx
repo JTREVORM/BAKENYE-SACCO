@@ -10,6 +10,12 @@ import type { IconName } from '@/lib/icons';
 /* ---------------------------------------------------------------------------
  * Button
  *
+ * Soft-UI pills. Every button is a moulded object: a dark navy pill for the
+ * action that matters, a raised light pill for everything beside it, and a flat
+ * one that only rises when you reach for it. Pressing pushes the surface into
+ * the page instead of shrinking it, which is the gesture the whole idiom is
+ * built around.
+ *
  * Heights come straight from DESIGN.md: 44px minimum touch target, 56px for a
  * primary action. That is not a stylistic choice — it is what makes the app
  * usable one-handed on a bus.
@@ -22,18 +28,25 @@ type ButtonVariant =
   | 'danger'
   | 'success';
 
+/**
+ * Pressed state for a dark pill: an almost entirely grey recess, because a
+ * white inner highlight on navy reads as a smudge rather than as depth.
+ */
+const DARK_PRESS =
+  'active:shadow-[inset_3px_3px_8px_rgba(4,15,35,0.55),inset_-2px_-2px_6px_rgba(255,255,255,0.10)]';
+
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary:
-    'bg-primary text-on-primary shadow-card hover:bg-primary-container active:bg-on-primary-fixed-variant',
+  primary: 'bg-ink text-white shadow-neu-dark hover:bg-ink-soft ' + DARK_PRESS,
   secondary:
-    'bg-secondary-container text-on-secondary-fixed shadow-card hover:bg-secondary-fixed-dim active:bg-secondary-fixed-dim',
+    'bg-secondary-container text-on-secondary-fixed shadow-neu hover:bg-secondary-fixed-dim active:shadow-neu-pressed',
+  // The raised light pill — the counterpart to the dark one. It is moulded out
+  // of the page rather than drawn on it, so it needs no border.
   outline:
-    'bg-surface text-on-surface border border-outline-variant shadow-card hover:bg-surface-container-high hover:border-outline active:bg-surface-container-highest',
+    'bg-surface text-on-surface shadow-neu hover:bg-surface-bright hover:shadow-card-hover active:shadow-neu-pressed',
   ghost:
-    'bg-transparent text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface active:bg-surface-container-highest',
-  danger: 'bg-error text-on-error shadow-card hover:bg-on-error-container active:bg-on-error-container',
-  success:
-    'bg-tertiary text-on-tertiary shadow-card hover:bg-tertiary-container active:bg-on-tertiary-container',
+    'bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed',
+  danger: 'bg-error text-on-error shadow-neu hover:bg-on-error-container ' + DARK_PRESS,
+  success: 'bg-tertiary text-on-tertiary shadow-neu hover:bg-tertiary-container ' + DARK_PRESS,
 };
 
 export function Button({
@@ -56,10 +69,13 @@ export function Button({
   block?: boolean;
   loading?: boolean;
 }) {
+  // Pills at every size: a single-line control is a capsule, as in the
+  // reference. The padding is generous enough that the capsule reads as a shape
+  // rather than as a rounded rectangle that lost its corners.
   const sizes = {
-    sm: 'h-9 px-3 text-label-md rounded-lg gap-1.5',
-    md: 'h-touch-target-min px-4 text-button-text rounded-xl gap-2',
-    lg: 'h-touch-target-primary px-6 text-button-text rounded-xl gap-2',
+    sm: 'h-9 px-4 text-label-md rounded-full gap-1.5',
+    md: 'h-touch-target-min px-5 text-button-text rounded-full gap-2',
+    lg: 'h-touch-target-primary px-7 text-button-text rounded-full gap-2',
   }[size];
 
   return (
@@ -69,7 +85,9 @@ export function Button({
       aria-busy={loading || undefined}
       className={clsx(
         'inline-flex select-none items-center justify-center whitespace-nowrap font-semibold',
-        'transition-[background-color,border-color,box-shadow,transform] duration-150 active:scale-[0.985]',
+        // No scale on press. The surface sinks into the page instead, which is
+        // what the shadow swap in each variant is doing.
+        'transition-[background-color,box-shadow] duration-150',
         'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none',
         sizes,
         VARIANTS[variant],
@@ -148,7 +166,11 @@ export function Field({
   error?: string | null;
   hint?: string;
   required?: boolean;
-  /** Rendered before the label. Used on the sign-in screen. */
+  /**
+   * Rendered before the label. Nothing uses it at present — the sign-in screen,
+   * which did, now seats its icon inside the field itself — but it stays for
+   * the case where a label needs one and the control cannot carry it.
+   */
   icon?: IconName;
   /**
    * A larger, sentence-case, high-contrast label.
@@ -218,15 +240,30 @@ export function Field({
   );
 }
 
+/**
+ * Every control is a recess in the page — the well the reference presses its
+ * search bar and its fields into. There is no border: the inner shadow is what
+ * says "type here", and a border on top of it would draw the same edge twice.
+ *
+ * Focus is a ring rather than a colour change, because a recessed field has no
+ * outline to recolour. It is the one place the brand navy appears on a form
+ * control, so it is unmistakable which field has the keyboard.
+ */
 const CONTROL_BASE =
-  'w-full bg-surface-container-lowest border border-outline-variant rounded-2xl px-4 ' +
+  'w-full bg-surface-container rounded-full px-5 shadow-neu-inset ' +
   'text-body-lg font-body-lg text-on-surface placeholder:text-on-surface-variant/70 ' +
-  'outline-none transition-[border-color,box-shadow,background-color] ' +
-  'hover:border-outline focus:border-primary focus:ring-2 focus:ring-primary/20 ' +
-  'disabled:bg-surface-container disabled:text-on-surface-variant disabled:hover:border-outline-variant';
+  'outline-none border-0 transition-[box-shadow,background-color] ' +
+  'focus:ring-2 focus:ring-primary/40 ' +
+  'disabled:bg-surface-container-high disabled:text-on-surface-variant disabled:shadow-neu-inset-sm';
 
 /** 44px minimum height on every control. */
 const CONTROL_HEIGHT = 'h-touch-target-primary';
+
+/**
+ * Invalid controls keep the recess and gain a red ring, for the same reason
+ * focus is a ring: there is no border here to turn red.
+ */
+const CONTROL_INVALID = 'ring-2 ring-error/60 focus:ring-error/70';
 
 export function Input({
   invalid,
@@ -239,7 +276,7 @@ export function Input({
       className={clsx(
         CONTROL_BASE,
         CONTROL_HEIGHT,
-        invalid && 'border-error hover:border-error focus:border-error focus:ring-error/25',
+        invalid && CONTROL_INVALID,
         className,
       )}
       {...rest}
@@ -258,8 +295,10 @@ export function Textarea({
       rows={3}
       className={clsx(
         CONTROL_BASE,
-        'min-h-[88px] py-3',
-        invalid && 'border-error hover:border-error focus:border-error focus:ring-error/25',
+        // Multi-line, so a capsule would leave two large empty corners: this is
+        // the one control that stays a rounded rectangle.
+        'min-h-[88px] rounded-2xl py-3',
+        invalid && CONTROL_INVALID,
         className,
       )}
       {...rest}
@@ -279,8 +318,8 @@ export function Select({
       className={clsx(
         CONTROL_BASE,
         CONTROL_HEIGHT,
-        'appearance-none bg-[length:20px] bg-[right_12px_center] bg-no-repeat pr-10',
-        invalid && 'border-error hover:border-error focus:border-error focus:ring-error/25',
+        'appearance-none bg-[length:20px] bg-[right_16px_center] bg-no-repeat pr-12',
+        invalid && CONTROL_INVALID,
         className,
       )}
       style={{
@@ -332,7 +371,7 @@ export function MoneyInput({
 
   return (
     <div className="relative">
-      <span className="text-on-surface-variant text-body-lg font-body-lg pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+      <span className="text-on-surface-variant text-body-lg font-body-lg pointer-events-none absolute left-5 top-1/2 -translate-y-1/2">
         UGX
       </span>
       <input
@@ -349,8 +388,8 @@ export function MoneyInput({
         className={clsx(
           CONTROL_BASE,
           CONTROL_HEIGHT,
-          'tabular pl-[3.75rem] text-right font-semibold',
-          invalid && 'border-error hover:border-error focus:border-error focus:ring-error/25',
+          'tabular pl-[4.25rem] text-right font-semibold',
+          invalid && CONTROL_INVALID,
           className,
         )}
         {...rest}
@@ -430,9 +469,9 @@ export function SearchInput({
         placeholder={placeholder}
         onChange={(e) => push(e.target.value)}
         className={clsx(
-          'bg-surface-container-low border-outline-variant text-body-md font-body-md',
-          'h-touch-target-min hover:bg-surface-container focus:border-primary focus:ring-primary',
-          'w-full rounded-full border py-3 pl-12 pr-10 outline-none transition-colors focus:ring-1',
+          'bg-surface-container text-body-md font-body-md shadow-neu-inset',
+          'h-touch-target-min focus:ring-2 focus:ring-primary/40',
+          'w-full rounded-full border-0 py-3 pl-12 pr-10 outline-none transition-shadow',
         )}
       />
       {value ? (
@@ -492,10 +531,12 @@ export function RadioCard({
   return (
     <label
       className={clsx(
-        'flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors',
+        // Chosen reads as pressed in, unchosen as standing proud — the state is
+        // legible from the shape alone, before the radio dot is even seen.
+        'flex cursor-pointer items-start gap-3 rounded-2xl p-4 transition-[box-shadow,background-color]',
         checked
-          ? 'border-primary bg-primary-fixed ring-primary ring-1'
-          : 'border-outline-variant bg-surface hover:bg-surface-container-low',
+          ? 'bg-primary-fixed shadow-neu-inset ring-2 ring-primary/40'
+          : 'bg-surface shadow-neu hover:shadow-card-hover',
       )}
     >
       <input

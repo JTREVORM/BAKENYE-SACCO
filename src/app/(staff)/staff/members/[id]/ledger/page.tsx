@@ -130,7 +130,7 @@ export default async function MemberLedgerPage({
       </div>
 
       {/* ------------------------------------------------------- summary */}
-      <section className="bg-surface border-outline-variant shadow-card print-plain grid grid-cols-2 gap-4 rounded-xl border p-4 lg:grid-cols-4">
+      <section className="bg-surface shadow-card print-plain grid grid-cols-2 gap-4 rounded-xl p-4 lg:grid-cols-4">
         <Total label="Opening balance" value={statement.opening_balance} />
         <Total label="Money in" value={totals.credit} tone="text-tertiary" />
         <Total label="Money out" value={totals.debit} tone="text-error" />
@@ -139,7 +139,7 @@ export default async function MemberLedgerPage({
 
       {/* --------------------------------------------------------- ledger */}
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="receipt_long"
             title="No movements in this period"
@@ -194,7 +194,7 @@ export default async function MemberLedgerPage({
           </ul>
 
           {/* Desktop and print: the real ledger. */}
-          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block print:block">
+          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block print:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>

@@ -86,7 +86,7 @@ export default async function SharesPage() {
 
         <Link
           href="/shares/buy"
-          className="bg-surface-container-lowest border-outline-variant shadow-card hover:border-primary flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
+          className="bg-surface shadow-neu hover:shadow-card-hover active:shadow-neu-pressed flex items-center justify-between gap-3 rounded-2xl p-4 transition-shadow"
         >
           <div className="flex min-w-0 items-center gap-3">
             <div className="bg-secondary-container text-on-secondary-container flex h-10 w-10 shrink-0 items-center justify-center rounded-full">

@@ -61,7 +61,7 @@ export function MemberForm({
         </h2>
         <p className="text-body-md font-body-md text-on-surface-variant mt-2">{state.message}</p>
 
-        <div className="bg-surface-container-low border-outline-variant mt-6 w-full rounded-xl border p-4 text-left">
+        <div className="bg-surface-container-low mt-6 w-full rounded-xl p-4 text-left shadow-neu-sm">
           <p className="text-label-md font-label-md text-on-surface-variant">Member number</p>
           <p className="text-button-text font-button-text text-on-surface tabular mt-1 select-all font-mono">
             {data.member_no}
@@ -90,7 +90,7 @@ export function MemberForm({
           </Link>
           <Link
             href="/staff/members/new"
-            className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg border font-semibold"
+            className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg font-semibold shadow-neu-sm"
           >
             Register another member
           </Link>
@@ -308,7 +308,7 @@ export function MemberForm({
 
         {!editing ? (
           <Section title="App access">
-            <label className="border-outline-variant bg-surface flex cursor-pointer items-start gap-3 rounded-xl border p-4">
+            <label className="bg-surface flex cursor-pointer items-start gap-3 rounded-xl p-4 shadow-neu-sm">
               <input
                 type="checkbox"
                 name="create_login"
@@ -340,7 +340,7 @@ export function MemberForm({
       <StickyActions>
         <Link
           href={editing ? `/staff/members/${member.id}` : '/staff/members'}
-          className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex flex-1 items-center justify-center rounded-lg border font-semibold"
+          className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex flex-1 items-center justify-center rounded-lg font-semibold shadow-neu-sm"
         >
           Cancel
         </Link>
@@ -354,7 +354,7 @@ export function MemberForm({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+    <section className="bg-surface shadow-card overflow-hidden rounded-xl">
       <h2 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
         {title}
       </h2>

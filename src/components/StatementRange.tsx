@@ -58,7 +58,7 @@ export function StatementRange({
   ];
 
   return (
-    <div className="no-print bg-surface border-outline-variant flex flex-col gap-4 rounded-xl border p-4">
+    <div className="no-print bg-surface flex flex-col gap-4 rounded-xl p-4 shadow-neu-sm">
       {presets ? (
         <div className="no-scrollbar flex gap-2 overflow-x-auto">
           {presetRanges.map((p) => {

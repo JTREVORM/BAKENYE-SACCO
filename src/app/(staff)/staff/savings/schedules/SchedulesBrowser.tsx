@@ -96,7 +96,7 @@ export function SchedulesBrowser({
             <select
               value={group}
               onChange={(e) => setParam('group', e.target.value)}
-              className="bg-surface-container-lowest border-outline-variant text-body-md font-body-md text-on-surface focus:border-primary h-touch-target-primary rounded-lg border px-3 outline-none"
+              className="bg-surface-container text-body-md font-body-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-primary rounded-full border-0 px-4 outline-none"
             >
               <option value="">All groups</option>
               {groups.map((g) => (
@@ -115,7 +115,7 @@ export function SchedulesBrowser({
               type="date"
               value={from}
               onChange={(e) => setParam('from', e.target.value)}
-              className="bg-surface-container-lowest border-outline-variant text-body-md font-body-md text-on-surface focus:border-primary h-touch-target-primary rounded-lg border px-3 outline-none"
+              className="bg-surface-container text-body-md font-body-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-primary rounded-full border-0 px-4 outline-none"
             />
           </label>
 
@@ -127,14 +127,14 @@ export function SchedulesBrowser({
               type="date"
               value={to}
               onChange={(e) => setParam('to', e.target.value)}
-              className="bg-surface-container-lowest border-outline-variant text-body-md font-body-md text-on-surface focus:border-primary h-touch-target-primary rounded-lg border px-3 outline-none"
+              className="bg-surface-container text-body-md font-body-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-primary rounded-full border-0 px-4 outline-none"
             />
           </label>
         </div>
       </div>
 
       {/* --------------------------------------------------------- totals */}
-      <section className="bg-surface border-outline-variant shadow-card grid grid-cols-3 gap-4 rounded-xl border p-4">
+      <section className="bg-surface shadow-card grid grid-cols-3 gap-4 rounded-xl p-4">
         <Total label="Expected" value={totals.expected} />
         <Total label="Paid" value={totals.paid} tone="text-tertiary" />
         <Total
@@ -156,7 +156,7 @@ export function SchedulesBrowser({
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant rounded-xl border">
+        <div className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
             icon="calendar_month"
             title={filtered ? 'No schedules match' : 'No schedules yet'}
@@ -211,7 +211,7 @@ export function SchedulesBrowser({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>

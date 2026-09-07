@@ -15,7 +15,7 @@ import { signOut } from '@/app/(auth)/actions';
  * Sidebar." The member screens were exported mobile-only, so this rail applies
  * that stated rule to them — same icons, same labels, same active-pill
  * treatment as the staff sidebar, just at the member's smaller nav surface.
- * Invisible below `md`, where the bottom bar is in charge.
+ * Invisible below `md`, where the drawer behind the menu button is in charge.
  */
 export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number }) {
   const pathname = usePathname();
@@ -24,7 +24,8 @@ export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number })
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
-  // "More" is a mobile affordance; on desktop its contents are listed directly.
+  // "More" was the bottom bar's overflow tab; every rail lists its contents
+  // directly, so there is nothing left for it to point at.
   const primary = MEMBER_NAV.filter((i) => i.href !== '/more');
 
   return (
@@ -36,7 +37,7 @@ export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number })
         href="/"
         className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-4"
       >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/95 p-1 shadow-card">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-1">
           <Image
             src="/brand/bnd-logo.png"
             alt=""

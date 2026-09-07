@@ -56,7 +56,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
       </div>
 
       {/* Ticket */}
-      <div className="bg-surface border-outline-variant print-block overflow-hidden rounded-xl border shadow-sm">
+      <div className="bg-surface print-block overflow-hidden rounded-xl shadow-sm">
         {/* Letterhead */}
         <div className="border-outline-variant flex items-center gap-3 border-b p-4">
           <Image

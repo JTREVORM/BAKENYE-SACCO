@@ -81,16 +81,16 @@ export function Modal({
       <div
         className={clsx(
           'flex max-h-[88dvh] flex-col overflow-hidden bg-surface shadow-pop',
-          'rounded-t-3xl sm:rounded-2xl sm:border sm:border-outline-variant',
+          'rounded-t-3xl sm:rounded-3xl',
         )}
       >
         {/* Grab handle. Present only in the sheet presentation, where it is
             the affordance that says "this can be dismissed downwards". */}
         <div className="flex justify-center pt-2.5 sm:hidden" aria-hidden="true">
-          <span className="h-1 w-10 rounded-full bg-outline-variant" />
+          <span className="h-1.5 w-11 rounded-full bg-surface-container shadow-neu-inset-sm" />
         </div>
 
-        <div className="flex items-start justify-between gap-3 border-b border-outline-variant px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-outline-variant/70 px-5 py-4">
           <div className="min-w-0">
             <h2 id={titleId} className="text-title-md text-on-surface">
               {title}
@@ -105,7 +105,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mr-1.5 -mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-on-surface-variant transition-colors hover:bg-surface-container-high"
+            className="-mr-1.5 -mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-shadow hover:bg-surface hover:shadow-neu-sm active:shadow-neu-pressed"
           >
             <Icon name="close" size={20} />
           </button>

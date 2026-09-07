@@ -62,7 +62,7 @@ export default async function LoansPage() {
             />
           ))
         ) : (
-          <div className="bg-surface-container-lowest border-outline-variant rounded-xl border">
+          <div className="bg-surface-container-lowest rounded-xl shadow-neu-sm">
             <EmptyState
               icon="payments"
               title="No active loan"
@@ -74,7 +74,7 @@ export default async function LoansPage() {
         {/* Apply for a New Loan */}
         <Link
           href="/loans/apply"
-          className="bg-surface-container-lowest border-outline-variant shadow-card hover:border-primary flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
+          className="bg-surface shadow-neu hover:shadow-card-hover active:shadow-neu-pressed flex items-center justify-between gap-3 rounded-2xl p-4 transition-shadow"
         >
           <div className="flex min-w-0 items-center gap-3">
             <div className="bg-primary-fixed text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">

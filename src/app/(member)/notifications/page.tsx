@@ -38,7 +38,7 @@ export default async function NotificationsPage() {
         </div>
 
         {items.length === 0 ? (
-          <div className="bg-surface border-outline-variant rounded-xl border">
+          <div className="bg-surface rounded-xl shadow-neu-sm">
             <EmptyState
               icon="notifications"
               title="No notifications yet"

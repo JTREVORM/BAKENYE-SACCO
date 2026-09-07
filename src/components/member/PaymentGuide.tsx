@@ -73,7 +73,7 @@ export function PaymentGuide({
       <CopyableReference reference={reference} />
 
       {details && details.length > 0 ? (
-        <dl className="bg-surface border-outline-variant divide-outline-variant/70 divide-y rounded-xl border px-4">
+        <dl className="bg-surface divide-outline-variant/70 divide-y rounded-xl px-4 shadow-neu-sm">
           {details.map((d) => (
             <div key={d.label} className="flex items-start justify-between gap-4 py-3">
               <dt className="text-body-md font-body-md text-on-surface-variant shrink-0">
@@ -88,7 +88,7 @@ export function PaymentGuide({
       ) : null}
 
       {/* How to pay */}
-      <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
+      <section className="bg-surface overflow-hidden rounded-xl shadow-neu-sm">
         <h2 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           How to pay
         </h2>
@@ -133,7 +133,7 @@ export function PaymentGuide({
         </Link>
         <Link
           href={backHref}
-          className="border-outline-variant text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg border font-semibold"
+          className="text-primary bg-surface h-touch-target-primary text-button-text font-button-text flex items-center justify-center rounded-lg font-semibold shadow-neu-sm"
         >
           Back
         </Link>

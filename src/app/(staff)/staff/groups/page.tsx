@@ -38,7 +38,7 @@ export default async function GroupsPage({
           <div className="flex flex-wrap gap-2">
             <Link
               href="/staff/savings/today"
-              className="border-outline-variant bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg border px-4 font-semibold transition-colors"
+              className="bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors shadow-neu-sm"
             >
               <Icon name="event_available" size={20} />
               <span className="hidden sm:inline">Today’s collections</span>

@@ -6,9 +6,9 @@ import type { IconName } from '@/lib/icons';
  * Empty state
  *
  * Never a bare blank area — on a slow connection a blank area is
- * indistinguishable from a screen that has not loaded. The concentric rings
- * behind the icon are drawn with borders rather than an image, so an empty
- * screen costs no extra request.
+ * indistinguishable from a screen that has not loaded. The rings behind the
+ * icon are pressed into the page rather than drawn as an image, so an empty
+ * screen costs no extra request and still reads as part of the surface.
  * ------------------------------------------------------------------------- */
 export function EmptyState({
   icon = 'inbox',
@@ -36,13 +36,13 @@ export function EmptyState({
       <div className="relative mb-5 flex items-center justify-center">
         <span
           aria-hidden="true"
-          className="absolute h-24 w-24 rounded-full border border-outline-variant"
+          className="absolute h-24 w-24 rounded-full bg-surface-container shadow-neu-inset-sm"
         />
         <span
           aria-hidden="true"
-          className="absolute h-[68px] w-[68px] rounded-full border border-outline-variant"
+          className="absolute h-[68px] w-[68px] rounded-full bg-surface shadow-neu-sm"
         />
-        <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant">
+        <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-surface-container text-on-surface-variant shadow-neu-inset-sm">
           <Icon name={icon} size={24} />
         </span>
       </div>
@@ -77,11 +77,11 @@ export function ErrorState({
     <div
       role="alert"
       className={clsx(
-        'flex flex-col items-center justify-center rounded-2xl border border-error/20 bg-error-container/40 px-6 py-12 text-center',
+        'flex flex-col items-center justify-center rounded-3xl bg-error-container/50 px-6 py-12 text-center shadow-neu-inset-sm',
         className,
       )}
     >
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-error-container text-on-error-container">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-error-container text-on-error-container shadow-neu-sm">
         <Icon name="cloud_off" size={26} />
       </div>
       <h3 className="text-title-md text-on-surface">{title}</h3>
@@ -124,7 +124,11 @@ export function Alert({
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={clsx('flex items-start gap-3 rounded-xl p-3.5 ring-1 ring-inset', t.wrap, className)}
+      className={clsx(
+        'flex items-start gap-3 rounded-2xl p-3.5 ring-1 ring-inset',
+        t.wrap,
+        className,
+      )}
     >
       <Icon name={t.icon} size={19} className="mt-px shrink-0" />
       <div className="min-w-0 flex-1">
@@ -162,7 +166,7 @@ export function BalanceCardSkeleton() {
 export function ListRowSkeleton() {
   return (
     <div
-      className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface p-3.5"
+      className="flex items-center gap-3 rounded-2xl bg-surface p-3.5 shadow-neu-sm"
       aria-hidden="true"
     >
       <Skeleton className="h-11 w-11 rounded-full" />
@@ -193,7 +197,7 @@ export function ListSkeleton({ rows = 5 }: { rows?: number }) {
 export function TableSkeleton({ rows = 8, cols = 5 }: { rows?: number; cols?: number }) {
   return (
     <div
-      className="overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-card"
+      className="overflow-hidden rounded-2xl bg-surface shadow-neu"
       role="status"
     >
       <span className="sr-only">Loading…</span>
@@ -221,7 +225,7 @@ export function StatGridSkeleton({ count = 4 }: { count?: number }) {
       {Array.from({ length: count }, (_, i) => (
         <div
           key={i}
-          className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-card"
+          className="rounded-2xl bg-surface p-5 shadow-neu"
         >
           <Skeleton className="h-10 w-10 rounded-xl" />
           <Skeleton className="mt-6 h-3 w-20" />
@@ -236,11 +240,11 @@ export function StatGridSkeleton({ count = 4 }: { count?: number }) {
 export function PanelSkeleton({ height = 'h-64' }: { height?: string }) {
   return (
     <div
-      className="overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-card"
+      className="overflow-hidden rounded-2xl bg-surface shadow-neu"
       role="status"
     >
       <span className="sr-only">Loading…</span>
-      <div className="border-b border-outline-variant px-5 py-4">
+      <div className="border-b border-outline-variant/70 px-5 py-4">
         <Skeleton className="h-4 w-40" />
       </div>
       <div className={clsx('p-5', height)}>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { clsx } from '@/lib/clsx';
 import { Icon, Avatar } from '@/components/ui/primitives';
@@ -13,9 +13,11 @@ import { signOut } from '@/app/(auth)/actions';
 /**
  * The staff application chrome.
  *
- * Desktop is a fixed navy rail plus a white command bar. Below `md` the rail
- * becomes a drawer and the five most-used sections move to a bottom bar, so the
- * common journeys are one thumb-tap away and nothing needs a hamburger.
+ * Desktop is a fixed navy rail plus a soft command bar. Below `md` the rail
+ * becomes a drawer behind the menu button, and that is the whole of the mobile
+ * navigation — the five-tab bottom bar is gone. It cost 80px off the bottom of
+ * every screen to reach four of the twelve sections, while the drawer beside it
+ * reached all of them.
  */
 export function StaffShell({
   user,
@@ -35,16 +37,13 @@ export function StaffShell({
       <Sidebar items={nav} open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-        <header
-          data-app-header
-          className="z-30 shrink-0 border-b border-outline-variant bg-surface"
-        >
+        <header data-app-header className="bg-surface z-30 shrink-0 shadow-neu-sm">
           <div className="mx-auto flex h-16 w-full max-w-content items-center gap-2 px-container-margin-mobile md:h-[72px] md:gap-4 md:px-container-margin-desktop">
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
-              className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-on-surface-variant transition-colors hover:bg-surface-container-high md:hidden"
+              className="-ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-shadow hover:bg-surface hover:shadow-neu-sm active:shadow-neu-pressed md:hidden"
             >
               <Icon name="menu" size={22} />
             </button>
@@ -70,7 +69,7 @@ export function StaffShell({
             <div className="ml-auto flex shrink-0 items-center gap-1 md:gap-2">
               <Link
                 href="/staff/savings/record"
-                className="hidden items-center gap-2 rounded-xl bg-primary px-3.5 py-2.5 text-button-text text-on-primary shadow-card transition-colors hover:bg-primary-container lg:inline-flex"
+                className="hidden items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-button-text text-white shadow-neu-dark-sm transition-colors hover:bg-ink-soft lg:inline-flex"
               >
                 <Icon name="add" size={18} />
                 Record saving
@@ -81,7 +80,7 @@ export function StaffShell({
                 aria-label={
                   unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
                 }
-                className="relative flex h-11 w-11 items-center justify-center rounded-xl text-on-surface-variant transition-colors hover:bg-surface-container-high"
+                className="relative flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-shadow hover:bg-surface hover:shadow-neu-sm active:shadow-neu-pressed"
               >
                 <Icon name="notifications" size={22} filled={false} />
                 {unreadCount > 0 ? (
@@ -96,11 +95,9 @@ export function StaffShell({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-container-margin-mobile pb-24 md:p-container-margin-desktop md:pb-container-margin-desktop">
+        <main className="flex-1 overflow-y-auto p-container-margin-mobile md:p-container-margin-desktop">
           <div className="mx-auto w-full max-w-content">{children}</div>
         </main>
-
-        <StaffBottomBar items={nav} onMore={() => setMenuOpen(true)} />
       </div>
     </div>
   );
@@ -142,8 +139,8 @@ function AccountMenu({
         aria-expanded={open}
         aria-haspopup="menu"
         className={clsx(
-          'flex items-center gap-2.5 rounded-xl p-1.5 transition-colors md:pr-2.5',
-          open ? 'bg-surface-container-high' : 'hover:bg-surface-container-high',
+          'flex items-center gap-2.5 rounded-full p-1.5 transition-shadow md:pr-3',
+          open ? 'bg-surface shadow-neu-pressed' : 'hover:bg-surface hover:shadow-neu-sm',
         )}
       >
         <Avatar name={user.fullName} src={user.photoUrl} size={36} />
@@ -168,9 +165,9 @@ function AccountMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-64 animate-slide-up overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-pop"
+          className="absolute right-0 z-50 mt-2 w-64 animate-slide-up overflow-hidden rounded-3xl bg-surface shadow-pop"
         >
-          <div className="flex items-center gap-3 border-b border-outline-variant bg-surface-container-low px-4 py-3.5">
+          <div className="flex items-center gap-3 border-b border-outline-variant/70 bg-surface-container-low px-4 py-3.5">
             <Avatar name={user.fullName} src={user.photoUrl} size={40} />
             <div className="min-w-0">
               <p className="truncate text-button-text text-on-surface">{user.fullName}</p>
@@ -184,14 +181,14 @@ function AccountMenu({
             <MenuLink href="/staff/profile#password" icon="lock" label="Change password" />
             <MenuLink href="/staff/settings" icon="settings" label="Settings" />
           </div>
-          <div className="border-t border-outline-variant p-1.5">
+          <div className="border-t border-outline-variant/70 p-1.5">
             {/* A form posting to the server action, so the shell never pulls
                 the Supabase browser SDK into its bundle. */}
             <form action={signOut}>
               <button
                 type="submit"
                 role="menuitem"
-                className="flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-body-md font-medium text-error transition-colors hover:bg-error-container"
+                className="flex h-11 w-full items-center gap-3 rounded-full px-3 text-left text-body-md font-medium text-error transition-colors hover:bg-error-container"
               >
                 <Icon name="logout" size={19} />
                 Sign out
@@ -209,79 +206,11 @@ function MenuLink({ href, icon, label }: { href: string; icon: string; label: st
     <Link
       href={href}
       role="menuitem"
-      className="flex h-11 items-center gap-3 rounded-xl px-3 text-body-md font-medium text-on-surface transition-colors hover:bg-surface-container-high"
+      className="flex h-11 items-center gap-3 rounded-full px-3 text-body-md font-medium text-on-surface transition-colors hover:bg-surface-container-high"
     >
       <Icon name={icon} size={19} className="text-on-surface-variant" filled={false} />
       {label}
     </Link>
-  );
-}
-
-/**
- * Staff bottom bar.
- *
- * The brief is explicit that the sidebar must not eat the whole screen on a
- * phone. Four destinations plus "More" (which opens the drawer) covers the day
- * of a cashier or group officer without a single menu tap.
- */
-function StaffBottomBar({
-  items,
-  onMore,
-}: {
-  items: readonly NavItem[];
-  onMore: () => void;
-}) {
-  const pathname = usePathname();
-  const tabs = items.filter((i) => i.bottomBar).slice(0, 4);
-
-  function isActive(href: string) {
-    if (href === '/staff') return pathname === '/staff';
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  return (
-    <nav
-      data-bottom-bar
-      aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-outline-variant bg-surface/95 pb-safe backdrop-blur md:hidden"
-    >
-      <div className="flex items-stretch">
-        {tabs.map((t) => {
-          const active = isActive(t.href);
-          return (
-            <Link
-              key={t.href}
-              href={t.href}
-              aria-current={active ? 'page' : undefined}
-              className={clsx(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors',
-                active ? 'text-primary' : 'text-on-surface-variant',
-              )}
-            >
-              <span
-                className={clsx(
-                  'flex h-7 w-12 items-center justify-center rounded-full transition-colors',
-                  active && 'bg-primary/10',
-                )}
-              >
-                <Icon name={t.icon} size={21} filled={active} />
-              </span>
-              <span className="text-[10.5px] font-semibold leading-none">{t.label}</span>
-            </Link>
-          );
-        })}
-        <button
-          type="button"
-          onClick={onMore}
-          className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-on-surface-variant"
-        >
-          <span className="flex h-7 w-12 items-center justify-center rounded-full">
-            <Icon name="menu" size={21} filled={false} />
-          </span>
-          <span className="text-[10.5px] font-semibold leading-none">More</span>
-        </button>
-      </div>
-    </nav>
   );
 }
 
@@ -315,7 +244,7 @@ function GlobalSearch() {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search members by name, ID, or phone…"
-        className="h-11 w-full rounded-2xl border border-outline-variant bg-surface-container py-2 pl-11 pr-4 text-body-md text-on-surface outline-none transition-colors placeholder:text-on-surface-variant/80 hover:bg-surface-container-high focus:border-primary focus:bg-surface focus:ring-2 focus:ring-primary/20"
+        className="h-11 w-full rounded-full border-0 bg-surface-container py-2 pl-11 pr-4 text-body-md text-on-surface shadow-neu-inset outline-none transition-shadow placeholder:text-on-surface-variant/80 focus:ring-2 focus:ring-primary/40"
       />
     </form>
   );

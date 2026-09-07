@@ -80,7 +80,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
             ) : (
               <Link
                 href={`/staff/groups/${group.id}/collect`}
-                className="border-outline-variant bg-surface text-primary h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg border px-4 font-semibold"
+                className="bg-surface text-primary h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold shadow-neu-sm"
               >
                 <Icon name="savings" size={20} />
                 Collection sheet
@@ -90,7 +90,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
               <>
                 <Link
                   href={`/staff/groups/${group.id}/edit`}
-                  className="border-outline-variant bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg border px-4 font-semibold transition-colors"
+                  className="bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors shadow-neu-sm"
                 >
                   <Icon name="edit" size={20} />
                   Edit
@@ -107,7 +107,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       />
 
       {/* ------------------------------------------------------- identity */}
-      <section className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+      <section className="bg-surface shadow-card rounded-xl p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -171,7 +171,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       </section>
 
       {/* --------------------------------------------------- current cycle */}
-      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <section className="bg-surface shadow-card overflow-hidden rounded-xl">
         <div className="border-outline-variant flex flex-wrap items-center justify-between gap-3 border-b p-4">
           <div>
             <h2 className="text-button-text font-button-text text-on-surface">
@@ -281,7 +281,7 @@ async function Members({ groupId, groupName }: { groupId: string; groupName: str
   };
 
   return (
-    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+    <section className="bg-surface shadow-card overflow-hidden rounded-xl">
       <div className="border-outline-variant flex items-center justify-between gap-3 border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface">
           Members ({result.total})
@@ -302,7 +302,7 @@ async function Members({ groupId, groupName }: { groupId: string; groupName: str
           action={
             <Link
               href="/staff/members"
-              className="border-outline-variant bg-surface text-primary h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg border px-4 font-semibold"
+              className="bg-surface text-primary h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold shadow-neu-sm"
             >
               <Icon name="group" size={20} />
               Go to members
@@ -361,7 +361,7 @@ async function RecentActivity({ groupId }: { groupId: string }) {
   const ids = (memberRows ?? []).map((m) => m.id);
   if (ids.length === 0) {
     return (
-      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <section className="bg-surface shadow-card overflow-hidden rounded-xl">
         <div className="border-outline-variant border-b p-4">
           <h2 className="text-button-text font-button-text text-on-surface">Recent transactions</h2>
         </div>
@@ -385,7 +385,7 @@ async function RecentActivity({ groupId }: { groupId: string }) {
   const rows = (data ?? []) as TransactionFeedRow[];
 
   return (
-    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+    <section className="bg-surface shadow-card overflow-hidden rounded-xl">
       <div className="border-outline-variant flex items-center justify-between gap-3 border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface">Recent transactions</h2>
         <Link
@@ -473,7 +473,7 @@ function Tile({
   tone?: string;
 }) {
   return (
-    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+    <div className="bg-surface shadow-card rounded-xl p-5">
       <div className="bg-primary-fixed text-primary mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg">
         <Icon name={icon} size={20} />
       </div>

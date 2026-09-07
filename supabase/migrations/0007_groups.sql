@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0007 - Groups, savings cycles and the payment seam
+-- BUD-SACCO - 0007 - Groups, savings cycles and the payment seam
 --
 -- The SACCO does not collect savings from 500 individuals one at a time. It
 -- collects from groups, and each group has its own day of the week. This

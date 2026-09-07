@@ -85,7 +85,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
 
   if (rows.length === 0) {
     return (
-      <div className="bg-surface border-outline-variant/30 mt-6 rounded-xl border">
+      <div className="bg-surface border-outline-variant mt-6 rounded-xl border">
         <EmptyState
           icon="policy"
           title={sp.q || sp.module ? 'No matching entries' : 'No activity recorded yet'}
@@ -110,7 +110,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
         {rows.map((r) => (
           <li
             key={r.id}
-            className="bg-surface border-surface-container elev-1 rounded-xl border p-3"
+            className="bg-surface border-surface-container shadow-card rounded-xl border p-3"
           >
             <div className="flex items-start gap-3">
               <Avatar name={r.actor_name} size={40} />
@@ -138,7 +138,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
             </div>
 
             {r.old_value || r.new_value ? (
-              <div className="border-outline-variant/40 mt-3 border-t pt-3">
+              <div className="border-outline-variant mt-3 border-t pt-3">
                 <AuditDiff oldValue={r.old_value} newValue={r.new_value} />
               </div>
             ) : null}
@@ -147,11 +147,11 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
       </ul>
 
       {/* Desktop: table */}
-      <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block">
+      <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+              <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                 <th className="p-4 font-semibold">Date &amp; Time</th>
                 <th className="p-4 font-semibold">User (Staff)</th>
                 <th className="p-4 font-semibold">Action</th>
@@ -159,9 +159,9 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
                 <th className="p-4 font-semibold">Details / Reason</th>
               </tr>
             </thead>
-            <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+            <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
               {rows.map((r) => (
-                <tr key={r.id} className="hover:bg-surface-container-lowest align-top transition-colors">
+                <tr key={r.id} className="hover:bg-surface-container-low align-top transition-colors">
                   <td className="text-on-surface-variant p-4 whitespace-nowrap">
                     {formatDateTime(r.created_at)}
                   </td>

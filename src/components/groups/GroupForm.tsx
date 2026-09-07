@@ -135,9 +135,9 @@ export function GroupForm({
       </section>
 
       {/* ------------------------------------------------------ saving day */}
-      <section className="bg-surface-container-low border-outline-variant/50 rounded-xl border p-4">
+      <section className="bg-surface-container-low border-outline-variant rounded-xl border p-4">
         <fieldset>
-          <legend className="text-label-md font-label-md text-on-surface-variant mb-1 uppercase">
+          <legend className="text-label-md font-label-md text-on-surface-variant mb-1">
             Saving day <span className="text-error">*</span>
           </legend>
           <p className="text-body-md font-body-md text-on-surface-variant mb-3">

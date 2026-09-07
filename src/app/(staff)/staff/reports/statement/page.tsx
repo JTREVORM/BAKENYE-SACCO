@@ -59,7 +59,7 @@ export default async function StaffStatementPage({
       </div>
 
       {!sp.member ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="description"
             title="Choose a member"

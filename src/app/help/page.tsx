@@ -77,7 +77,7 @@ export default function HelpPage() {
 
 function Item({ icon, title, body }: { icon: IconName; title: string; body: string }) {
   return (
-    <section className="bg-surface border-outline-variant elev-1 flex gap-3 rounded-xl border p-4">
+    <section className="bg-surface border-outline-variant shadow-card flex gap-3 rounded-xl border p-4">
       <span className="bg-primary-fixed text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
         <Icon name={icon} size={20} />
       </span>

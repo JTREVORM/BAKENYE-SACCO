@@ -97,7 +97,7 @@ export function TransactionList({
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="receipt_long"
             title={activeType || params.get('q') ? 'No matching transactions' : 'No transactions yet'}

@@ -4,15 +4,15 @@ import type { MetadataRoute } from 'next';
  * Installable web app.
  *
  * Most of the membership uses mid-to-low-end Android phones on limited data.
- * An installable PWA lets them add BND-SACCO to the home screen and open it
+ * An installable PWA lets them add BUD-SACCO to the home screen and open it
  * like an app, without paying for a Play Store download or keeping a native
  * binary updated.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Bakenye National Development SACCO',
-    short_name: 'BND-SACCO',
-    description: 'Savings, shares and loans for members of BND-SACCO.',
+    name: 'Bakenye Unity and Development SACCO',
+    short_name: 'BUD-SACCO',
+    description: 'Savings, shares and loans for members of BUD-SACCO.',
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',

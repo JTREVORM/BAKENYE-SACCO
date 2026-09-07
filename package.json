@@ -1,8 +1,8 @@
 {
-  "name": "bnd-sacco",
+  "name": "bud-sacco",
   "version": "1.0.0",
   "private": true,
-  "description": "Bakenye National Development SACCO - management platform",
+  "description": "Bakenye Unity and Development SACCO - management platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

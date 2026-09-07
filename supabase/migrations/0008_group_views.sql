@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0008 - Group and schedule views
+-- BUD-SACCO - 0008 - Group and schedule views
 --
 -- Rule 26 of the brief, expressed as SQL: every group figure below is an
 -- aggregate over member rows. There is no `groups.balance` column to read, so

@@ -32,7 +32,7 @@ export default async function MorePage() {
         {/* Profile summary */}
         <Link
           href="/profile"
-          className="bg-surface border-outline-variant elev-1 hover:bg-surface-container-low flex items-center gap-4 rounded-xl border p-4 transition-colors"
+          className="bg-surface border-outline-variant shadow-card hover:bg-surface-container-low flex items-center gap-4 rounded-xl border p-4 transition-colors"
         >
           <Avatar name={user.fullName} src={m?.photo_url} size={56} />
           <div className="min-w-0 flex-1">
@@ -50,7 +50,7 @@ export default async function MorePage() {
         </Link>
 
         {/* Everything else */}
-        <nav className="bg-surface border-outline-variant elev-1 divide-outline-variant/40 divide-y overflow-hidden rounded-xl border">
+        <nav className="bg-surface border-outline-variant shadow-card divide-outline-variant/70 divide-y overflow-hidden rounded-xl border">
           {MEMBER_MORE_NAV.map((item) => (
             <Link
               key={item.href}
@@ -74,7 +74,7 @@ export default async function MorePage() {
         <SignOutButton />
 
         <p className="text-label-md font-label-md text-on-surface-variant text-center normal-case">
-          Bakenye National Development SACCO
+          Bakenye Unity and Development SACCO
           <br />
           Obumu Niigo Amaani
         </p>

@@ -316,7 +316,7 @@ export function LoanWizard({
                   />
                   <div
                     className={clsx(
-                      'bg-surface-container-lowest elev-1 flex items-start gap-4 rounded-xl border-2 p-5 transition-all hover:shadow-lg',
+                      'bg-surface-container-lowest shadow-card flex items-start gap-4 rounded-xl border-2 p-5 transition-all hover:shadow-lg',
                       checked ? 'border-primary bg-primary-fixed' : 'border-transparent',
                     )}
                   >
@@ -659,10 +659,10 @@ export function LoanWizard({
           {quote ? <QuoteCard quote={quote} emphasised /> : null}
 
           <div className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
-            <h3 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+            <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
               Loan Details
             </h3>
-            <dl className="divide-outline-variant/40 divide-y px-4">
+            <dl className="divide-outline-variant/70 divide-y px-4">
               <ReviewLine label="Applicant" value={memberName} />
               <ReviewLine label="Loan type" value={product?.name ?? '—'} />
               <ReviewLine label="Amount requested" value={formatUGX(principal)} />
@@ -679,7 +679,7 @@ export function LoanWizard({
           </div>
 
           <div className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
-            <h3 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+            <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
               Guarantors ({guarantors.length})
             </h3>
             {guarantors.length === 0 ? (
@@ -687,7 +687,7 @@ export function LoanWizard({
                 No guarantors added.
               </p>
             ) : (
-              <ul className="divide-outline-variant/40 divide-y">
+              <ul className="divide-outline-variant/70 divide-y">
                 {guarantors.map((g) => (
                   <li key={g.member.id} className="flex items-center gap-3 p-4">
                     <Avatar name={g.member.full_name} src={g.member.photo_url} size={40} />
@@ -708,10 +708,10 @@ export function LoanWizard({
 
           {documents.length > 0 ? (
             <div className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
-              <h3 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+              <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
                 Documents ({documents.length})
               </h3>
-              <ul className="divide-outline-variant/40 divide-y">
+              <ul className="divide-outline-variant/70 divide-y">
                 {documents.map((d, i) => (
                   <li
                     key={`${d.name}-${i}`}

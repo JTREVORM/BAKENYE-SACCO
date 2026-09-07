@@ -3,9 +3,12 @@
 @tailwind utilities;
 
 /*
- * Carried over verbatim from the inline <style> blocks in every Stitch screen
- * under `stitch_bakenye_mobile_sacco_navigator`, plus the print and
- * accessibility rules a real application needs.
+ * BAKENYE UNITY AND DEVELOPMENT SACCO — global stylesheet.
+ *
+ * Base typography and the shared surface/elevation vocabulary. Component-level
+ * styling lives in `src/components/ui/`; this file holds only what has to be
+ * global: the reset-adjacent rules, the named elevation ramp, print, and the
+ * motion preference.
  */
 
 @layer base {
@@ -19,9 +22,22 @@
   }
 
   body {
-    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-inter), 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Slightly tightened default tracking. At 14px body size the browser
+     * default reads loose next to the tight financial figures. */
+    letter-spacing: -0.005em;
+  }
+
+  /* Headings carry the tightened tracking that makes the type feel drawn
+   * rather than defaulted. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
   }
 
   /* Material Symbols, as loaded by every Stitch screen. */
@@ -47,12 +63,35 @@
   :focus-visible {
     outline: 2px solid theme('colors.primary');
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
 
   /* Money and references read as tabular figures so columns line up. */
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* A restrained scrollbar. The browser default is a wide grey slab that
+   * cheapens an otherwise composed panel, and it shows on every table. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.outline-variant') transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: theme('colors.outline-variant');
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.outline');
   }
 }
 
@@ -81,19 +120,48 @@
     padding-top: env(safe-area-inset-top);
   }
 
-  /* --- Additions -------------------------------------------------------- */
-
-  /* The Level-1 card shadow from DESIGN.md, as a single named class so the
-   * value is defined once instead of repeated as an arbitrary value. */
+  /* --- Elevation ---------------------------------------------------------
+   * A two-step ramp, defined once. Cards sit at 1; anything that floats over
+   * the page (menus, dialogs, drawers) sits at 2. Financial UI should feel
+   * flat and precise, so there is deliberately no step above that. */
   .elev-1 {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow:
+      0 1px 2px rgba(16, 24, 40, 0.04),
+      0 1px 3px rgba(16, 24, 40, 0.06);
   }
   .elev-2 {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 12px 32px rgba(16, 24, 40, 0.14),
+      0 4px 8px rgba(16, 24, 40, 0.06);
+  }
+
+  /* Interactive card lift. Kept to a shadow change plus 1px of travel — on a
+   * list of 500 members anything larger reads as the page twitching. */
+  .card-interactive {
+    @apply transition-[box-shadow,transform,border-color] duration-150;
+  }
+  .card-interactive:hover {
+    @apply -translate-y-px border-primary/25;
+    box-shadow:
+      0 4px 12px rgba(16, 24, 40, 0.08),
+      0 2px 4px rgba(16, 24, 40, 0.04);
   }
 
   .skeleton {
-    @apply bg-surface-container-high rounded animate-skeleton-pulse;
+    @apply animate-skeleton-pulse rounded-lg bg-surface-container-high;
+  }
+
+  /* Sticky table headers. A register can run to hundreds of rows, and column
+   * headings that scroll away turn page four into unlabelled numbers. */
+  .table-sticky-head th {
+    @apply sticky top-0 z-10 bg-surface-container-low;
+  }
+
+  /* The thin gold rule under a hero title — the one place the accent runs as
+   * a shape rather than as text. */
+  .accent-rule::after {
+    content: '';
+    @apply mt-3 block h-1 w-14 rounded-full bg-secondary-container;
   }
 
   /* Sticky form footer for mobile - keeps the primary action in the thumb

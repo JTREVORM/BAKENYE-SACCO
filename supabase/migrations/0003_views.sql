@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0003 - Derived balances, summaries and reporting
+-- BUD-SACCO - 0003 - Derived balances, summaries and reporting
 --
 -- Every figure the UI shows is computed here from the ledger. Nothing in the
 -- application layer adds money up in JavaScript.

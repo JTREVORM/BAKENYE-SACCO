@@ -20,7 +20,7 @@ export function ChangePasswordForm() {
   const err = state && !state.ok ? state : null;
 
   return (
-    <section className="bg-surface-container-lowest border-surface-container-high elev-1 overflow-hidden rounded-xl border">
+    <section className="bg-surface-container-lowest border-surface-container-high shadow-card overflow-hidden rounded-xl border">
       <div className="border-surface-container-high bg-surface-container-low/50 border-b px-4 py-3">
         <h2 className="text-button-text font-button-text text-on-surface">Change password</h2>
       </div>

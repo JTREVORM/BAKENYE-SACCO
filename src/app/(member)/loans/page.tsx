@@ -74,7 +74,7 @@ export default async function LoansPage() {
         {/* Apply for a New Loan */}
         <Link
           href="/loans/apply"
-          className="bg-surface-container-lowest border-outline-variant elev-1 hover:border-primary flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
+          className="bg-surface-container-lowest border-outline-variant shadow-card hover:border-primary flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
         >
           <div className="flex min-w-0 items-center gap-3">
             <div className="bg-primary-fixed text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
@@ -237,7 +237,7 @@ function ApplicationRow({
     <Link
       href={`/loans/${application.id}`}
       className={clsx(
-        'bg-surface-container-lowest border-surface-variant elev-1 hover:bg-surface-container-low flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors',
+        'bg-surface-container-lowest border-surface-variant shadow-card hover:bg-surface-container-low flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors',
         settled && 'opacity-70',
       )}
     >

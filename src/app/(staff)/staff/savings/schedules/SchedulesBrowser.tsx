@@ -90,7 +90,7 @@ export function SchedulesBrowser({
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <label className="flex flex-col gap-1">
-            <span className="text-label-md font-label-md text-on-surface-variant uppercase">
+            <span className="text-label-md font-label-md text-on-surface-variant">
               Group
             </span>
             <select
@@ -108,7 +108,7 @@ export function SchedulesBrowser({
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-label-md font-label-md text-on-surface-variant uppercase">
+            <span className="text-label-md font-label-md text-on-surface-variant">
               Due from
             </span>
             <input
@@ -120,7 +120,7 @@ export function SchedulesBrowser({
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-label-md font-label-md text-on-surface-variant uppercase">
+            <span className="text-label-md font-label-md text-on-surface-variant">
               Due to
             </span>
             <input
@@ -134,7 +134,7 @@ export function SchedulesBrowser({
       </div>
 
       {/* --------------------------------------------------------- totals */}
-      <section className="bg-surface border-outline-variant/30 elev-1 grid grid-cols-3 gap-4 rounded-xl border p-4">
+      <section className="bg-surface border-outline-variant shadow-card grid grid-cols-3 gap-4 rounded-xl border p-4">
         <Total label="Expected" value={totals.expected} />
         <Total label="Paid" value={totals.paid} tone="text-tertiary" />
         <Total
@@ -156,7 +156,7 @@ export function SchedulesBrowser({
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="calendar_month"
             title={filtered ? 'No schedules match' : 'No schedules yet'}
@@ -174,7 +174,7 @@ export function SchedulesBrowser({
             {rows.map((r) => (
               <li
                 key={r.schedule_id}
-                className="bg-surface border-surface-container elev-1 rounded-xl border p-3"
+                className="bg-surface border-surface-container shadow-card rounded-xl border p-3"
               >
                 <div className="flex items-start gap-3">
                   <Avatar name={r.member_name} src={r.member_photo} size={44} />
@@ -193,7 +193,7 @@ export function SchedulesBrowser({
                   <SavingsStatusBadge status={r.status} />
                 </div>
 
-                <dl className="border-outline-variant/40 mt-3 grid grid-cols-3 gap-2 border-t pt-3">
+                <dl className="border-outline-variant mt-3 grid grid-cols-3 gap-2 border-t pt-3">
                   <Cell label="Expected" value={r.expected_amount} />
                   <Cell label="Paid" value={r.paid_amount} tone="text-tertiary" />
                   <Cell
@@ -211,11 +211,11 @@ export function SchedulesBrowser({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
                     <th className="p-4 font-semibold">Group</th>
                     <th className="p-4 font-semibold">Cycle</th>
@@ -226,11 +226,11 @@ export function SchedulesBrowser({
                     <th className="p-4 font-semibold">Status</th>
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   {rows.map((r) => (
                     <tr
                       key={r.schedule_id}
-                      className="hover:bg-surface-container-lowest transition-colors"
+                      className="hover:bg-surface-container-low transition-colors"
                     >
                       <td className="p-4">
                         <Link
@@ -320,7 +320,7 @@ export function SchedulesBrowser({
 function Total({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-label-md font-label-md text-on-surface-variant truncate uppercase tracking-wider">
+      <p className="text-label-md font-label-md text-on-surface-variant truncate">
         {label}
       </p>
       <Money

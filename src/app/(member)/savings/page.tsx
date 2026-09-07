@@ -63,7 +63,7 @@ export default async function SavingsPage() {
           <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-white opacity-10 blur-2xl" />
           <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-white opacity-5 blur-xl" />
 
-          <p className="font-label-md text-label-md text-primary-fixed-dim relative z-10 mb-1 uppercase tracking-wider">
+          <p className="font-label-md text-label-md text-primary-fixed-dim relative z-10 mb-1">
             Total Savings
           </p>
           <Money
@@ -74,7 +74,7 @@ export default async function SavingsPage() {
           <div className="relative z-10 mt-6 flex items-end justify-between gap-3">
             <Link
               href="/savings/deposit"
-              className="text-primary font-button-text text-button-text hover:bg-surface-bright h-touch-target-min flex items-center gap-2 rounded-full bg-white px-4 py-2 transition-colors"
+              className="text-primary font-button-text text-button-text hover:bg-surface h-touch-target-min flex items-center gap-2 rounded-full bg-white px-4 py-2 transition-colors"
             >
               <Icon name="add" size={20} />
               Save Money
@@ -93,7 +93,7 @@ export default async function SavingsPage() {
         {/* Your group — the day you are collected from, and what you owe.
             A member who does not know their collection day cannot turn up to it. */}
         {m?.group_id ? (
-          <section className="bg-surface-container-lowest border-surface-container-high elev-1 flex flex-wrap items-center justify-between gap-4 rounded-xl border p-5">
+          <section className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-wrap items-center justify-between gap-4 rounded-xl border p-5">
             <div className="flex min-w-0 items-center gap-3">
               <span className="bg-primary-fixed text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
                 <Icon name="groups" size={24} />
@@ -111,7 +111,7 @@ export default async function SavingsPage() {
 
             {toNumber(m.savings_outstanding) > 0 ? (
               <div className="text-right">
-                <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+                <p className="font-label-md text-label-md text-on-surface-variant">
                   Still owed
                 </p>
                 <Money
@@ -131,7 +131,7 @@ export default async function SavingsPage() {
         {/* Bento pair */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Monthly Target */}
-          <div className="bg-surface-container-lowest border-surface-container-high elev-1 flex flex-col justify-between rounded-xl border p-5">
+          <div className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-col justify-between rounded-xl border p-5">
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-body-lg text-body-lg text-on-surface font-semibold">
@@ -227,7 +227,7 @@ function WeeklyCard({
   return (
     <div
       className={clsx(
-        'elev-1 flex flex-col items-start justify-center rounded-xl p-5',
+        'shadow-card flex flex-col items-start justify-center rounded-xl p-5',
         settled
           ? 'bg-tertiary-container text-on-tertiary-container'
           : 'bg-surface-container-lowest border-surface-container-high border',
@@ -273,7 +273,7 @@ function DepositCard({ deposit }: { deposit: SavingsPaymentRow }) {
   return (
     <Link
       href={deposit.transaction_id ? `/transactions/${deposit.transaction_id}` : '/transactions'}
-      className="bg-surface-container-lowest border-surface-container-high elev-1 hover:bg-surface-container-low flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
+      className="bg-surface-container-lowest border-surface-container-high shadow-card hover:bg-surface-container-low flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
     >
       <div className="flex min-w-0 items-center gap-4">
         <div className="bg-surface-container-low text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-full">

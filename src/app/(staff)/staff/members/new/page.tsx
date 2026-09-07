@@ -15,7 +15,7 @@ export default async function NewMemberPage() {
     <div>
       <PageTitle
         title="Register a Member"
-        subtitle="Enrol a new member of Bakenye National Development SACCO."
+        subtitle="Enrol a new member of Bakenye Unity and Development SACCO."
       />
       <MemberForm groups={groups} />
     </div>

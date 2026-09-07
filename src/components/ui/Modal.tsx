@@ -70,7 +70,7 @@ export function Modal({
         if (e.target === ref.current) onClose();
       }}
       className={clsx(
-        'bg-transparent p-0 backdrop:bg-black/50',
+        'animate-fade-in bg-transparent p-0 backdrop:bg-ink/55 backdrop:backdrop-blur-[2px]',
         // Mobile: bottom sheet.
         'm-0 mt-auto w-full max-w-full',
         // Desktop: centred.
@@ -80,17 +80,23 @@ export function Modal({
     >
       <div
         className={clsx(
-          'bg-surface flex max-h-[85dvh] flex-col overflow-hidden shadow-2xl',
-          'rounded-t-xl sm:rounded-xl',
+          'flex max-h-[88dvh] flex-col overflow-hidden bg-surface shadow-pop',
+          'rounded-t-3xl sm:rounded-2xl sm:border sm:border-outline-variant',
         )}
       >
-        <div className="border-outline-variant/50 flex items-start justify-between gap-3 border-b p-4">
+        {/* Grab handle. Present only in the sheet presentation, where it is
+            the affordance that says "this can be dismissed downwards". */}
+        <div className="flex justify-center pt-2.5 sm:hidden" aria-hidden="true">
+          <span className="h-1 w-10 rounded-full bg-outline-variant" />
+        </div>
+
+        <div className="flex items-start justify-between gap-3 border-b border-outline-variant px-5 py-4">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-button-text font-button-text text-on-surface">
+            <h2 id={titleId} className="text-title-md text-on-surface">
               {title}
             </h2>
             {description ? (
-              <p id={descId} className="text-body-md font-body-md text-on-surface-variant mt-0.5">
+              <p id={descId} className="mt-1 text-body-md font-body-md text-on-surface-variant">
                 {description}
               </p>
             ) : null}
@@ -99,15 +105,15 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-on-surface-variant hover:bg-surface-container-high -mr-1 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+            className="-mr-1.5 -mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-on-surface-variant transition-colors hover:bg-surface-container-high"
           >
             <Icon name="close" size={20} />
           </button>
         </div>
 
         <div
-          className="overflow-y-auto p-4"
-          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+          className="overflow-y-auto p-5"
+          style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
         >
           {children}
         </div>

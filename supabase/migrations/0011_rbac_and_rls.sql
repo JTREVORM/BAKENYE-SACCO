@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0011 - Capabilities, policies and RLS for the group tables
+-- BUD-SACCO - 0011 - Capabilities, policies and RLS for the group tables
 --
 -- Roles are compared in exactly one place now: the capability predicates. Every
 -- policy and every function below asks "can this caller do X", never "is this
@@ -547,7 +547,7 @@ begin
 
   return jsonb_build_object(
     'transaction',   to_jsonb(v_txn),
-    'sacco_name',    'BAKENYE NATIONAL DEVELOPMENT SACCO',
+    'sacco_name',    'BAKENYE UNITY AND DEVELOPMENT SACCO',
     'receipt_no',    replace(v_txn.reference, 'BND-TX-', 'BND-RCP-'),
     'loan', (
       select jsonb_build_object('loan_no', l.loan_no, 'outstanding', lb.outstanding,

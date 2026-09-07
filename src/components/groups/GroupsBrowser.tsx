@@ -103,7 +103,7 @@ export function GroupsBrowser({
             <select
               value={day}
               onChange={(e) => setParam('day', e.target.value)}
-              className="bg-surface-container-low border-outline-variant/50 text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
+              className="bg-surface-container-low border-outline-variant text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
             >
               <option value="">Any day</option>
               {SAVING_DAYS.map((d) => (
@@ -123,7 +123,7 @@ export function GroupsBrowser({
       </p>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="groups"
             title={filtered ? 'No matching groups' : 'No groups yet'}
@@ -157,7 +157,7 @@ export function GroupsBrowser({
               <li key={g.id}>
                 <Link
                   href={`/staff/groups/${g.id}`}
-                  className="bg-surface border-surface-container elev-1 hover:bg-surface-container-low block rounded-xl border p-3 transition-colors"
+                  className="bg-surface border-surface-container shadow-card hover:bg-surface-container-low block rounded-xl border p-3 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <span
@@ -187,7 +187,7 @@ export function GroupsBrowser({
                     </Badge>
                   </div>
 
-                  <dl className="border-outline-variant/40 mt-3 grid grid-cols-3 gap-2 border-t pt-3">
+                  <dl className="border-outline-variant mt-3 grid grid-cols-3 gap-2 border-t pt-3">
                     <Figure label="Savings" value={g.total_savings} />
                     <Figure label="Shares" value={g.total_shares} />
                     <Figure
@@ -224,11 +224,11 @@ export function GroupsBrowser({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Group</th>
                     <th className="p-4 font-semibold">Saving day</th>
                     <th className="p-4 text-center font-semibold">Members</th>
@@ -238,9 +238,9 @@ export function GroupsBrowser({
                     <th className="p-4 font-semibold">Status</th>
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   {rows.map((g) => (
-                    <tr key={g.id} className="hover:bg-surface-container-lowest transition-colors">
+                    <tr key={g.id} className="hover:bg-surface-container-low transition-colors">
                       <td className="p-4">
                         <Link
                           href={`/staff/groups/${g.id}`}

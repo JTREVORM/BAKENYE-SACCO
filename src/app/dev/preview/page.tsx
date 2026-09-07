@@ -48,7 +48,7 @@ export default function PreviewPage() {
   return (
     <div className="bg-background min-h-[100dvh] pb-20">
       <header className="bg-primary text-on-primary px-container-margin-mobile py-3">
-        <p className="text-button-text font-button-text">BND-SACCO · design preview</p>
+        <p className="text-button-text font-button-text">BUD-SACCO · design preview</p>
         <p className="text-label-md font-label-md text-primary-fixed-dim normal-case">
           Development only. Fixture data — nothing here touches the database.
         </p>
@@ -70,7 +70,7 @@ export default function PreviewPage() {
             </section>
 
             <section className="gap-unit mb-6 flex flex-col">
-              <div className="bg-primary text-on-primary elev-2 relative flex h-32 flex-col justify-between overflow-hidden rounded-xl p-4">
+              <div className="bg-primary text-on-primary shadow-pop relative flex h-32 flex-col justify-between overflow-hidden rounded-xl p-4">
                 <div className="pointer-events-none absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white opacity-5 blur-xl" />
                 <div>
                   <p className="text-body-md font-body-md opacity-90">Total Savings</p>
@@ -85,7 +85,7 @@ export default function PreviewPage() {
               </div>
 
               <div className="gap-unit grid grid-cols-2">
-                <div className="bg-surface-container-high border-surface-container-highest elev-1 rounded-xl border p-4">
+                <div className="bg-surface-container-high border-surface-container-highest shadow-card rounded-xl border p-4">
                   <p className="text-label-md font-label-md text-on-surface-variant">Shares</p>
                   <Money
                     value={FIXTURE_MEMBERS[0].share_value}
@@ -95,7 +95,7 @@ export default function PreviewPage() {
                     10 shares
                   </p>
                 </div>
-                <div className="bg-surface-container-high border-surface-container-highest elev-1 rounded-xl border p-4">
+                <div className="bg-surface-container-high border-surface-container-highest shadow-card rounded-xl border p-4">
                   <p className="text-label-md font-label-md text-on-surface-variant">Loan Balance</p>
                   <Money
                     value={FIXTURE_MEMBERS[0].loan_balance}
@@ -109,7 +109,7 @@ export default function PreviewPage() {
             </section>
 
             <section className="mb-6">
-              <div className="border-error bg-error-container elev-1 flex items-center justify-between rounded-xl border p-4">
+              <div className="border-error bg-error-container shadow-card flex items-center justify-between rounded-xl border p-4">
                 <div className="min-w-0">
                   <h4 className="text-button-text font-button-text text-on-surface flex items-center gap-1.5">
                     <Icon name="warning" size={18} className="text-error" />
@@ -296,7 +296,7 @@ export default function PreviewPage() {
         <Section id="staff-dashboard" title="Staff · dashboard stats" note="staff_dashboard_desktop">
           <div className="flex flex-col gap-6">
             <div className="gap-gutter grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="bg-surface border-outline-variant/30 elev-1 flex flex-col justify-between rounded-xl border p-5">
+              <div className="bg-surface border-outline-variant shadow-card flex flex-col justify-between rounded-xl border p-5">
                 <div className="mb-4 flex items-start justify-between gap-2">
                   <div className="bg-primary-container/20 text-primary-container rounded-lg p-2">
                     <Icon name="group" />
@@ -307,7 +307,7 @@ export default function PreviewPage() {
                   </span>
                 </div>
                 <div>
-                  <div className="text-on-surface-variant text-label-md font-label-md mb-1 uppercase tracking-wider">
+                  <div className="text-on-surface-variant text-label-md font-label-md mb-1">
                     Total Members
                   </div>
                   <div className="text-display-currency font-display-currency text-on-surface">
@@ -324,7 +324,7 @@ export default function PreviewPage() {
                   </div>
                 </div>
                 <div className="relative z-10">
-                  <div className="text-primary-fixed-dim text-label-md font-label-md mb-1 uppercase tracking-wider">
+                  <div className="text-primary-fixed-dim text-label-md font-label-md mb-1">
                     Share Capital
                   </div>
                   <Money
@@ -335,14 +335,14 @@ export default function PreviewPage() {
                 </div>
               </div>
 
-              <div className="bg-surface border-outline-variant/30 elev-1 flex flex-col justify-between rounded-xl border p-5">
+              <div className="bg-surface border-outline-variant shadow-card flex flex-col justify-between rounded-xl border p-5">
                 <div className="mb-4">
                   <div className="bg-secondary-container/30 text-on-secondary-container w-fit rounded-lg p-2">
                     <Icon name="account_balance_wallet" />
                   </div>
                 </div>
                 <div>
-                  <div className="text-on-surface-variant text-label-md font-label-md mb-1 uppercase tracking-wider">
+                  <div className="text-on-surface-variant text-label-md font-label-md mb-1">
                     Total Savings
                   </div>
                   <Money
@@ -353,7 +353,7 @@ export default function PreviewPage() {
                 </div>
               </div>
 
-              <div className="bg-surface border-outline-variant/30 elev-1 flex flex-col justify-between rounded-xl border p-5">
+              <div className="bg-surface border-outline-variant shadow-card flex flex-col justify-between rounded-xl border p-5">
                 <div className="mb-4 flex items-start justify-between gap-2">
                   <div className="bg-error-container/30 text-on-error-container rounded-lg p-2">
                     <Icon name="payments" />
@@ -363,7 +363,7 @@ export default function PreviewPage() {
                   </span>
                 </div>
                 <div>
-                  <div className="text-on-surface-variant text-label-md font-label-md mb-1 uppercase tracking-wider">
+                  <div className="text-on-surface-variant text-label-md font-label-md mb-1">
                     Active Loans
                   </div>
                   <Money
@@ -375,7 +375,7 @@ export default function PreviewPage() {
               </div>
             </div>
 
-            <div className="bg-surface-container-lowest border-outline-variant/50 grid grid-cols-2 gap-4 rounded-xl border p-4 shadow-sm md:grid-cols-4">
+            <div className="bg-surface-container-lowest border-outline-variant grid grid-cols-2 gap-4 rounded-xl border p-4 shadow-sm md:grid-cols-4">
               {[
                 ['Outstanding Loans', 86500000, 'text-on-surface'],
                 ["Today's Collections", 3800000, 'text-tertiary-container'],
@@ -397,8 +397,8 @@ export default function PreviewPage() {
               ))}
             </div>
 
-            <div className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-              <div className="border-outline-variant/30 bg-surface-bright border-b p-5">
+            <div className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+              <div className="border-outline-variant bg-surface border-b p-5">
                 <h2 className="text-button-text font-button-text text-on-surface font-bold">
                   Collections
                 </h2>
@@ -413,14 +413,14 @@ export default function PreviewPage() {
         {/* -------------------------------------------------- states */}
         <Section id="states" title="Loading, empty and error states">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="bg-surface border-outline-variant/30 rounded-xl border">
+            <div className="bg-surface border-outline-variant rounded-xl border">
               <EmptyState
                 icon="receipt_long"
                 title="No transactions yet"
                 description="Your transactions will appear here."
               />
             </div>
-            <div className="bg-surface border-outline-variant/30 rounded-xl border">
+            <div className="bg-surface border-outline-variant rounded-xl border">
               <ErrorState />
             </div>
             <ListSkeleton rows={3} />

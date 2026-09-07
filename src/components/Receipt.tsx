@@ -58,7 +58,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
       {/* Ticket */}
       <div className="bg-surface border-outline-variant print-block overflow-hidden rounded-xl border shadow-sm">
         {/* Letterhead */}
-        <div className="border-outline-variant/60 flex items-center gap-3 border-b p-4">
+        <div className="border-outline-variant flex items-center gap-3 border-b p-4">
           <Image
             src="/brand/bnd-logo.png"
             alt=""
@@ -68,7 +68,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
           />
           <div className="min-w-0">
             <p className="text-button-text font-button-text text-primary leading-tight">
-              BAKENYE NATIONAL DEVELOPMENT SACCO
+              BAKENYE UNITY AND DEVELOPMENT SACCO
             </p>
             <p className="text-label-md font-label-md text-on-surface-variant normal-case">
               Official transaction receipt
@@ -77,7 +77,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
         </div>
 
         {reversed ? (
-          <div className="bg-error-container text-on-error-container border-outline-variant/60 border-b p-3">
+          <div className="bg-error-container text-on-error-container border-outline-variant border-b p-3">
             <p className="text-button-text font-button-text">
               {t.status === 'reversed'
                 ? 'This transaction has been reversed'
@@ -89,7 +89,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
           </div>
         ) : null}
 
-        <dl className="divide-outline-variant/40 divide-y px-4">
+        <dl className="divide-outline-variant/70 divide-y px-4">
           <Line label="Receipt number" value={payload.receipt_no} mono />
           <Line label="Transaction reference" value={t.reference} mono />
           <Line label="Member" value={t.member_name ?? '—'} />
@@ -105,7 +105,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
 
         {/* Share detail */}
         {payload.shares ? (
-          <div className="bg-secondary-container/30 border-outline-variant/40 border-t px-4 py-3">
+          <div className="bg-secondary-container/30 border-outline-variant border-t px-4 py-3">
             <p className="text-label-md font-label-md text-on-secondary-container mb-1">
               Share purchase
             </p>
@@ -119,7 +119,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
 
         {/* Loan detail */}
         {payload.loan ? (
-          <div className="bg-primary-fixed border-outline-variant/40 border-t px-4 py-3">
+          <div className="bg-primary-fixed border-outline-variant border-t px-4 py-3">
             <p className="text-label-md font-label-md text-on-primary-fixed-variant mb-1">
               Loan {payload.loan.loan_no}
             </p>
@@ -134,7 +134,7 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
 
         {/* Savings balance after */}
         {['weekly_savings', 'monthly_savings', 'deposit', 'withdrawal'].includes(t.type) ? (
-          <div className="bg-surface-container-low border-outline-variant/40 border-t px-4 py-3">
+          <div className="bg-surface-container-low border-outline-variant border-t px-4 py-3">
             <p className="text-label-md font-label-md text-on-surface-variant mb-1">
               Savings balance after this transaction
             </p>
@@ -146,13 +146,13 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
         ) : null}
 
         {t.description ? (
-          <div className="border-outline-variant/40 border-t px-4 py-3">
+          <div className="border-outline-variant border-t px-4 py-3">
             <p className="text-label-md font-label-md text-on-surface-variant mb-1">Description</p>
             <p className="text-body-md font-body-md text-on-surface">{t.description}</p>
           </div>
         ) : null}
 
-        <div className="border-outline-variant/60 border-t px-4 py-4 text-center">
+        <div className="border-outline-variant border-t px-4 py-4 text-center">
           <p className="text-label-md font-label-md text-on-surface-variant normal-case">
             This is a computer-generated receipt and is valid without a signature.
           </p>

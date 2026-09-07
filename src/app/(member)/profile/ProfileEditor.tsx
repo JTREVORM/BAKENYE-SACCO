@@ -32,7 +32,7 @@ export function ProfileEditor({ member }: { member: MemberFinancialsRow }) {
   if (!editing) {
     return (
       <>
-        <section className="bg-surface-container-lowest border-surface-container-high elev-1 overflow-hidden rounded-xl border">
+        <section className="bg-surface-container-lowest border-surface-container-high shadow-card overflow-hidden rounded-xl border">
           <div className="border-surface-container-high bg-surface-container-low/50 flex items-center justify-between gap-3 border-b px-4 py-3">
             <h2 className="text-button-text font-button-text text-on-surface">
               Personal Information
@@ -70,7 +70,7 @@ export function ProfileEditor({ member }: { member: MemberFinancialsRow }) {
           </div>
         </section>
 
-        <section className="bg-surface-container-lowest border-surface-container-high elev-1 overflow-hidden rounded-xl border">
+        <section className="bg-surface-container-lowest border-surface-container-high shadow-card overflow-hidden rounded-xl border">
           <div className="border-surface-container-high bg-surface-container-low/50 border-b px-4 py-3">
             <h2 className="text-button-text font-button-text text-on-surface">Next of Kin</h2>
           </div>
@@ -124,7 +124,7 @@ export function ProfileEditor({ member }: { member: MemberFinancialsRow }) {
       <input type="hidden" name="full_name" value={member.full_name} />
       <input type="hidden" name="national_id" value={member.national_id ?? ''} />
 
-      <section className="bg-surface-container-lowest border-surface-container-high elev-1 overflow-hidden rounded-xl border">
+      <section className="bg-surface-container-lowest border-surface-container-high shadow-card overflow-hidden rounded-xl border">
         <div className="border-surface-container-high bg-surface-container-low/50 border-b px-4 py-3">
           <h2 className="text-button-text font-button-text text-on-surface">
             Edit your details
@@ -177,7 +177,7 @@ export function ProfileEditor({ member }: { member: MemberFinancialsRow }) {
         </div>
       </section>
 
-      <section className="bg-surface-container-lowest border-surface-container-high elev-1 overflow-hidden rounded-xl border">
+      <section className="bg-surface-container-lowest border-surface-container-high shadow-card overflow-hidden rounded-xl border">
         <div className="border-surface-container-high bg-surface-container-low/50 border-b px-4 py-3">
           <h2 className="text-button-text font-button-text text-on-surface">Next of Kin</h2>
         </div>

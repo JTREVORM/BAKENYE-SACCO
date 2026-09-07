@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0009 - Group savings: cycles, schedules and manual collection
+-- BUD-SACCO - 0009 - Group savings: cycles, schedules and manual collection
 --
 -- Every function that moves money is SECURITY DEFINER, checks the role of the
 -- caller, does its arithmetic in one statement block and writes its own audit

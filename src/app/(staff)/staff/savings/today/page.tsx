@@ -96,11 +96,11 @@ async function Board({
           icon="pending"
           tone={toNumber(dash.today_outstanding) > 0 ? 'text-error' : undefined}
         />
-        <div className="bg-surface border-outline-variant/30 elev-1 rounded-xl border p-5">
+        <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
           <div className="bg-primary-fixed text-primary mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg">
             <Icon name="assessment" size={20} />
           </div>
-          <p className="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">
+          <p className="text-label-md font-label-md text-on-surface-variant mb-1">
             Collection rate
           </p>
           <p className="text-display-currency font-display-currency text-on-surface tabular">
@@ -115,7 +115,7 @@ async function Board({
         </div>
       </section>
 
-      <section className="bg-surface border-outline-variant/30 elev-1 grid grid-cols-2 gap-4 rounded-xl border p-4 sm:grid-cols-4">
+      <section className="bg-surface border-outline-variant shadow-card grid grid-cols-2 gap-4 rounded-xl border p-4 sm:grid-cols-4">
         <Count label="Members paid" value={dash.members_paid} tone="text-tertiary" />
         <Count label="Partial" value={dash.members_partial} />
         <Count label="Not yet paid" value={dash.members_pending} />
@@ -137,7 +137,7 @@ async function Board({
         </div>
 
         {groups.length === 0 ? (
-          <div className="bg-surface border-outline-variant/30 rounded-xl border">
+          <div className="bg-surface border-outline-variant rounded-xl border">
             <EmptyState
               icon="event_busy"
               title={`No group saves on ${weekday}`}
@@ -203,7 +203,7 @@ function GroupCard({
   const opened = !!group.cycle_id;
 
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 flex h-full flex-col rounded-xl border p-4">
+    <div className="bg-surface border-outline-variant shadow-card flex h-full flex-col rounded-xl border p-4">
       <div className="flex items-start justify-between gap-3">
         <Link
           href={`/staff/groups/${group.group_id}`}
@@ -303,11 +303,11 @@ function Tile({
   tone?: string;
 }) {
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 rounded-xl border p-5">
+    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
       <div className="bg-primary-fixed text-primary mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg">
         <Icon name={icon} size={20} />
       </div>
-      <p className="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">
+      <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>
       <Money
@@ -322,7 +322,7 @@ function Tile({
 function Count({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-label-md font-label-md text-on-surface-variant truncate uppercase tracking-wider">
+      <p className="text-label-md font-label-md text-on-surface-variant truncate">
         {label}
       </p>
       <p

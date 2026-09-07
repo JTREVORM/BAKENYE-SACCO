@@ -131,7 +131,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
       />
 
       {/* Identity card */}
-      <section className="bg-surface border-outline-variant/50 elev-1 flex flex-wrap items-start gap-4 rounded-xl border p-5">
+      <section className="bg-surface border-outline-variant shadow-card flex flex-wrap items-start gap-4 rounded-xl border p-5">
         <Avatar name={member.full_name} src={member.photo_url} size={72} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -181,7 +181,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         className={clsx(
           'flex flex-wrap items-center justify-between gap-4 rounded-xl border p-4',
           member.group_id
-            ? 'bg-surface border-outline-variant/50'
+            ? 'bg-surface border-outline-variant'
             : 'bg-secondary-fixed text-on-secondary-fixed border-transparent',
         )}
       >
@@ -223,7 +223,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
 
         {toNumber(member.savings_outstanding) > 0 ? (
           <div className="text-right">
-            <p className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+            <p className="text-label-md font-label-md text-on-surface-variant">
               Savings arrears
             </p>
             <Money
@@ -291,12 +291,12 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           {loans.length === 0 ? (
             <EmptyState icon="payments" title="No loans" description="This member has never borrowed." />
           ) : (
-            <ul className="divide-outline-variant/30 divide-y">
+            <ul className="divide-outline-variant/70 divide-y">
               {loans.map((l) => (
                 <li key={l.loan_id}>
                   <Link
                     href={`/staff/loans/${l.loan_id}`}
-                    className="hover:bg-surface-container-lowest flex items-center justify-between gap-3 p-4 transition-colors"
+                    className="hover:bg-surface-container-low flex items-center justify-between gap-3 p-4 transition-colors"
                   >
                     <div className="min-w-0">
                       <p className="text-body-md font-body-md text-primary tabular truncate font-semibold">
@@ -341,7 +341,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             ) : undefined
           }
         >
-          <div className="border-outline-variant/30 grid grid-cols-2 divide-x divide-outline-variant/30 border-b">
+          <div className="border-outline-variant grid grid-cols-2 divide-x divide-outline-variant/70 border-b">
             <TargetCell label="Weekly target" value={weeklyPlan?.target_amount} />
             <TargetCell label="Monthly target" value={monthlyPlan?.target_amount} />
           </div>
@@ -353,7 +353,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
               description="Periods open automatically once a target is set and a payment is recorded."
             />
           ) : (
-            <ul className="divide-outline-variant/30 divide-y">
+            <ul className="divide-outline-variant/70 divide-y">
               {[...weekly, ...monthly]
                 .sort((a, b) => b.period_start.localeCompare(a.period_start))
                 .slice(0, 8)
@@ -384,7 +384,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
               description="This member has not bought any shares."
             />
           ) : (
-            <ul className="divide-outline-variant/30 divide-y">
+            <ul className="divide-outline-variant/70 divide-y">
               {shares.map((s) => (
                 <li key={s.id} className="flex items-center justify-between gap-3 p-4">
                   <div className="min-w-0">
@@ -476,9 +476,9 @@ function BalanceCard({
   }[tone];
 
   return (
-    <div className={clsx('elev-1 relative overflow-hidden rounded-xl p-5', styles)}>
+    <div className={clsx('shadow-card relative overflow-hidden rounded-xl p-5', styles)}>
       <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-xl" />
-      <p className="text-label-md font-label-md relative z-10 uppercase tracking-wider opacity-80">
+      <p className="text-label-md font-label-md relative z-10 opacity-80">
         {label}
       </p>
       <Money value={value} className="text-display-currency font-display-currency relative z-10 mt-1 block" />
@@ -499,8 +499,8 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/30 bg-surface-bright flex items-center justify-between gap-3 border-b p-4">
+    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <div className="border-outline-variant bg-surface flex items-center justify-between gap-3 border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface font-bold">{title}</h2>
         {action ??
           (href ? (

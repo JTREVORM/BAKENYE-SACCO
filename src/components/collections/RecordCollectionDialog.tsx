@@ -131,7 +131,7 @@ export function RecordCollectionDialog({
             {state.message}
           </p>
 
-          <dl className="bg-surface-container-low border-outline-variant divide-outline-variant/40 mt-5 w-full divide-y rounded-xl border px-4">
+          <dl className="bg-surface-container-low border-outline-variant divide-outline-variant/70 mt-5 w-full divide-y rounded-xl border px-4">
             <Line label="Reference" value={<span className="tabular font-mono">{state.data.reference}</span>} />
             <Line label="Cycle" value={state.data.period_label} />
             <Line label="Expected" value={<Money value={state.data.expected} />} />
@@ -189,7 +189,7 @@ export function RecordCollectionDialog({
         {/* Fields stay mounted through the confirmation step so nothing typed
             is lost on the way back. */}
         <div className={clsx('flex flex-col gap-5', confirming && 'hidden')}>
-          <div className="bg-surface-container-low border-outline-variant/50 flex items-center gap-3 rounded-xl border p-3">
+          <div className="bg-surface-container-low border-outline-variant flex items-center gap-3 rounded-xl border p-3">
             <Avatar name={row.member_name} src={row.member_photo} size={44} />
             <div className="min-w-0 flex-1">
               <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
@@ -306,7 +306,7 @@ export function RecordCollectionDialog({
               />
             </div>
 
-            <dl className="bg-surface border-outline-variant divide-outline-variant/40 mb-5 divide-y rounded-xl border px-4">
+            <dl className="bg-surface border-outline-variant divide-outline-variant/70 mb-5 divide-y rounded-xl border px-4">
               <Line label="Member" value={`${row.member_name} (${row.member_no})`} />
               <Line label="Cycle" value={row.period_label} />
               <Line label="Expected" value={<Money value={expected} />} />

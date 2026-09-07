@@ -1,24 +1,40 @@
-import { formatUGX, toNumber } from '@/lib/money';
+import { formatCompactUGX, formatUGX, toNumber } from '@/lib/money';
 import type { TrendPoint } from '@/lib/queries';
+import { EmptyState } from '@/components/ui/states';
 
 /**
- * Collections trend.
+ * Collections trend — stacked monthly bars.
  *
  * Hand-rolled inline SVG rather than a charting library. Recharts and its peers
- * are 100–200KB of JavaScript for what is, here, twelve rectangles and some
- * text — and on the low-end Android phones this SACCO runs on, that is a
- * noticeable share of the page's whole budget. This renders on the server, so
- * the phone downloads finished markup and no chart code at all.
+ * are 100–200KB of JavaScript for what is, here, a few dozen rectangles — and on
+ * the low-end Android phones this SACCO runs on that is a noticeable share of
+ * the page's whole budget. This renders on the server, so the phone downloads
+ * finished markup and no chart code at all.
  *
  * The data comes pre-bucketed from `collections_trend()`, so the browser never
  * receives a year of raw transactions to aggregate.
+ *
+ * Two things make it read as a real chart rather than as coloured blocks: a
+ * value axis with gridlines, so a bar's height means an amount instead of a
+ * ratio; and a `<title>` per bar, which the browser shows as a native tooltip
+ * and a screen reader announces — an interaction that costs zero JavaScript.
  */
+
+const SERIES = [
+  { key: 'savings', label: 'Savings', fill: '#123a86' },
+  { key: 'repayments', label: 'Loan repayments', fill: '#12965a' },
+  { key: 'shares', label: 'Shares', fill: '#e8b800' },
+] as const;
+
 export function TrendChart({ points }: { points: TrendPoint[] }) {
   if (points.length === 0) {
     return (
-      <p className="text-body-md font-body-md text-on-surface-variant p-6 text-center">
-        No collections recorded yet.
-      </p>
+      <EmptyState
+        compact
+        icon="monitoring"
+        title="No collections recorded yet"
+        description="Once savings, repayments and share purchases are recorded, six months of trend will appear here."
+      />
     );
   }
 
@@ -30,88 +46,153 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
     total: toNumber(p.savings) + toNumber(p.repayments) + toNumber(p.shares),
   }));
 
-  const max = Math.max(...series.map((s) => s.total), 1);
+  const peak = Math.max(...series.map((s) => s.total), 0);
+  // Round the axis up to a friendly number so the gridline labels read as
+  // amounts a person would say out loud, not as 1/4 of an arbitrary maximum.
+  const max = niceCeiling(peak);
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * max);
 
-  // A fixed viewBox scaled by CSS: crisp at 320px and at 1920px, with no
-  // resize listener and no layout thrash.
-  const width = 100;
-  const height = 44;
-  const gap = 2;
-  const barWidth = (width - gap * (series.length - 1)) / series.length;
+  /* A fixed viewBox scaled by CSS: crisp at 320px and at 1920px, with no
+   * resize listener and no layout thrash. `preserveAspectRatio` is left at the
+   * default so the bars keep their proportions instead of being stretched. */
+  const W = 320;
+  const H = 150;
+  const PAD_L = 44;
+  const PAD_B = 20;
+  const plotW = W - PAD_L;
+  const plotH = H - PAD_B;
+
+  const slot = plotW / series.length;
+  const barW = Math.min(34, slot * 0.54);
 
   return (
     <figure className="w-full">
       <svg
-        viewBox={`0 0 ${width} ${height + 8}`}
-        className="h-40 w-full"
+        viewBox={`0 0 ${W} ${H}`}
+        className="h-52 w-full overflow-visible"
         role="img"
-        aria-label={`Collections over the last ${series.length} months, peaking at ${formatUGX(max)}`}
-        preserveAspectRatio="none"
+        aria-label={`Collections over the last ${series.length} months, peaking at ${formatUGX(peak)}`}
       >
-        {series.map((s, i) => {
-          const x = i * (barWidth + gap);
-          const savingsH = (s.savings / max) * height;
-          const repayH = (s.repayments / max) * height;
-          const sharesH = (s.shares / max) * height;
-          let y = height;
+        {/* Value axis */}
+        {ticks.map((t, i) => {
+          const y = plotH - (t / max) * plotH;
+          return (
+            <g key={i}>
+              <line
+                x1={PAD_L}
+                x2={W}
+                y1={y}
+                y2={y}
+                stroke="#dbe1ec"
+                strokeWidth="1"
+                strokeDasharray={i === 0 ? undefined : '3 3'}
+              />
+              <text
+                x={PAD_L - 8}
+                y={y + 3.5}
+                textAnchor="end"
+                fontSize="9"
+                fill="#5b647a"
+                fontWeight="600"
+              >
+                {t === 0 ? '0' : compactAxis(t)}
+              </text>
+            </g>
+          );
+        })}
 
-          const segments = [
-            { h: savingsH, fill: '#0e3483' },   // primary — savings
-            { h: repayH, fill: '#005e23' },     // tertiary-container — repayments
-            { h: sharesH, fill: '#fcd400' },    // secondary-container — shares
-          ];
+        {series.map((s, i) => {
+          const x = PAD_L + i * slot + (slot - barW) / 2;
+          let y = plotH;
 
           return (
             <g key={s.label}>
-              {segments.map((seg, j) => {
-                if (seg.h <= 0) return null;
-                y -= seg.h;
+              <title>
+                {s.label}: {formatUGX(s.total)}
+                {s.total > 0
+                  ? ` — savings ${formatUGX(s.savings)}, repayments ${formatUGX(
+                      s.repayments,
+                    )}, shares ${formatUGX(s.shares)}`
+                  : ''}
+              </title>
+
+              {SERIES.map((seg, j) => {
+                const v = s[seg.key];
+                if (v <= 0) return null;
+                const h = (v / max) * plotH;
+                y -= h;
+                const isTop = j === topSegment(s);
                 return (
                   <rect
-                    key={j}
+                    key={seg.key}
                     x={x}
                     y={y}
-                    width={barWidth}
-                    height={seg.h}
+                    width={barW}
+                    height={h}
                     fill={seg.fill}
-                    rx={0.6}
+                    /* Only the topmost segment of a stack is rounded; rounding
+                       every segment would draw visible notches through the bar. */
+                    rx={isTop ? 3 : 0}
+                    ry={isTop ? 3 : 0}
                   />
                 );
               })}
+
               {/* An empty month still gets a baseline tick, so a gap reads as
                   "nothing collected" rather than "chart is broken". */}
               {s.total === 0 ? (
-                <rect x={x} y={height - 0.6} width={barWidth} height={0.6} fill="#c4c6d3" rx={0.3} />
+                <rect x={x} y={plotH - 2} width={barW} height={2} fill="#dbe1ec" rx={1} />
               ) : null}
+
+              <text
+                x={x + barW / 2}
+                y={H - 6}
+                textAnchor="middle"
+                fontSize="9"
+                fill="#5b647a"
+                fontWeight="600"
+              >
+                {s.label}
+              </text>
             </g>
           );
         })}
       </svg>
 
-      {/* Labels sit outside the stretched SVG so the text is never distorted. */}
-      <div className="mt-1 flex w-full gap-[2%]">
-        {series.map((s) => (
-          <span
-            key={s.label}
-            className="text-label-md font-label-md text-on-surface-variant flex-1 text-center normal-case"
-          >
-            {s.label}
-          </span>
+      <figcaption className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-outline-variant pt-3">
+        {SERIES.map((s) => (
+          <Key key={s.key} colour={s.fill} label={s.label} />
         ))}
-      </div>
-
-      <figcaption className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
-        <Key colour="#0e3483" label="Savings" />
-        <Key colour="#005e23" label="Loan repayments" />
-        <Key colour="#fcd400" label="Shares" />
       </figcaption>
     </figure>
   );
 }
 
+/** Index of the last non-zero segment, i.e. the one drawn at the top. */
+function topSegment(s: { savings: number; repayments: number; shares: number }): number {
+  for (let i = SERIES.length - 1; i >= 0; i -= 1) {
+    if (s[SERIES[i].key] > 0) return i;
+  }
+  return -1;
+}
+
+/** 1, 2 or 5 times a power of ten — the numbers axes are conventionally drawn at. */
+function niceCeiling(value: number): number {
+  if (value <= 0) return 1;
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const scaled = value / magnitude;
+  const step = scaled <= 1 ? 1 : scaled <= 2 ? 2 : scaled <= 5 ? 5 : 10;
+  return step * magnitude;
+}
+
+function compactAxis(value: number): string {
+  const { amount } = formatCompactUGX(value);
+  return amount;
+}
+
 function Key({ colour, label }: { colour: string; label: string }) {
   return (
-    <span className="text-label-md font-label-md text-on-surface-variant flex items-center gap-1.5 normal-case">
+    <span className="flex items-center gap-2 text-label-md font-medium text-on-surface-variant">
       <span
         className="h-2.5 w-2.5 shrink-0 rounded-sm"
         style={{ backgroundColor: colour }}
@@ -119,5 +200,51 @@ function Key({ colour, label }: { colour: string; label: string }) {
       />
       {label}
     </span>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Sparkline — a single series, for a card header rather than a panel.
+ * ------------------------------------------------------------------------- */
+export function Sparkline({
+  values,
+  className,
+  tone = '#123a86',
+}: {
+  values: number[];
+  className?: string;
+  tone?: string;
+}) {
+  if (values.length < 2) return null;
+
+  const W = 100;
+  const H = 28;
+  const max = Math.max(...values, 1);
+  const step = W / (values.length - 1);
+  const pts = values.map((v, i) => `${i * step},${H - (v / max) * H}`);
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className={className}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <polyline
+        points={`0,${H} ${pts.join(' ')} ${W},${H}`}
+        fill={tone}
+        fillOpacity="0.08"
+        stroke="none"
+      />
+      <polyline
+        points={pts.join(' ')}
+        fill="none"
+        stroke={tone}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
   );
 }

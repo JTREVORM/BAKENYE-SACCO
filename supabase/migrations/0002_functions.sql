@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0002 - Financial integrity layer
+-- BUD-SACCO - 0002 - Financial integrity layer
 --
 -- Every money-moving operation lives here as a SECURITY DEFINER function that
 -- runs inside a single transaction. The web app never writes to `transactions`,

@@ -93,7 +93,7 @@ export default async function MemberReportsPage() {
             <Link
               key={r.title}
               href={r.href}
-              className="bg-surface border-outline-variant elev-1 hover:bg-surface-container-low flex items-center gap-3 rounded-xl border p-4 transition-colors"
+              className="bg-surface border-outline-variant shadow-card hover:bg-surface-container-low flex items-center gap-3 rounded-xl border p-4 transition-colors"
             >
               <div className="bg-primary-fixed text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
                 <Icon name={r.icon} size={20} />

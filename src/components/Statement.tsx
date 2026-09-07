@@ -47,7 +47,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
           />
           <div className="min-w-0">
             <p className="text-button-text font-button-text text-primary leading-tight">
-              BAKENYE NATIONAL DEVELOPMENT SACCO
+              BAKENYE UNITY AND DEVELOPMENT SACCO
             </p>
             <p className="text-label-md font-label-md text-on-surface-variant normal-case">
               Member savings statement
@@ -55,7 +55,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
           </div>
         </div>
 
-        <dl className="border-outline-variant/50 mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4">
+        <dl className="border-outline-variant mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4">
           <Meta label="Member" value={statement.member.full_name} />
           <Meta label="Member ID" value={statement.member.member_no} mono />
           <Meta label="Period" value={`${formatDate(statement.from)} – ${formatDate(statement.to)}`} />
@@ -90,7 +90,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
                 <div
                   key={r.reference}
                   className={clsx(
-                    'bg-surface border-outline-variant/40 rounded-xl border p-3',
+                    'bg-surface border-outline-variant rounded-xl border p-3',
                     r.status !== 'posted' && 'opacity-60',
                   )}
                 >
@@ -132,7 +132,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
             <div className="scroll-x">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b uppercase tracking-wider">
                     <th className="p-3 font-semibold">Date</th>
                     <th className="p-3 font-semibold">Reference</th>
                     <th className="p-3 font-semibold">Description</th>
@@ -141,7 +141,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
                     <th className="p-3 text-right font-semibold">Balance</th>
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   <tr className="bg-surface-container-low/30">
                     <td className="p-3" colSpan={5}>
                       <em>Opening balance</em>
@@ -246,7 +246,7 @@ function Summary({
     <div
       className={clsx(
         'rounded-xl border p-3',
-        emphasis ? 'bg-primary-fixed border-primary/20' : 'bg-surface border-outline-variant/40',
+        emphasis ? 'bg-primary-fixed border-primary/20' : 'bg-surface border-outline-variant',
       )}
     >
       <p className="text-label-md font-label-md text-on-surface-variant">{label}</p>

@@ -88,9 +88,9 @@ async function Register({ canSell }: { canSell: boolean }) {
   return (
     <div className="mt-6 flex flex-col gap-6">
       <section className="gap-gutter grid grid-cols-1 sm:grid-cols-3">
-        <div className="bg-primary text-on-primary elev-2 relative overflow-hidden rounded-xl p-5">
+        <div className="bg-primary text-on-primary shadow-pop relative overflow-hidden rounded-xl p-5">
           <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-xl" />
-          <p className="text-label-md font-label-md text-primary-fixed-dim relative z-10 uppercase tracking-wider">
+          <p className="text-label-md font-label-md text-primary-fixed-dim relative z-10">
             Total share capital
           </p>
           <Money
@@ -105,8 +105,8 @@ async function Register({ canSell }: { canSell: boolean }) {
       </section>
 
       {/* Recent purchases */}
-      <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-        <div className="border-outline-variant/30 bg-surface-bright border-b p-4">
+      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+        <div className="border-outline-variant bg-surface border-b p-4">
           <h2 className="text-button-text font-button-text text-on-surface font-bold">
             Recent purchases
           </h2>
@@ -118,12 +118,12 @@ async function Register({ canSell }: { canSell: boolean }) {
             description="Recorded purchases will appear here with their receipts."
           />
         ) : (
-          <ul className="divide-outline-variant/30 divide-y">
+          <ul className="divide-outline-variant/70 divide-y">
             {lots.map((lot) => (
               <li key={lot.id}>
                 <Link
                   href={lot.transaction_id ? `/staff/transactions/${lot.transaction_id}` : '#'}
-                  className="hover:bg-surface-container-lowest flex items-center gap-3 p-4 transition-colors"
+                  className="hover:bg-surface-container-low flex items-center gap-3 p-4 transition-colors"
                 >
                   <Avatar name={lot.members?.full_name} src={lot.members?.photo_url} size={40} />
                   <div className="min-w-0 flex-1">
@@ -151,8 +151,8 @@ async function Register({ canSell }: { canSell: boolean }) {
       </section>
 
       {/* Holders */}
-      <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-        <div className="border-outline-variant/30 bg-surface-bright border-b p-4">
+      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+        <div className="border-outline-variant bg-surface border-b p-4">
           <h2 className="text-button-text font-button-text text-on-surface font-bold">
             Shareholders ({holders.length})
           </h2>
@@ -167,7 +167,7 @@ async function Register({ canSell }: { canSell: boolean }) {
         ) : (
           <>
             {/* Mobile: cards */}
-            <ul className="divide-outline-variant/30 divide-y md:hidden">
+            <ul className="divide-outline-variant/70 divide-y md:hidden">
               {holders.map((h) => (
                 <li key={h.id} className="flex items-center gap-3 p-4">
                   <Avatar name={h.full_name} src={h.photo_url} size={40} />
@@ -204,7 +204,7 @@ async function Register({ canSell }: { canSell: boolean }) {
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
                     <th className="p-4 text-right font-semibold">Shares</th>
                     <th className="p-4 text-right font-semibold">Value</th>
@@ -212,9 +212,9 @@ async function Register({ canSell }: { canSell: boolean }) {
                     {canSell ? <th className="p-4 text-center font-semibold">Action</th> : null}
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   {holders.map((h) => (
-                    <tr key={h.id} className="hover:bg-surface-container-lowest transition-colors">
+                    <tr key={h.id} className="hover:bg-surface-container-low transition-colors">
                       <td className="p-4">
                         <Link href={`/staff/members/${h.id}`} className="min-h-touch-target-min flex items-center gap-3">
                           <Avatar name={h.full_name} src={h.photo_url} size={32} />
@@ -239,7 +239,7 @@ async function Register({ canSell }: { canSell: boolean }) {
                         <td className="p-4 text-center">
                           <Link
                             href={`/staff/shares/sell?member=${h.id}`}
-                            className="bg-surface-container-high hover:bg-surface-container border-outline-variant/50 text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
+                            className="bg-surface-container-high hover:bg-surface-container border-outline-variant text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
                           >
                             Sell
                           </Link>
@@ -259,8 +259,8 @@ async function Register({ canSell }: { canSell: boolean }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 rounded-xl border p-5">
-      <p className="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">
+    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+      <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>
       <p className="text-display-currency font-display-currency text-on-surface tabular">{value}</p>

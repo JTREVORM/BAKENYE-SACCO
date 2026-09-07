@@ -38,7 +38,7 @@ export function AuditDiff({ oldValue, newValue }: { oldValue: unknown; newValue:
       </button>
 
       {open ? (
-        <dl className="border-outline-variant/40 mt-2 divide-y divide-outline-variant/30 rounded-lg border text-xs">
+        <dl className="border-outline-variant mt-2 divide-y divide-outline-variant/70 rounded-lg border text-xs">
           {keys.map((k) => (
             <div key={k} className="grid grid-cols-3 gap-2 p-2">
               <dt className="text-on-surface-variant truncate font-medium">{humanise(k)}</dt>

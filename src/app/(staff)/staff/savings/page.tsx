@@ -200,8 +200,8 @@ async function Performance({
         <Total label="Expected" value={totals.expected} />
         <Total label="Collected" value={totals.paid} tone="text-tertiary" />
         <Total label="Shortfall" value={totals.balance} tone="text-error" />
-        <div className="bg-surface border-outline-variant/30 elev-1 rounded-xl border p-5">
-          <p className="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">
+        <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+          <p className="text-label-md font-label-md text-on-surface-variant mb-1">
             Collection rate
           </p>
           <p className="text-display-currency font-display-currency text-on-surface tabular">
@@ -217,7 +217,7 @@ async function Performance({
       </section>
 
       {withActivity.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="savings"
             title="No savings activity in this period"
@@ -235,7 +235,7 @@ async function Performance({
             {withActivity.map((r) => (
               <li
                 key={r.member_id}
-                className="bg-surface border-surface-container elev-1 rounded-xl border p-3"
+                className="bg-surface border-surface-container shadow-card rounded-xl border p-3"
               >
                 <div className="flex items-start gap-3">
                   <Avatar name={r.full_name} size={44} />
@@ -262,7 +262,7 @@ async function Performance({
                   ) : null}
                 </div>
 
-                <dl className="border-outline-variant/40 mt-3 grid grid-cols-3 gap-2 border-t pt-3">
+                <dl className="border-outline-variant mt-3 grid grid-cols-3 gap-2 border-t pt-3">
                   <Cell label="Expected" value={r.expected} />
                   <Cell label="Paid" value={r.paid} tone="text-tertiary" />
                   <Cell
@@ -287,11 +287,11 @@ async function Performance({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
                     <th className="p-4 font-semibold">Group</th>
                     <th className="p-4 text-center font-semibold">Periods</th>
@@ -302,9 +302,9 @@ async function Performance({
                     {canRecord ? <th className="p-4 text-center font-semibold">Action</th> : null}
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   {withActivity.map((r) => (
-                    <tr key={r.member_id} className="hover:bg-surface-container-lowest transition-colors">
+                    <tr key={r.member_id} className="hover:bg-surface-container-low transition-colors">
                       <td className="p-4">
                         <Link href={`/staff/members/${r.member_id}`} className="min-h-touch-target-min flex items-center gap-3">
                           <Avatar name={r.full_name} size={32} />
@@ -348,7 +348,7 @@ async function Performance({
                         <td className="p-4 text-center">
                           <Link
                             href={`/staff/savings/record?member=${r.member_id}&kind=${kind}`}
-                            className="bg-surface-container-high hover:bg-surface-container border-outline-variant/50 text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
+                            className="bg-surface-container-high hover:bg-surface-container border-outline-variant text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
                           >
                             Record
                           </Link>
@@ -370,8 +370,8 @@ async function Performance({
 
 function Total({ label, value, tone = 'text-on-surface' }: { label: string; value: number; tone?: string }) {
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 rounded-xl border p-5">
-      <p className="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">
+    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+      <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>
       <Money value={value} compact className={clsx('text-display-currency font-display-currency', tone)} />

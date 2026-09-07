@@ -64,7 +64,7 @@ export default async function GroupReportPage({
       </div>
 
       {!sp.group ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="groups"
             title="Choose a group"
@@ -156,7 +156,7 @@ async function Report({
       />
 
       {/* --------------------------------------------------------- header */}
-      <section className="bg-surface border-outline-variant/30 elev-1 print-plain rounded-xl border p-5">
+      <section className="bg-surface border-outline-variant shadow-card print-plain rounded-xl border p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">
@@ -179,7 +179,7 @@ async function Report({
           />
         </div>
 
-        <dl className="border-outline-variant/40 mt-5 grid grid-cols-2 gap-4 border-t pt-5 lg:grid-cols-4">
+        <dl className="border-outline-variant mt-5 grid grid-cols-2 gap-4 border-t pt-5 lg:grid-cols-4">
           <Total label="Expected" value={report.totals.expected} />
           <Total label="Collected" value={report.totals.paid} tone="text-tertiary" />
           <Total
@@ -188,7 +188,7 @@ async function Report({
             tone={toNumber(report.totals.outstanding) > 0 ? 'text-error' : undefined}
           />
           <div className="min-w-0">
-            <dt className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+            <dt className="text-label-md font-label-md text-on-surface-variant">
               Collection rate
             </dt>
             <dd className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface tabular mt-0.5">
@@ -206,7 +206,7 @@ async function Report({
 
       {/* ----------------------------------------------------------- rows */}
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="group"
             title="No members in this group"
@@ -220,7 +220,7 @@ async function Report({
             {rows.map((r) => (
               <li
                 key={r.member_id}
-                className="bg-surface border-surface-container elev-1 rounded-xl border p-3"
+                className="bg-surface border-surface-container shadow-card rounded-xl border p-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <Link
@@ -237,7 +237,7 @@ async function Report({
                   <MemberStatusBadge status={r.status} />
                 </div>
 
-                <dl className="border-outline-variant/40 mt-3 grid grid-cols-3 gap-2 border-t pt-3">
+                <dl className="border-outline-variant mt-3 grid grid-cols-3 gap-2 border-t pt-3">
                   <Cell label="Expected" value={r.expected} />
                   <Cell label="Paid" value={r.paid} tone="text-tertiary" />
                   <Cell
@@ -255,11 +255,11 @@ async function Report({
           </ul>
 
           {/* Desktop and print */}
-          <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block print:block">
+          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block print:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
                     <th className="p-4 text-center font-semibold">Schedules</th>
                     <th className="p-4 text-right font-semibold">Expected</th>
@@ -268,9 +268,9 @@ async function Report({
                     <th className="p-4 font-semibold">Breakdown</th>
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   {rows.map((r) => (
-                    <tr key={r.member_id} className="hover:bg-surface-container-lowest">
+                    <tr key={r.member_id} className="hover:bg-surface-container-low">
                       <td className="p-4">
                         <Link
                           href={`/staff/members/${r.member_id}`}
@@ -346,7 +346,7 @@ function isDate(v: string | undefined): boolean {
 function Total({ label, value, tone }: { label: string; value: unknown; tone?: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+      <dt className="text-label-md font-label-md text-on-surface-variant">
         {label}
       </dt>
       <dd>

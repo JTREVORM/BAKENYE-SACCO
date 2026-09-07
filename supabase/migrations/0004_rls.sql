@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0004 - Row Level Security
+-- BUD-SACCO - 0004 - Row Level Security
 --
 -- The rule that matters most: a member can read their own financial rows and
 -- nobody else's. This is enforced in the database, so it holds even if a bug

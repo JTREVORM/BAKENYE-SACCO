@@ -11,7 +11,7 @@ import { printDocument } from '@/lib/print';
  * letterhead supplied by `PrintLetterhead`. Chrome, Edge and Safari all offer
  * "Save as PDF" as a print destination, and they name the file from
  * `document.title` — so `printDocument()` swaps in a proper document name
- * first, and the member gets `BND-SACCO Member Register 2026-09-07.pdf`
+ * first, and the member gets `BUD-SACCO Member Register 2026-09-07.pdf`
  * rather than whatever the tab happened to be called.
  *
  * Shipping a PDF library instead would cost 300 KB–1 MB of JavaScript on

@@ -12,6 +12,54 @@ create temp table t_result (n serial, step text, ok boolean, detail text);
 -- SECURITY DEFINER helpers; these checks prove both that the reads work and
 -- that they are still scoped.
 -- ===========================================================================
+
+-- ---------------------------------------------------------------------------
+-- Fixture: one member who has a login.
+--
+-- The suite signs in as that member to prove the policies scope what they can
+-- read, so it needs one to exist. A seeded database has one; a database whose
+-- demo data has been cleared has only staff logins, and the suite then skipped
+-- itself - which hides every check below it. Create a throwaway member
+-- instead. Like everything else in this file it is rolled back at the end.
+--
+-- Creating an auth user needs more than the `authenticated` role the runner
+-- switches to, so the role is dropped for the length of the insert only.
+-- ---------------------------------------------------------------------------
+reset role;
+
+do $fixture$
+declare
+  v_uid uuid := gen_random_uuid();
+  v_mid uuid;
+begin
+  if exists (
+    select 1 from members m
+      join app_users u on u.id = m.user_id
+     where u.role = 'member' and u.is_active
+  ) then
+    return;
+  end if;
+
+  -- The on_auth_user_created trigger writes the matching app_users row.
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+                          email_confirmed_at, raw_app_meta_data,
+                          raw_user_meta_data, created_at, updated_at)
+  values (v_uid, '00000000-0000-0000-0000-000000000000',
+          'authenticated', 'authenticated', 'rls.fixture@test.invalid', '',
+          now(), '{}'::jsonb,
+          jsonb_build_object('full_name', 'Test Signed-In Member'),
+          now(), now());
+
+  v_mid := (create_member('Test Signed-In Member', '+256779000002',
+                          null, null, null, null, null, null, null, null,
+                          null, null, null) ->> 'member_id')::uuid;
+
+  update members set user_id = v_uid where id = v_mid;
+end;
+$fixture$;
+
+set role authenticated;
+
 do $$
 declare
   v_admin      uuid;
@@ -28,8 +76,11 @@ declare
 begin
   v_admin := auth.uid();
 
-  select id into v_member_user from app_users where role = 'member' and is_active limit 1;
-  select id into v_self from members where user_id = v_member_user;
+  select u.id, m.id into v_member_user, v_self
+    from app_users u
+    join members m on m.user_id = u.id
+   where u.role = 'member' and u.is_active
+   limit 1;
   if v_self is null then
     insert into t_result (step, ok, detail)
     values ('0 a member with a login exists', false, 'no member is linked to a login');

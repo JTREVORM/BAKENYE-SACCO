@@ -108,7 +108,7 @@ export function LoansBrowser({
       </p>
 
       {visible.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="payments"
             title={status || q ? 'No matching loans' : 'No loans yet'}
@@ -134,7 +134,7 @@ export function LoansBrowser({
               <li key={l.id}>
                 <Link
                   href={`/staff/loans/${l.id}`}
-                  className="bg-surface border-surface-container elev-1 hover:bg-surface-container-low block rounded-xl border p-3 transition-colors"
+                  className="bg-surface border-surface-container shadow-card hover:bg-surface-container-low block rounded-xl border p-3 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <Avatar name={l.member_name} src={l.photo_url} size={44} />
@@ -149,7 +149,7 @@ export function LoansBrowser({
                     <LoanStatusBadge status={l.status} />
                   </div>
 
-                  <dl className="border-outline-variant/40 mt-3 grid grid-cols-3 gap-2 border-t pt-3">
+                  <dl className="border-outline-variant mt-3 grid grid-cols-3 gap-2 border-t pt-3">
                     <Cell label="Principal" value={l.principal} />
                     <Cell label="Outstanding" value={l.outstanding} />
                     <Cell
@@ -169,11 +169,11 @@ export function LoansBrowser({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
                     <th className="p-4 font-semibold">Loan</th>
                     <th className="p-4 text-right font-semibold">Principal</th>
@@ -183,9 +183,9 @@ export function LoansBrowser({
                     <th className="p-4 text-center font-semibold">Action</th>
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   {visible.map((l) => (
-                    <tr key={l.id} className="hover:bg-surface-container-lowest transition-colors">
+                    <tr key={l.id} className="hover:bg-surface-container-low transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <Avatar name={l.member_name} src={l.photo_url} size={32} />
@@ -223,7 +223,7 @@ export function LoansBrowser({
                       <td className="p-4 text-center">
                         <Link
                           href={`/staff/loans/${l.id}`}
-                          className="bg-surface-container-high hover:bg-surface-container border-outline-variant/50 text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
+                          className="bg-surface-container-high hover:bg-surface-container border-outline-variant text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
                         >
                           {canReview && ['applied', 'under_review'].includes(l.status)
                             ? 'Review'

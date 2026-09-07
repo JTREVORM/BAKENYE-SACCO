@@ -59,7 +59,7 @@ export function PrintLetterhead({
 
         <div className="min-w-0 flex-1">
           <p className="text-[13pt] font-bold leading-tight tracking-tight">
-            BAKENYE NATIONAL DEVELOPMENT SACCO
+            BAKENYE UNITY AND DEVELOPMENT SACCO
           </p>
           <p className="text-[9pt] leading-tight">
             Savings and Credit Cooperative Society · Uganda
@@ -101,7 +101,7 @@ export function PrintFooter({ note }: { note?: string }) {
           'Every figure on this document is computed from the member transaction ledger at the time of printing.'}
       </p>
       <p className="mt-0.5">
-        BAKENYE NATIONAL DEVELOPMENT SACCO · system-generated, valid without signature.
+        BAKENYE UNITY AND DEVELOPMENT SACCO · system-generated, valid without signature.
       </p>
     </footer>
   );

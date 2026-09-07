@@ -114,7 +114,7 @@ export function MembersBrowser({
             <select
               value={group}
               onChange={(e) => setParam('group', e.target.value)}
-              className="bg-surface-container-low border-outline-variant/50 text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min max-w-[12rem] rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
+              className="bg-surface-container-low border-outline-variant text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min max-w-[12rem] rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
             >
               <option value="">All groups</option>
               <option value="none">Not in a group</option>
@@ -131,7 +131,7 @@ export function MembersBrowser({
             <select
               value={sort}
               onChange={(e) => setParam('sort', e.target.value)}
-              className="bg-surface-container-low border-outline-variant/50 text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
+              className="bg-surface-container-low border-outline-variant text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
             >
               {SORTS.map((s) => (
                 <option key={s.value} value={s.value}>
@@ -149,7 +149,7 @@ export function MembersBrowser({
       </p>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="group"
             title={filtered ? 'No matching members' : 'No members yet'}
@@ -183,7 +183,7 @@ export function MembersBrowser({
               <li key={m.id}>
                 <Link
                   href={`/staff/members/${m.id}`}
-                  className="bg-surface border-surface-container elev-1 hover:bg-surface-container-low block rounded-xl border p-3 transition-colors"
+                  className="bg-surface border-surface-container shadow-card hover:bg-surface-container-low block rounded-xl border p-3 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <Avatar name={m.full_name} src={m.photo_url} size={48} />
@@ -205,7 +205,7 @@ export function MembersBrowser({
                     </div>
                   </div>
 
-                  <dl className="border-outline-variant/40 mt-3 grid grid-cols-3 gap-2 border-t pt-3">
+                  <dl className="border-outline-variant mt-3 grid grid-cols-3 gap-2 border-t pt-3">
                     <Figure label="Savings" value={m.savings_balance} />
                     <Figure label="Shares" value={m.share_value} />
                     <Figure
@@ -220,11 +220,11 @@ export function MembersBrowser({
           </ul>
 
           {/* Desktop: table */}
-          <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border md:block">
+          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border md:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
                     <th className="p-4 font-semibold">Phone</th>
                     <th className="p-4 font-semibold">Group</th>
@@ -235,9 +235,9 @@ export function MembersBrowser({
                     <th className="p-4 font-semibold">Status</th>
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   {rows.map((m) => (
-                    <tr key={m.id} className="hover:bg-surface-container-lowest transition-colors">
+                    <tr key={m.id} className="hover:bg-surface-container-low transition-colors">
                       <td className="p-4">
                         <Link href={`/staff/members/${m.id}`} className="min-h-touch-target-min flex items-center gap-3">
                           <Avatar name={m.full_name} src={m.photo_url} size={36} />

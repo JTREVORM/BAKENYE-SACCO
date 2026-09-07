@@ -14,16 +14,26 @@ import type { IconName } from '@/lib/icons';
  * primary action. That is not a stylistic choice — it is what makes the app
  * usable one-handed on a bus.
  * ------------------------------------------------------------------------- */
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'outline'
+  | 'ghost'
+  | 'danger'
+  | 'success';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-on-primary hover:bg-primary-container active:bg-on-primary-fixed-variant',
+  primary:
+    'bg-primary text-on-primary shadow-card hover:bg-primary-container active:bg-on-primary-fixed-variant',
   secondary:
-    'bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed-dim active:bg-secondary-fixed-dim',
+    'bg-secondary-container text-on-secondary-fixed shadow-card hover:bg-secondary-fixed-dim active:bg-secondary-fixed-dim',
   outline:
-    'bg-surface text-primary border border-outline-variant hover:bg-surface-container-high active:bg-surface-container-highest',
-  ghost: 'bg-transparent text-primary hover:bg-surface-container-high active:bg-surface-container-highest',
-  danger: 'bg-error text-on-error hover:bg-on-error-container active:bg-on-error-container',
+    'bg-surface text-on-surface border border-outline-variant shadow-card hover:bg-surface-container-high hover:border-outline active:bg-surface-container-highest',
+  ghost:
+    'bg-transparent text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface active:bg-surface-container-highest',
+  danger: 'bg-error text-on-error shadow-card hover:bg-on-error-container active:bg-on-error-container',
+  success:
+    'bg-tertiary text-on-tertiary shadow-card hover:bg-tertiary-container active:bg-on-tertiary-container',
 };
 
 export function Button({
@@ -47,9 +57,9 @@ export function Button({
   loading?: boolean;
 }) {
   const sizes = {
-    sm: 'h-9 px-3 text-label-md font-label-md rounded-lg gap-1.5',
-    md: 'h-touch-target-min px-4 text-button-text font-button-text rounded-lg gap-2',
-    lg: 'h-touch-target-primary px-5 text-button-text font-button-text rounded-lg gap-2',
+    sm: 'h-9 px-3 text-label-md rounded-lg gap-1.5',
+    md: 'h-touch-target-min px-4 text-button-text rounded-xl gap-2',
+    lg: 'h-touch-target-primary px-6 text-button-text rounded-xl gap-2',
   }[size];
 
   return (
@@ -58,8 +68,9 @@ export function Button({
       disabled={loading || rest.disabled}
       aria-busy={loading || undefined}
       className={clsx(
-        'inline-flex items-center justify-center font-semibold transition-colors',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex select-none items-center justify-center whitespace-nowrap font-semibold',
+        'transition-[background-color,border-color,box-shadow,transform] duration-150 active:scale-[0.985]',
+        'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none',
         sizes,
         VARIANTS[variant],
         block && 'w-full',
@@ -157,9 +168,12 @@ export function Field({
         htmlFor={htmlFor}
         className={clsx(
           'flex items-center gap-2',
+          // Sentence case in both modes. The dense uppercase label the export
+          // used made every form read as a tax return; weight and colour carry
+          // the same hierarchy without shouting.
           emphasis
-            ? 'text-body-md font-body-md text-on-surface font-semibold'
-            : 'text-label-md font-label-md text-on-surface-variant uppercase',
+            ? 'text-body-lg font-semibold text-on-surface'
+            : 'text-body-md font-semibold text-on-surface',
         )}
       >
         {icon ? (
@@ -169,8 +183,17 @@ export function Field({
             className={emphasis ? 'text-primary' : 'text-on-surface-variant'}
           />
         ) : null}
-        {label}
-        {required ? <span className={clsx("text-error", !emphasis && "ml-1")}>*</span> : null}
+        {/* The asterisk is bound to the label text, not laid out as a sibling
+            of it — as a flex child it inherited the row gap and floated away
+            from the word it qualifies. */}
+        <span>
+          {label}
+          {required ? (
+            <span className="ml-0.5 text-error" aria-hidden="true">
+              *
+            </span>
+          ) : null}
+        </span>
       </label>
       {children}
       {error ? (
@@ -181,10 +204,11 @@ export function Field({
       ) : hint ? (
         <p
           className={clsx(
-            'text-on-surface-variant normal-case',
-            emphasis
-              ? 'text-[13px] leading-snug'
-              : 'text-label-md font-label-md',
+            // Explicitly normal weight: `text-label-md` carries a 600 weight in
+            // the type scale, which is right for a label and wrong for the
+            // supporting sentence underneath a field.
+            'font-normal leading-snug text-on-surface-variant',
+            emphasis ? 'text-[13px]' : 'text-label-md',
           )}
         >
           {hint}
@@ -195,10 +219,11 @@ export function Field({
 }
 
 const CONTROL_BASE =
-  'w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 ' +
-  'text-body-lg font-body-lg text-on-surface placeholder:text-on-surface-variant/60 ' +
-  'focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors ' +
-  'disabled:bg-surface-container disabled:text-on-surface-variant';
+  'w-full bg-surface-container-lowest border border-outline-variant rounded-2xl px-4 ' +
+  'text-body-lg font-body-lg text-on-surface placeholder:text-on-surface-variant/70 ' +
+  'outline-none transition-[border-color,box-shadow,background-color] ' +
+  'hover:border-outline focus:border-primary focus:ring-2 focus:ring-primary/20 ' +
+  'disabled:bg-surface-container disabled:text-on-surface-variant disabled:hover:border-outline-variant';
 
 /** 44px minimum height on every control. */
 const CONTROL_HEIGHT = 'h-touch-target-primary';
@@ -214,7 +239,7 @@ export function Input({
       className={clsx(
         CONTROL_BASE,
         CONTROL_HEIGHT,
-        invalid && 'border-error focus:border-error focus:ring-error',
+        invalid && 'border-error hover:border-error focus:border-error focus:ring-error/25',
         className,
       )}
       {...rest}
@@ -234,7 +259,7 @@ export function Textarea({
       className={clsx(
         CONTROL_BASE,
         'min-h-[88px] py-3',
-        invalid && 'border-error focus:border-error focus:ring-error',
+        invalid && 'border-error hover:border-error focus:border-error focus:ring-error/25',
         className,
       )}
       {...rest}
@@ -255,12 +280,12 @@ export function Select({
         CONTROL_BASE,
         CONTROL_HEIGHT,
         'appearance-none bg-[length:20px] bg-[right_12px_center] bg-no-repeat pr-10',
-        invalid && 'border-error focus:border-error focus:ring-error',
+        invalid && 'border-error hover:border-error focus:border-error focus:ring-error/25',
         className,
       )}
       style={{
         backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23444651'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E\")",
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235b647a'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E\")",
       }}
       {...rest}
     >
@@ -325,7 +350,7 @@ export function MoneyInput({
           CONTROL_BASE,
           CONTROL_HEIGHT,
           'tabular pl-[3.75rem] text-right font-semibold',
-          invalid && 'border-error focus:border-error focus:ring-error',
+          invalid && 'border-error hover:border-error focus:border-error focus:ring-error/25',
           className,
         )}
         {...rest}
@@ -405,7 +430,7 @@ export function SearchInput({
         placeholder={placeholder}
         onChange={(e) => push(e.target.value)}
         className={clsx(
-          'bg-surface-container-low border-outline-variant/50 text-body-md font-body-md',
+          'bg-surface-container-low border-outline-variant text-body-md font-body-md',
           'h-touch-target-min hover:bg-surface-container focus:border-primary focus:ring-primary',
           'w-full rounded-full border py-3 pl-12 pr-10 outline-none transition-colors focus:ring-1',
         )}

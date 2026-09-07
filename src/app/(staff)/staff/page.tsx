@@ -1,12 +1,32 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { getCollectionsTrend, getDashboardMetrics, getGroupsSavingOn } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
-import { can } from '@/lib/rbac';
-import { Icon, Money, Avatar, PageTitle, ProgressBar } from '@/components/ui/primitives';
-import { StatGridSkeleton, ListSkeleton, ErrorState, EmptyState } from '@/components/ui/states';
+import { can, type Role } from '@/lib/rbac';
+import {
+  Icon,
+  Money,
+  Avatar,
+  ProgressBar,
+  Panel,
+  KpiCard,
+  KpiCardFeature,
+  MiniStat,
+  QuickAction,
+  ViewAllLink,
+  Badge,
+  DataTable,
+} from '@/components/ui/primitives';
+import {
+  StatGridSkeleton,
+  ListSkeleton,
+  PanelSkeleton,
+  ErrorState,
+  EmptyState,
+} from '@/components/ui/states';
 import { TrendChart } from '@/components/staff/TrendChart';
 import { formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/format';
 import { formatUGX, percent, toNumber } from '@/lib/money';
@@ -16,50 +36,52 @@ import type { AuditLogRow } from '@/types/db';
 export const metadata: Metadata = { title: 'Dashboard' };
 
 /**
- * Staff dashboard.
+ * Staff dashboard — the executive overview of the SACCO.
  *
- * `staff_dashboard_desktop/code.html` connected to `dashboard_metrics()` — the
- * four-up stat row with its royal-blue Share Capital card, the compact
- * secondary stats strip, the Recent Activities timeline and the Pending Loan
- * Applications table.
+ * Everything on this page is computed from the database. There is one rule the
+ * layout is built around: a figure that has no real comparison behind it shows
+ * no trend indicator, and a section with no data shows an empty state that says
+ * so. A dashboard that always displays a green "+12%" trains people to stop
+ * reading it, which is worse than showing nothing.
  *
- * Two changes were necessary rather than cosmetic:
- *
- *  - the "+12%" growth pills Stitch printed on the stat cards were decoration;
- *    they now show a real month-on-month figure, or nothing at all. An invented
- *    growth number on a financial dashboard is worse than no number.
- *  - the pending-applications table becomes a card list below `md`. A five-column
- *    table at 360px is unreadable, which the brief calls out explicitly.
+ * Each block is its own `Suspense` boundary so a slow query — the six-month
+ * trend, typically — never holds up the metrics a manager opened the page for.
  */
 export default async function StaffDashboard() {
-  await requirePermission('dashboard.staff');
+  const user = await requirePermission('dashboard.staff');
 
   return (
-    <div className="space-y-8">
-      <PageTitle title="Overview" subtitle="Real-time cooperative performance metrics." />
+    <div className="space-y-7">
+      <Hero name={user.fullName} />
 
       <Suspense fallback={<StatGridSkeleton />}>
         <Metrics />
       </Suspense>
 
-      <Suspense fallback={<div className="skeleton h-32 rounded-xl" />}>
-        <CollectingToday />
-      </Suspense>
+      <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
+        <div className="space-y-gutter xl:col-span-2">
+          <Suspense fallback={<PanelSkeleton height="h-40" />}>
+            <CollectingToday />
+          </Suspense>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-1">
-          <Suspense fallback={<ListSkeleton rows={4} />}>
-            <RecentActivity />
+          <Suspense fallback={<PanelSkeleton height="h-56" />}>
+            <Collections />
+          </Suspense>
+
+          <Suspense fallback={<PanelSkeleton height="h-56" />}>
+            <PendingLoans />
           </Suspense>
         </div>
 
-        <div className="space-y-6 lg:col-span-2">
-          <Suspense fallback={<ListSkeleton rows={4} />}>
-            <PendingLoans />
+        <div className="space-y-gutter xl:col-span-1">
+          <QuickActions role={user.role} />
+
+          <Suspense fallback={<PanelSkeleton height="h-56" />}>
+            <UpcomingReminders />
           </Suspense>
 
-          <Suspense fallback={<div className="skeleton h-64 rounded-xl" />}>
-            <Collections />
+          <Suspense fallback={<ListSkeleton rows={4} />}>
+            <RecentActivity />
           </Suspense>
         </div>
       </div>
@@ -67,7 +89,94 @@ export default async function StaffDashboard() {
   );
 }
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ *
+ * Hero
+ * ------------------------------------------------------------------------ */
+
+/**
+ * The welcome banner.
+ *
+ * The photograph is the one already in the project. It sits behind a navy
+ * gradient rather than beside the text, so the headline keeps AAA contrast at
+ * every width and the image never has to be cropped to a shape it does not
+ * suit. If the file is ever removed the gradient alone still reads correctly.
+ */
+function Hero({ name }: { name: string }) {
+  const firstName = name.trim().split(/\s+/)[0];
+
+  return (
+    <section className="relative isolate overflow-hidden rounded-2xl bg-ink shadow-brand">
+      <Image
+        src="/brand/fisherman-at-sunset-stockcake.jpg"
+        alt=""
+        fill
+        priority
+        sizes="(max-width: 768px) 100vw, 1200px"
+        className="object-cover object-center opacity-45"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-r from-ink via-ink/92 to-ink/35"
+      />
+
+      <div className="relative z-10 flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+        <div className="max-w-xl">
+          <p className="text-label-md font-semibold uppercase tracking-[0.14em] text-secondary-container">
+            Welcome back, {firstName}
+          </p>
+          <h1 className="mt-2 text-[26px] font-bold uppercase leading-[1.15] tracking-tight text-white md:text-[34px]">
+            Bakenye Unity and
+            <br />
+            Development SACCO
+          </h1>
+          <span aria-hidden="true" className="mt-4 block h-1 w-16 rounded-full bg-secondary-container" />
+          <p className="mt-4 max-w-md text-body-lg text-white/75">
+            Your savings, our priority. Together we build a stronger and more prosperous
+            community.
+          </p>
+        </div>
+
+        <Suspense fallback={<div className="h-24 w-full max-w-xs md:w-72" />}>
+          <HeroFigures />
+        </Suspense>
+      </div>
+    </section>
+  );
+}
+
+/** The three headline figures, read from the same RPC the KPI grid uses. */
+async function HeroFigures() {
+  const m = await getDashboardMetrics();
+  if (!m) return null;
+
+  const figures = [
+    { icon: 'group', label: 'Total Members', value: m.total_members.toLocaleString() },
+    { icon: 'savings', label: 'Total Savings', value: formatUGX(m.total_savings) },
+    { icon: 'payments', label: 'Loans Outstanding', value: formatUGX(m.outstanding_loans) },
+  ];
+
+  return (
+    <dl className="w-full shrink-0 space-y-1 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md md:w-auto md:min-w-[280px]">
+      {figures.map((f) => (
+        <div key={f.label} className="flex items-center gap-3 py-1.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
+            <Icon name={f.icon} size={18} />
+          </span>
+          <div className="min-w-0">
+            <dd className="tabular text-button-text font-bold leading-tight text-white">
+              {f.value}
+            </dd>
+            <dt className="text-label-md font-medium text-white/65">{f.label}</dt>
+          </div>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/* ------------------------------------------------------------------------ *
+ * KPI grid
+ * ------------------------------------------------------------------------ */
 
 async function Metrics() {
   const m = await getDashboardMetrics();
@@ -83,67 +192,85 @@ async function Metrics() {
 
   return (
     <>
-      <section className="gap-gutter grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
+      <section className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
+        <KpiCard
           icon="group"
-          iconTone="bg-primary-container/20 text-primary-container"
+          tone="primary"
           label="Total Members"
           value={m.total_members.toLocaleString()}
-          badge={
+          footnote={
             m.members_this_month > 0
-              ? { text: `+${m.members_this_month} this month`, tone: 'tertiary' }
-              : undefined
+              ? `+${m.members_this_month} joined this month`
+              : 'No new members this month'
           }
           href="/staff/members"
         />
 
-        {/* Share Capital — the one high-contrast tile, as in the Stitch export. */}
-        <Link
+        {/* Share capital is the one high-contrast tile — the single figure the
+            board asks for first. */}
+        <KpiCardFeature
+          icon="pie_chart"
+          label="Share Capital"
+          value={<Money value={m.share_capital} compact />}
+          footnote="Member equity held"
           href="/staff/shares"
-          className="bg-primary text-on-primary relative flex flex-col justify-between overflow-hidden rounded-xl border border-primary p-5 shadow-[0_4px_12px_rgba(14,52,131,0.2)]"
-        >
-          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 blur-xl" />
-          <div className="relative z-10 mb-4 flex items-start justify-between">
-            <div className="rounded-lg bg-white/20 p-2 backdrop-blur-sm">
-              <Icon name="pie_chart" className="text-white" />
-            </div>
-          </div>
-          <div className="relative z-10">
-            <div className="text-primary-fixed-dim text-label-md font-label-md mb-1 uppercase tracking-wider">
-              Share Capital
-            </div>
-            <Money
-              value={m.share_capital}
-              compact
-              className="text-display-currency font-display-currency text-white"
-            />
-          </div>
-        </Link>
+        />
 
-        <StatCard
+        <KpiCard
           icon="account_balance_wallet"
-          iconTone="bg-secondary-container/30 text-on-secondary-container"
+          tone="success"
           label="Total Savings"
-          value={<Money value={m.total_savings} compact className="text-display-currency font-display-currency text-on-surface" />}
+          value={<Money value={m.total_savings} compact />}
+          footnote={
+            m.savings_arrears > 0
+              ? `${formatUGX(m.savings_arrears)} in arrears`
+              : 'No savings arrears'
+          }
           href="/staff/savings"
         />
 
-        <StatCard
+        <KpiCard
           icon="payments"
-          iconTone="bg-error-container/30 text-on-error-container"
+          tone={m.overdue_count > 0 ? 'danger' : 'warning'}
           label="Active Loans"
-          value={<Money value={m.active_loan_value} compact className="text-display-currency font-display-currency text-on-surface" />}
-          badge={{ text: `${m.active_loan_count} active`, tone: 'neutral' }}
+          value={<Money value={m.active_loan_value} compact />}
+          footnote={`${m.active_loan_count} ${m.active_loan_count === 1 ? 'loan' : 'loans'} running${
+            m.overdue_count > 0 ? ` · ${m.overdue_count} overdue` : ''
+          }`}
           href="/staff/loans"
         />
       </section>
 
-      {/* Compact secondary stats strip */}
-      <section className="bg-surface-container-lowest border-outline-variant/50 grid grid-cols-2 gap-4 rounded-xl border p-4 shadow-sm md:grid-cols-4">
-        <MiniStat label="Outstanding Loans" value={m.outstanding_loans} />
-        <MiniStat label="Today's Collections" value={m.todays_collections} tone="text-tertiary-container" />
-        <MiniStat label="Income (MTD)" value={m.income_mtd} />
-        <MiniStat label="Expenses (MTD)" value={m.expenses_mtd} tone="text-error" />
+      {/* Secondary figures. Grouped in one strip rather than four more cards:
+          they are context for the row above, not headline numbers. */}
+      <section className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-2xl border border-outline-variant bg-surface p-5 shadow-card md:grid-cols-4">
+        <MiniStat
+          icon="account_balance"
+          label="Outstanding Loans"
+          value={<Money value={m.outstanding_loans} />}
+          href="/staff/loans"
+        />
+        <MiniStat
+          icon="today"
+          label="Today's Collections"
+          value={<Money value={m.todays_collections} />}
+          tone={toNumber(m.todays_collections) > 0 ? 'text-tertiary' : 'text-on-surface'}
+          href="/staff/savings/today"
+        />
+        <MiniStat
+          icon="north_east"
+          label="Income (MTD)"
+          value={<Money value={m.income_mtd} />}
+          tone="text-tertiary"
+          href="/staff/finance"
+        />
+        <MiniStat
+          icon="south_west"
+          label="Expenses (MTD)"
+          value={<Money value={m.expenses_mtd} />}
+          tone="text-error"
+          href="/staff/finance?tab=expenses"
+        />
       </section>
 
       {/* Things that need someone's attention. Shown only when non-zero — an
@@ -195,175 +322,6 @@ async function Metrics() {
   );
 }
 
-/**
- * Which groups are collecting today.
- *
- * Derived from the saving day each group configured, so a manager arriving in
- * the morning sees the round for the day without asking anyone. Nothing here is
- * keyed to a hard-coded weekday.
- */
-async function CollectingToday() {
-  const today = toISODate();
-  const groups = await getGroupsSavingOn(today);
-
-  if (groups.length === 0) {
-    return (
-      <section className="bg-surface-container-lowest border-outline-variant/50 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
-        <div className="flex items-center gap-3">
-          <span className="bg-surface-container text-on-surface-variant flex h-10 w-10 items-center justify-center rounded-full">
-            <Icon name="event_busy" size={20} />
-          </span>
-          <div>
-            <p className="text-button-text font-button-text text-on-surface">
-              No group collects today
-            </p>
-            <p className="text-label-md font-label-md text-on-surface-variant normal-case">
-              Groups save on the day set in their profile.
-            </p>
-          </div>
-        </div>
-        <Link
-          href="/staff/savings/today"
-          className="text-label-md font-label-md text-primary hover:underline normal-case"
-        >
-          Check another day →
-        </Link>
-      </section>
-    );
-  }
-
-  const expected = groups.reduce((n, g) => n + toNumber(g.expected_amount), 0);
-  const collected = groups.reduce((n, g) => n + toNumber(g.collected_amount), 0);
-
-  return (
-    <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/40 flex flex-wrap items-center justify-between gap-3 border-b p-4">
-        <div>
-          <h2 className="text-button-text font-button-text text-on-surface">
-            Collecting today · {groups.length} {groups.length === 1 ? 'group' : 'groups'}
-          </h2>
-          <p className="text-label-md font-label-md text-on-surface-variant mt-0.5 normal-case">
-            {formatUGX(collected)} of {formatUGX(expected)} expected
-          </p>
-        </div>
-        <Link
-          href="/staff/savings/today"
-          className="bg-primary text-on-primary hover:bg-primary-container h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors"
-        >
-          <Icon name="event_available" size={20} />
-          Open collections
-        </Link>
-      </div>
-
-      <ul className="divide-outline-variant/30 divide-y">
-        {groups.slice(0, 5).map((g) => {
-          const rate = percent(g.collected_amount, g.expected_amount);
-          return (
-            <li key={g.group_id}>
-              <Link
-                href={`/staff/groups/${g.group_id}/collect`}
-                className="hover:bg-surface-container-lowest min-h-touch-target-min flex items-center gap-3 p-4 transition-colors"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="text-body-md font-body-md text-primary block truncate font-semibold">
-                    {g.name}
-                  </span>
-                  <span className="text-label-md font-label-md text-on-surface-variant block truncate normal-case">
-                    {g.cycle_id
-                      ? `${g.paid_members} of ${g.members_expected} paid`
-                      : `${g.active_members} members · sheet not opened`}
-                  </span>
-                </span>
-                <span className="w-24 shrink-0">
-                  <ProgressBar
-                    value={rate}
-                    tone={rate >= 80 ? 'tertiary' : rate >= 40 ? 'secondary' : 'error'}
-                    label={`${g.name} collection rate`}
-                  />
-                </span>
-                <span className="text-body-md font-body-md text-on-surface tabular w-14 shrink-0 text-right font-semibold">
-                  {rate.toFixed(0)}%
-                </span>
-                <Icon name="chevron_right" size={20} className="text-on-surface-variant shrink-0" />
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
-function StatCard({
-  icon,
-  iconTone,
-  label,
-  value,
-  badge,
-  href,
-}: {
-  icon: string;
-  iconTone: string;
-  label: string;
-  value: React.ReactNode;
-  badge?: { text: string; tone: 'tertiary' | 'neutral' };
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="bg-surface border-outline-variant/30 elev-1 flex flex-col justify-between rounded-xl border p-5 transition-shadow hover:shadow-lg"
-    >
-      <div className="mb-4 flex items-start justify-between gap-2">
-        <div className={clsx('rounded-lg p-2', iconTone)}>
-          <Icon name={icon} />
-        </div>
-        {badge ? (
-          <span
-            className={clsx(
-              'font-label-md text-label-md flex items-center rounded-full px-2 py-0.5 normal-case',
-              badge.tone === 'tertiary'
-                ? 'text-tertiary bg-tertiary-fixed-dim/30'
-                : 'text-on-surface-variant bg-surface-container',
-            )}
-          >
-            {badge.tone === 'tertiary' ? (
-              <Icon name="trending_up" size={14} className="mr-1" />
-            ) : null}
-            {badge.text}
-          </span>
-        ) : null}
-      </div>
-      <div>
-        <div className="text-on-surface-variant text-label-md font-label-md mb-1 uppercase tracking-wider">
-          {label}
-        </div>
-        <div className="text-display-currency font-display-currency text-on-surface">{value}</div>
-      </div>
-    </Link>
-  );
-}
-
-function MiniStat({
-  label,
-  value,
-  tone = 'text-on-surface',
-}: {
-  label: string;
-  value: unknown;
-  tone?: string;
-}) {
-  return (
-    <div className="p-3">
-      <div className="text-label-md font-label-md text-on-surface-variant mb-1">{label}</div>
-      <Money
-        value={value}
-        className={clsx('text-headline-lg-mobile font-headline-lg-mobile font-semibold', tone)}
-      />
-    </div>
-  );
-}
-
 function AttentionChip({
   href,
   icon,
@@ -381,21 +339,309 @@ function AttentionChip({
     <Link
       href={href}
       className={clsx(
-        'flex items-center gap-2 rounded-xl px-4 py-3 transition-opacity hover:opacity-90',
+        'card-interactive flex items-center gap-2.5 rounded-xl border px-4 py-3',
         tone === 'error'
-          ? 'bg-error-container text-on-error-container'
-          : 'bg-secondary-container text-on-secondary-container',
+          ? 'border-error/25 bg-error-container/60 text-on-error-container'
+          : 'border-warning/25 bg-warning-container/70 text-on-warning-container',
       )}
     >
-      <Icon name={icon} size={20} className="shrink-0" />
-      <span className="text-button-text font-button-text">{label}</span>
-      <span className="text-body-md font-body-md opacity-80">· {detail}</span>
-      <Icon name="chevron_right" size={18} className="shrink-0" />
+      <Icon name={icon} size={19} className="shrink-0" />
+      <span className="text-button-text">{label}</span>
+      <span className="text-body-md opacity-80">· {detail}</span>
+      <Icon name="chevron_right" size={17} className="shrink-0 opacity-70" />
     </Link>
   );
 }
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ *
+ * Quick actions
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Only actions the signed-in role may actually perform are offered. A tile that
+ * leads to a permission error is worse than no tile.
+ */
+function QuickActions({ role }: { role: Role }) {
+  const actions = [
+    { href: '/staff/members/new', icon: 'person_add', label: 'Add Member', permission: 'members.manage', tone: 'primary' },
+    { href: '/staff/savings/record', icon: 'savings', label: 'Record Saving', permission: 'savings.record', tone: 'success' },
+    { href: '/staff/loans/new', icon: 'request_quote', label: 'New Loan', permission: 'loans.assess', tone: 'accent' },
+    { href: '/staff/transactions/cash', icon: 'swap_horiz', label: 'Cash Movement', permission: 'cash.movement', tone: 'neutral' },
+    { href: '/staff/groups/new', icon: 'group_add', label: 'Add Group', permission: 'groups.manage', tone: 'primary' },
+    { href: '/staff/reports', icon: 'summarize', label: 'View Reports', permission: 'reports.view', tone: 'neutral' },
+  ] as const;
+
+  const visible = actions.filter((a) => can(role, a.permission));
+  if (visible.length === 0) return null;
+
+  return (
+    <Panel title="Quick Actions" icon="bolt" bodyClassName="p-4">
+      <div className="grid grid-cols-2 gap-3">
+        {visible.map((a) => (
+          <QuickAction key={a.href} href={a.href} icon={a.icon} label={a.label} tone={a.tone} />
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+/* ------------------------------------------------------------------------ *
+ * Upcoming reminders
+ * ------------------------------------------------------------------------ */
+
+/**
+ * What is due next, derived from the group saving days and the loan schedule.
+ *
+ * These are real rows: a group's next collection date comes from its configured
+ * saving day, and a repayment reminder comes from `loan_schedule`. Nothing here
+ * is a placeholder for a reminder system that does not exist yet — when email
+ * reminders are added in a later phase they will send exactly these.
+ */
+async function UpcomingReminders() {
+  const supabase = await createClient();
+  const today = toISODate();
+
+  const [{ data: cycles }, { data: due }] = await Promise.all([
+    supabase
+      .from('group_cycle_summary')
+      .select('cycle_id, group_id, group_name, due_on, members_expected, expected_amount, status')
+      .eq('status', 'open')
+      .gte('due_on', today)
+      .order('due_on', { ascending: true })
+      .limit(4),
+    // `loan_schedule` has no status of its own — an installment is outstanding
+    // when it falls in the future and its loan is still running, so the filter
+    // belongs on the loan.
+    supabase
+      .from('loan_schedule')
+      .select('id, due_on, total_due, loans!inner(id, loan_no, status, members!inner(full_name))')
+      .in('loans.status', ['disbursed', 'active'])
+      .gte('due_on', today)
+      .order('due_on', { ascending: true })
+      .limit(4),
+  ]);
+
+  type Reminder = {
+    key: string;
+    icon: string;
+    tone: 'primary' | 'success' | 'warning';
+    title: string;
+    detail: string;
+    on: string;
+    href: string;
+  };
+
+  const items: Reminder[] = [
+    ...((cycles ?? []) as {
+      cycle_id: string;
+      group_id: string;
+      group_name: string;
+      due_on: string;
+      members_expected: number;
+      expected_amount: number;
+    }[]).map((c) => ({
+      key: `cycle-${c.cycle_id}`,
+      icon: 'event_available',
+      tone: 'success' as const,
+      title: `Collection day · ${c.group_name}`,
+      detail: `${c.members_expected} members · ${formatUGX(c.expected_amount)} expected`,
+      on: c.due_on,
+      href: `/staff/groups/${c.group_id}/collect`,
+    })),
+    ...((due ?? []) as unknown as {
+      id: string;
+      due_on: string;
+      total_due: number;
+      loans: { id: string; loan_no: string; members: { full_name: string } | null } | null;
+    }[]).map((d) => ({
+      key: `due-${d.id}`,
+      icon: 'schedule',
+      tone: 'warning' as const,
+      title: `Loan repayment · ${d.loans?.members?.full_name ?? d.loans?.loan_no ?? 'Loan'}`,
+      detail: `${formatUGX(d.total_due)} due`,
+      on: d.due_on,
+      href: d.loans ? `/staff/loans/${d.loans.id}` : '/staff/loans',
+    })),
+  ]
+    .sort((a, b) => a.on.localeCompare(b.on))
+    .slice(0, 5);
+
+  return (
+    <Panel
+      title="Upcoming Reminders"
+      icon="notifications_active"
+      action={<ViewAllLink href="/staff/savings/schedules" />}
+      padded={false}
+    >
+      {items.length === 0 ? (
+        <EmptyState
+          compact
+          icon="event_busy"
+          title="Nothing scheduled"
+          description="Group collection days and loan repayment dates will appear here as they are set."
+        />
+      ) : (
+        <ul className="divide-y divide-outline-variant/70">
+          {items.map((r) => (
+            <li key={r.key}>
+              <Link
+                href={r.href}
+                className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-container-low"
+              >
+                <span
+                  className={clsx(
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
+                    r.tone === 'success'
+                      ? 'bg-tertiary-fixed text-tertiary'
+                      : 'bg-warning-container text-warning',
+                  )}
+                >
+                  <Icon name={r.icon} size={18} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-body-md font-semibold text-on-surface">
+                    {r.title}
+                  </span>
+                  <span className="block truncate text-label-md font-normal text-on-surface-variant">
+                    {r.detail}
+                  </span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block text-label-md font-semibold text-on-surface">
+                    {relativeDay(r.on)}
+                  </span>
+                  <span className="block text-label-md font-normal text-on-surface-variant">
+                    {formatDate(r.on)}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
+/** "Today" / "Tomorrow" / "In 5 days" — read at a glance, unlike a bare date. */
+function relativeDay(iso: string): string {
+  const today = new Date(toISODate());
+  const then = new Date(iso);
+  const days = Math.round((then.getTime() - today.getTime()) / 86_400_000);
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  if (days < 7) return `In ${days} days`;
+  if (days < 14) return 'Next week';
+  return `In ${Math.round(days / 7)} weeks`;
+}
+
+/* ------------------------------------------------------------------------ *
+ * Collecting today
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Which groups are collecting today.
+ *
+ * Derived from the saving day each group configured, so a manager arriving in
+ * the morning sees the round for the day without asking anyone. Nothing here is
+ * keyed to a hard-coded weekday.
+ */
+async function CollectingToday() {
+  const today = toISODate();
+  const groups = await getGroupsSavingOn(today);
+
+  if (groups.length === 0) {
+    return (
+      <Panel
+        title="Collections today"
+        icon="event_busy"
+        action={<ViewAllLink href="/staff/savings/today">Check another day</ViewAllLink>}
+        padded={false}
+      >
+        <EmptyState
+          compact
+          icon="event_busy"
+          title="No group collects today"
+          description="Groups save on the day set in their profile. Open the collections screen to check another day."
+        />
+      </Panel>
+    );
+  }
+
+  const expected = groups.reduce((n, g) => n + toNumber(g.expected_amount), 0);
+  const collected = groups.reduce((n, g) => n + toNumber(g.collected_amount), 0);
+  const rate = percent(collected, expected);
+
+  return (
+    <Panel
+      title={`Collecting today · ${groups.length} ${groups.length === 1 ? 'group' : 'groups'}`}
+      subtitle={`${formatUGX(collected)} of ${formatUGX(expected)} expected`}
+      icon="event_available"
+      action={
+        <Link
+          href="/staff/savings/today"
+          className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-button-text text-on-primary shadow-card transition-colors hover:bg-primary-container"
+        >
+          <Icon name="event_available" size={18} />
+          Open collections
+        </Link>
+      }
+      padded={false}
+    >
+      <div className="border-b border-outline-variant px-5 py-3.5">
+        <div className="mb-2 flex items-center justify-between text-label-md font-semibold text-on-surface-variant">
+          <span>Overall collection rate</span>
+          <span className="tabular text-on-surface">{rate.toFixed(0)}%</span>
+        </div>
+        <ProgressBar
+          value={rate}
+          tone={rate >= 80 ? 'tertiary' : rate >= 40 ? 'secondary' : 'error'}
+          label="Overall collection rate today"
+        />
+      </div>
+
+      <ul className="divide-y divide-outline-variant/70">
+        {groups.slice(0, 5).map((g) => {
+          const r = percent(g.collected_amount, g.expected_amount);
+          return (
+            <li key={g.group_id}>
+              <Link
+                href={`/staff/groups/${g.group_id}/collect`}
+                className="flex min-h-touch-target-min items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-container-low"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-body-md font-semibold text-on-surface">
+                    {g.name}
+                  </span>
+                  <span className="block truncate text-label-md font-normal text-on-surface-variant">
+                    {g.cycle_id
+                      ? `${g.paid_members} of ${g.members_expected} paid`
+                      : `${g.active_members} members · sheet not opened`}
+                  </span>
+                </span>
+                <span className="hidden w-28 shrink-0 sm:block">
+                  <ProgressBar
+                    value={r}
+                    tone={r >= 80 ? 'tertiary' : r >= 40 ? 'secondary' : 'error'}
+                    label={`${g.name} collection rate`}
+                  />
+                </span>
+                <span className="tabular w-12 shrink-0 text-right text-body-md font-bold text-on-surface">
+                  {r.toFixed(0)}%
+                </span>
+                <Icon name="chevron_right" size={19} className="shrink-0 text-on-surface-variant" />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </Panel>
+  );
+}
+
+/* ------------------------------------------------------------------------ *
+ * Recent activity
+ * ------------------------------------------------------------------------ */
 
 async function RecentActivity() {
   const supabase = await createClient();
@@ -411,52 +657,48 @@ async function RecentActivity() {
   >[];
 
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 flex max-h-[500px] flex-col overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/30 bg-surface-bright flex items-center justify-between border-b p-5">
-        <h2 className="text-button-text font-button-text text-on-surface font-bold">
-          Recent Activities
-        </h2>
-        <Link href="/staff/audit" className="text-primary text-label-md font-label-md hover:underline">
-          View All
-        </Link>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4">
-        {rows.length === 0 ? (
-          <EmptyState
-            icon="history"
-            title="No activity yet"
-            description="Member registrations, savings and loan decisions will appear here."
-          />
-        ) : (
-          <div className="space-y-4">
-            {rows.map((a, i) => (
-              <div key={a.id} className="flex gap-4">
-                <div className="relative mt-1">
-                  <div
-                    className={clsx(
-                      'relative z-10 flex h-8 w-8 items-center justify-center rounded-full',
-                      activityTone(a.action),
-                    )}
-                  >
-                    <Icon name={activityIcon(a.action)} size={18} />
-                  </div>
-                  {i < rows.length - 1 ? (
-                    <div className="bg-outline-variant/50 absolute left-1/2 top-8 -z-0 h-full w-px -translate-x-1/2" />
-                  ) : null}
-                </div>
-                <div className="min-w-0 flex-1 pb-4">
-                  <div className="text-body-md font-body-md text-on-surface">{a.summary}</div>
-                  <div className="text-label-md font-label-md text-on-surface-variant mt-1 normal-case">
-                    {a.actor_name} · {formatAgo(a.created_at)}
-                  </div>
-                </div>
+    <Panel
+      title="Recent Activity"
+      icon="history"
+      action={<ViewAllLink href="/staff/audit" />}
+      className="max-h-[520px]"
+      bodyClassName="overflow-y-auto"
+    >
+      {rows.length === 0 ? (
+        <EmptyState
+          compact
+          icon="history"
+          title="No activity yet"
+          description="Member registrations, savings and loan decisions will appear here."
+        />
+      ) : (
+        <ol className="space-y-0">
+          {rows.map((a, i) => (
+            <li key={a.id} className="flex gap-3.5">
+              <div className="relative flex shrink-0 flex-col items-center">
+                <span
+                  className={clsx(
+                    'relative z-10 flex h-8 w-8 items-center justify-center rounded-full ring-4 ring-surface',
+                    activityTone(a.action),
+                  )}
+                >
+                  <Icon name={activityIcon(a.action)} size={16} />
+                </span>
+                {i < rows.length - 1 ? (
+                  <span className="w-px flex-1 bg-outline-variant" aria-hidden="true" />
+                ) : null}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+              <div className="min-w-0 flex-1 pb-5">
+                <p className="text-body-md text-on-surface">{a.summary}</p>
+                <p className="mt-1 text-label-md font-normal text-on-surface-variant">
+                  {a.actor_name} · {formatAgo(a.created_at)}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Panel>
   );
 }
 
@@ -472,13 +714,15 @@ function activityIcon(action: string): string {
 }
 
 function activityTone(action: string): string {
-  if (action.startsWith('member.')) return 'bg-secondary-container text-on-secondary-container';
-  if (action.startsWith('savings.')) return 'bg-tertiary-container/20 text-tertiary-container';
-  if (action.startsWith('transaction.reversed')) return 'bg-error-container text-on-error-container';
-  return 'bg-primary-container/20 text-primary-container';
+  if (action.startsWith('member.')) return 'bg-secondary-fixed text-on-secondary-fixed-variant';
+  if (action.startsWith('savings.')) return 'bg-tertiary-fixed text-tertiary';
+  if (action.startsWith('transaction.reversed')) return 'bg-error-container text-error';
+  return 'bg-primary-fixed text-primary';
 }
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ *
+ * Pending loan applications
+ * ------------------------------------------------------------------------ */
 
 async function PendingLoans() {
   const user = await requirePermission('dashboard.staff');
@@ -509,54 +753,48 @@ async function PendingLoans() {
   const canReview = can(user.role, 'loans.assess');
 
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/30 bg-surface-bright flex items-center justify-between gap-3 border-b p-5">
-        <h2 className="text-button-text font-button-text text-on-surface font-bold">
-          Pending Loan Applications
-        </h2>
-        <Link
-          href="/staff/loans?status=applied"
-          className="bg-primary text-on-primary hover:bg-primary-container text-label-md font-label-md rounded-md px-3 py-1.5 font-semibold shadow-sm transition-colors"
-        >
-          View all
-        </Link>
-      </div>
-
+    <Panel
+      title="Pending Loan Applications"
+      icon="assignment"
+      subtitle={rows.length > 0 ? `${rows.length} awaiting a decision` : undefined}
+      action={<ViewAllLink href="/staff/loans?status=applied" />}
+      padded={false}
+    >
       {rows.length === 0 ? (
         <EmptyState
+          compact
           icon="done_all"
           title="No applications waiting"
           description="Every loan application has been reviewed."
         />
       ) : (
         <>
-          {/* Mobile: cards. Rule 27 — no five-column table at 360px. */}
-          <ul className="divide-outline-variant/30 divide-y md:hidden">
+          {/* Mobile: cards. A five-column table at 360px is unreadable. */}
+          <ul className="divide-y divide-outline-variant/70 md:hidden">
             {rows.map((r) => (
               <li key={r.id}>
                 <Link
                   href={`/staff/loans/${r.id}`}
-                  className="hover:bg-surface-container-lowest flex items-center gap-3 p-4 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-surface-container-low"
                 >
                   <Avatar name={r.members?.full_name} src={r.members?.photo_url} size={40} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-body-md font-body-md text-primary truncate font-semibold">
+                    <p className="truncate text-body-md font-semibold text-on-surface">
                       {r.members?.full_name ?? 'Unknown member'}
                     </p>
-                    <p className="text-label-md font-label-md text-on-surface-variant tabular truncate normal-case">
+                    <p className="tabular truncate text-label-md font-normal text-on-surface-variant">
                       {r.members?.member_no} · {r.loan_products?.name}
                     </p>
-                    <p className="text-label-md font-label-md text-on-surface-variant/70 normal-case">
-                      {formatDate(r.applied_on)} · {LOAN_STATUS_LABELS[r.status]}
+                    <p className="mt-1 text-label-md font-normal text-on-surface-variant">
+                      {formatDate(r.applied_on)}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <Money
-                      value={r.principal}
-                      className="text-body-md font-body-md text-on-surface font-semibold"
-                    />
-                    <p className="text-label-md font-label-md text-primary mt-1 normal-case">
-                      {canReview ? 'Review' : 'View'}
+                    <Money value={r.principal} className="text-body-md font-bold text-on-surface" />
+                    <p className="mt-1.5">
+                      <Badge tone={r.status === 'applied' ? 'neutral' : 'warning'}>
+                        {LOAN_STATUS_LABELS[r.status]}
+                      </Badge>
                     </p>
                   </div>
                 </Link>
@@ -564,61 +802,67 @@ async function PendingLoans() {
             ))}
           </ul>
 
-          {/* Desktop: the Stitch table. */}
-          <div className="hidden overflow-x-auto md:block">
-            <table className="w-full border-collapse text-left">
-              <thead>
-                <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
-                  <th className="p-4 font-semibold">Applicant</th>
-                  <th className="p-4 font-semibold">Loan Type</th>
-                  <th className="p-4 text-right font-semibold">Amount Requested</th>
-                  <th className="p-4 font-semibold">Date Submitted</th>
-                  <th className="p-4 text-center font-semibold">Action</th>
-                </tr>
-              </thead>
-              <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
-                {rows.map((r) => (
-                  <tr key={r.id} className="hover:bg-surface-container-lowest transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={r.members?.full_name} src={r.members?.photo_url} size={32} />
-                        <div className="min-w-0">
-                          <div className="text-primary truncate font-semibold">
-                            {r.members?.full_name ?? 'Unknown member'}
-                          </div>
-                          <div className="text-on-surface-variant tabular text-xs">
-                            {r.members?.member_no}
-                          </div>
+          <div className="hidden md:block">
+            <DataTable
+              className="rounded-none border-0 shadow-none"
+              head={
+                <>
+                  <th>Applicant</th>
+                  <th>Loan type</th>
+                  <th className="text-right">Amount</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  <th className="text-right">Action</th>
+                </>
+              }
+            >
+              {rows.map((r) => (
+                <tr key={r.id}>
+                  <td>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={r.members?.full_name} src={r.members?.photo_url} size={34} />
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold text-on-surface">
+                          {r.members?.full_name ?? 'Unknown member'}
+                        </div>
+                        <div className="tabular text-label-md font-normal text-on-surface-variant">
+                          {r.members?.member_no}
                         </div>
                       </div>
-                    </td>
-                    <td className="p-4">{r.loan_products?.name ?? '—'}</td>
-                    <td className="tabular p-4 text-right font-semibold">
-                      {formatUGX(r.principal)}
-                    </td>
-                    <td className="text-on-surface-variant p-4 whitespace-nowrap">
-                      {formatDate(r.applied_on)}
-                    </td>
-                    <td className="p-4 text-center">
-                      <Link
-                        href={`/staff/loans/${r.id}`}
-                        className="bg-surface-container-high hover:bg-surface-container border-outline-variant/50 text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg border px-3 font-semibold transition-colors"
-                      >
-                        {canReview ? 'Review' : 'View'}
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </td>
+                  <td className="text-on-surface-variant">{r.loan_products?.name ?? '—'}</td>
+                  <td className="tabular text-right font-bold">{formatUGX(r.principal)}</td>
+                  <td className="whitespace-nowrap text-on-surface-variant">
+                    {formatDate(r.applied_on)}
+                  </td>
+                  <td>
+                    <Badge tone={r.status === 'applied' ? 'neutral' : 'warning'} dot>
+                      {LOAN_STATUS_LABELS[r.status]}
+                    </Badge>
+                  </td>
+                  <td className="text-right">
+                    <Link
+                      href={`/staff/loans/${r.id}`}
+                      className="inline-flex h-9 items-center gap-1 rounded-lg border border-outline-variant bg-surface px-3 text-label-md font-semibold text-primary transition-colors hover:bg-surface-container-high"
+                    >
+                      {canReview ? 'Review' : 'View'}
+                      <Icon name="chevron_right" size={15} />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </DataTable>
           </div>
         </>
       )}
-    </div>
+    </Panel>
   );
 }
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ *
+ * Collections trend
+ * ------------------------------------------------------------------------ */
 
 async function Collections() {
   const points = await getCollectionsTrend(6);
@@ -628,27 +872,18 @@ async function Collections() {
     : 0;
 
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/30 bg-surface-bright flex items-center justify-between gap-3 border-b p-5">
-        <div>
-          <h2 className="text-button-text font-button-text text-on-surface font-bold">
-            Collections
-          </h2>
-          <p className="text-label-md font-label-md text-on-surface-variant normal-case">
-            Last six months
-          </p>
-        </div>
+    <Panel
+      title="Collections Overview"
+      subtitle="Savings, repayments and shares over six months"
+      icon="insights"
+      action={
         <div className="text-right">
-          <p className="text-label-md font-label-md text-on-surface-variant">This month</p>
-          <Money
-            value={total}
-            className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface font-semibold"
-          />
+          <p className="text-label-md font-normal text-on-surface-variant">This month</p>
+          <Money value={total} className="text-button-text font-bold text-on-surface" />
         </div>
-      </div>
-      <div className="p-5">
-        <TrendChart points={points} />
-      </div>
-    </div>
+      }
+    >
+      <TrendChart points={points} />
+    </Panel>
   );
 }

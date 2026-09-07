@@ -107,7 +107,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       />
 
       {/* ------------------------------------------------------- identity */}
-      <section className="bg-surface border-outline-variant/50 elev-1 rounded-xl border p-5">
+      <section className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -125,7 +125,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
             ) : null}
           </div>
           <div className="bg-primary text-on-primary rounded-xl px-5 py-3 text-center">
-            <p className="text-label-md font-label-md text-primary-fixed-dim uppercase tracking-wider">
+            <p className="text-label-md font-label-md text-primary-fixed-dim">
               Saving day
             </p>
             <p className="text-headline-lg-mobile font-headline-lg-mobile">
@@ -171,8 +171,8 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       </section>
 
       {/* --------------------------------------------------- current cycle */}
-      <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-        <div className="border-outline-variant/40 flex flex-wrap items-center justify-between gap-3 border-b p-4">
+      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+        <div className="border-outline-variant flex flex-wrap items-center justify-between gap-3 border-b p-4">
           <div>
             <h2 className="text-button-text font-button-text text-on-surface">
               Current savings cycle
@@ -197,7 +197,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
           <div className="p-4">
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
-                <p className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+                <p className="text-label-md font-label-md text-on-surface-variant">
                   Collection rate
                 </p>
                 <p className="text-display-currency font-display-currency text-on-surface tabular">
@@ -281,8 +281,8 @@ async function Members({ groupId, groupName }: { groupId: string; groupName: str
   };
 
   return (
-    <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/40 flex items-center justify-between gap-3 border-b p-4">
+    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <div className="border-outline-variant flex items-center justify-between gap-3 border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface">
           Members ({result.total})
         </h2>
@@ -310,12 +310,12 @@ async function Members({ groupId, groupName }: { groupId: string; groupName: str
           }
         />
       ) : (
-        <ul className="divide-outline-variant/30 divide-y">
+        <ul className="divide-outline-variant/70 divide-y">
           {result.rows.map((m) => (
             <li key={m.id}>
               <Link
                 href={`/staff/members/${m.id}`}
-                className="hover:bg-surface-container-lowest min-h-touch-target-min flex items-center gap-3 p-3 transition-colors"
+                className="hover:bg-surface-container-low min-h-touch-target-min flex items-center gap-3 p-3 transition-colors"
               >
                 <Avatar name={m.full_name} src={m.photo_url} size={40} />
                 <span className="min-w-0 flex-1">
@@ -361,8 +361,8 @@ async function RecentActivity({ groupId }: { groupId: string }) {
   const ids = (memberRows ?? []).map((m) => m.id);
   if (ids.length === 0) {
     return (
-      <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-        <div className="border-outline-variant/40 border-b p-4">
+      <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+        <div className="border-outline-variant border-b p-4">
           <h2 className="text-button-text font-button-text text-on-surface">Recent transactions</h2>
         </div>
         <EmptyState
@@ -385,8 +385,8 @@ async function RecentActivity({ groupId }: { groupId: string }) {
   const rows = (data ?? []) as TransactionFeedRow[];
 
   return (
-    <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/40 flex items-center justify-between gap-3 border-b p-4">
+    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <div className="border-outline-variant flex items-center justify-between gap-3 border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface">Recent transactions</h2>
         <Link
           href="/staff/transactions"
@@ -403,7 +403,7 @@ async function RecentActivity({ groupId }: { groupId: string }) {
           description="Transactions appear here once members start saving."
         />
       ) : (
-        <ul className="divide-outline-variant/30 divide-y">
+        <ul className="divide-outline-variant/70 divide-y">
           {rows.map((t) => (
             <li key={t.id} className="p-2">
               <TransactionRow txn={t} href={`/staff/transactions/${t.id}`} showMember />
@@ -449,7 +449,7 @@ function Detail({
 function Figure({ label, value, tone }: { label: string; value: unknown; tone?: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+      <dt className="text-label-md font-label-md text-on-surface-variant">
         {label}
       </dt>
       <dd className={clsx('text-body-lg font-body-lg mt-0.5 font-bold', tone ?? 'text-on-surface')}>
@@ -473,11 +473,11 @@ function Tile({
   tone?: string;
 }) {
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 rounded-xl border p-5">
+    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
       <div className="bg-primary-fixed text-primary mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg">
         <Icon name={icon} size={20} />
       </div>
-      <p className="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">
+      <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>
       {money !== undefined ? (

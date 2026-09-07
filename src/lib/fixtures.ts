@@ -304,7 +304,7 @@ export const FIXTURE_PORTFOLIO: LoanPortfolioRow[] = [
 
 export const FIXTURE_RECEIPT: ReceiptPayload = {
   transaction: FIXTURE_TRANSACTIONS[1],
-  sacco_name: 'BAKENYE NATIONAL DEVELOPMENT SACCO',
+  sacco_name: 'BAKENYE UNITY AND DEVELOPMENT SACCO',
   receipt_no: 'BND-RCP-2026-004581',
   loan: {
     loan_no: 'BND-LN-2026-00042',

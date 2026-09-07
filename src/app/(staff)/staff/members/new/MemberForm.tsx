@@ -354,8 +354,8 @@ export function MemberForm({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-surface border-outline-variant/50 elev-1 overflow-hidden rounded-xl border">
-      <h2 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <h2 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
         {title}
       </h2>
       <div className="flex flex-col gap-5 p-4">{children}</div>

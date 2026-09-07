@@ -77,7 +77,7 @@ async function Balances({ memberId }: { memberId: string }) {
     <>
       <section className="gap-unit mb-6 flex flex-col">
         {/* Total Savings — the royal-blue hero card. */}
-        <div className="bg-primary text-on-primary elev-2 relative flex h-32 flex-col justify-between overflow-hidden rounded-xl p-4">
+        <div className="bg-primary text-on-primary shadow-pop relative flex h-32 flex-col justify-between overflow-hidden rounded-xl p-4">
           <div className="pointer-events-none absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white opacity-5 blur-xl" />
           <div>
             <p className="text-body-md font-body-md opacity-90">Total Savings</p>
@@ -98,7 +98,7 @@ async function Balances({ memberId }: { memberId: string }) {
         <div className="gap-unit grid grid-cols-2">
           <Link
             href="/shares"
-            className="bg-surface-container-high border-surface-container-highest elev-1 rounded-xl border p-4"
+            className="bg-surface-container-high border-surface-container-highest shadow-card rounded-xl border p-4"
           >
             <p className="text-label-md font-label-md text-on-surface-variant">Shares</p>
             <Money
@@ -112,7 +112,7 @@ async function Balances({ memberId }: { memberId: string }) {
 
           <Link
             href="/loans"
-            className="bg-surface-container-high border-surface-container-highest elev-1 rounded-xl border p-4"
+            className="bg-surface-container-high border-surface-container-highest shadow-card rounded-xl border p-4"
           >
             <p className="text-label-md font-label-md text-on-surface-variant">Loan Balance</p>
             <Money
@@ -137,7 +137,7 @@ async function Balances({ memberId }: { memberId: string }) {
         <section className="mb-6">
           <div
             className={clsx(
-              'elev-1 flex items-center justify-between rounded-xl border p-4',
+              'shadow-card flex items-center justify-between rounded-xl border p-4',
               overdue ? 'border-error bg-error-container' : 'border-outline-variant bg-surface',
             )}
           >
@@ -232,7 +232,7 @@ async function RecentTransactions({ memberId }: { memberId: string }) {
 
   if (rows.length === 0) {
     return (
-      <div className="bg-surface border-outline-variant/30 rounded-xl border">
+      <div className="bg-surface border-outline-variant rounded-xl border">
         <EmptyState
           icon="receipt_long"
           title="No transactions yet"

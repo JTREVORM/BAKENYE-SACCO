@@ -59,7 +59,7 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
 
   if (users.length === 0) {
     return (
-      <div className="bg-surface border-outline-variant/30 rounded-xl border">
+      <div className="bg-surface border-outline-variant rounded-xl border">
         <EmptyState
           icon="manage_accounts"
           title="No users"
@@ -77,7 +77,7 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
           <li
             key={u.id}
             className={clsx(
-              'bg-surface border-surface-container elev-1 rounded-xl border p-3',
+              'bg-surface border-surface-container shadow-card rounded-xl border p-3',
               !u.is_active && 'opacity-60',
             )}
           >
@@ -105,7 +105,7 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
             </div>
 
             {u.id !== currentUserId ? (
-              <div className="border-outline-variant/40 mt-3 border-t pt-3">
+              <div className="border-outline-variant mt-3 border-t pt-3">
                 <UserRowActions
                   userId={u.id}
                   name={u.full_name}
@@ -123,11 +123,11 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
       </ul>
 
       {/* Desktop: table */}
-      <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block">
+      <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+              <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                 <th className="p-4 font-semibold">User</th>
                 <th className="p-4 font-semibold">Assigned Role</th>
                 <th className="p-4 font-semibold">Status</th>
@@ -135,12 +135,12 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
                 <th className="p-4 text-center font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+            <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
               {users.map((u) => (
                 <tr
                   key={u.id}
                   className={clsx(
-                    'hover:bg-surface-container-lowest transition-colors',
+                    'hover:bg-surface-container-low transition-colors',
                     !u.is_active && 'opacity-60',
                   )}
                 >
@@ -227,8 +227,8 @@ const MATRIX_ROLES: Role[] = [...STAFF_ROLES];
 
 function PermissionMatrix() {
   return (
-    <section className="bg-surface border-outline-variant/30 elev-1 mt-8 overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/30 bg-surface-bright border-b p-4">
+    <section className="bg-surface border-outline-variant shadow-card mt-8 overflow-hidden rounded-xl border">
+      <div className="border-outline-variant bg-surface border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface font-bold">
           What each role can do
         </h2>
@@ -241,7 +241,7 @@ function PermissionMatrix() {
       <div className="scroll-x">
         <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+            <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
               <th className="p-3 font-semibold">Capability</th>
               {MATRIX_ROLES.map((r) => (
                 <th key={r} className="p-3 text-center font-semibold">
@@ -250,7 +250,7 @@ function PermissionMatrix() {
               ))}
             </tr>
           </thead>
-          <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+          <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
             {MATRIX_ROWS.map((row) => (
               <tr key={row.permission}>
                 <td className="p-3">{row.label}</td>
@@ -279,7 +279,7 @@ function PermissionMatrix() {
         </table>
       </div>
 
-      <p className="text-label-md font-label-md text-on-surface-variant border-outline-variant/30 border-t p-4 normal-case">
+      <p className="text-label-md font-label-md text-on-surface-variant border-outline-variant border-t p-4 normal-case">
         Members see only their own savings, shares, loans, transactions and statements. That
         boundary is enforced by row-level security in the database, not just by this application.
       </p>

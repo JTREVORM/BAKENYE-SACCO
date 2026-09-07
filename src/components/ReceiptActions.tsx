@@ -48,8 +48,8 @@ export function ReceiptActions({
   async function share() {
     try {
       await navigator.share({
-        title: `BND-SACCO receipt ${receiptNo}`,
-        text: `BND-SACCO ${type} of ${amount}. Receipt ${receiptNo}, reference ${reference}.`,
+        title: `BUD-SACCO receipt ${receiptNo}`,
+        text: `BUD-SACCO ${type} of ${amount}. Receipt ${receiptNo}, reference ${reference}.`,
         url: typeof window !== 'undefined' ? window.location.href : undefined,
       });
     } catch {

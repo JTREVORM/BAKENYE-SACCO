@@ -1,6 +1,6 @@
-# BND-SACCO
+# BUD-SACCO
 
-**Bakenye National Development SACCO** — savings, shares and loans management, built for a
+**Bakenye Unity and Development SACCO** — savings, shares and loans management, built for a
 membership of 500+ who reach it mainly on mid-range Android phones.
 
 The interface is the Google Stitch design that was already in this repository, preserved and
@@ -129,36 +129,29 @@ npm start
 [`AuthShell`](src/components/auth/AuthShell.tsx): the brand panel on the left, the task on the
 right, one footer across the bottom.
 
-There is **one** composition at every screen size, designed against 1024px.
-[`ScaledCanvas`](src/components/auth/ScaledCanvas.tsx) shrinks the whole thing to fit anything
-narrower rather than re-laying it out into a portrait stack — a specified requirement, with a real
-cost: at 390px the page renders at 38%, the Sign In button is 21px tall, and the form is legible by
-pinch-zooming rather than by reading. Rotating to landscape roughly doubles it. Above 1024px the
-component is a passthrough and nothing is scaled. Without JavaScript the page renders at full width
-and scrolls sideways, which is the same bargain as any desktop site on a phone.
+The two widths are different arrangements of the same pieces, and the difference is about what the
+screen is *for*:
 
-This is why the responsive audit reports six tap-target failures on `/login` — see
-[`docs/RESPONSIVE.md`](docs/RESPONSIVE.md). They are the requirement, not a regression.
+| | Phone | `lg` and wider |
+| --- | --- | --- |
+| First thing on screen | **the form** | brand panel beside the form |
+| Brand | a ~110px strip above the card: crest, name, motto line, photograph behind | the full left panel |
+| Promise, assurances, motto | below the card, for whoever reads on | in the panel |
 
-What used to differ by breakpoint, and no longer does:
+A member opening the app to check a balance should not scroll past a hero to reach the password
+field, so on a phone the card comes first and **the Sign In button sits above the fold at every
+width down to 320 × 568** — measured, not assumed. The lockup and the brand copy are the same
+components in both arrangements, so the wording lives in one place.
 
-| | Now, at every width |
-| --- | --- |
-| Photograph | fills the lower half of the brand panel, navy above |
-| Assurance badges | four across, one line each |
-| Motto | bottom left, on the navy the swoosh lays down |
-| `Welcome Back` | mark above the greeting |
-| Footer | all four items spread across one line |
+An earlier revision instead rendered the landscape composition at a fixed width and shrank the
+whole thing on a phone. It was faithful to the design and unusable: a 56px button at 38% is 21px
+and body text lands near 6px. Type too small to read is not a smaller version of a design, it is a
+picture of one.
 
-**It expects one photograph that is not in the repository.** Drop a landscape image at:
-
-```
-public/brand/login-hero.jpg
-```
-
-It fills the lower half of the brand panel — a wide shot works best, since the top of it is blended
-back into the navy. Until that file exists the panel falls back to a CSS sunset gradient, so the
-composition holds either way and nothing ever renders as a broken image.
+The hero photograph is `public/brand/fisherman-at-sunset-stockcake.jpg`. It is **square**, so it is
+cropped by `object-cover` to whatever box it lands in — the lower half of the brand panel on a wide
+screen, a shallow band behind the strip on a phone. Replacing it with a wider crop would give the panel more
+of the lake; nothing in the code needs to change to do that.
 
 The motto is set in Caveat, self-hosted by `next/font` exactly as Inter is — see
 [`brand-font.ts`](src/lib/brand-font.ts) — and preloaded only on the routes that use it. The four
@@ -259,7 +252,7 @@ suppressed so a printed ledger is always the ledger table.
 **Download PDF** goes through the browser's own print engine with "Save as PDF" as the destination.
 Browsers name that file from `document.title`, so [`lib/print.ts`](src/lib/print.ts) swaps in a real
 document name for the duration of the print and restores it afterwards — the file lands as
-`BND-SACCO Member Register 2026-09-07.pdf` rather than `Group report.pdf`, four times over, in the
+`BUD-SACCO Member Register 2026-09-07.pdf` rather than `Group report.pdf`, four times over, in the
 same Downloads folder.
 
 Checking the output is a command, not an eyeball:

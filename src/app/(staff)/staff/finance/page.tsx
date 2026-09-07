@@ -106,12 +106,12 @@ async function Summary({ from, to }: { from: string; to: string }) {
         <Total label="Total expenses" value={book.total_expenses} tone="error" />
         <div
           className={clsx(
-            'elev-2 relative overflow-hidden rounded-xl p-5',
+            'shadow-pop relative overflow-hidden rounded-xl p-5',
             surplus >= 0 ? 'bg-primary text-on-primary' : 'bg-error text-on-error',
           )}
         >
           <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-xl" />
-          <p className="text-label-md font-label-md relative z-10 uppercase tracking-wider opacity-80">
+          <p className="text-label-md font-label-md relative z-10 opacity-80">
             {surplus >= 0 ? 'Net surplus' : 'Net deficit'}
           </p>
           <Money
@@ -154,8 +154,8 @@ function Total({
   tone: 'tertiary' | 'error';
 }) {
   return (
-    <div className="bg-surface border-outline-variant/30 elev-1 rounded-xl border p-5">
-      <p className="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">
+    <div className="bg-surface border-outline-variant shadow-card rounded-xl border p-5">
+      <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>
       <Money
@@ -186,8 +186,8 @@ function CategoryPanel({
   emptyBody: string;
 }) {
   return (
-    <section className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border">
-      <div className="border-outline-variant/30 bg-surface-bright flex items-center justify-between gap-3 border-b p-4">
+    <section className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border">
+      <div className="border-outline-variant bg-surface flex items-center justify-between gap-3 border-b p-4">
         <h2 className="text-button-text font-button-text text-on-surface font-bold">{title}</h2>
         <Money
           value={total}
@@ -201,7 +201,7 @@ function CategoryPanel({
       {lines.length === 0 ? (
         <EmptyState icon="account_balance" title={emptyTitle} description={emptyBody} />
       ) : (
-        <ul className="divide-outline-variant/30 divide-y">
+        <ul className="divide-outline-variant/70 divide-y">
           {lines.map((l) => (
             <li key={l.category} className="p-4">
               <div className="flex items-baseline justify-between gap-3">
@@ -264,7 +264,7 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      <div className="bg-surface border-outline-variant/30 elev-1 flex items-baseline justify-between gap-3 rounded-xl border p-4">
+      <div className="bg-surface border-outline-variant shadow-card flex items-baseline justify-between gap-3 rounded-xl border p-4">
         <span className="text-body-md font-body-md text-on-surface-variant">
           {rows.length} {rows.length === 1 ? 'entry' : 'entries'} between {formatDate(from)} and{' '}
           {formatDate(to)}
@@ -273,7 +273,7 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="trending_up"
             title="No income in this period"
@@ -281,7 +281,7 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
           />
         </div>
       ) : (
-        <ul className="bg-surface border-outline-variant/30 elev-1 divide-outline-variant/30 divide-y overflow-hidden rounded-xl border">
+        <ul className="bg-surface border-outline-variant shadow-card divide-outline-variant/70 divide-y overflow-hidden rounded-xl border">
           {rows.map((r) => (
             <li key={r.id} className="flex items-start justify-between gap-3 p-4">
               <div className="min-w-0">
@@ -356,7 +356,7 @@ async function ExpenseLedger({
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      <div className="bg-surface border-outline-variant/30 elev-1 flex flex-wrap items-baseline justify-between gap-3 rounded-xl border p-4">
+      <div className="bg-surface border-outline-variant shadow-card flex flex-wrap items-baseline justify-between gap-3 rounded-xl border p-4">
         <div>
           <p className="text-label-md font-label-md text-on-surface-variant">Approved</p>
           <Money value={total} className="text-headline-lg-mobile font-headline-lg-mobile text-error" />
@@ -375,7 +375,7 @@ async function ExpenseLedger({
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="trending_down"
             title="No expenses in this period"
@@ -388,8 +388,8 @@ async function ExpenseLedger({
             <li
               key={r.id}
               className={clsx(
-                'bg-surface elev-1 rounded-xl border p-4',
-                r.approval === 'pending' ? 'border-secondary-container' : 'border-outline-variant/30',
+                'bg-surface shadow-card rounded-xl border p-4',
+                r.approval === 'pending' ? 'border-secondary-container' : 'border-outline-variant',
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -417,7 +417,7 @@ async function ExpenseLedger({
               </div>
 
               {r.approval === 'pending' && canApprove ? (
-                <div className="border-outline-variant/40 mt-3 border-t pt-3">
+                <div className="border-outline-variant mt-3 border-t pt-3">
                   <ExpenseApproval
                     expenseId={r.id}
                     amount={toNumber(r.amount)}

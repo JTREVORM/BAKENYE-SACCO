@@ -26,7 +26,7 @@ function safeName(name: string): string {
  * Print the current page as `title`.
  *
  * `title` becomes the suggested PDF file name. Pass what the document *is* —
- * "BND-SACCO Member Register 2026-09-07" — not what the page is called.
+ * "BUD-SACCO Member Register 2026-09-07" — not what the page is called.
  */
 export function printDocument(title?: string): void {
   if (typeof window === 'undefined') return;
@@ -51,10 +51,10 @@ export function printDocument(title?: string): void {
   }
 }
 
-/** `BND-SACCO Member Register 2026-09-07` — the shape every export uses. */
+/** `BUD-SACCO Member Register 2026-09-07` — the shape every export uses. */
 export function documentName(title: string, subject?: string, on: Date = new Date()): string {
   const date = `${on.getFullYear()}-${String(on.getMonth() + 1).padStart(2, '0')}-${String(
     on.getDate(),
   ).padStart(2, '0')}`;
-  return safeName(['BND-SACCO', title, subject, date].filter(Boolean).join(' '));
+  return safeName(['BUD-SACCO', title, subject, date].filter(Boolean).join(' '));
 }

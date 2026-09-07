@@ -27,9 +27,9 @@ export function BottomNav({ items }: { items: readonly NavItem[] }) {
       data-bottom-bar
       aria-label="Primary"
       className={clsx(
-        'bg-surface pb-safe fixed bottom-0 left-0 z-50 flex w-full items-center justify-around',
-        'rounded-t-xl px-2 py-2 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]',
-        // On desktop the sidebar takes over, exactly as DESIGN.md describes.
+        'fixed bottom-0 left-0 z-50 flex w-full items-stretch border-t border-outline-variant',
+        'bg-surface/95 pb-safe backdrop-blur',
+        // On desktop the sidebar takes over.
         'md:hidden',
       )}
     >
@@ -41,16 +41,22 @@ export function BottomNav({ items }: { items: readonly NavItem[] }) {
             href={item.href}
             aria-current={active ? 'page' : undefined}
             className={clsx(
-              'flex min-w-0 flex-col items-center justify-center transition-transform duration-150',
               // 44px minimum target, even for the narrowest label.
-              'min-h-touch-target-min flex-1 px-2 py-1',
-              active
-                ? 'bg-secondary-container text-on-secondary-container scale-90 rounded-full'
-                : 'text-on-surface-variant hover:bg-surface-container-high rounded-xl',
+              'flex min-h-touch-target-min min-w-0 flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors',
+              active ? 'text-primary' : 'text-on-surface-variant',
             )}
           >
-            <Icon name={item.icon} filled={active} />
-            <span className="text-label-md font-label-md mt-1 max-w-full truncate">
+            {/* The tint sits on a pill behind the glyph rather than on the whole
+                tab, so the label baseline stays level across all five tabs. */}
+            <span
+              className={clsx(
+                'flex h-7 w-12 items-center justify-center rounded-full transition-colors',
+                active && 'bg-primary/10',
+              )}
+            >
+              <Icon name={item.icon} size={21} filled={active} />
+            </span>
+            <span className="max-w-full truncate text-[10.5px] font-semibold leading-none">
               {item.label}
             </span>
           </Link>

@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Bakenye National Development SACCO (BND-SACCO)
+-- Bakenye Unity and Development SACCO (BUD-SACCO)
 -- 0001 - Core relational schema
 --
 -- Money is stored as NUMERIC(16,2) in UGX. Never float. Never double precision.

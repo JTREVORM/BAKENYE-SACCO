@@ -30,26 +30,40 @@ export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number })
   return (
     <aside
       data-sidebar
-      className="bg-surface-container-low border-outline-variant hidden h-full w-64 shrink-0 flex-col border-r md:flex"
+      className="hidden h-full w-sidebar shrink-0 flex-col bg-ink-gradient md:flex"
     >
-      <div className="border-outline-variant/50 flex h-20 items-center gap-3 border-b px-6">
-        <Image
-          src="/brand/bnd-logo.png"
-          alt="BND-SACCO"
-          width={40}
-          height={40}
-          priority
-          className="h-10 w-10 object-contain"
-        />
-        <span className="text-button-text font-button-text text-primary font-bold">BND-SACCO</span>
-      </div>
+      <Link
+        href="/"
+        className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-4"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/95 p-1 shadow-card">
+          <Image
+            src="/brand/bnd-logo.png"
+            alt=""
+            width={36}
+            height={36}
+            priority
+            className="h-full w-full object-contain"
+          />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-[12.5px] font-bold uppercase leading-[1.25] text-white">
+            Bakenye Unity and
+            <br />
+            Development SACCO
+          </span>
+          <span className="mt-0.5 block truncate text-[10.5px] font-medium italic text-secondary-container/90">
+            Together We Grow
+          </span>
+        </span>
+      </Link>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6" aria-label="Sections">
+      <nav className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-3 py-5" aria-label="Sections">
         {primary.map((item) => (
           <RailLink key={item.href} {...item} active={isActive(item.href)} />
         ))}
 
-        <p className="text-label-md font-label-md text-on-surface-variant px-4 pb-1 pt-5 uppercase">
+        <p className="px-3 pb-1.5 pt-5 text-label-sm uppercase tracking-wider text-white/40">
           More
         </p>
 
@@ -63,15 +77,15 @@ export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number })
         ))}
       </nav>
 
-      <div className="border-outline-variant/50 border-t p-4">
+      <div className="shrink-0 border-t border-white/10 p-3">
         {/* A plain form posting to the server action, so this component never
             needs the Supabase browser SDK. */}
         <form action={signOut}>
           <button
             type="submit"
-            className="text-button-text font-button-text text-error hover:bg-error-container flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-button-text text-white/70 transition-colors hover:bg-white/10 hover:text-white"
           >
-            <Icon name="logout" />
+            <Icon name="logout" size={20} filled={false} />
             Sign out
           </button>
         </form>
@@ -98,20 +112,26 @@ function RailLink({
       href={href}
       aria-current={active ? 'page' : undefined}
       className={clsx(
-        'text-button-text font-button-text group flex items-center gap-3 rounded-lg px-4 py-3 transition-colors',
-        active
-          ? 'bg-secondary-container text-on-secondary-container font-semibold'
-          : 'text-on-surface-variant hover:bg-surface-container-high',
+        'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-button-text transition-colors duration-150',
+        active ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white',
       )}
     >
+      <span
+        aria-hidden="true"
+        className={clsx(
+          'absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-secondary-container transition-opacity',
+          active ? 'opacity-100' : 'opacity-0',
+        )}
+      />
       <Icon
         name={icon}
+        size={20}
         filled={active}
-        className={clsx(!active && 'group-hover:text-primary transition-colors')}
+        className={clsx('shrink-0', active ? 'text-secondary-container' : 'text-white/55 group-hover:text-white')}
       />
       <span className="flex-1 truncate">{label}</span>
       {badge > 0 ? (
-        <span className="bg-error text-on-error flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold">
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-error px-1.5 text-[10px] font-bold text-on-error">
           {badge > 99 ? '99+' : badge}
         </span>
       ) : null}

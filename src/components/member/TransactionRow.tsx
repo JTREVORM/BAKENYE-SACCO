@@ -84,7 +84,7 @@ export function TransactionRow({
   );
 
   const className =
-    'bg-surface border-surface-container elev-1 flex items-center gap-3 rounded-xl border p-3 ' +
+    'bg-surface border-surface-container shadow-card flex items-center gap-3 rounded-xl border p-3 ' +
     'min-h-touch-target-min';
 
   if (href) {

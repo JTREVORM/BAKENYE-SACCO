@@ -73,7 +73,7 @@ export function CollectionSheet({
 
   if (!cycle) {
     return (
-      <div className="bg-surface border-outline-variant/30 rounded-xl border">
+      <div className="bg-surface border-outline-variant rounded-xl border">
         <EmptyState
           icon="event_available"
           title="No collection sheet yet"
@@ -91,9 +91,9 @@ export function CollectionSheet({
       {/* ------------------------------------------------------- the totals */}
       <section
         aria-label="Collection summary"
-        className="bg-surface border-outline-variant/30 elev-1 overflow-hidden rounded-xl border"
+        className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border"
       >
-        <div className="border-outline-variant/40 flex flex-wrap items-start justify-between gap-3 border-b p-4">
+        <div className="border-outline-variant flex flex-wrap items-start justify-between gap-3 border-b p-4">
           <div className="min-w-0">
             <h2 className="text-button-text font-button-text text-on-surface">
               {savingDayLabel(cycle.saving_day)} collections
@@ -104,7 +104,7 @@ export function CollectionSheet({
             </p>
           </div>
           <div className="text-right">
-            <p className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+            <p className="text-label-md font-label-md text-on-surface-variant">
               Collection rate
             </p>
             <p className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface tabular">
@@ -134,7 +134,7 @@ export function CollectionSheet({
             <Stat label="Waived" value={cycle.waived_members} plain />
           </dl>
 
-          <dl className="border-outline-variant/40 mt-4 grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-3">
+          <dl className="border-outline-variant mt-4 grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-3">
             <Stat label="Expected" value={cycle.expected_amount} />
             <Stat label="Collected" value={cycle.collected_amount} tone="text-tertiary" />
             <Stat
@@ -214,7 +214,7 @@ export function CollectionSheet({
 
       {/* --------------------------------------------------------- the rows */}
       {visible.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="group"
             title="No members match"
@@ -240,7 +240,7 @@ export function CollectionSheet({
             {visible.map((r) => (
               <li
                 key={r.schedule_id}
-                className="bg-surface border-surface-container elev-1 rounded-xl border p-3"
+                className="bg-surface border-surface-container shadow-card rounded-xl border p-3"
               >
                 <div className="flex items-start gap-3">
                   <Avatar name={r.member_name} src={r.member_photo} size={44} />
@@ -260,7 +260,7 @@ export function CollectionSheet({
                   <SavingsStatusBadge status={r.status} />
                 </div>
 
-                <dl className="border-outline-variant/40 mt-3 grid grid-cols-3 gap-2 border-t pt-3">
+                <dl className="border-outline-variant mt-3 grid grid-cols-3 gap-2 border-t pt-3">
                   <Cell label="Expected" value={r.expected_amount} />
                   <Cell label="Paid" value={r.paid_amount} tone="text-tertiary" />
                   <Cell
@@ -305,11 +305,11 @@ export function CollectionSheet({
           </ul>
 
           {/* Desktop: the full sheet */}
-          <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block">
+          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
                     <th className="p-4 text-right font-semibold">Expected</th>
                     <th className="p-4 text-right font-semibold">Paid</th>
@@ -320,11 +320,11 @@ export function CollectionSheet({
                     {canRecord ? <th className="p-4 text-right font-semibold">Action</th> : null}
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   {visible.map((r) => (
                     <tr
                       key={r.schedule_id}
-                      className="hover:bg-surface-container-lowest transition-colors"
+                      className="hover:bg-surface-container-low transition-colors"
                     >
                       <td className="p-4">
                         <Link
@@ -426,7 +426,7 @@ function Stat({
 }) {
   return (
     <div className="min-w-0">
-      <dt className="text-label-md font-label-md text-on-surface-variant truncate uppercase tracking-wider">
+      <dt className="text-label-md font-label-md text-on-surface-variant truncate">
         {label}
       </dt>
       <dd

@@ -45,7 +45,7 @@ export default async function ProfilePage() {
     <MemberShell unreadCount={unread}>
       <div className="flex flex-col gap-6 py-6">
         {/* Profile header */}
-        <section className="bg-surface-container-lowest border-surface-container-high elev-1 relative flex flex-col items-center justify-center overflow-hidden rounded-xl py-6">
+        <section className="bg-surface-container-lowest border-surface-container-high shadow-card relative flex flex-col items-center justify-center overflow-hidden rounded-xl py-6">
           <div className="from-primary via-surface to-surface pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] opacity-5" />
 
           <div className="relative z-10 mb-4">
@@ -91,7 +91,7 @@ export default async function ProfilePage() {
         <ProfileEditor member={m} />
 
         {/* Account settings */}
-        <section className="bg-surface-container-lowest border-surface-container-high elev-1 overflow-hidden rounded-xl border">
+        <section className="bg-surface-container-lowest border-surface-container-high shadow-card overflow-hidden rounded-xl border">
           <div className="border-surface-container-high bg-surface-container-low/50 border-b px-4 py-3">
             <h2 className="text-button-text font-button-text text-on-surface">Account Settings</h2>
           </div>

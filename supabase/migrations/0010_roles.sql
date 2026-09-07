@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0010 - Three more roles
+-- BUD-SACCO - 0010 - Three more roles
 --
 -- Adding enum values has to be committed before anything can compare against
 -- them, so this migration does nothing else. 0011 wires them into the

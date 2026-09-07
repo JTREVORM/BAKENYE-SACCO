@@ -76,7 +76,8 @@ export type Permission =
   | 'reports.view'
   | 'reports.member'
   | 'users.manage'
-  | 'audit.view';
+  | 'audit.view'
+  | 'settings.view';
 
 /** What every member of staff can see, whatever else their role allows. */
 const STAFF_BASE: Permission[] = [
@@ -96,7 +97,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'loans.view', 'loans.apply', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
     'guarantors.manage', 'transactions.view', 'transactions.reverse', 'cash.movement',
     'finance.view', 'finance.record', 'finance.approve',
-    'reports.view', 'reports.member', 'users.manage', 'audit.view',
+    'reports.view', 'reports.member', 'users.manage', 'audit.view', 'settings.view',
   ],
   manager: [
     ...STAFF_BASE, 'members.manage', 'members.status', 'groups.manage',
@@ -104,6 +105,9 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'loans.view', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
     'guarantors.manage', 'transactions.reverse', 'cash.movement',
     'finance.view', 'finance.record', 'finance.approve', 'reports.member', 'audit.view',
+    // Read-only visibility of how the SACCO is configured. Every control on
+    // that screen still re-checks its own permission before it acts.
+    'settings.view',
   ],
   loan_officer: [
     ...STAFF_BASE,
@@ -188,6 +192,7 @@ export const STAFF_NAV: readonly NavItem[] = [
   { label: 'Reports',      href: '/staff/reports',      icon: 'assessment',              permission: 'reports.view' },
   { label: 'Users',        href: '/staff/users',        icon: 'manage_accounts',         permission: 'users.manage' },
   { label: 'Audit Log',    href: '/staff/audit',        icon: 'policy',                  permission: 'audit.view' },
+  { label: 'Settings',     href: '/staff/settings',     icon: 'settings',                permission: 'settings.view' },
 ];
 
 /** Member bottom bar - exactly the five tabs the Stitch mobile screens show. */

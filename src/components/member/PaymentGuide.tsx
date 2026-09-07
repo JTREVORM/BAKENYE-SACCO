@@ -73,7 +73,7 @@ export function PaymentGuide({
       <CopyableReference reference={reference} />
 
       {details && details.length > 0 ? (
-        <dl className="bg-surface border-outline-variant divide-outline-variant/40 divide-y rounded-xl border px-4">
+        <dl className="bg-surface border-outline-variant divide-outline-variant/70 divide-y rounded-xl border px-4">
           {details.map((d) => (
             <div key={d.label} className="flex items-start justify-between gap-4 py-3">
               <dt className="text-body-md font-body-md text-on-surface-variant shrink-0">
@@ -89,10 +89,10 @@ export function PaymentGuide({
 
       {/* How to pay */}
       <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
-        <h2 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+        <h2 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           How to pay
         </h2>
-        <ol className="divide-outline-variant/40 divide-y">
+        <ol className="divide-outline-variant/70 divide-y">
           <Step
             n={1}
             title="Pay at the SACCO office"

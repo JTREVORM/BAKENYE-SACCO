@@ -67,7 +67,7 @@ export function SavingsKindTabs({
           <select
             value={group}
             onChange={(e) => push({ group: e.target.value })}
-            className="bg-surface-container-low border-outline-variant/50 text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min max-w-[14rem] rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
+            className="bg-surface-container-low border-outline-variant text-label-md font-label-md text-on-surface focus:border-primary h-touch-target-min max-w-[14rem] rounded-full border py-0 pl-3 pr-8 normal-case outline-none"
           >
             <option value="">All groups</option>
             {groups.map((g) => (

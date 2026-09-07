@@ -19,12 +19,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'BND-SACCO',
-    template: '%s · BND-SACCO',
+    default: 'BUD-SACCO',
+    template: '%s · BUD-SACCO',
   },
   description:
-    'Bakenye National Development SACCO — savings, shares and loans for members.',
-  applicationName: 'BND-SACCO',
+    'Bakenye Unity and Development SACCO — savings, shares and loans for members.',
+  applicationName: 'BUD-SACCO',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: '/brand/bnd-logo.png',
@@ -44,7 +44,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: 'cover',
-  themeColor: '#0e3483',
+  themeColor: '#0a2148',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

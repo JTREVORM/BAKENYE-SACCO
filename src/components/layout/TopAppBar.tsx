@@ -27,19 +27,19 @@ export function TopAppBar({
     <header
       data-app-header
       className={clsx(
-        'bg-surface border-outline-variant pt-safe fixed left-0 top-0 z-50 w-full border-b',
-        'px-container-margin-mobile flex items-center justify-between',
+        'fixed left-0 top-0 z-50 w-full border-b border-outline-variant bg-surface/95 pt-safe backdrop-blur',
+        'flex items-center justify-between px-container-margin-mobile',
         'h-touch-target-primary md:hidden',
       )}
     >
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2.5">
         {backHref ? (
           <Link
             href={backHref}
             aria-label="Go back"
-            className="text-primary hover:bg-surface-container-low -ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+            className="-ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-on-surface-variant transition-colors hover:bg-surface-container-high"
           >
-            <Icon name="arrow_back" />
+            <Icon name="arrow_back" size={21} />
           </Link>
         ) : (
           <Image
@@ -48,11 +48,11 @@ export function TopAppBar({
             width={32}
             height={32}
             priority
-            className="h-8 w-8 shrink-0 rounded-full object-cover"
+            className="h-8 w-8 shrink-0 object-contain"
           />
         )}
-        <h1 className="text-headline-lg-mobile font-headline-lg-mobile text-primary truncate font-bold">
-          {title ?? 'BND-SACCO'}
+        <h1 className="truncate text-title-md text-on-surface">
+          {title ?? 'BUD-SACCO'}
         </h1>
       </div>
 
@@ -63,11 +63,11 @@ export function TopAppBar({
           aria-label={
             unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
           }
-          className="text-primary hover:bg-surface-container-low relative flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl text-on-surface-variant transition-colors hover:bg-surface-container-high"
         >
-          <Icon name="notifications" />
+          <Icon name="notifications" size={21} filled={false} />
           {unreadCount > 0 ? (
-            <span className="bg-error text-on-error ring-surface absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ring-2">
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error ring-2 ring-surface">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           ) : null}

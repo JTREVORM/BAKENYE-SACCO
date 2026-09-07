@@ -22,7 +22,7 @@ export function GroupReportPicker({
 
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-label-md font-label-md text-on-surface-variant uppercase">Group</span>
+      <span className="text-label-md font-label-md text-on-surface-variant">Group</span>
       <select
         value={selected}
         onChange={(e) => {

@@ -87,7 +87,7 @@ export function RecordSavingsForm({
         )}
 
         <fieldset>
-          <legend className="text-label-md font-label-md text-on-surface-variant mb-2 uppercase">
+          <legend className="text-label-md font-label-md text-on-surface-variant mb-2">
             Savings type
           </legend>
           <div className="flex flex-col gap-2">

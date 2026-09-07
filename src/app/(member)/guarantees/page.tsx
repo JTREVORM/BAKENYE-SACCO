@@ -73,7 +73,7 @@ export default async function GuaranteesPage() {
         </div>
 
         {/* Current exposure — the number that actually matters. */}
-        <div className="bg-surface-container-high border-surface-container-highest elev-1 rounded-xl border p-5">
+        <div className="bg-surface-container-high border-surface-container-highest shadow-card rounded-xl border p-5">
           <p className="text-label-md font-label-md text-on-surface-variant">
             Your current exposure
           </p>
@@ -94,7 +94,7 @@ export default async function GuaranteesPage() {
         ) : null}
 
         {rows.length === 0 ? (
-          <div className="bg-surface border-outline-variant/30 rounded-xl border">
+          <div className="bg-surface border-outline-variant rounded-xl border">
             <EmptyState
               icon="handshake"
               title="No guarantees"
@@ -106,7 +106,7 @@ export default async function GuaranteesPage() {
             {rows.map((g) => (
               <li
                 key={g.id}
-                className="bg-surface border-outline-variant elev-1 overflow-hidden rounded-xl border"
+                className="bg-surface border-outline-variant shadow-card overflow-hidden rounded-xl border"
               >
                 <Link
                   href={`/loans/${g.loan_id}`}
@@ -147,7 +147,7 @@ export default async function GuaranteesPage() {
                 </Link>
 
                 {g.status === 'pending' ? (
-                  <div className="border-outline-variant/40 bg-surface-container-low border-t p-4">
+                  <div className="border-outline-variant bg-surface-container-low border-t p-4">
                     <GuaranteeResponse
                       guarantorId={g.id}
                       borrowerName={g.loans?.members?.full_name ?? 'this member'}

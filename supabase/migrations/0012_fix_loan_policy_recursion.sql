@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0012 - Break the loans <-> loan_guarantors policy cycle
+-- BUD-SACCO - 0012 - Break the loans <-> loan_guarantors policy cycle
 --
 -- Two policies in 0004 read each other's tables:
 --

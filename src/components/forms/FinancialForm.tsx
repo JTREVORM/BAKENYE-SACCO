@@ -188,7 +188,7 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
             />
           </div>
 
-          <dl className="bg-surface border-outline-variant divide-outline-variant/40 mb-5 divide-y rounded-xl border px-4">
+          <dl className="bg-surface border-outline-variant divide-outline-variant/70 mb-5 divide-y rounded-xl border px-4">
             {lines.map((l) => (
               <div key={l.label} className="flex items-start justify-between gap-4 py-3">
                 <dt className="text-body-md font-body-md text-on-surface-variant shrink-0">

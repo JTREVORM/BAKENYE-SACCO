@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0005 - Reference data
+-- BUD-SACCO - 0005 - Reference data
 --
 -- Categories and loan products the SACCO actually operates with. These are
 -- configuration, not demo data - the application depends on the two system

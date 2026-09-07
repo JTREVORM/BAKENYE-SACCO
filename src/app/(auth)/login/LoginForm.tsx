@@ -15,7 +15,7 @@ export function LoginForm({ next, resetDone }: { next?: string; resetDone?: bool
   const error = state && !state.ok ? state : null;
 
   return (
-    <form action={action} className="mt-7 flex flex-col gap-5" noValidate>
+    <form action={action} className="mt-5 flex flex-col gap-4 sm:mt-6 sm:gap-5" noValidate>
       {resetDone ? (
         <Alert tone="success" title="Password changed">
           Sign in with your new password.

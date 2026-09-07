@@ -109,25 +109,26 @@ applied to the savings register, the schedules browser, the group report and the
 *Record* and the waive control used `size="sm"`. Staff work a collection sheet on a tablet as often
 as on a laptop, so both are now the default 44px control.
 
-### The signed-out screens are a deliberate exception
+### The sign-in screen, and why it is not scaled
 
-`/login`, `/forgot-password` and `/reset-password` no longer respond to width at all. They are
-one fixed landscape composition designed against 1024px, which
-[`ScaledCanvas`](../src/components/auth/ScaledCanvas.tsx) shrinks to fit anything narrower — a
-specified requirement: the sign-in screen is to look identical on a phone and a monitor rather than
-being re-laid-out into a portrait stack.
+The signed-out screens were briefly built as one fixed landscape composition scaled to fit, so that
+a phone showed the desktop design shrunk to 38%. It was faithful to the design and unusable: a 56px
+button renders 21px, body text lands near 6px, and the audit reported six real tap-target failures
+on `/login`. Type too small to read is not a smaller version of a design — it is a picture of one.
 
-The audit reports six tap-target failures, all on `/login`, at 320 / 360 / 375 / 390 / 430 / 768.
-They are correct. At 390px the 56px Sign In button renders 21px tall and at 320px, 18px; every
-control shrinks by the same factor. This is the cost of the requirement, not a defect to fix — the
-viewport still permits pinch-zoom (see the `maximum-scale` note in `layout.tsx`), and rotating the
-handset to landscape roughly doubles the scale. The password screens happen to stay above the
-threshold because they carry fewer and larger controls, which is luck rather than design: they are
-scaled by exactly the same factor.
+They are laid out again below `lg` instead: same pieces, same order, same photograph, full 56px
+controls. The audit is clean at every width again.
 
-What the audit still usefully proves on these routes: no horizontal overflow at any width, no
-clipped text, and the Sign In button reachable by scrolling in landscape, where the composition is
-taller than the viewport.
+**10 · The card was clipped by its own section.**
+Pulling the card up under the gold swoosh with a negative margin put its top edge above the
+section's `overflow-hidden`, and "Welcome Back" was sheared off. The section carries top padding
+now and the card sits below the curve rather than through it.
+
+**11 · The assurance labels sat on the bright water.**
+Once the desktop composition was scaled down, the badges moved further down the panel and their
+white labels landed on the sunlit part of the photograph. The photograph now starts below them
+(`lg:top-[54%]`); on a phone, where it is full-bleed, a left-weighted navy gradient does that job
+instead.
 
 ### Wide desktop
 

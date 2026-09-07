@@ -65,7 +65,7 @@ export function LoanActions({
 
   return (
     <>
-      <div className="bg-surface border-outline-variant elev-1 flex flex-col gap-3 rounded-xl border p-4">
+      <div className="bg-surface border-outline-variant shadow-card flex flex-col gap-3 rounded-xl border p-4">
         <h2 className="text-button-text font-button-text text-on-surface">Actions</h2>
 
         {status === 'approved' && guarantorsPending > 0 ? (
@@ -315,7 +315,7 @@ function DisburseDialog({
           {err ? <Alert tone="error">{err.error}</Alert> : null}
 
           {/* What actually leaves the drawer, after the processing fee. */}
-          <dl className="bg-surface-container-low border-outline-variant divide-outline-variant/40 divide-y rounded-xl border px-4">
+          <dl className="bg-surface-container-low border-outline-variant divide-outline-variant/70 divide-y rounded-xl border px-4">
             <Row label="Loan" value={loanNo} />
             <Row label="Principal" value={formatUGX(principal)} />
             {processingFee > 0 ? (

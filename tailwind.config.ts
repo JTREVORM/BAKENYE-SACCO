@@ -1,18 +1,22 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * This config is a 1:1 port of the inline `tailwind.config` block that Google
- * Stitch embedded in every exported screen under
- * `stitch_bakenye_mobile_sacco_navigator/`.
+ * BAKENYE UNITY AND DEVELOPMENT SACCO — design tokens.
  *
- * It is reproduced verbatim (tokens, radii, spacing, font sizes) so that every
- * class name copied out of the Stitch HTML compiles to exactly the same CSS it
- * did under the `cdn.tailwindcss.com` runtime. The only difference is that we
- * now compile ahead of time instead of shipping the ~90KB JIT compiler to a
- * low-end Android phone on 3G.
+ * The token *names* are inherited from the original Stitch export, because ~160
+ * files reference them directly. The token *values* are the 2026 redesign: a
+ * deep-navy financial palette, white card surfaces on a cool grey page, softer
+ * radii and a real elevation ramp.
  *
- * DO NOT rename or "clean up" these tokens. The Stitch markup is the visual
- * source of truth and references them directly.
+ * The single most important change is that `surface` (cards) is now pure white
+ * while `background` (the page) is a cool grey. They used to be the same value,
+ * which is why every card dissolved into the page and the whole product read as
+ * unfinished. Everything else here is refinement on top of that.
+ *
+ * Rules for editing:
+ *  - Never introduce a raw hex in a component. Add a token here instead.
+ *  - `primary` is the brand navy. `accent` is the gold. Green means money in,
+ *    red means money out; neither is ever used decoratively.
  */
 const config: Config = {
   darkMode: 'class',
@@ -24,125 +28,170 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        tertiary: '#004417',
-        primary: '#0e3483',
-        'surface-bright': '#f9f9fc',
-        error: '#ba1a1a',
-        'primary-fixed-dim': '#b3c5ff',
-        'inverse-on-surface': '#f0f0f3',
-        'tertiary-container': '#005e23',
-        'on-background': '#1a1c1e',
-        'surface-container-high': '#e8e8ea',
-        'primary-fixed': '#dbe1ff',
-        'on-tertiary-fixed': '#002108',
-        'on-secondary-fixed-variant': '#544600',
-        'secondary-container': '#fcd400',
-        'on-tertiary': '#ffffff',
-        'tertiary-fixed': '#93f99e',
-        'on-secondary-container': '#6e5c00',
-        outline: '#747682',
-        'on-tertiary-container': '#74d982',
-        'inverse-surface': '#2f3133',
-        'on-primary-fixed': '#00174a',
-        'on-primary-fixed-variant': '#214291',
-        'secondary-fixed': '#ffe16d',
-        background: '#f9f9fc',
-        'primary-container': '#2d4c9b',
-        'surface-tint': '#3d5aaa',
-        'surface-variant': '#e2e2e5',
-        surface: '#f9f9fc',
-        'inverse-primary': '#b3c5ff',
-        secondary: '#705d00',
-        'on-error-container': '#93000a',
-        'surface-container-low': '#f3f3f6',
-        'surface-container': '#eeeef0',
-        'outline-variant': '#c4c6d3',
-        'surface-container-lowest': '#ffffff',
+        /* --- Brand ---------------------------------------------------------
+         * A single navy ramp. `primary` is the interactive blue; `ink` is the
+         * near-black navy the sidebar and hero are built from. */
+        primary: '#123a86',
+        'primary-container': '#1e4ea8',
         'on-primary': '#ffffff',
-        'on-surface-variant': '#444651',
-        'on-tertiary-fixed-variant': '#00531e',
-        'on-primary-container': '#afc1ff',
-        'tertiary-fixed-dim': '#77dc85',
-        'surface-container-highest': '#e2e2e5',
-        'on-surface': '#1a1c1e',
-        'on-error': '#ffffff',
-        'on-secondary-fixed': '#221b00',
+        'on-primary-container': '#c7d7ff',
+        'primary-fixed': '#e3ebff',
+        'primary-fixed-dim': '#adc4f5',
+        'on-primary-fixed': '#071c46',
+        'on-primary-fixed-variant': '#20428f',
+        'inverse-primary': '#adc4f5',
+        'surface-tint': '#2f5ba8',
+
+        /* The navigation / hero navy, darker than `primary` so white text on it
+         * clears AAA and the chrome recedes behind the content. */
+        ink: '#0a2148',
+        'ink-soft': '#132f5e',
+        'ink-line': '#1d3f74',
+
+        /* --- Page and card surfaces ---------------------------------------
+         * `background` is the page, `surface` is a card. These MUST differ. */
+        background: '#f4f6fb',
+        surface: '#ffffff',
+        'surface-bright': '#ffffff',
+        'surface-container-lowest': '#ffffff',
+        'surface-container-low': '#fafbfd',
+        'surface-container': '#f4f6fb',
+        'surface-container-high': '#eef1f7',
+        'surface-container-highest': '#e5e9f2',
+        'surface-variant': '#eef1f7',
+        'surface-dim': '#dfe4ee',
+        'inverse-surface': '#1b2537',
+        'inverse-on-surface': '#f1f4f9',
+
+        /* --- Text ---------------------------------------------------------- */
+        'on-background': '#111827',
+        'on-surface': '#111827',
+        'on-surface-variant': '#5b647a',
+        outline: '#8a93a8',
+        'outline-variant': '#dbe1ec',
+
+        /* --- Money in (green) ---------------------------------------------- */
+        tertiary: '#0f7a4a',
+        'tertiary-container': '#12965a',
+        'on-tertiary': '#ffffff',
+        'on-tertiary-container': '#065f38',
+        'tertiary-fixed': '#dcf5e8',
+        'tertiary-fixed-dim': '#9fdcc0',
+        'on-tertiary-fixed': '#04301c',
+        'on-tertiary-fixed-variant': '#0a6b41',
+
+        /* --- Accent (gold) -------------------------------------------------
+         * Used sparingly: the active-nav rail, the hero underline, share
+         * capital. Never for whole surfaces. */
+        secondary: '#8a6a00',
+        'secondary-container': '#f5c518',
         'on-secondary': '#ffffff',
-        'secondary-fixed-dim': '#e9c400',
-        'error-container': '#ffdad6',
-        'surface-dim': '#dadadc',
-        // Added for status semantics the Stitch DESIGN.md describes but that the
-        // exported screens expressed only through the `secondary` ramp.
-        warning: '#8a5100',
-        'warning-container': '#ffdcbe',
-        'on-warning-container': '#2e1500',
+        'on-secondary-container': '#5c4600',
+        'secondary-fixed': '#fdf0c4',
+        'secondary-fixed-dim': '#e8b800',
+        'on-secondary-fixed': '#2a1f00',
+        'on-secondary-fixed-variant': '#6b5200',
+
+        /* --- Money out / danger (red) --------------------------------------- */
+        error: '#c02a2a',
+        'error-container': '#fde8e8',
+        'on-error': '#ffffff',
+        'on-error-container': '#8c1d1d',
+
+        /* --- Caution (amber) ------------------------------------------------ */
+        warning: '#a35a00',
+        'warning-container': '#fdefdc',
+        'on-warning-container': '#7a4200',
       },
+
       borderRadius: {
-        DEFAULT: '0.25rem',
-        lg: '0.5rem',
-        xl: '0.75rem',
+        DEFAULT: '0.375rem',
+        lg: '0.625rem',
+        xl: '0.875rem',
+        '2xl': '1.125rem',
+        '3xl': '1.5rem',
         full: '9999px',
       },
+
       spacing: {
-        'container-margin-desktop': '48px',
+        'container-margin-desktop': '32px',
         unit: '4px',
         'container-margin-mobile': '16px',
-        gutter: '16px',
-        'touch-target-primary': '56px',
+        gutter: '20px',
+        'touch-target-primary': '52px',
         'touch-target-min': '44px',
+        sidebar: '264px',
       },
+
       maxWidth: {
-        /**
-         * The widest the back office ever gets.
-         *
-         * Stitch designed for 1440px. Left to fill a 1920px monitor, a stat
-         * card becomes 400px of empty space around one number, a search field
-         * runs 1,580px, and the eye has to travel the whole screen between a
-         * page title on the left and its action button on the right. Capping
-         * the content and centring it keeps the composition the design
-         * intended, and still leaves eight-column tables room to breathe.
-         */
-        content: '1440px',
+        /* The widest the back office ever gets. Beyond this a stat card becomes
+         * 400px of empty space around one number. */
+        content: '1560px',
       },
+
       fontFamily: {
-        'display-currency': ['Inter', 'system-ui', 'sans-serif'],
-        'headline-lg': ['Inter', 'system-ui', 'sans-serif'],
-        'button-text': ['Inter', 'system-ui', 'sans-serif'],
-        'body-md': ['Inter', 'system-ui', 'sans-serif'],
-        'label-md': ['Inter', 'system-ui', 'sans-serif'],
-        'headline-lg-mobile': ['Inter', 'system-ui', 'sans-serif'],
-        'body-lg': ['Inter', 'system-ui', 'sans-serif'],
+        'display-currency': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        'headline-lg': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        'button-text': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        'body-md': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        'label-md': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        'headline-lg-mobile': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        'body-lg': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
+
+      /* A financial UI lives or dies on its number type. Money gets tight
+       * tracking so a nine-digit figure reads as one object; labels get open
+       * tracking so they read as quiet supporting text. */
       fontSize: {
         'display-currency': [
-          '32px',
-          { lineHeight: '40px', letterSpacing: '-0.02em', fontWeight: '700' },
+          '30px',
+          { lineHeight: '36px', letterSpacing: '-0.025em', fontWeight: '700' },
         ],
-        'headline-lg': ['24px', { lineHeight: '32px', fontWeight: '600' }],
-        'button-text': ['16px', { lineHeight: '24px', fontWeight: '600' }],
-        'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],
-        'label-md': [
-          '12px',
-          { lineHeight: '16px', letterSpacing: '0.05em', fontWeight: '600' },
+        'headline-lg': ['26px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'headline-lg-mobile': [
+          '21px',
+          { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '700' },
         ],
-        'headline-lg-mobile': ['20px', { lineHeight: '28px', fontWeight: '600' }],
-        'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'title-md': ['17px', { lineHeight: '24px', letterSpacing: '-0.01em', fontWeight: '650' }],
+        'button-text': ['15px', { lineHeight: '22px', fontWeight: '600' }],
+        'body-lg': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-md': ['14px', { lineHeight: '21px', fontWeight: '400' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '15px', letterSpacing: '0.04em', fontWeight: '650' }],
       },
+
+      boxShadow: {
+        card: '0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)',
+        'card-hover': '0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.04)',
+        pop: '0 12px 32px rgba(16, 24, 40, 0.14), 0 4px 8px rgba(16, 24, 40, 0.06)',
+        brand: '0 8px 24px rgba(18, 58, 134, 0.24)',
+      },
+
+      backgroundImage: {
+        'brand-gradient': 'linear-gradient(135deg, #123a86 0%, #0a2148 100%)',
+        'ink-gradient': 'linear-gradient(180deg, #0d2856 0%, #081b3c 100%)',
+      },
+
       keyframes: {
         'skeleton-pulse': {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.45' },
         },
         'slide-up': {
-          from: { transform: 'translateY(12px)', opacity: '0' },
+          from: { transform: 'translateY(8px)', opacity: '0' },
           to: { transform: 'translateY(0)', opacity: '1' },
+        },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
         },
       },
       animation: {
         // Deliberately short + cheap: these run on low-end Android GPUs.
         'skeleton-pulse': 'skeleton-pulse 1.6s ease-in-out infinite',
-        'slide-up': 'slide-up 150ms ease-out',
+        'slide-up': 'slide-up 160ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'fade-in': 'fade-in 140ms ease-out',
       },
     },
   },

@@ -168,7 +168,7 @@ export function MemberPicker({
                   aria-selected={false}
                   onClick={() => choose(m)}
                   className={clsx(
-                    'hover:bg-surface-container-low border-outline-variant/30 flex w-full items-center gap-3 border-b p-3 text-left last:border-0',
+                    'hover:bg-surface-container-low border-outline-variant flex w-full items-center gap-3 border-b p-3 text-left last:border-0',
                     'min-h-touch-target-min',
                   )}
                 >

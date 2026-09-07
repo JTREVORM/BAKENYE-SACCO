@@ -216,7 +216,7 @@ export default async function StaffReportsPage() {
       <div className="flex flex-col gap-8">
         {visible.map((g) => (
           <section key={g.heading}>
-            <h2 className="text-label-md font-label-md text-on-surface-variant mb-3 uppercase tracking-wider">
+            <h2 className="mb-3 flex items-center gap-2 text-title-md text-on-surface after:h-px after:flex-1 after:bg-outline-variant after:content-['']">
               {g.heading}
             </h2>
             <div className="gap-gutter grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
@@ -224,7 +224,7 @@ export default async function StaffReportsPage() {
                 <Link
                   key={r.href + r.title}
                   href={r.href}
-                  className="bg-surface border-outline-variant/30 elev-1 hover:border-primary flex items-start gap-3 rounded-xl border p-4 transition-colors"
+                  className="bg-surface border-outline-variant shadow-card hover:border-primary flex items-start gap-3 rounded-xl border p-4 transition-colors"
                 >
                   <span className="bg-primary-fixed text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
                     <Icon name={r.icon} size={20} />

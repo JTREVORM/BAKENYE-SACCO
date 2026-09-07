@@ -125,10 +125,10 @@ export function LoanDetail({
 
       {/* Terms */}
       <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
-        <h3 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+        <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           Loan Terms
         </h3>
-        <dl className="divide-outline-variant/40 divide-y px-4">
+        <dl className="divide-outline-variant/70 divide-y px-4">
           <Line label="Member" value={`${data.memberName} (${data.memberNo})`} />
           <Line label="Principal" value={formatUGX(loan.principal)} />
           <Line
@@ -162,7 +162,7 @@ export function LoanDetail({
 
       {/* Guarantors */}
       <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
-        <h3 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+        <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           Guarantors ({guarantors.length})
         </h3>
         {guarantors.length === 0 ? (
@@ -172,7 +172,7 @@ export function LoanDetail({
             description="This loan has no guarantors recorded."
           />
         ) : (
-          <ul className="divide-outline-variant/40 divide-y">
+          <ul className="divide-outline-variant/70 divide-y">
             {guarantors.map((g) => (
               <li key={g.id} className="flex items-center gap-3 p-4">
                 <Avatar name={g.member_name} src={g.photo_url} size={44} />
@@ -203,12 +203,12 @@ export function LoanDetail({
       {/* Repayment schedule */}
       {schedule.length > 0 ? (
         <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
-          <h3 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+          <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
             Repayment Schedule
           </h3>
 
           {/* Mobile: list. Desktop: the full table. Never a squashed table. */}
-          <ul className="divide-outline-variant/40 divide-y md:hidden">
+          <ul className="divide-outline-variant/70 divide-y md:hidden">
             {schedule.map((s) => {
               const paidThrough = cumulativePaid(schedule, s, toNumber(balance.amount_paid));
               return (
@@ -243,7 +243,7 @@ export function LoanDetail({
           <div className="scroll-x hidden md:block">
             <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                   <th className="p-3 font-semibold">#</th>
                   <th className="p-3 font-semibold">Due date</th>
                   <th className="p-3 text-right font-semibold">Principal</th>
@@ -252,7 +252,7 @@ export function LoanDetail({
                   <th className="p-3 font-semibold">Status</th>
                 </tr>
               </thead>
-              <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+              <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                 {schedule.map((s) => {
                   const paidThrough = cumulativePaid(schedule, s, toNumber(balance.amount_paid));
                   return (
@@ -285,7 +285,7 @@ export function LoanDetail({
 
       {/* Repayment history */}
       <section className="bg-surface border-outline-variant overflow-hidden rounded-xl border">
-        <h3 className="text-button-text font-button-text text-on-surface border-outline-variant/50 bg-surface-container-low border-b px-4 py-3">
+        <h3 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           Repayment History ({repayments.length})
         </h3>
         {repayments.length === 0 ? (
@@ -295,7 +295,7 @@ export function LoanDetail({
             description="Payments made against this loan will be listed here."
           />
         ) : (
-          <ul className="divide-outline-variant/40 divide-y">
+          <ul className="divide-outline-variant/70 divide-y">
             {repayments.map((r) => (
               <li key={r.id}>
                 <Link

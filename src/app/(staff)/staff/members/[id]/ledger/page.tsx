@@ -130,7 +130,7 @@ export default async function MemberLedgerPage({
       </div>
 
       {/* ------------------------------------------------------- summary */}
-      <section className="bg-surface border-outline-variant/30 elev-1 print-plain grid grid-cols-2 gap-4 rounded-xl border p-4 lg:grid-cols-4">
+      <section className="bg-surface border-outline-variant shadow-card print-plain grid grid-cols-2 gap-4 rounded-xl border p-4 lg:grid-cols-4">
         <Total label="Opening balance" value={statement.opening_balance} />
         <Total label="Money in" value={totals.credit} tone="text-tertiary" />
         <Total label="Money out" value={totals.debit} tone="text-error" />
@@ -139,7 +139,7 @@ export default async function MemberLedgerPage({
 
       {/* --------------------------------------------------------- ledger */}
       {rows.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="receipt_long"
             title="No movements in this period"
@@ -156,7 +156,7 @@ export default async function MemberLedgerPage({
               return (
                 <li
                   key={r.reference}
-                  className="bg-surface border-surface-container elev-1 rounded-xl border p-3"
+                  className="bg-surface border-surface-container shadow-card rounded-xl border p-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -194,11 +194,11 @@ export default async function MemberLedgerPage({
           </ul>
 
           {/* Desktop and print: the real ledger. */}
-          <div className="bg-surface border-outline-variant/30 elev-1 hidden overflow-hidden rounded-xl border lg:block print:block">
+          <div className="bg-surface border-outline-variant shadow-card hidden overflow-hidden rounded-xl border lg:block print:block">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant/50 border-b uppercase tracking-wider">
+                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Date</th>
                     <th className="p-4 font-semibold">Reference</th>
                     <th className="p-4 font-semibold">Transaction</th>
@@ -207,7 +207,7 @@ export default async function MemberLedgerPage({
                     <th className="p-4 text-right font-semibold">Balance</th>
                   </tr>
                 </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/30 divide-y">
+                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
                   <tr className="bg-surface-container-lowest">
                     <td className="text-on-surface-variant p-4" colSpan={5}>
                       Opening balance at {formatDate(from)}
@@ -220,7 +220,7 @@ export default async function MemberLedgerPage({
                     const credit = isCredit(r.type);
                     const reversed = r.status === 'reversed';
                     return (
-                      <tr key={r.reference} className="hover:bg-surface-container-lowest">
+                      <tr key={r.reference} className="hover:bg-surface-container-low">
                         <td className="text-on-surface-variant p-4 whitespace-nowrap">
                           {formatDate(r.occurred_on)}
                         </td>
@@ -301,7 +301,7 @@ function Total({
 }) {
   return (
     <div className="min-w-0">
-      <p className="text-label-md font-label-md text-on-surface-variant truncate uppercase tracking-wider">
+      <p className="text-label-md font-label-md text-on-surface-variant truncate">
         {label}
       </p>
       <Money

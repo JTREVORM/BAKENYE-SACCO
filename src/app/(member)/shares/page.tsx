@@ -58,7 +58,7 @@ export default async function SharesPage() {
         {/* Share capital hero — gold, so it never reads as a savings balance. */}
         <section className="bg-secondary-container text-on-secondary-container relative overflow-hidden rounded-xl p-6 shadow-lg">
           <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-white opacity-20 blur-2xl" />
-          <p className="font-label-md text-label-md relative z-10 mb-1 uppercase tracking-wider opacity-80">
+          <p className="font-label-md text-label-md relative z-10 mb-1 opacity-80">
             Share Capital
           </p>
           <Money
@@ -86,7 +86,7 @@ export default async function SharesPage() {
 
         <Link
           href="/shares/buy"
-          className="bg-surface-container-lowest border-outline-variant elev-1 hover:border-primary flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
+          className="bg-surface-container-lowest border-outline-variant shadow-card hover:border-primary flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
         >
           <div className="flex min-w-0 items-center gap-3">
             <div className="bg-secondary-container text-on-secondary-container flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
@@ -138,7 +138,7 @@ export default async function SharesPage() {
                 <Link
                   key={lot.id}
                   href={lot.transaction_id ? `/transactions/${lot.transaction_id}` : '/transactions'}
-                  className="bg-surface-container-lowest border-surface-container-high elev-1 hover:bg-surface-container-low flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
+                  className="bg-surface-container-lowest border-surface-container-high shadow-card hover:bg-surface-container-low flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors"
                 >
                   <div className="flex min-w-0 items-center gap-4">
                     <div className="bg-secondary-container text-on-secondary-container flex h-12 w-12 shrink-0 items-center justify-center rounded-full">

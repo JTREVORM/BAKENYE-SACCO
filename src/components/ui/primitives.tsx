@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { clsx } from '@/lib/clsx';
 import { formatUGX, formatCompactUGX } from '@/lib/money';
 import { initials } from '@/lib/format';
@@ -6,21 +7,21 @@ import type { IconName } from '@/lib/icons';
 /* ---------------------------------------------------------------------------
  * Icon
  *
- * Stitch rendered icons as `<span class="material-symbols-outlined">name</span>`.
- * Same markup, plus `aria-hidden` because every icon in this app is paired with
- * a text label or an accessible name on its control.
+ * Material Symbols, rendered as a ligature. `aria-hidden` because every icon in
+ * this app is paired with a text label or an accessible name on its control.
  * ------------------------------------------------------------------------- */
 export function Icon({
   name,
   className,
   size,
   filled = true,
+  weight = 400,
 }: {
   name: IconName | string;
   className?: string;
-  /** px. The Stitch screens use the default 24, with 16/18/20 in dense spots. */
   size?: number;
   filled?: boolean;
+  weight?: 300 | 400 | 500 | 600;
 }) {
   return (
     <span
@@ -28,7 +29,7 @@ export function Icon({
       className={clsx('material-symbols-outlined select-none', className)}
       style={{
         ...(size ? { fontSize: `${size}px`, width: `${size}px`, height: `${size}px` } : null),
-        fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
+        fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' ${weight}, 'GRAD' 0, 'opsz' 24`,
       }}
     >
       {name}
@@ -38,9 +39,6 @@ export function Icon({
 
 /* ---------------------------------------------------------------------------
  * Money
- *
- * `display-currency` is the Stitch type role for balances: 32px/700 with tight
- * tracking so a long number reads as one visual unit.
  * ------------------------------------------------------------------------- */
 export function Money({
   value,
@@ -51,7 +49,7 @@ export function Money({
 }: {
   value: unknown;
   className?: string;
-  /** Renders "UGX 125.4M" with a small prefix, as the desktop stat cards do. */
+  /** Renders "UGX 125.4M" with a small prefix, as the stat cards do. */
   compact?: boolean;
   sign?: boolean;
   cents?: boolean;
@@ -60,7 +58,7 @@ export function Money({
     const { prefix, amount } = formatCompactUGX(value);
     return (
       <span className={clsx('tabular flex items-baseline', className)}>
-        <span className="mr-1 text-sm font-normal opacity-70">{prefix}</span>
+        <span className="mr-1.5 text-[0.6em] font-semibold opacity-60">{prefix}</span>
         {amount}
       </span>
     );
@@ -68,25 +66,57 @@ export function Money({
   return <span className={clsx('tabular', className)}>{formatUGX(value, { sign, cents })}</span>;
 }
 
+/**
+ * A signed amount that colours itself: green in, red out.
+ *
+ * The colour is doing real work here, so it is never applied to a figure whose
+ * direction we do not actually know — pass an explicit `direction` rather than
+ * inferring one from a formatting flag.
+ */
+export function SignedMoney({
+  value,
+  direction,
+  className,
+}: {
+  value: unknown;
+  direction: 'in' | 'out';
+  className?: string;
+}) {
+  return (
+    <span
+      className={clsx(
+        'tabular font-semibold',
+        direction === 'in' ? 'text-tertiary' : 'text-error',
+        className,
+      )}
+    >
+      {direction === 'in' ? '+' : '−'} {formatUGX(value)}
+    </span>
+  );
+}
+
 /* ---------------------------------------------------------------------------
- * Card - the Level-1 surface from DESIGN.md
+ * Card — the standard surface.
  * ------------------------------------------------------------------------- */
 export function Card({
   children,
   className,
   as: As = 'div',
   padded = true,
+  interactive = false,
 }: {
   children: React.ReactNode;
   className?: string;
   as?: 'div' | 'section' | 'article' | 'li';
   padded?: boolean;
+  interactive?: boolean;
 }) {
   return (
     <As
       className={clsx(
-        'bg-surface border-outline-variant/30 elev-1 rounded-xl border',
-        padded && 'p-4',
+        'rounded-2xl border border-outline-variant bg-surface shadow-card',
+        padded && 'p-5',
+        interactive && 'card-interactive',
         className,
       )}
     >
@@ -95,15 +125,265 @@ export function Card({
   );
 }
 
+/**
+ * Card with a titled header rule — the default container for a named block
+ * ("Recent Transactions", "Savings Overview").
+ */
+export function Panel({
+  title,
+  subtitle,
+  icon,
+  action,
+  children,
+  className,
+  bodyClassName,
+  padded = true,
+  id,
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  icon?: IconName | string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  bodyClassName?: string;
+  padded?: boolean;
+  /** Anchor target, for in-page jump navigation such as the settings screen. */
+  id?: string;
+}) {
+  return (
+    <section
+      id={id}
+      className={clsx(
+        'flex flex-col overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-card',
+        className,
+      )}
+    >
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant px-5 py-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          {icon ? (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Icon name={icon} size={18} />
+            </span>
+          ) : null}
+          <div className="min-w-0">
+            <h3 className="truncate text-title-md text-on-surface">{title}</h3>
+            {subtitle ? (
+              <p className="truncate text-label-md font-normal text-on-surface-variant">
+                {subtitle}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </header>
+      <div className={clsx(padded && 'p-5', 'min-w-0 flex-1', bodyClassName)}>{children}</div>
+    </section>
+  );
+}
+
 /* ---------------------------------------------------------------------------
- * Badge - the pill Stitch uses for Success/Pending on transaction rows.
+ * KPI card — the executive metric tile.
+ *
+ * `delta` is rendered only when a real comparison exists. A dashboard that
+ * always shows a green "+12%" teaches people to stop reading it.
+ * ------------------------------------------------------------------------- */
+export function KpiCard({
+  icon,
+  label,
+  value,
+  tone = 'neutral',
+  delta,
+  footnote,
+  href,
+  className,
+}: {
+  icon: IconName | string;
+  label: string;
+  value: React.ReactNode;
+  /** Tints the icon chip only — the card itself stays white. */
+  tone?: 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'accent';
+  delta?: { value: number; label?: string } | null;
+  footnote?: React.ReactNode;
+  href?: string;
+  className?: string;
+}) {
+  const chip = {
+    neutral: 'bg-surface-container-high text-on-surface-variant',
+    primary: 'bg-primary/10 text-primary',
+    success: 'bg-tertiary-fixed text-tertiary',
+    warning: 'bg-warning-container text-warning',
+    danger: 'bg-error-container text-error',
+    accent: 'bg-secondary-fixed text-on-secondary-fixed-variant',
+  }[tone];
+
+  const body = (
+    <>
+      <div className="mb-3 flex items-start justify-between gap-2 sm:mb-4">
+        <span
+          className={clsx(
+            'flex h-9 w-9 items-center justify-center rounded-xl sm:h-10 sm:w-10',
+            chip,
+          )}
+        >
+          <Icon name={icon} size={19} />
+        </span>
+        {delta ? <DeltaPill value={delta.value} label={delta.label} /> : null}
+      </div>
+      <p className="text-label-md font-semibold text-on-surface-variant">{label}</p>
+      {/* The figure steps down on a phone so a nine-digit total still fits a
+          half-width card without truncating. */}
+      <div className="mt-1 text-[24px] font-bold leading-8 tracking-tight text-on-surface sm:text-display-currency sm:font-display-currency">
+        {value}
+      </div>
+      {footnote ? (
+        <p className="mt-2 text-label-md font-normal text-on-surface-variant">{footnote}</p>
+      ) : null}
+      {href ? (
+        <span className="mt-3 hidden items-center gap-1 text-label-md font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100 lg:inline-flex">
+          View <Icon name="arrow_forward" size={14} />
+        </span>
+      ) : null}
+    </>
+  );
+
+  const shell = clsx(
+    'group flex flex-col rounded-2xl border border-outline-variant bg-surface p-4 shadow-card sm:p-5',
+    href && 'card-interactive',
+    className,
+  );
+
+  return href ? (
+    <Link href={href} className={shell}>
+      {body}
+    </Link>
+  ) : (
+    <div className={shell}>{body}</div>
+  );
+}
+
+/** The high-contrast counterpart to KpiCard — one per dashboard, at most. */
+export function KpiCardFeature({
+  icon,
+  label,
+  value,
+  footnote,
+  href,
+  className,
+}: {
+  icon: IconName | string;
+  label: string;
+  value: React.ReactNode;
+  footnote?: React.ReactNode;
+  href?: string;
+  className?: string;
+}) {
+  const body = (
+    <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"
+      />
+      <div className="relative z-10 mb-3 flex items-start justify-between sm:mb-4">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-white sm:h-10 sm:w-10">
+          <Icon name={icon} size={19} />
+        </span>
+      </div>
+      <p className="relative z-10 text-label-md font-semibold text-primary-fixed-dim">{label}</p>
+      <div className="relative z-10 mt-1 text-[24px] font-bold leading-8 tracking-tight text-white sm:text-display-currency sm:font-display-currency">
+        {value}
+      </div>
+      {footnote ? (
+        <p className="relative z-10 mt-2 text-label-md font-normal text-primary-fixed-dim">
+          {footnote}
+        </p>
+      ) : null}
+    </>
+  );
+
+  const shell = clsx(
+    'relative flex flex-col overflow-hidden rounded-2xl bg-brand-gradient p-4 shadow-brand sm:p-5',
+    href && 'transition-transform duration-150 hover:-translate-y-px',
+    className,
+  );
+
+  return href ? (
+    <Link href={href} className={shell}>
+      {body}
+    </Link>
+  ) : (
+    <div className={shell}>{body}</div>
+  );
+}
+
+/** Month-on-month movement. Neutral grey at exactly zero — not green. */
+export function DeltaPill({ value, label }: { value: number; label?: string }) {
+  const dir = value > 0 ? 'up' : value < 0 ? 'down' : 'flat';
+  const tone = {
+    up: 'bg-tertiary-fixed text-on-tertiary-container',
+    down: 'bg-error-container text-on-error-container',
+    flat: 'bg-surface-container-high text-on-surface-variant',
+  }[dir];
+  const icon = dir === 'up' ? 'trending_up' : dir === 'down' ? 'trending_down' : 'trending_flat';
+
+  return (
+    <span
+      className={clsx(
+        'inline-flex items-center gap-1 rounded-full px-2 py-1 text-label-sm',
+        tone,
+      )}
+    >
+      <Icon name={icon} size={13} />
+      {value > 0 ? '+' : ''}
+      {value}%{label ? <span className="font-normal opacity-80">{label}</span> : null}
+    </span>
+  );
+}
+
+/** The compact figure used in a strip of secondary metrics. */
+export function MiniStat({
+  label,
+  value,
+  tone,
+  icon,
+  href,
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: string;
+  icon?: IconName | string;
+  href?: string;
+}) {
+  const body = (
+    <>
+      <div className="flex items-center gap-1.5 text-label-md font-semibold text-on-surface-variant">
+        {icon ? <Icon name={icon} size={15} className="opacity-70" /> : null}
+        <span className="truncate">{label}</span>
+      </div>
+      <div className={clsx('mt-1 text-button-text font-bold tabular', tone ?? 'text-on-surface')}>
+        {value}
+      </div>
+    </>
+  );
+  return href ? (
+    <Link href={href} className="min-w-0 rounded-lg px-1 py-0.5 transition-colors hover:bg-surface-container">
+      {body}
+    </Link>
+  ) : (
+    <div className="min-w-0">{body}</div>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Badge
  * ------------------------------------------------------------------------- */
 const BADGE_TONES = {
-  success: 'bg-tertiary-container/20 text-tertiary',
-  neutral: 'bg-surface-variant text-on-surface-variant',
-  warning: 'bg-secondary-container/40 text-on-secondary-container',
-  error: 'bg-error-container text-on-error-container',
-  info: 'bg-primary-fixed text-on-primary-fixed-variant',
+  success: 'bg-tertiary-fixed text-on-tertiary-container ring-tertiary/20',
+  neutral: 'bg-surface-container-high text-on-surface-variant ring-outline-variant',
+  warning: 'bg-warning-container text-on-warning-container ring-warning/20',
+  error: 'bg-error-container text-on-error-container ring-error/20',
+  info: 'bg-primary-fixed text-on-primary-fixed-variant ring-primary/20',
+  accent: 'bg-secondary-fixed text-on-secondary-fixed-variant ring-secondary/25',
 } as const;
 
 export type BadgeTone = keyof typeof BADGE_TONES;
@@ -112,30 +392,30 @@ export function Badge({
   children,
   tone = 'neutral',
   className,
+  dot = false,
 }: {
   children: React.ReactNode;
   tone?: BadgeTone;
   className?: string;
+  /** Adds a leading status dot — used in tables where colour alone is thin. */
+  dot?: boolean;
 }) {
   return (
     <span
       className={clsx(
-        'inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold',
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-label-sm ring-1 ring-inset',
         BADGE_TONES[tone],
         className,
       )}
     >
+      {dot ? <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" /> : null}
       {children}
     </span>
   );
 }
 
 /* ---------------------------------------------------------------------------
- * Avatar - member photo with an initials fallback.
- *
- * Members without a photo are the common case at go-live, and a broken image
- * icon in a list of 500 people looks like a system fault. Initials on the
- * primary tint read as intentional.
+ * Avatar
  * ------------------------------------------------------------------------- */
 export function Avatar({
   name,
@@ -164,7 +444,7 @@ export function Avatar({
         height={size}
         style={dim}
         className={clsx(
-          'border-outline-variant/50 shrink-0 rounded-full border object-cover',
+          'shrink-0 rounded-full border border-outline-variant object-cover',
           className,
         )}
       />
@@ -175,7 +455,7 @@ export function Avatar({
     <span
       style={{ ...dim, fontSize: Math.max(10, Math.round(size * 0.36)) }}
       className={clsx(
-        'bg-primary/10 text-primary flex shrink-0 items-center justify-center rounded-full font-bold',
+        'flex shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary ring-1 ring-inset ring-primary/10',
         className,
       )}
       aria-hidden="true"
@@ -186,27 +466,47 @@ export function Avatar({
 }
 
 /* ---------------------------------------------------------------------------
- * Section header - "Recent Transactions" + "View All", used on most screens.
+ * Section header — "Recent Transactions" + "View All".
  * ------------------------------------------------------------------------- */
 export function SectionHeader({
   title,
   action,
   className,
+  subtitle,
 }: {
   title: string;
   action?: React.ReactNode;
   className?: string;
+  subtitle?: string;
 }) {
   return (
-    <div className={clsx('mb-3 flex items-center justify-between gap-3', className)}>
-      <h3 className="text-button-text font-button-text text-on-surface">{title}</h3>
+    <div className={clsx('mb-4 flex items-end justify-between gap-3', className)}>
+      <div className="min-w-0">
+        <h3 className="text-title-md text-on-surface">{title}</h3>
+        {subtitle ? (
+          <p className="mt-0.5 text-label-md font-normal text-on-surface-variant">{subtitle}</p>
+        ) : null}
+      </div>
       {action}
     </div>
   );
 }
 
+/** The "View all →" affordance, so it looks identical everywhere. */
+export function ViewAllLink({ href, children = 'View all' }: { href: string; children?: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-label-md font-semibold text-primary transition-colors hover:bg-primary/10"
+    >
+      {children}
+      <Icon name="arrow_forward" size={15} />
+    </Link>
+  );
+}
+
 /* ---------------------------------------------------------------------------
- * Progress bar - savings targets and loan repayment progress.
+ * Progress bar
  * ------------------------------------------------------------------------- */
 export function ProgressBar({
   value,
@@ -230,14 +530,17 @@ export function ProgressBar({
 
   return (
     <div
-      className={clsx('bg-surface-container-highest h-2 w-full overflow-hidden rounded-full', className)}
+      className={clsx('h-2 w-full overflow-hidden rounded-full bg-surface-container-highest', className)}
       role="progressbar"
       aria-valuenow={Math.round(pct)}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-label={label}
     >
-      <div className={clsx('h-full rounded-full transition-[width]', fill)} style={{ width: `${pct}%` }} />
+      <div
+        className={clsx('h-full rounded-full transition-[width] duration-500', fill)}
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }
@@ -249,28 +552,60 @@ export function PageTitle({
   title,
   subtitle,
   action,
+  breadcrumb,
+  icon,
 }: {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  breadcrumb?: { label: string; href?: string }[];
+  icon?: IconName | string;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h1 className="text-headline-lg-mobile font-headline-lg-mobile md:text-headline-lg md:font-headline-lg text-primary tracking-tight">
-          {title}
-        </h1>
-        {subtitle ? (
-          <p className="text-body-md font-body-md text-on-surface-variant mt-1">{subtitle}</p>
-        ) : null}
+    <div className="mb-7">
+      {breadcrumb && breadcrumb.length > 0 ? (
+        <nav aria-label="Breadcrumb" className="mb-2">
+          <ol className="flex flex-wrap items-center gap-1 text-label-md font-normal text-on-surface-variant">
+            {breadcrumb.map((c, i) => (
+              <li key={`${c.label}-${i}`} className="flex items-center gap-1">
+                {i > 0 ? <Icon name="chevron_right" size={14} className="opacity-50" /> : null}
+                {c.href ? (
+                  <Link href={c.href} className="hover:text-primary hover:underline">
+                    {c.label}
+                  </Link>
+                ) : (
+                  <span className="text-on-surface">{c.label}</span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      ) : null}
+
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          {icon ? (
+            <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:flex">
+              <Icon name={icon} size={22} />
+            </span>
+          ) : null}
+          <div className="min-w-0">
+            <h1 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface md:text-headline-lg md:font-headline-lg">
+              {title}
+            </h1>
+            {subtitle ? (
+              <p className="mt-1 text-body-md font-body-md text-on-surface-variant">{subtitle}</p>
+            ) : null}
+          </div>
+        </div>
+        {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
       </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   );
 }
 
 /* ---------------------------------------------------------------------------
- * Definition row - the "label / value" pattern in profile and review screens.
+ * Definition row — the "label / value" pattern in profile and review screens.
  * ------------------------------------------------------------------------- */
 export function DetailRow({
   label,
@@ -282,11 +617,182 @@ export function DetailRow({
   className?: string;
 }) {
   return (
-    <div className={clsx('flex items-start justify-between gap-4 py-2', className)}>
-      <dt className="text-body-md font-body-md text-on-surface-variant shrink-0">{label}</dt>
-      <dd className="text-body-md font-body-md text-on-surface min-w-0 text-right font-semibold">
+    <div
+      className={clsx(
+        'flex items-start justify-between gap-4 border-b border-outline-variant/70 py-2.5 last:border-0',
+        className,
+      )}
+    >
+      <dt className="shrink-0 text-body-md font-body-md text-on-surface-variant">{label}</dt>
+      <dd className="min-w-0 text-right text-body-md font-semibold text-on-surface">
         {value ?? '—'}
       </dd>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Quick action tile
+ * ------------------------------------------------------------------------- */
+export function QuickAction({
+  href,
+  icon,
+  label,
+  tone = 'primary',
+}: {
+  href: string;
+  icon: IconName | string;
+  label: string;
+  tone?: 'primary' | 'success' | 'accent' | 'danger' | 'neutral';
+}) {
+  const chip = {
+    primary: 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-on-primary',
+    success:
+      'bg-tertiary-fixed text-tertiary group-hover:bg-tertiary group-hover:text-on-tertiary',
+    accent:
+      'bg-secondary-fixed text-on-secondary-fixed-variant group-hover:bg-secondary-container group-hover:text-on-secondary-fixed',
+    danger: 'bg-error-container text-error group-hover:bg-error group-hover:text-on-error',
+    neutral:
+      'bg-surface-container-high text-on-surface-variant group-hover:bg-on-surface-variant group-hover:text-surface',
+  }[tone];
+
+  return (
+    <Link
+      href={href}
+      className="card-interactive group flex flex-col items-center gap-2.5 rounded-2xl border border-outline-variant bg-surface px-3 py-4 text-center"
+    >
+      <span
+        className={clsx(
+          'flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-150',
+          chip,
+        )}
+      >
+        <Icon name={icon} size={21} />
+      </span>
+      <span className="text-label-md font-semibold leading-tight text-on-surface">{label}</span>
+    </Link>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Tabs — a segmented control that is a real list of links.
+ * ------------------------------------------------------------------------- */
+export function TabBar({
+  items,
+  className,
+}: {
+  items: { label: string; href: string; active: boolean; count?: number }[];
+  className?: string;
+}) {
+  return (
+    <nav
+      className={clsx(
+        'no-scrollbar -mx-container-margin-mobile flex gap-1 overflow-x-auto px-container-margin-mobile md:mx-0 md:px-0',
+        className,
+      )}
+    >
+      <span className="inline-flex gap-1 rounded-2xl border border-outline-variant bg-surface p-1 shadow-card">
+        {items.map((t) => (
+          <Link
+            key={t.href}
+            href={t.href}
+            aria-current={t.active ? 'page' : undefined}
+            className={clsx(
+              'inline-flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-button-text transition-colors',
+              t.active
+                ? 'bg-primary text-on-primary shadow-card'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface',
+            )}
+          >
+            {t.label}
+            {typeof t.count === 'number' ? (
+              <span
+                className={clsx(
+                  'rounded-full px-1.5 py-0.5 text-label-sm',
+                  t.active ? 'bg-white/20' : 'bg-surface-container-highest',
+                )}
+              >
+                {t.count}
+              </span>
+            ) : null}
+          </Link>
+        ))}
+      </span>
+    </nav>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Data table
+ *
+ * A table is a table — it keeps real <table> semantics for screen readers and
+ * for print. Callers render a card list at the same breakpoint where this
+ * hides, rather than letting an eight-column grid scroll sideways on a phone.
+ * ------------------------------------------------------------------------- */
+export function DataTable({
+  head,
+  children,
+  className,
+  dense = false,
+}: {
+  head: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  dense?: boolean;
+}) {
+  return (
+    <div
+      className={clsx(
+        'overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-card',
+        className,
+      )}
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-full border-collapse text-left">
+          <thead className="border-b border-outline-variant bg-surface-container-low">
+            <tr
+              className={clsx(
+                '[&>th]:whitespace-nowrap [&>th]:px-4 [&>th]:text-label-md [&>th]:font-semibold [&>th]:text-on-surface-variant',
+                dense ? '[&>th]:py-2.5' : '[&>th]:py-3.5',
+              )}
+            >
+              {head}
+            </tr>
+          </thead>
+          <tbody
+            className={clsx(
+              '[&>tr]:border-b [&>tr]:border-outline-variant/70 [&>tr:last-child]:border-0',
+              '[&>tr]:transition-colors hover:[&>tr]:bg-surface-container-low',
+              '[&>tr>td]:px-4 [&>tr>td]:text-body-md [&>tr>td]:text-on-surface',
+              dense ? '[&>tr>td]:py-2.5' : '[&>tr>td]:py-3.5',
+            )}
+          >
+            {children}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Toolbar — the search + filters + action row above a table.
+ * ------------------------------------------------------------------------- */
+export function Toolbar({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={clsx(
+        'mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant bg-surface p-3 shadow-card',
+        className,
+      )}
+    >
+      {children}
     </div>
   );
 }

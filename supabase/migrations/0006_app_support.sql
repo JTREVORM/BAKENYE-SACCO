@@ -1,5 +1,5 @@
 -- ===========================================================================
--- BND-SACCO - 0006 - Application support functions
+-- BUD-SACCO - 0006 - Application support functions
 -- ===========================================================================
 
 -- ---------------------------------------------------------------------------
@@ -166,7 +166,7 @@ begin
 
   return jsonb_build_object(
     'transaction',   to_jsonb(v_txn),
-    'sacco_name',    'BAKENYE NATIONAL DEVELOPMENT SACCO',
+    'sacco_name',    'BAKENYE UNITY AND DEVELOPMENT SACCO',
     'receipt_no',    replace(v_txn.reference, 'BND-TX-', 'BND-RCP-'),
     'loan', (
       select jsonb_build_object('loan_no', l.loan_no, 'outstanding', lb.outstanding,

@@ -37,6 +37,11 @@ export const ICON_NAMES = [
   'pending_actions', 'lock_open', 'percent',
   // Sign-in and brand chrome
   'login', 'verified_user',
+  // Redesign: dashboard, reporting centre and settings chrome
+  'trending_flat', 'bolt', 'insights', 'monitoring', 'leaderboard', 'summarize',
+  'apartment', 'security', 'palette', 'toggle_on', 'paid', 'currency_exchange',
+  'north_east', 'south_west', 'more_horiz', 'grid_view', 'view_list',
+  'picture_as_pdf', 'event', 'shield_person', 'wallet',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

@@ -30,7 +30,7 @@ export default async function StaffNotificationsPage() {
       />
 
       {items.length === 0 ? (
-        <div className="bg-surface border-outline-variant/30 rounded-xl border">
+        <div className="bg-surface border-outline-variant rounded-xl border">
           <EmptyState
             icon="notifications"
             title="No notifications yet"
@@ -67,7 +67,7 @@ export default async function StaffNotificationsPage() {
 
             const className = clsx(
               'flex items-start gap-3 rounded-xl border p-3 transition-colors',
-              n.read_at ? 'bg-surface border-outline-variant/30' : 'bg-surface-container-low border-primary/30',
+              n.read_at ? 'bg-surface border-outline-variant' : 'bg-surface-container-low border-primary/30',
             );
 
             return (

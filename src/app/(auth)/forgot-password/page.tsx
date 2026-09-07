@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Reset your password' };
 export default function ForgotPasswordPage() {
   return (
     <AuthShell>
-      <div className="bg-surface-container-lowest rounded-[22px] p-9 shadow-[0_18px_50px_-12px_rgba(10,38,96,0.28)]">
+      <div className="bg-surface-container-lowest rounded-[20px] p-5 shadow-[0_18px_50px_-12px_rgba(10,38,96,0.28)] sm:p-7">
         <Link
           href="/login"
           className="text-primary hover:bg-surface-container-high h-touch-target-min -ml-2 mb-4 inline-flex items-center gap-2 rounded-lg px-2 text-[15px] font-semibold"
@@ -18,13 +18,13 @@ export default function ForgotPasswordPage() {
           Back to sign in
         </Link>
 
-        <Icon name="lock" size={34} className="text-primary" filled={false} />
+        <Icon name="lock" size={30} className="text-primary" filled={false} />
 
-        <h1 className="text-on-surface mt-3 text-[36px] font-extrabold leading-tight tracking-tight">
+        <h1 className="text-on-surface mt-3 text-[26px] font-extrabold leading-tight tracking-tight sm:text-[30px]">
           Reset your password
         </h1>
-        <p className="text-on-surface-variant mt-2 text-base leading-relaxed">
-          Enter the email address on your BND-SACCO account and we will send you a link to set a new
+        <p className="text-on-surface-variant mt-2 text-[14px] leading-relaxed sm:text-[15px]">
+          Enter the email address on your BUD-SACCO account and we will send you a link to set a new
           password.
         </p>
 

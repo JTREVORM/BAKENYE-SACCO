@@ -175,6 +175,37 @@ export type LoanProductRow = {
   created_at: string;
 };
 
+/**
+ * The single-row organisation record.
+ *
+ * Everything on it used to be a string literal in the settings screen, or — in
+ * the case of the registered name — a literal inside a database function, which
+ * is why correcting it once needed its own migration.
+ */
+export type SaccoSettingsRow = {
+  id: boolean;
+  legal_name: string;
+  short_name: string;
+  motto: string;
+  registration_no: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  default_saving_frequency: SavingFrequency;
+  default_weekly_target: number;
+  default_monthly_target: number;
+  notify_in_app: boolean;
+  updated_at: string;
+  updated_by: string | null;
+};
+
+export type ShareSettingsRow = {
+  id: boolean;
+  unit_price: number;
+  min_shares_on_join: number;
+  updated_at: string;
+};
+
 export type LoanRow = {
   id: string;
   loan_no: string;
@@ -776,7 +807,8 @@ export type Database = {
       members: Table<MemberRow>;
       transactions: Table<TransactionRow>;
       share_lots: Table<ShareLotRow>;
-      share_settings: Table<{ id: boolean; unit_price: number; min_shares_on_join: number; updated_at: string }>;
+      share_settings: Table<ShareSettingsRow>;
+      sacco_settings: Table<SaccoSettingsRow>;
       savings_plans: Table<SavingsPlanRow>;
       savings_periods: Table<SavingsPeriodRow>;
       savings_payments: Table<SavingsPaymentRow>;
@@ -1180,6 +1212,77 @@ export type Database = {
         Returns: GroupReport;
       };
       saving_day_label: { Args: { p_day: SavingDay }; Returns: string };
+
+      /* --- Configuration (0014) --------------------------------------------
+       * Every one of these is `SECURITY DEFINER` and re-checks
+       * `can_manage_settings()` in the database, so the permission check in the
+       * server action is a courtesy to the UI, not the thing that holds. */
+      update_organisation_settings: {
+        Args: {
+          p_legal_name: string;
+          p_short_name: string;
+          p_motto: string;
+          p_registration_no?: string | null;
+          p_contact_email?: string | null;
+          p_contact_phone?: string | null;
+          p_address?: string | null;
+        };
+        Returns: SaccoSettingsRow;
+      };
+      update_savings_defaults: {
+        Args: {
+          p_default_saving_frequency: SavingFrequency;
+          p_default_weekly_target: number;
+          p_default_monthly_target: number;
+        };
+        Returns: SaccoSettingsRow;
+      };
+      update_notification_settings: {
+        Args: { p_notify_in_app: boolean };
+        Returns: SaccoSettingsRow;
+      };
+      update_share_settings: {
+        Args: { p_unit_price: number; p_min_shares_on_join: number };
+        Returns: ShareSettingsRow;
+      };
+      create_loan_product: {
+        Args: {
+          p_name: string;
+          p_code: string;
+          p_interest_rate: number;
+          p_interest_method: 'flat' | 'reducing';
+          p_min_amount: number;
+          p_max_amount: number;
+          p_min_period_months: number;
+          p_max_period_months: number;
+          p_processing_fee_pct?: number;
+          p_min_guarantors?: number;
+          p_description?: string | null;
+          p_is_active?: boolean;
+        };
+        Returns: LoanProductRow;
+      };
+      update_loan_product: {
+        Args: {
+          p_product_id: string;
+          p_name: string;
+          p_code: string;
+          p_interest_rate: number;
+          p_interest_method: 'flat' | 'reducing';
+          p_min_amount: number;
+          p_max_amount: number;
+          p_min_period_months: number;
+          p_max_period_months: number;
+          p_processing_fee_pct?: number;
+          p_min_guarantors?: number;
+          p_description?: string | null;
+        };
+        Returns: LoanProductRow;
+      };
+      set_loan_product_active: {
+        Args: { p_product_id: string; p_is_active: boolean; p_reason?: string | null };
+        Returns: LoanProductRow;
+      };
 
       mark_notifications_read: { Args: { p_ids?: string[] | null }; Returns: number };
       run_daily_maintenance: {

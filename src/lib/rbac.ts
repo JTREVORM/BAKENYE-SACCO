@@ -77,7 +77,9 @@ export type Permission =
   | 'reports.member'
   | 'users.manage'
   | 'audit.view'
-  | 'settings.view';
+  | 'settings.view'
+  /** Change how the SACCO is configured, loan products included. */
+  | 'settings.manage';
 
 /** What every member of staff can see, whatever else their role allows. */
 const STAFF_BASE: Permission[] = [
@@ -98,6 +100,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'guarantors.manage', 'transactions.view', 'transactions.reverse', 'cash.movement',
     'finance.view', 'finance.record', 'finance.approve',
     'reports.view', 'reports.member', 'users.manage', 'audit.view', 'settings.view',
+    'settings.manage',
   ],
   manager: [
     ...STAFF_BASE, 'members.manage', 'members.status', 'groups.manage',
@@ -105,9 +108,11 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'loans.view', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
     'guarantors.manage', 'transactions.reverse', 'cash.movement',
     'finance.view', 'finance.record', 'finance.approve', 'reports.member', 'audit.view',
-    // Read-only visibility of how the SACCO is configured. Every control on
-    // that screen still re-checks its own permission before it acts.
-    'settings.view',
+    // The manager configures the SACCO: organisation details, share price,
+    // savings defaults and the loan products members may borrow under. Every
+    // control still re-checks its own permission before it acts, and the
+    // database re-checks it again in `can_manage_settings()`.
+    'settings.view', 'settings.manage',
   ],
   loan_officer: [
     ...STAFF_BASE,
@@ -186,6 +191,9 @@ export const STAFF_NAV: readonly NavItem[] = [
     ],
   },
   { label: 'Shares',       href: '/staff/shares',       icon: 'pie_chart',               permission: 'shares.view' },
+  // A `Loan Products` child belongs here, pointing at /staff/loans/products.
+  // It is left out until that route exists: a rail entry that 404s is worse
+  // than one that is missing.
   { label: 'Loans',        href: '/staff/loans',        icon: 'payments',                permission: 'loans.view',      bottomBar: true },
   { label: 'Transactions', href: '/staff/transactions', icon: 'receipt_long',            permission: 'transactions.view' },
   { label: 'Finance',      href: '/staff/finance',      icon: 'account_balance',         permission: 'finance.view' },

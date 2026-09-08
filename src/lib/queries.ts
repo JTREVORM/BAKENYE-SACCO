@@ -10,6 +10,8 @@ import type {
   MemberFinancialsRow,
   NotificationRow,
   SaccoGroupRow,
+  SaccoSettingsRow,
+  ShareSettingsRow,
   SavingsDashboard,
   SavingsPeriodRow,
   TransactionFeedRow,
@@ -93,12 +95,64 @@ export const getNotifications = cache(async (limit = 30): Promise<NotificationRo
   return data ?? [];
 });
 
+/**
+ * The organisation record.
+ *
+ * Cached per request, because a printed statement asks for it in the letterhead
+ * and again in the footer, and a page that renders twenty receipts would
+ * otherwise ask twenty times.
+ *
+ * It falls back to the seeded defaults rather than throwing. A settings row
+ * that cannot be read must not be the reason a member's statement fails to
+ * print — the document still needs a name on it.
+ */
+export const getSaccoSettings = cache(async (): Promise<SaccoSettingsRow> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from('sacco_settings').select('*').single();
+  return (
+    data ?? {
+      id: true,
+      legal_name: 'Bakenye Unity and Development SACCO',
+      short_name: 'BUD-SACCO',
+      motto: 'Together We Grow, Prosper and Build',
+      registration_no: null,
+      contact_email: null,
+      contact_phone: null,
+      address: null,
+      default_saving_frequency: 'weekly',
+      default_weekly_target: 0,
+      default_monthly_target: 0,
+      notify_in_app: true,
+      updated_at: new Date().toISOString(),
+      updated_by: null,
+    }
+  );
+});
+
+export const getShareSettings = cache(async (): Promise<ShareSettingsRow | null> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from('share_settings').select('*').single();
+  return data ?? null;
+});
+
+/** Active products only — this is what a loan application may choose from. */
 export const getLoanProducts = cache(async (): Promise<LoanProductRow[]> => {
   const supabase = await createClient();
   const { data } = await supabase
     .from('loan_products')
     .select('*')
     .eq('is_active', true)
+    .order('name');
+  return data ?? [];
+});
+
+/** Every product, retired ones included — the management screen shows both. */
+export const getAllLoanProducts = cache(async (): Promise<LoanProductRow[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('loan_products')
+    .select('*')
+    .order('is_active', { ascending: false })
     .order('name');
   return data ?? [];
 });

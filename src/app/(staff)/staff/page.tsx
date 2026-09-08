@@ -33,6 +33,8 @@ import { formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/form
 import { formatUGX, percent, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { AuditLogRow } from '@/types/db';
+import { getBrand } from '@/lib/brand';
+import { splitName } from '@/lib/sacco-brand';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 
@@ -49,11 +51,12 @@ export const metadata: Metadata = { title: 'Dashboard' };
  * trend, typically — never holds up the metrics a manager opened the page for.
  */
 export default async function StaffDashboard() {
+  const brand = await getBrand();
   const user = await requirePermission('dashboard.staff');
 
   return (
     <div className="space-y-7">
-      <Hero name={user.fullName} />
+      <Hero name={user.fullName} saccoName={brand.legalName} />
 
       <Suspense fallback={<StatGridSkeleton />}>
         <Metrics />
@@ -102,8 +105,9 @@ export default async function StaffDashboard() {
  * every width and the image never has to be cropped to a shape it does not
  * suit. If the file is ever removed the gradient alone still reads correctly.
  */
-function Hero({ name }: { name: string }) {
+function Hero({ name, saccoName }: { name: string; saccoName: string }) {
   const firstName = name.trim().split(/\s+/)[0];
+  const [heroNameTop, heroNameBottom] = splitName(saccoName);
 
   return (
     <section className="relative isolate overflow-hidden rounded-2xl bg-ink shadow-brand">
@@ -126,9 +130,9 @@ function Hero({ name }: { name: string }) {
             Welcome back, {firstName}
           </p>
           <h1 className="mt-2 text-[26px] font-bold uppercase leading-[1.15] tracking-tight text-white md:text-[34px]">
-            Bakenye Unity and
+            {heroNameTop}
             <br />
-            Development SACCO
+            {heroNameBottom}
           </h1>
           <span aria-hidden="true" className="mt-4 block h-1 w-16 rounded-full bg-secondary-container" />
           <p className="mt-4 max-w-md text-body-lg text-white/75">

@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { MATERIAL_SYMBOLS_HREF } from '@/lib/icons';
+import { BrandProvider } from '@/components/brand/BrandProvider';
+import { getBrand } from '@/lib/brand';
 import './globals.css';
 
 /**
@@ -17,14 +19,22 @@ const inter = Inter({
   fallback: ['system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
 });
 
-export const metadata: Metadata = {
+/**
+ * Page metadata, from the organisation record.
+ *
+ * The browser tab, the install prompt and anything that shares a link all read
+ * the SACCO's own name rather than a literal, so renaming the SACCO renames
+ * these too.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getBrand();
+  return {
   title: {
-    default: 'BUD-SACCO',
-    template: '%s · BUD-SACCO',
+    default: brand.shortName,
+    template: `%s · ${brand.shortName}`,
   },
-  description:
-    'Bakenye Unity and Development SACCO — savings, shares and loans for members.',
-  applicationName: 'BUD-SACCO',
+  description: `${brand.legalName} — savings, shares and loans for members.`,
+  applicationName: brand.shortName,
   manifest: '/manifest.webmanifest',
   icons: {
     icon: '/brand/bnd-logo.png',
@@ -33,7 +43,8 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   // The app is behind a login; there is nothing here for a crawler.
   robots: { index: false, follow: false },
-};
+  };
+}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -47,7 +58,9 @@ export const viewport: Viewport = {
   themeColor: '#0a2148',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const brand = await getBrand();
+
   return (
     <html lang="en" className={`light ${inter.variable}`}>
       <head>
@@ -56,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" href={MATERIAL_SYMBOLS_HREF} />
       </head>
       <body className={`${inter.className} bg-background text-on-background antialiased`}>
-        {children}
+        <BrandProvider brand={brand}>{children}</BrandProvider>
       </body>
     </html>
   );

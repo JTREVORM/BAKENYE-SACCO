@@ -3,6 +3,8 @@ import { Icon } from '@/components/ui/primitives';
 import { brandScript } from '@/lib/brand-font';
 import { clsx } from '@/lib/clsx';
 import type { IconName } from '@/lib/icons';
+import { getBrand } from '@/lib/brand';
+import { splitName, type Brand } from '@/lib/sacco-brand';
 
 /**
  * The signed-out shell.
@@ -55,13 +57,23 @@ const FEATURES: { icon: IconName; tone: string; title: string; detail: string }[
   },
 ];
 
-export function AuthShell({ children }: { children: React.ReactNode }) {
+/**
+ * The sign-in chrome.
+ *
+ * A server component, so the SACCO's name is read from the organisation record
+ * and rendered into the HTML. This is the one screen that renders for someone
+ * who has not signed in, which is why the name comes from `sacco_public_brand()`
+ * rather than from `sacco_settings` directly.
+ */
+export async function AuthShell({ children }: { children: React.ReactNode }) {
+  const brand = await getBrand();
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#0a2660]">
-      <MobileBrandStrip />
+      <MobileBrandStrip brand={brand} />
 
       <div className="flex flex-1 flex-col lg:flex-row">
-        <DesktopBrandPanel />
+        <DesktopBrandPanel brand={brand} />
 
         {/* ------------------------------------------------------ the task */}
         <section className="bg-background relative isolate flex flex-1 items-start justify-center overflow-hidden px-4 pb-10 pt-6 sm:px-6 lg:w-[46%] lg:items-center lg:px-8 lg:py-12">
@@ -96,7 +108,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <MobileBrandBody />
-      <AuthFooter />
+      <AuthFooter brand={brand} />
     </div>
   );
 }
@@ -110,7 +122,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
  * more. Around 110px, which keeps the Sign In button above the fold even on a
  * 667px handset.
  */
-function MobileBrandStrip() {
+function MobileBrandStrip({ brand }: { brand: Brand }) {
   return (
     <section className="relative isolate overflow-hidden bg-[#0e3483] px-5 pb-6 pt-4 sm:px-8 lg:hidden">
       <div aria-hidden="true" className="absolute inset-0 -z-10">
@@ -142,7 +154,7 @@ function MobileBrandStrip() {
         />
       </svg>
 
-      <BrandLockup size="compact" />
+      <BrandLockup size="compact" brand={brand} />
     </section>
   );
 }
@@ -162,7 +174,7 @@ function MobileBrandBody() {
 /* Wide                                                                      */
 /* ------------------------------------------------------------------------ */
 
-function DesktopBrandPanel() {
+function DesktopBrandPanel({ brand }: { brand: Brand }) {
   return (
     <section className="relative isolate hidden w-[54%] flex-col overflow-hidden bg-[#0e3483] px-12 pb-0 pt-10 lg:flex">
       {/* The lake fills the lower half; the navy above carries the copy. It
@@ -190,7 +202,7 @@ function DesktopBrandPanel() {
         />
       </svg>
 
-      <BrandLockup size="full" />
+      <BrandLockup size="full" brand={brand} />
       <BrandPromise className="mt-9 max-w-[380px]" />
       <BrandAssurances className="mt-8" />
       <BrandMotto className="mt-auto pb-8 pt-16" />
@@ -202,13 +214,14 @@ function DesktopBrandPanel() {
 /* Shared pieces                                                             */
 /* ------------------------------------------------------------------------ */
 
-function BrandLockup({ size }: { size: 'compact' | 'full' }) {
+function BrandLockup({ size, brand }: { size: 'compact' | 'full'; brand: Brand }) {
   const compact = size === 'compact';
+  const [nameTop, nameBottom] = splitName(brand.legalName);
   return (
     <header className="relative z-10 flex items-center gap-3 sm:gap-4">
       <Image
         src="/brand/bnd-logo.png"
-        alt="Bakenye Unity and Development SACCO"
+        alt={brand.legalName}
         width={112}
         height={112}
         priority
@@ -224,9 +237,9 @@ function BrandLockup({ size }: { size: 'compact' | 'full' }) {
             compact ? 'text-[15px] sm:text-[18px]' : 'text-[24px]',
           )}
         >
-          Bakenye Unity and
+          {nameTop}
           <br />
-          Development SACCO
+          {nameBottom}
         </p>
         <p
           className={clsx(
@@ -234,7 +247,7 @@ function BrandLockup({ size }: { size: 'compact' | 'full' }) {
             compact ? 'text-[11px] sm:text-[12px]' : 'text-[15px]',
           )}
         >
-          Together We Grow, Prosper and Build
+          {brand.motto}
         </p>
       </div>
     </header>
@@ -311,33 +324,42 @@ function BrandMotto({ className }: { className?: string }) {
 
 /* ------------------------------------------------------------------------ */
 
-function AuthFooter() {
+function AuthFooter({ brand }: { brand: Brand }) {
   return (
     <footer className="bg-[#0a2660] px-4 py-3 text-white/80 sm:px-8">
       <div className="max-w-content mx-auto flex flex-col items-center gap-0.5 text-center text-[12px] lg:flex-row lg:justify-between lg:gap-4 lg:text-left">
         <div className="flex flex-wrap items-center justify-center gap-x-4 lg:contents">
           <p className="flex items-center gap-1.5">
             <Icon name="location_on" size={15} className="shrink-0 text-white/60" />
-            Bakenye Unity and Development SACCO
+            {brand.legalName}
           </p>
 
           {/* Padded to the 44px minimum: these are the two things a member who
               cannot get in will actually tap, and on a phone they dial and
-              compose rather than merely informing. */}
-          <a
-            href="tel:+256000000000"
-            className="min-h-touch-target-min flex items-center gap-1.5 rounded-lg px-2 hover:bg-white/10 hover:text-white"
-          >
-            <Icon name="phone" size={15} className="shrink-0 text-white/60" />
-            +256 000 000 000
-          </a>
-          <a
-            href="mailto:info@bakenyesacco.org"
-            className="min-h-touch-target-min flex items-center gap-1.5 rounded-lg px-2 hover:bg-white/10 hover:text-white"
-          >
-            <Icon name="mail" size={15} className="shrink-0 text-white/60" />
-            info@bakenyesacco.org
-          </a>
+              compose rather than merely informing.
+
+              Each is rendered only when the SACCO has actually published it.
+              A telephone number nobody answers is worse than no number at all,
+              which is what a hard-coded +256 000 000 000 amounted to. Both are
+              set in Settings -> Organisation. */}
+          {brand.contactPhone ? (
+            <a
+              href={`tel:${brand.contactPhone.replace(/[^+0-9]/g, '')}`}
+              className="min-h-touch-target-min flex items-center gap-1.5 rounded-lg px-2 hover:bg-white/10 hover:text-white"
+            >
+              <Icon name="phone" size={15} className="shrink-0 text-white/60" />
+              {brand.contactPhone}
+            </a>
+          ) : null}
+          {brand.contactEmail ? (
+            <a
+              href={`mailto:${brand.contactEmail}`}
+              className="min-h-touch-target-min flex items-center gap-1.5 rounded-lg px-2 hover:bg-white/10 hover:text-white"
+            >
+              <Icon name="mail" size={15} className="shrink-0 text-white/60" />
+              {brand.contactEmail}
+            </a>
+          ) : null}
         </div>
 
         <p className="text-white/60">© {new Date().getFullYear()}. All rights reserved.</p>

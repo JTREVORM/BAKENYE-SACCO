@@ -1,96 +1,158 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
-import { can, ROLE_DESCRIPTIONS, ROLE_LABELS, STAFF_ROLES } from '@/lib/rbac';
 import {
-  Icon,
-  Panel,
-  Badge,
-  DetailRow,
-  PageTitle,
-  DataTable,
-  Money,
-} from '@/components/ui/primitives';
+  can,
+  ROLE_DESCRIPTIONS,
+  ROLE_LABELS,
+  ROLE_PERMISSIONS,
+  STAFF_ROLES,
+  type Role,
+} from '@/lib/rbac';
+import { getSaccoSettings, getShareSettings, getAllLoanProducts } from '@/lib/queries';
+import { getSettingsByCategory, SETTING_CATEGORIES } from '@/lib/settings';
+import { Icon, Panel, Badge, PageTitle } from '@/components/ui/primitives';
 import { EmptyState, PanelSkeleton, Alert } from '@/components/ui/states';
-import { formatDate } from '@/lib/format';
-import type { LoanProductRow } from '@/types/db';
 import { ScrollRow } from '@/components/ui/scroll';
+import { OrganisationForm } from '@/components/settings/OrganisationForm';
+import { ShareSettingsForm } from '@/components/settings/ShareSettingsForm';
+import { SettingsSectionForm } from '@/components/settings/SettingsSectionForm';
+import { formatDate } from '@/lib/format';
+import { clsx } from '@/lib/clsx';
+import type { SettingCategory } from '@/types/db';
 
 export const metadata: Metadata = { title: 'Settings' };
 
 /**
- * Settings — how this SACCO is configured.
+ * The SACCO Configuration Centre.
  *
- * This screen is deliberately a *reflection* of real configuration rather than
- * a wall of toggles. Every value shown is read from the database or from the
- * application's own constants, and every "change this" route points at the
- * screen that already owns that change and already enforces its permission.
+ * Every operating rule the SACCO decides for itself is edited here, and every
+ * value on the screen is read from the database rather than written into the
+ * page. The sections come in three kinds:
+ *
+ *  - **Organisation** and **Shares** have their own forms, because they write
+ *    to purpose-built tables with their own audited functions. The share price
+ *    in particular is read by `buy_shares()` itself, which is why it stays in
+ *    `share_settings` rather than moving into the registry: one value, one
+ *    home.
+ *  - **Financial, Loans, Members, Savings, Groups, Notifications, Security**
+ *    and **System** are rendered from the settings registry. Their fields,
+ *    labels, help text, units and bounds are all rows in `system_settings`, so
+ *    adding a setting to the database adds a field to this screen and nothing
+ *    here changes.
+ *  - **Loan Products**, **Users & Roles** and **Audit** are indexes: each one
+ *    summarises what is configured and hands off to the screen that owns it.
+ *
+ * Sections are chosen with `?section=`, so a link to a particular part of the
+ * configuration can be shared and bookmarked, and the page is server-rendered
+ * whichever section is open.
  *
  * Where a setting genuinely lives outside this application — Supabase Auth's
- * email templates, for instance — the card says so plainly instead of offering
- * a control that would silently do nothing.
+ * email templates, for instance — the section says so plainly instead of
+ * offering a control that would silently do nothing.
  */
-export default async function SettingsPage() {
+
+type SectionId =
+  | 'organisation'
+  | SettingCategory
+  | 'products'
+  | 'users'
+  | 'audit';
+
+const SECTIONS: { id: SectionId; label: string; icon: string; description: string }[] = [
+  {
+    id: 'organisation',
+    label: 'Organisation',
+    icon: 'apartment',
+    description: 'The name, contact details and registration of the SACCO itself.',
+  },
+  ...SETTING_CATEGORIES.map((c) => ({
+    id: c.id as SectionId,
+    label: c.label,
+    icon: c.icon,
+    description: c.description,
+  })),
+  {
+    id: 'products',
+    label: 'Loan Products',
+    icon: 'inventory_2',
+    description: 'The products members may borrow under, and the terms of each.',
+  },
+  {
+    id: 'users',
+    label: 'Users & Roles',
+    icon: 'manage_accounts',
+    description: 'Who may do what.',
+  },
+  {
+    id: 'audit',
+    label: 'Change History',
+    icon: 'policy',
+    description: 'Every configuration change, with who made it and what it was before.',
+  },
+];
+
+function isSection(value: string | undefined): value is SectionId {
+  return !!value && SECTIONS.some((s) => s.id === value);
+}
+
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ section?: string }>;
+}) {
   const user = await requirePermission('settings.view');
+  const params = await searchParams;
+  const section: SectionId = isSection(params.section) ? params.section : 'organisation';
+  const canManage = can(user.role, 'settings.manage');
+
+  const current = SECTIONS.find((s) => s.id === section)!;
 
   return (
     <div className="space-y-gutter">
       <PageTitle
         icon="settings"
         title="Settings"
-        subtitle="Organisation details, roles, and the rules the SACCO operates by."
+        subtitle="How this SACCO is configured. Every value here is read from the database."
         breadcrumb={[{ label: 'Staff', href: '/staff' }, { label: 'Settings' }]}
       />
 
-      <SettingsNav />
+      {!canManage ? (
+        <Alert tone="info" title="You have read-only access to settings">
+          You can see how the SACCO is configured. Changing a value needs the settings
+          permission, which belongs to a Super Admin or the SACCO Manager.
+        </Alert>
+      ) : null}
 
-      <div className="grid grid-cols-1 gap-gutter lg:grid-cols-2">
-        <Organisation />
+      <SectionNav current={section} />
 
-        <Suspense fallback={<PanelSkeleton height="h-56" />}>
-          <UsersAndRoles canManage={can(user.role, 'users.manage')} />
+      <Panel
+        title={current.label}
+        icon={current.icon}
+        subtitle={current.description}
+        key={section}
+      >
+        <Suspense fallback={<PanelSkeleton height="h-64" />}>
+          <SectionBody section={section} canManage={canManage} role={user.role} />
         </Suspense>
-
-        <Authentication />
-
-        <Notifications />
-
-        <Suspense fallback={<PanelSkeleton height="h-56" />}>
-          <SharesSettings />
-        </Suspense>
-
-        <Suspense fallback={<PanelSkeleton height="h-56" />}>
-          <SavingsSettings />
-        </Suspense>
-      </div>
-
-      <Suspense fallback={<PanelSkeleton height="h-56" />}>
-        <LoanProducts />
-      </Suspense>
-
-      <SystemPreferences />
+      </Panel>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------------ */
 
-const SECTIONS = [
-  { id: 'organisation', label: 'Organisation', icon: 'apartment' },
-  { id: 'users', label: 'Users & Roles', icon: 'manage_accounts' },
-  { id: 'authentication', label: 'Authentication', icon: 'security' },
-  { id: 'notifications', label: 'Notifications & Email', icon: 'mail' },
-  { id: 'shares', label: 'Shares', icon: 'pie_chart' },
-  { id: 'savings', label: 'Savings', icon: 'account_balance_wallet' },
-  { id: 'loans', label: 'Loans', icon: 'payments' },
-  { id: 'system', label: 'System', icon: 'tune' },
-] as const;
-
-/** In-page jump list. On a long settings screen this is the whole navigation. */
-function SettingsNav() {
+/**
+ * The section switcher.
+ *
+ * A horizontal rail of links rather than client-side tabs: each section is a
+ * real URL, so it can be linked to, opened in a new tab and returned to with
+ * the browser's own Back button. `ScrollRow` gives it the arrow controls and
+ * edge fades every other horizontal strip in the product has.
+ */
+function SectionNav({ current }: { current: SectionId }) {
   return (
     <nav aria-label="Settings sections" className="min-w-0">
       <ScrollRow
@@ -98,65 +160,197 @@ function SettingsNav() {
         wrapperClassName="-mx-container-margin-mobile md:mx-0"
         className="no-scrollbar flex gap-2 px-container-margin-mobile pb-1 md:flex-wrap md:px-0"
       >
-      {SECTIONS.map((s) => (
-        <a
-          key={s.id}
-          href={`#${s.id}`}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-surface px-4 py-2 text-label-md font-semibold text-on-surface-variant shadow-neu-sm transition-shadow hover:text-primary hover:shadow-card active:shadow-neu-pressed"
-        >
-          <Icon name={s.icon} size={16} />
-          {s.label}
-        </a>
-      ))}
-    </ScrollRow>
+        {SECTIONS.map((s) => {
+          const active = s.id === current;
+          return (
+            <Link
+              key={s.id}
+              href={`/staff/settings?section=${s.id}`}
+              aria-current={active ? 'page' : undefined}
+              className={clsx(
+                'inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-label-md font-semibold transition-shadow',
+                active
+                  ? 'bg-primary text-on-primary shadow-card'
+                  : 'bg-surface text-on-surface-variant shadow-neu-sm hover:text-primary hover:shadow-card active:shadow-neu-pressed',
+              )}
+            >
+              <Icon name={s.icon} size={16} />
+              {s.label}
+            </Link>
+          );
+        })}
+      </ScrollRow>
     </nav>
   );
 }
 
 /* ------------------------------------------------------------------------ */
 
-function Organisation() {
+async function SectionBody({
+  section,
+  canManage,
+  role,
+}: {
+  section: SectionId;
+  canManage: boolean;
+  role: Role;
+}) {
+  if (section === 'organisation') {
+    const settings = await getSaccoSettings();
+    return <OrganisationForm settings={settings} canManage={canManage} />;
+  }
+
+  if (section === 'products') return <LoanProductsSummary canManage={canManage} />;
+  if (section === 'users') return <UsersAndRoles role={role} />;
+  if (section === 'audit') return <ConfigurationHistory />;
+
+  // Everything else is a registry category. Financial additionally carries the
+  // share price, which lives in its own table for the reason set out above.
+  const grouped = await getSettingsByCategory();
+  const rows = grouped.get(section) ?? [];
+  const meta = SETTING_CATEGORIES.find((c) => c.id === section);
+
   return (
-    <Panel title="Organisation" icon="apartment" className="scroll-mt-24" id="organisation">
-      <div className="mb-5 flex items-center gap-4 rounded-2xl bg-surface-container p-4 shadow-neu-inset-sm">
-        <Image
-          src="/brand/bnd-logo.png"
-          alt=""
-          width={56}
-          height={56}
-          className="h-14 w-14 shrink-0 object-contain"
-        />
-        <div className="min-w-0">
-          <p className="text-title-md text-on-surface">Bakenye Unity and Development SACCO</p>
-          <p className="mt-0.5 text-label-md font-normal italic text-on-surface-variant">
-            Together We Grow, Prosper and Build
-          </p>
-        </div>
-      </div>
+    <div className="space-y-8">
+      {section === 'financial' ? <SharesBlock canManage={canManage} /> : null}
 
-      <dl>
-        <DetailRow label="Legal name" value="Bakenye Unity and Development SACCO" />
-        <DetailRow label="Short name" value="BUD-SACCO" />
-        <DetailRow label="Currency" value="Ugandan Shilling (UGX)" />
-        <DetailRow label="Contact email" value="info@bakenyesacco.org" />
-        <DetailRow
-          label="Document prefix"
-          value={<span className="tabular">BND-</span>}
+      {rows.length === 0 ? (
+        <EmptyState
+          compact
+          icon="tune"
+          title="Nothing to configure here yet"
+          description="No settings are registered in this category."
         />
-      </dl>
+      ) : (
+        <SettingsSectionForm
+          rows={rows}
+          canManage={canManage}
+          title={meta?.label ?? 'Settings'}
+          description={meta?.description}
+        />
+      )}
 
-      <p className="mt-4 text-label-md font-normal leading-relaxed text-on-surface-variant">
-        The organisation name appears on every receipt, statement and report letterhead. Document
-        reference prefixes are part of the financial record and are never changed once references
-        have been issued.
-      </p>
-    </Panel>
+      {section === 'security' ? (
+        <Alert tone="warning" title="Some of this is enforced by Supabase Auth">
+          Session lifetime, multi-factor options and the email templates for password resets
+          are configured in the Supabase project dashboard, not in this application. The
+          values above record the SACCO&apos;s policy in one place and are applied wherever
+          this application sets a password itself.
+        </Alert>
+      ) : null}
+
+      {section === 'loans' ? (
+        <Alert tone="info" title="These are the rules that apply to every product">
+          Interest rates, fees, terms and guarantor counts belong to each loan product.{' '}
+          <Link href="/staff/loans/products" className="font-semibold text-primary underline">
+            Manage loan products
+          </Link>
+          .
+        </Alert>
+      ) : null}
+    </div>
   );
 }
 
 /* ------------------------------------------------------------------------ */
 
-async function UsersAndRoles({ canManage }: { canManage: boolean }) {
+async function SharesBlock({ canManage }: { canManage: boolean }) {
+  const shares = await getShareSettings();
+
+  if (!shares) {
+    return (
+      <EmptyState
+        compact
+        icon="pie_chart"
+        title="Share settings unavailable"
+        description="The share price record could not be read, so it cannot be edited here."
+      />
+    );
+  }
+
+  return (
+    <div className="border-b border-outline-variant/70 pb-8">
+      <ShareSettingsForm settings={shares} canManage={canManage} />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+async function LoanProductsSummary({ canManage }: { canManage: boolean }) {
+  const products = await getAllLoanProducts();
+  const active = products.filter((p) => p.is_active);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-body-md text-on-surface-variant">
+          {products.length === 0
+            ? 'No loan products are configured.'
+            : `${active.length} active of ${products.length} product${
+                products.length === 1 ? '' : 's'
+              }.`}
+        </p>
+        <Link
+          href="/staff/loans/products"
+          className="inline-flex h-touch-target-min items-center gap-2 rounded-full bg-ink px-5 text-button-text font-semibold text-white shadow-neu-dark transition-[background-color,box-shadow] hover:bg-ink-soft"
+        >
+          <Icon name={canManage ? 'tune' : 'view_list'} size={18} />
+          {canManage ? 'Manage loan products' : 'View loan products'}
+        </Link>
+      </div>
+
+      {products.length === 0 ? (
+        <EmptyState
+          icon="inventory_2"
+          title="No loan products yet"
+          description="A loan product sets the interest rate, term limits, fees and eligibility rules members borrow under. Create one to open lending."
+          action={
+            canManage ? (
+              <Link
+                href="/staff/loans/products/new"
+                className="inline-flex h-touch-target-min items-center gap-2 rounded-full bg-ink px-5 text-button-text font-semibold text-white shadow-neu-dark transition-[background-color,box-shadow] hover:bg-ink-soft"
+              >
+                <Icon name="add" size={18} />
+                Create a product
+              </Link>
+            ) : undefined
+          }
+        />
+      ) : (
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {products.map((p) => (
+            <li
+              key={p.id}
+              className="rounded-2xl bg-surface-container p-4 shadow-neu-inset-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-body-lg font-semibold text-on-surface">{p.name}</p>
+                  <p className="tabular text-label-md font-normal text-on-surface-variant">
+                    {p.code}
+                    {p.category ? ` · ${p.category}` : ''}
+                  </p>
+                </div>
+                <Badge tone={p.is_active ? 'success' : 'neutral'} dot>
+                  {p.is_active ? 'Active' : 'Retired'}
+                </Badge>
+              </div>
+              <p className="tabular mt-3 text-body-md text-on-surface-variant">
+                {p.interest_rate}% {p.interest_method} · {p.min_period_months}–
+                {p.max_period_months} months · {p.repayment_frequency}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+async function UsersAndRoles({ role }: { role: Role }) {
   const supabase = await createClient();
   const { data } = await supabase
     .from('app_users')
@@ -171,344 +365,126 @@ async function UsersAndRoles({ canManage }: { canManage: boolean }) {
   }
 
   return (
-    <Panel
-      title="Users & Roles"
-      icon="manage_accounts"
-      subtitle={`${rows.filter((r) => r.is_active).length} active staff accounts`}
-      className="scroll-mt-24"
-      id="users"
-      action={
-        canManage ? (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-body-md text-on-surface-variant">
+          {rows.filter((r) => r.is_active).length} active staff accounts. Only roles carrying
+          the settings permission can change the configuration.
+        </p>
+        {can(role, 'users.manage') ? (
           <Link
             href="/staff/users"
             className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
           >
-            Manage
+            Manage users
             <Icon name="chevron_right" size={15} />
           </Link>
-        ) : null
-      }
-    >
+        ) : null}
+      </div>
+
       <ul className="space-y-2.5">
-        {STAFF_ROLES.map((role) => (
-          <li
-            key={role}
-            className="flex items-start gap-3 rounded-2xl bg-surface-container p-3 shadow-neu-inset-sm"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Icon name="badge" size={16} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-body-md font-semibold text-on-surface">
-                  {ROLE_LABELS[role]}
-                </span>
-                <Badge tone={counts.get(role) ? 'info' : 'neutral'}>
-                  {counts.get(role) ?? 0}
-                </Badge>
-              </div>
-              <p className="mt-0.5 text-label-md font-normal text-on-surface-variant">
-                {ROLE_DESCRIPTIONS[role]}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </Panel>
-  );
-}
-
-/* ------------------------------------------------------------------------ */
-
-function Authentication() {
-  return (
-    <Panel title="Authentication" icon="security" className="scroll-mt-24" id="authentication">
-      <dl>
-        <DetailRow label="Sign-in identifier" value="Email address or member number" />
-        <DetailRow label="Password reset" value="Self-service email link" />
-        <DetailRow label="Session storage" value="Secure, http-only cookies" />
-        <DetailRow label="Access control" value="Role permissions + database row-level security" />
-      </dl>
-
-      <Alert tone="info" className="mt-4">
-        Authentication is handled by Supabase Auth. Password policy, session lifetime and multi-factor
-        options are configured in the Supabase project dashboard, not in this application.
-      </Alert>
-    </Panel>
-  );
-}
-
-/* ------------------------------------------------------------------------ */
-
-function Notifications() {
-  return (
-    <Panel
-      title="Notifications & Email"
-      icon="mail"
-      className="scroll-mt-24"
-      id="notifications"
-      action={
-        <Link
-          href="/staff/notifications"
-          className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
-        >
-          Inbox
-          <Icon name="chevron_right" size={15} />
-        </Link>
-      }
-    >
-      <dl>
-        <DetailRow label="In-app notifications" value={<Badge tone="success" dot>Active</Badge>} />
-        <DetailRow
-          label="Collection day reminders"
-          value={<Badge tone="success" dot>Active</Badge>}
-        />
-        <DetailRow
-          label="Outbound email"
-          value={<Badge tone="neutral" dot>Supabase Auth only</Badge>}
-        />
-      </dl>
-
-      <Alert tone="warning" className="mt-4" title="Email templates live outside this codebase">
-        Password-reset and account-verification emails are sent by Supabase Auth. Their wording and
-        sender name are edited in the Supabase dashboard under Authentication → Email Templates.
-      </Alert>
-    </Panel>
-  );
-}
-
-/* ------------------------------------------------------------------------ */
-
-async function SharesSettings() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('share_settings')
-    .select('unit_price, min_shares_on_join, updated_at')
-    .single();
-
-  return (
-    <Panel title="Shares" icon="pie_chart" className="scroll-mt-24" id="shares">
-      {data ? (
-        <dl>
-          <DetailRow label="Share unit price" value={<Money value={data.unit_price} />} />
-          <DetailRow
-            label="Minimum shares on joining"
-            value={<span className="tabular">{data.min_shares_on_join}</span>}
-          />
-          <DetailRow
-            label="Minimum buy-in"
-            value={<Money value={Number(data.unit_price) * Number(data.min_shares_on_join)} />}
-          />
-          <DetailRow label="Last updated" value={formatDate(data.updated_at)} />
-        </dl>
-      ) : (
-        <EmptyState
-          compact
-          icon="pie_chart"
-          title="Share settings unavailable"
-          description="The share price record could not be read."
-        />
-      )}
-    </Panel>
-  );
-}
-
-/* ------------------------------------------------------------------------ */
-
-async function SavingsSettings() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('sacco_groups')
-    .select('saving_frequency, saving_day, status')
-    .eq('status', 'active');
-
-  const groups = (data ?? []) as { saving_frequency: string; saving_day: number }[];
-  const byFrequency = new Map<string, number>();
-  for (const g of groups) {
-    byFrequency.set(g.saving_frequency, (byFrequency.get(g.saving_frequency) ?? 0) + 1);
-  }
-
-  return (
-    <Panel title="Savings" icon="account_balance_wallet" className="scroll-mt-24" id="savings">
-      <dl>
-        <DetailRow label="Collection model" value="Group-based, per configured saving day" />
-        <DetailRow label="Recording" value="Manual entry by staff, with a unique reference" />
-        <DetailRow label="Active groups" value={<span className="tabular">{groups.length}</span>} />
-        <DetailRow
-          label="Frequencies in use"
-          value={
-            byFrequency.size === 0 ? (
-              '—'
-            ) : (
-              <span className="flex flex-wrap justify-end gap-1.5">
-                {[...byFrequency.entries()].map(([f, n]) => (
-                  <Badge key={f} tone="info">
-                    {f} · {n}
-                  </Badge>
-                ))}
-              </span>
-            )
-          }
-        />
-      </dl>
-
-      <p className="mt-4 text-label-md font-normal leading-relaxed text-on-surface-variant">
-        Each group sets its own saving day and target amounts. Change them on the group&apos;s own
-        profile — there is no system-wide saving day.
-      </p>
-    </Panel>
-  );
-}
-
-/* ------------------------------------------------------------------------ */
-
-async function LoanProducts() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('loan_products')
-    .select('*')
-    .order('name', { ascending: true });
-
-  const rows = (data ?? []) as LoanProductRow[];
-
-  return (
-    <Panel
-      title="Loan Products"
-      icon="payments"
-      subtitle={`${rows.filter((r) => r.is_active).length} active of ${rows.length}`}
-      className="scroll-mt-24"
-      id="loans"
-      padded={false}
-    >
-      {rows.length === 0 ? (
-        <EmptyState
-          compact
-          icon="payments"
-          title="No loan products configured"
-          description="Loan products define the interest rate, term limits and guarantor requirements members can borrow under."
-        />
-      ) : (
-        <>
-          {/* Mobile: cards. */}
-          <ul className="divide-y divide-outline-variant/70 md:hidden">
-            {rows.map((p) => (
-              <li key={p.id} className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-body-md font-semibold text-on-surface">{p.name}</p>
-                    <p className="tabular text-label-md font-normal text-on-surface-variant">
-                      {p.code}
-                    </p>
-                  </div>
-                  <Badge tone={p.is_active ? 'success' : 'neutral'} dot>
-                    {p.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
-                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
-                  <SmallFact label="Interest" value={`${p.interest_rate}% ${p.interest_method}`} />
-                  <SmallFact label="Term" value={`${p.min_period_months}–${p.max_period_months} mo`} />
-                  <SmallFact label="Amount" value={`${compact(p.min_amount)}–${compact(p.max_amount)}`} />
-                  <SmallFact label="Guarantors" value={String(p.min_guarantors)} />
-                </dl>
-              </li>
-            ))}
-          </ul>
-
-          <div className="hidden md:block">
-            <DataTable
-              className="rounded-none border-0 shadow-none"
-              head={
-                <>
-                  <th>Product</th>
-                  <th className="text-right">Interest</th>
-                  <th>Method</th>
-                  <th className="text-right">Amount range</th>
-                  <th className="text-right">Term</th>
-                  <th className="text-right">Fee</th>
-                  <th className="text-center">Guarantors</th>
-                  <th>Status</th>
-                </>
-              }
+        {STAFF_ROLES.map((r) => {
+          const manages = ROLE_PERMISSIONS[r].includes('settings.manage');
+          return (
+            <li
+              key={r}
+              className="flex items-start gap-3 rounded-2xl bg-surface-container p-3.5 shadow-neu-inset-sm"
             >
-              {rows.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <div className="font-semibold text-on-surface">{p.name}</div>
-                    <div className="tabular text-label-md font-normal text-on-surface-variant">
-                      {p.code}
-                    </div>
-                  </td>
-                  <td className="tabular text-right font-semibold">{p.interest_rate}%</td>
-                  <td className="capitalize text-on-surface-variant">{p.interest_method}</td>
-                  <td className="tabular whitespace-nowrap text-right">
-                    {compact(p.min_amount)} – {compact(p.max_amount)}
-                  </td>
-                  <td className="tabular whitespace-nowrap text-right">
-                    {p.min_period_months}–{p.max_period_months} mo
-                  </td>
-                  <td className="tabular text-right">{p.processing_fee_pct}%</td>
-                  <td className="tabular text-center">{p.min_guarantors}</td>
-                  <td>
-                    <Badge tone={p.is_active ? 'success' : 'neutral'} dot>
-                      {p.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </DataTable>
-          </div>
-        </>
-      )}
-    </Panel>
-  );
-}
-
-function SmallFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-label-md font-normal text-on-surface-variant">{label}</dt>
-      <dd className="tabular truncate text-body-md font-semibold text-on-surface">{value}</dd>
+              <span
+                className={clsx(
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                  manages ? 'bg-primary/10 text-primary' : 'bg-surface-container-high text-on-surface-variant',
+                )}
+              >
+                <Icon name={manages ? 'shield_person' : 'badge'} size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-body-md font-semibold text-on-surface">
+                    {ROLE_LABELS[r]}
+                  </span>
+                  <Badge tone={counts.get(r) ? 'info' : 'neutral'}>{counts.get(r) ?? 0}</Badge>
+                  {manages ? <Badge tone="warning">Can change settings</Badge> : null}
+                </div>
+                <p className="mt-0.5 text-label-md font-normal text-on-surface-variant">
+                  {ROLE_DESCRIPTIONS[r]}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
 
-function compact(value: number): string {
-  const n = Number(value);
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
-  return String(n);
-}
-
 /* ------------------------------------------------------------------------ */
 
-function SystemPreferences() {
-  const facts = [
-    { icon: 'paid', label: 'Currency', value: 'UGX — Ugandan Shilling, whole shillings' },
-    { icon: 'calendar_today', label: 'Date format', value: 'Day Month Year (7 Sep 2026)' },
-    { icon: 'schedule', label: 'Week starts', value: 'Monday (ISO weekday 1–7)' },
-    { icon: 'receipt_long', label: 'Ledger', value: 'Append-only. Corrections are reversals.' },
-    { icon: 'policy', label: 'Audit trail', value: 'Every financial write is logged' },
-    { icon: 'print', label: 'Documents', value: 'Print to PDF with letterhead' },
-  ];
+/**
+ * Configuration changes, most recent first.
+ *
+ * The same audit log the rest of the system writes to, filtered to the module
+ * settings changes are recorded under. Every row carries who, what, when and —
+ * in the full log — the value before and after.
+ */
+async function ConfigurationHistory() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('audit_logs')
+    .select('id, actor_name, actor_role, action, summary, reason, created_at')
+    .eq('module', 'Settings')
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  const rows = (data ?? []) as {
+    id: number;
+    actor_name: string;
+    actor_role: string | null;
+    action: string;
+    summary: string;
+    reason: string | null;
+    created_at: string;
+  }[];
+
+  if (rows.length === 0) {
+    return (
+      <EmptyState
+        icon="policy"
+        title="No configuration changes recorded yet"
+        description="Every change to a setting, a share price or a loan product is logged here with the value before and after it."
+      />
+    );
+  }
 
   return (
-    <Panel title="System Preferences" icon="tune" className="scroll-mt-24" id="system">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {facts.map((f) => (
-          <div
-            key={f.label}
-            className="flex items-start gap-3 rounded-2xl bg-surface-container p-3.5 shadow-neu-inset-sm"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant">
-              <Icon name={f.icon} size={16} />
-            </span>
-            <div className="min-w-0">
-              <p className="text-label-md font-semibold text-on-surface-variant">{f.label}</p>
-              <p className="text-body-md text-on-surface">{f.value}</p>
-            </div>
-          </div>
+    <div className="space-y-4">
+      <ol className="space-y-2.5">
+        {rows.map((row) => (
+          <li key={row.id} className="rounded-2xl bg-surface-container p-3.5 shadow-neu-inset-sm">
+            <p className="text-body-md text-on-surface">{row.summary}</p>
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-label-md font-normal text-on-surface-variant">
+              <span className="font-semibold">{row.actor_name}</span>
+              {row.actor_role ? (
+                <span>· {ROLE_LABELS[row.actor_role as Role] ?? row.actor_role}</span>
+              ) : null}
+              <span>· {formatDate(row.created_at)}</span>
+            </p>
+            {row.reason ? (
+              <p className="mt-1.5 text-label-md font-normal italic text-on-surface-variant">
+                Reason: {row.reason}
+              </p>
+            ) : null}
+          </li>
         ))}
-      </div>
-    </Panel>
+      </ol>
+
+      <Link
+        href="/staff/audit?module=Settings"
+        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
+      >
+        Open the full audit log
+        <Icon name="chevron_right" size={15} />
+      </Link>
+    </div>
   );
 }

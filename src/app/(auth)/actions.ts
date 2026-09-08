@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
 import { landingPath, type Role } from '@/lib/rbac';
+import { getRules } from '@/lib/settings';
 
 const loginSchema = z.object({
   identifier: z.string().trim().min(1, 'Enter your email or member number.'),
@@ -144,11 +145,26 @@ export async function requestPasswordReset(
   return succeed(null, 'If that email is registered, a reset link is on its way.');
 }
 
-const passwordSchema = z
-  .string()
-  .min(8, 'Use at least 8 characters.')
-  .regex(/[a-zA-Z]/, 'Include at least one letter.')
-  .regex(/[0-9]/, 'Include at least one number.');
+/**
+ * The password rule, built from the SACCO's configured minimum length.
+ *
+ * The length is a setting (`security.password_min_length`) because it is a
+ * policy decision a SACCO is entitled to make; the letter and digit
+ * requirements stay in code because they are not a dial anyone asked to turn,
+ * and a configurable "may be all digits" is a footgun rather than a feature.
+ *
+ * Supabase Auth enforces its own project-level minimum as well. This is the
+ * check that produces a sentence naming the SACCO's own number.
+ */
+async function passwordSchema() {
+  const rules = await getRules();
+  const min = Math.max(6, Math.round(rules.passwordMinLength));
+  return z
+    .string()
+    .min(min, `Use at least ${min} characters.`)
+    .regex(/[a-zA-Z]/, 'Include at least one letter.')
+    .regex(/[0-9]/, 'Include at least one number.');
+}
 
 /** Set a new password from a reset link. The session comes from the link. */
 export async function resetPassword(
@@ -158,7 +174,7 @@ export async function resetPassword(
   const password = String(formData.get('password') ?? '');
   const confirm = String(formData.get('confirm') ?? '');
 
-  const parsed = passwordSchema.safeParse(password);
+  const parsed = (await passwordSchema()).safeParse(password);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message, field: 'password' };
   }
@@ -194,7 +210,7 @@ export async function changePassword(
   const password = String(formData.get('password') ?? '');
   const confirm = String(formData.get('confirm') ?? '');
 
-  const parsed = passwordSchema.safeParse(password);
+  const parsed = (await passwordSchema()).safeParse(password);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message, field: 'password' };
   }

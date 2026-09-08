@@ -6,6 +6,7 @@ import { MemberShell } from '@/components/layout/MemberShell';
 import { Icon, Avatar, Money } from '@/components/ui/primitives';
 import { SignOutButton } from '@/components/SignOutButton';
 import { MEMBER_MORE_NAV } from '@/lib/rbac';
+import { getBrand } from '@/lib/brand';
 
 export const metadata: Metadata = { title: 'More' };
 
@@ -20,6 +21,7 @@ export const metadata: Metadata = { title: 'More' };
  * this entry rather than linking to it.
  */
 export default async function MorePage() {
+  const brand = await getBrand();
   const user = await requireMember();
   const [m, unread] = await Promise.all([
     getMemberFinancials(user.memberId),
@@ -73,10 +75,18 @@ export default async function MorePage() {
 
         <SignOutButton />
 
+        {/* The registered name and motto, from the organisation record. The
+            Runyoro motto that used to sit here was a second, untranslated
+            literal that no screen let anyone edit; the motto on the record is
+            the one the SACCO actually maintains. */}
         <p className="text-label-md font-label-md text-on-surface-variant text-center normal-case">
-          Bakenye Unity and Development SACCO
-          <br />
-          Obumu Niigo Amaani
+          {brand.legalName}
+          {brand.motto ? (
+            <>
+              <br />
+              {brand.motto}
+            </>
+          ) : null}
         </p>
       </div>
     </MemberShell>

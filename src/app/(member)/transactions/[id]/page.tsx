@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { MemberShell } from '@/components/layout/MemberShell';
 import { Receipt } from '@/components/Receipt';
 import type { ReceiptPayload } from '@/types/db';
+import { getRules } from '@/lib/settings';
 
 export const metadata: Metadata = { title: 'Receipt' };
 
@@ -17,6 +18,7 @@ export const metadata: Metadata = { title: 'Receipt' };
  * produces a not-found rather than a leak.
  */
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
+  const rules = await getRules();
   await requireMember();
   const { id } = await params;
   const unread = await getUnreadCount();
@@ -31,7 +33,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   return (
     <MemberShell title="Receipt" backHref="/transactions" unreadCount={unread}>
       <div className="py-2">
-        <Receipt payload={data as ReceiptPayload} />
+        <Receipt payload={data as ReceiptPayload} footer={rules.receiptFooter || null} />
       </div>
     </MemberShell>
   );

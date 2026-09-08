@@ -20,7 +20,20 @@ import type { ReceiptPayload } from '@/types/db';
  * "Save as PDF" both produce a clean A4 document from this same markup. That
  * is deliberately cheaper than shipping a PDF library to a low-end phone.
  */
-export function Receipt({ payload }: { payload: ReceiptPayload }) {
+export function Receipt({
+  payload,
+  /**
+   * The SACCO's own sign-off, from `system.receipt_footer`.
+   *
+   * Optional so the design preview can render a receipt without a database. The
+   * Runyoro line that used to be hard-coded here was a second motto nobody
+   * could edit; whatever the SACCO sets in Settings is printed instead.
+   */
+  footer,
+}: {
+  payload: ReceiptPayload;
+  footer?: string | null;
+}) {
   const t = payload.transaction;
   const reversed = t.status !== 'posted';
 
@@ -156,9 +169,11 @@ export function Receipt({ payload }: { payload: ReceiptPayload }) {
           <p className="text-label-md font-label-md text-on-surface-variant normal-case">
             This is a computer-generated receipt and is valid without a signature.
           </p>
-          <p className="text-label-md font-label-md text-on-surface-variant/70 mt-1 normal-case">
-            Keep it for your records. Obumu Niigo Amaani.
-          </p>
+          {footer ? (
+            <p className="text-label-md font-label-md text-on-surface-variant/70 mt-1 normal-case">
+              {footer}
+            </p>
+          ) : null}
         </div>
       </div>
 

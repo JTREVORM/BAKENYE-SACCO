@@ -6,10 +6,12 @@ import { can } from '@/lib/rbac';
 import { Receipt } from '@/components/Receipt';
 import { ReverseTransaction } from './ReverseTransaction';
 import type { ReceiptPayload } from '@/types/db';
+import { getRules } from '@/lib/settings';
 
 export const metadata: Metadata = { title: 'Receipt' };
 
 export default async function StaffReceiptPage({ params }: { params: Promise<{ id: string }> }) {
+  const rules = await getRules();
   const user = await requirePermission('transactions.view');
   const { id } = await params;
 
@@ -23,7 +25,7 @@ export default async function StaffReceiptPage({ params }: { params: Promise<{ i
 
   return (
     <div className="mx-auto max-w-md">
-      <Receipt payload={payload} />
+      <Receipt payload={payload} footer={rules.receiptFooter || null} />
 
       {can(user.role, 'transactions.reverse') && payload.transaction.status === 'posted' ? (
         <div className="no-print mt-8">

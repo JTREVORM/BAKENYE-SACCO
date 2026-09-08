@@ -10,6 +10,8 @@ import { Icon } from '@/components/ui/primitives';
 import { ScrollArea } from '@/components/ui/scroll';
 import { MEMBER_NAV, MEMBER_MORE_NAV } from '@/lib/rbac';
 import { signOut } from '@/app/(auth)/actions';
+import { useBrand } from '@/components/brand/BrandProvider';
+import { splitName } from '@/lib/sacco-brand';
 
 /**
  * Mobile navigation for the member app: the menu button in the top bar and the
@@ -31,6 +33,8 @@ import { signOut } from '@/app/(auth)/actions';
  * covering the screen.
  */
 export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
+  const brand = useBrand();
+  const [nameTop, nameBottom] = splitName(brand.legalName);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -104,12 +108,12 @@ export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
             </span>
             <span className="min-w-0">
               <span className="block text-[12.5px] font-bold uppercase leading-[1.25] text-white">
-                Bakenye Unity and
+                {nameTop}
                 <br />
-                Development SACCO
+                {nameBottom}
               </span>
               <span className="text-secondary-container/90 mt-0.5 block truncate text-[10.5px] font-medium italic">
-                Together We Grow
+                {brand.motto}
               </span>
             </span>
           </Link>

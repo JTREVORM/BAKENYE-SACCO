@@ -20,7 +20,8 @@ import { formatUGX, toNumber } from '@/lib/money';
 import { formatDate } from '@/lib/format';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
 import { clsx } from '@/lib/clsx';
-import type { LoanProductRow, LoanQuote } from '@/types/db';
+import { REPAYMENT_FREQUENCY_LABELS, type LoanProductRow, type LoanQuote } from '@/types/db';
+import type { IconName } from '@/lib/icons';
 
 /**
  * Loan application wizard.
@@ -45,15 +46,43 @@ const PURPOSE_CATEGORIES = [
   'Other',
 ];
 
-/** Material Symbols glyph per product code, matching the Stitch step-1 cards. */
-const PRODUCT_ICONS: Record<string, string> = {
-  BIZ: 'work',
-  EMG: 'error',
-  SCH: 'assignment',
-  AGR: 'handshake',
-};
+/**
+ * A glyph for a product card.
+ *
+ * Products are data, so this cannot be a lookup keyed on the four codes that
+ * happened to be seeded — a SACCO that adds a Motorcycle Loan would get a blank
+ * circle where every other card has an icon. It matches on words in the
+ * product's own name and category, and falls back to the generic payments glyph
+ * that every loan can legitimately wear.
+ */
+const PRODUCT_ICON_WORDS: [RegExp, IconName][] = [
+  [/business|enterprise|trade|sme|commercial/i, 'work'],
+  [/emergency|medical|health|urgent/i, 'error'],
+  [/school|educat|fees|student|tuition/i, 'assignment'],
+  [/agri|farm|crop|livestock|harvest/i, 'handshake'],
+  [/home|house|build|construct|property|land/i, 'apartment'],
+  [/asset|vehicle|motor|equipment|machine/i, 'inventory_2'],
+  [/salary|advance|payroll/i, 'wallet'],
+  [/welfare|social|group/i, 'groups'],
+];
+
+function productIcon(product: LoanProductRow): IconName {
+  const haystack = `${product.name} ${product.category ?? ''}`;
+  for (const [pattern, icon] of PRODUCT_ICON_WORDS) {
+    if (pattern.test(haystack)) return icon;
+  }
+  return 'payments';
+}
 
 type Guarantor = { member: PickedMember; amount: number };
+
+/** What one repayment is called, given how often they fall due. */
+const INSTALLMENT_LABELS: Record<string, string> = {
+  daily: 'Daily repayment',
+  weekly: 'Weekly repayment',
+  biweekly: 'Repayment every two weeks',
+  monthly: 'Monthly repayment',
+};
 
 const STEP_TITLES = [
   'Loan Type',
@@ -328,7 +357,7 @@ export function LoanWizard({
                           : 'bg-surface-container text-primary',
                       )}
                     >
-                      <Icon name={PRODUCT_ICONS[p.code] ?? 'payments'} size={24} />
+                      <Icon name={productIcon(p)} size={24} />
                     </div>
                     <div className="min-w-0 flex-grow">
                       <h3 className="text-button-text font-button-text text-on-background mb-1">
@@ -340,7 +369,9 @@ export function LoanWizard({
                       <p className="text-label-md font-label-md text-on-surface-variant mt-2 normal-case">
                         {formatUGX(p.min_amount)} – {formatUGX(p.max_amount)} ·{' '}
                         {p.interest_rate}% p.a. · {p.min_period_months}–{p.max_period_months} months
-                        {p.min_guarantors > 0
+                        {' · '}
+                        {REPAYMENT_FREQUENCY_LABELS[p.repayment_frequency].toLowerCase()}
+                        {p.requires_guarantors && p.min_guarantors > 0
                           ? ` · ${p.min_guarantors} guarantor${p.min_guarantors === 1 ? '' : 's'}`
                           : ''}
                       </p>
@@ -806,7 +837,7 @@ function QuoteCard({ quote, emphasised = false }: { quote: LoanQuote; emphasised
           emphasised ? 'text-primary-fixed-dim' : 'text-on-primary-fixed-variant',
         )}
       >
-        Monthly repayment
+        {INSTALLMENT_LABELS[quote.repayment_frequency] ?? 'Each repayment'}
       </p>
       <Money
         value={quote.installment_amount}
@@ -818,7 +849,8 @@ function QuoteCard({ quote, emphasised = false }: { quote: LoanQuote; emphasised
           emphasised ? 'text-primary-fixed-dim' : 'text-on-primary-fixed-variant',
         )}
       >
-        for {quote.period_months} months
+        {quote.installment_count} payment{quote.installment_count === 1 ? '' : 's'} over{' '}
+        {quote.period_months} month{quote.period_months === 1 ? '' : 's'}
       </p>
 
       <dl
@@ -833,11 +865,27 @@ function QuoteCard({ quote, emphasised = false }: { quote: LoanQuote; emphasised
           value={formatUGX(quote.interest_amount)}
           emphasised={emphasised}
         />
-        <QuoteLine
-          label="Processing fee"
-          value={formatUGX(quote.processing_fee)}
-          emphasised={emphasised}
-        />
+        {toNumber(quote.processing_fee) > 0 ? (
+          <QuoteLine
+            label="Processing fee"
+            value={formatUGX(quote.processing_fee)}
+            emphasised={emphasised}
+          />
+        ) : null}
+        {toNumber(quote.insurance_fee) > 0 ? (
+          <QuoteLine
+            label="Insurance fee"
+            value={formatUGX(quote.insurance_fee)}
+            emphasised={emphasised}
+          />
+        ) : null}
+        {toNumber(quote.application_fee) > 0 ? (
+          <QuoteLine
+            label="Application fee"
+            value={formatUGX(quote.application_fee)}
+            emphasised={emphasised}
+          />
+        ) : null}
         <QuoteLine
           label="You receive"
           value={formatUGX(quote.net_disbursed)}

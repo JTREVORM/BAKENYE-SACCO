@@ -158,21 +158,137 @@ export type SavingsPlanRow = {
   created_at: string;
 };
 
+export type InterestMethod = 'flat' | 'reducing';
+
+/** How often a repayment falls due. A term is still agreed in months. */
+export type RepaymentFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly';
+
+/** What a late-payment penalty is charged on. */
+export type PenaltyBasis = 'overdue' | 'installment' | 'outstanding';
+
+export const REPAYMENT_FREQUENCY_LABELS: Record<RepaymentFrequency, string> = {
+  daily: 'Daily',
+  weekly: 'Weekly',
+  biweekly: 'Every two weeks',
+  monthly: 'Monthly',
+};
+
+export const PENALTY_BASIS_LABELS: Record<PenaltyBasis, string> = {
+  overdue: 'The overdue amount',
+  installment: 'The installment',
+  outstanding: 'The whole outstanding balance',
+};
+
+export const INTEREST_METHOD_LABELS: Record<InterestMethod, string> = {
+  flat: 'Flat rate',
+  reducing: 'Reducing balance',
+};
+
+/**
+ * A loan product, in full.
+ *
+ * Everything a loan is priced and granted on lives here rather than in code, so
+ * a new product is a form a manager fills in. The eligibility fields all treat
+ * zero as "no requirement", which is what lets the checks read as a list of
+ * conditions rather than a thicket of null handling.
+ */
 export type LoanProductRow = {
   id: string;
   name: string;
   code: string;
+  description: string | null;
+  category: string | null;
+
   interest_rate: number;
-  interest_method: 'flat' | 'reducing';
+  interest_method: InterestMethod;
+
   min_amount: number;
   max_amount: number;
   min_period_months: number;
   max_period_months: number;
+  repayment_frequency: RepaymentFrequency;
+
   processing_fee_pct: number;
+  insurance_fee_pct: number;
+  application_fee: number;
+  late_penalty_pct: number;
+  penalty_basis: PenaltyBasis;
+  grace_period_days: number;
+
+  min_savings_balance: number;
+  min_savings_multiple: number;
+  min_membership_months: number;
+  required_shares: number;
+  requires_guarantors: boolean;
   min_guarantors: number;
+  requires_collateral: boolean;
+  collateral_notes: string | null;
+  eligibility_notes: string | null;
+  instructions: string | null;
+
   is_active: boolean;
-  description: string | null;
+  sort_order: number;
   created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+};
+
+/** The payload `save_loan_product()` takes. `id` absent creates a product. */
+export type LoanProductInput = Omit<
+  LoanProductRow,
+  'id' | 'created_at' | 'updated_at' | 'updated_by'
+>;
+
+/* --------------------------------------------------------------------------
+ * The settings registry
+ *
+ * A setting describes itself — its category, label, help text, type, unit and
+ * bounds — so the settings screen renders from the database rather than from a
+ * hand-written form per value, and adding a setting is one INSERT.
+ * ----------------------------------------------------------------------- */
+
+export type SettingCategory =
+  | 'financial'
+  | 'loans'
+  | 'members'
+  | 'savings'
+  | 'groups'
+  | 'notifications'
+  | 'security'
+  | 'system';
+
+export type SettingValueType =
+  | 'money'
+  | 'number'
+  | 'integer'
+  | 'percent'
+  | 'boolean'
+  | 'text'
+  | 'select'
+  | 'multiselect';
+
+/** A value as stored: a number, a flag, a string, or a list of strings. */
+export type SettingValue = number | boolean | string | string[];
+
+export type SettingOption = { value: string; label: string };
+
+export type SystemSettingRow = {
+  key: string;
+  category: SettingCategory;
+  label: string;
+  description: string | null;
+  value_type: SettingValueType;
+  unit: string | null;
+  value: SettingValue;
+  default_value: SettingValue;
+  min_value: number | null;
+  max_value: number | null;
+  options: SettingOption[] | null;
+  /** Grave enough that the screen confirms the change before saving it. */
+  is_critical: boolean;
+  sort_order: number;
+  updated_at: string;
+  updated_by: string | null;
 };
 
 /**
@@ -609,19 +725,62 @@ export type DashboardMetrics = {
   savings_arrears: number;
 };
 
+/**
+ * What `quote_loan()` returns.
+ *
+ * The same function the application calls when it commits, so a member is
+ * never quoted one interest amount and charged another.
+ */
 export type LoanQuote = {
   product_id: string;
   product_name: string;
+  product_code: string;
   principal: number;
   interest_rate: number;
-  interest_method: string;
+  interest_method: InterestMethod;
   interest_amount: number;
+
   processing_fee: number;
+  insurance_fee: number;
+  application_fee: number;
+  total_fees: number;
+
   total_payable: number;
   period_months: number;
+  repayment_frequency: RepaymentFrequency;
+  installment_count: number;
   installment_amount: number;
   net_disbursed: number;
+
+  late_penalty_pct: number;
+  penalty_basis: PenaltyBasis;
+  grace_period_days: number;
+  requires_guarantors: boolean;
   min_guarantors: number;
+  requires_collateral: boolean;
+};
+
+/**
+ * What `loan_eligibility()` returns.
+ *
+ * `reasons` is every rule standing in the member's way, not the first one — a
+ * member told to wait six months and then told they also need three shares has
+ * been failed by the software rather than by the rule.
+ */
+export type LoanEligibility = {
+  eligible: boolean;
+  reasons: string[];
+  savings_balance: number;
+  share_count: number;
+  /** The most this member may borrow given their savings; null means no cap. */
+  borrowing_ceiling: number | null;
+  max_amount: number;
+  requires_guarantors: boolean;
+  min_guarantors: number;
+  guarantor_cover_pct: number;
+  requires_collateral: boolean;
+  collateral_notes: string | null;
+  eligibility_notes: string | null;
 };
 
 export type StatementRow = {
@@ -809,6 +968,7 @@ export type Database = {
       share_lots: Table<ShareLotRow>;
       share_settings: Table<ShareSettingsRow>;
       sacco_settings: Table<SaccoSettingsRow>;
+      system_settings: Table<SystemSettingRow>;
       savings_plans: Table<SavingsPlanRow>;
       savings_periods: Table<SavingsPeriodRow>;
       savings_payments: Table<SavingsPaymentRow>;
@@ -1244,6 +1404,62 @@ export type Database = {
       update_share_settings: {
         Args: { p_unit_price: number; p_min_shares_on_join: number };
         Returns: ShareSettingsRow;
+      };
+
+      /**
+       * Public branding only — name, short name and motto.
+       *
+       * Granted to `anon` so the sign-in screen can name the SACCO before
+       * anyone has signed in. Deliberately excludes the address, registration
+       * number and contact details.
+       */
+      sacco_public_brand: {
+        Args: Record<string, never>;
+        Returns: {
+          legal_name: string;
+          short_name: string;
+          motto: string;
+          contact_email: string | null;
+          contact_phone: string | null;
+        };
+      };
+
+      /* --- Configuration registry (0015 / 0016) --- */
+
+      /** Every setting as one object, keyed by setting key. */
+      settings_map: {
+        Args: Record<string, never>;
+        Returns: Record<string, SettingValue>;
+      };
+      /**
+       * Apply a batch of settings changes.
+       *
+       * Validated as a whole and applied in one transaction, so a bad sixth
+       * field cannot leave the first five saved.
+       */
+      update_settings: {
+        Args: { p_changes: Record<string, SettingValue>; p_reason?: string | null };
+        Returns: { changed: string[] };
+      };
+      reset_setting: {
+        Args: { p_key: string; p_reason?: string | null };
+        Returns: { changed: string[] };
+      };
+
+      /* --- Loan products and eligibility (0017 / 0018) --- */
+
+      /** Creates when `p_product_id` is null, edits when it is not. */
+      save_loan_product: {
+        Args: {
+          p_product_id: string | null;
+          p_payload: Partial<LoanProductInput>;
+          p_reason?: string | null;
+        };
+        Returns: LoanProductRow;
+      };
+      loan_eligibility: {
+        Args: { p_member_id: string; p_product_id: string; p_principal?: number | null };
+        Returns: LoanEligibility;
       };
       create_loan_product: {
         Args: {

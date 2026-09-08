@@ -191,10 +191,20 @@ export const STAFF_NAV: readonly NavItem[] = [
     ],
   },
   { label: 'Shares',       href: '/staff/shares',       icon: 'pie_chart',               permission: 'shares.view' },
-  // A `Loan Products` child belongs here, pointing at /staff/loans/products.
-  // It is left out until that route exists: a rail entry that 404s is worse
-  // than one that is missing.
-  { label: 'Loans',        href: '/staff/loans',        icon: 'payments',                permission: 'loans.view',      bottomBar: true },
+  {
+    label: 'Loans',
+    href: '/staff/loans',
+    icon: 'payments',
+    permission: 'loans.view',
+    bottomBar: true,
+    children: [
+      { label: 'All Loans',     href: '/staff/loans',          icon: 'payments',    permission: 'loans.view' },
+      // Visible to anyone who may see loans, because a loan officer needs to
+      // read a product's terms to explain them. Editing is guarded separately,
+      // by `settings.manage`, on the screen itself.
+      { label: 'Loan Products', href: '/staff/loans/products', icon: 'inventory_2', permission: 'loans.view' },
+    ],
+  },
   { label: 'Transactions', href: '/staff/transactions', icon: 'receipt_long',            permission: 'transactions.view' },
   { label: 'Finance',      href: '/staff/finance',      icon: 'account_balance',         permission: 'finance.view' },
   { label: 'Reports',      href: '/staff/reports',      icon: 'assessment',              permission: 'reports.view' },

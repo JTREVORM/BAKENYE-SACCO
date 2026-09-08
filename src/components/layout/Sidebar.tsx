@@ -8,6 +8,8 @@ import { clsx } from '@/lib/clsx';
 import { Icon } from '@/components/ui/primitives';
 import { ScrollArea } from '@/components/ui/scroll';
 import type { NavItem } from '@/lib/rbac';
+import { useBrand } from '@/components/brand/BrandProvider';
+import { splitName } from '@/lib/sacco-brand';
 
 /**
  * The persistent navigation rail.
@@ -183,6 +185,8 @@ export function Sidebar({
 
 /** Crest + the full organisation name, wrapped to two lines. */
 function BrandLockup({ onClose }: { onClose?: () => void }) {
+  const brand = useBrand();
+  const [nameTop, nameBottom] = splitName(brand.legalName);
   return (
     <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-4">
       <Link href="/staff" className="flex min-w-0 flex-1 items-center gap-3">
@@ -198,12 +202,12 @@ function BrandLockup({ onClose }: { onClose?: () => void }) {
         </span>
         <span className="min-w-0">
           <span className="block text-[12.5px] font-bold uppercase leading-[1.25] tracking-[0.01em] text-white">
-            Bakenye Unity and
+            {nameTop}
             <br />
-            Development SACCO
+            {nameBottom}
           </span>
           <span className="mt-0.5 block truncate text-[10.5px] font-medium italic text-secondary-container/90">
-            Together We Grow
+            {brand.motto}
           </span>
         </span>
       </Link>

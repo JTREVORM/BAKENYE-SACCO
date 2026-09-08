@@ -42,6 +42,9 @@ export const ICON_NAMES = [
   'apartment', 'security', 'palette', 'toggle_on', 'paid', 'currency_exchange',
   'north_east', 'south_west', 'more_horiz', 'grid_view', 'view_list',
   'picture_as_pdf', 'event', 'shield_person', 'wallet',
+  // Configuration centre and loan product management
+  'calculate', 'rule', 'inventory_2', 'category', 'sell', 'science',
+  'restart_alt', 'save', 'toggle_off', 'account_tree', 'fact_check',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

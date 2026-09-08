@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { clsx } from '@/lib/clsx';
 import { Icon } from '@/components/ui/primitives';
 import { MemberDrawer } from './MemberDrawer';
+import { getBrand } from '@/lib/brand';
 
 /**
  * The mobile top app bar: the menu button and the BND crest on the left,
@@ -16,7 +17,7 @@ import { MemberDrawer } from './MemberDrawer';
  * expire; the same asset now lives in `public/brand/bnd-logo.png`, so it keeps
  * working offline and is served with proper cache headers.
  */
-export function TopAppBar({
+export async function TopAppBar({
   title,
   backHref,
   unreadCount = 0,
@@ -28,6 +29,10 @@ export function TopAppBar({
   unreadCount?: number;
   action?: React.ReactNode;
 }) {
+  // The wordmark falls back to the SACCO's short name, from the organisation
+  // record rather than a literal.
+  const brand = await getBrand();
+
   return (
     <header
       data-app-header
@@ -58,7 +63,9 @@ export function TopAppBar({
             className="ml-1 h-8 w-8 shrink-0 object-contain"
           />
         )}
-        <h1 className="ml-1 truncate text-title-md text-on-surface">{title ?? 'BUD-SACCO'}</h1>
+        <h1 className="ml-1 truncate text-title-md text-on-surface">
+          {title ?? brand.shortName}
+        </h1>
       </div>
 
       <div className="flex shrink-0 items-center gap-1">

@@ -10,6 +10,7 @@ import { ROLE_LABELS, ROLE_PERMISSIONS, STAFF_ROLES, type Role } from '@/lib/rba
 import { formatAgo, formatDate } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
 import type { AppUserRow } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Users & Roles' };
 
@@ -124,7 +125,7 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
 
       {/* Desktop: table */}
       <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
-        <div className="overflow-x-auto">
+        <ScrollRow arrows="overlay" label="Table, scrolls sideways">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -186,7 +187,7 @@ async function UserList({ currentUserId }: { currentUserId: string }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRow>
       </div>
     </>
   );
@@ -238,7 +239,7 @@ function PermissionMatrix() {
         </p>
       </div>
 
-      <div className="scroll-x">
+      <ScrollRow arrows="overlay" className="scroll-x" label="Table, scrolls sideways">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -277,7 +278,7 @@ function PermissionMatrix() {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRow>
 
       <p className="text-label-md font-label-md text-on-surface-variant border-outline-variant border-t p-4 normal-case">
         Members see only their own savings, shares, loans, transactions and statements. That

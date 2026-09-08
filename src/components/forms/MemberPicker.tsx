@@ -152,7 +152,10 @@ export function MemberPicker({
 
         {open && !loading ? (
           <div
-            className="bg-surface animate-slide-up absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-xl shadow-lg"
+            // The styled scrollbar and scroll containment, but no arrows: a
+            // click target inside a listbox that is not one of the options
+            // would break the pattern the keyboard and screen reader rely on.
+            className="bg-surface scroll-panel animate-slide-up absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-2xl shadow-pop"
             role="listbox"
           >
             {results.length === 0 ? (

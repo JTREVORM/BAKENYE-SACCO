@@ -7,6 +7,7 @@ import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import { documentName } from '@/lib/print';
 import type { MemberStatement } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 /**
  * Member statement.
@@ -129,7 +130,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
 
           {/* Desktop / print: the ledger table */}
           <div className="bg-surface print-block hidden overflow-hidden rounded-xl md:block shadow-neu-sm">
-            <div className="scroll-x">
+            <ScrollRow arrows="overlay" className="scroll-x" label="Table, scrolls sideways">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b uppercase tracking-wider">
@@ -188,7 +189,7 @@ export function Statement({ statement }: { statement: MemberStatement }) {
                   </tr>
                 </tbody>
               </table>
-            </div>
+            </ScrollRow>
           </div>
         </>
       )}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
+import { ScrollArea } from '@/components/ui/scroll';
 import { clsx } from '@/lib/clsx';
 import { Icon, Avatar } from '@/components/ui/primitives';
 import { ROLE_LABELS, type NavItem, type Role } from '@/lib/rbac';
@@ -95,8 +96,16 @@ export function StaffShell({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-container-margin-mobile md:p-container-margin-desktop">
-          <div className="mx-auto w-full max-w-content">{children}</div>
+        {/* `<main>` stays the landmark; the scrolling happens one level in so
+            the pager can sit in the corner of the viewport. */}
+        <main className="flex min-h-0 flex-1 flex-col">
+          <ScrollArea
+            stableGutter
+            wrapperClassName="flex-1"
+            className="p-container-margin-mobile md:p-container-margin-desktop"
+          >
+            <div className="mx-auto w-full max-w-content">{children}</div>
+          </ScrollArea>
         </main>
       </div>
     </div>
@@ -165,7 +174,7 @@ function AccountMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-64 animate-slide-up overflow-hidden rounded-3xl bg-surface shadow-pop"
+          className="scroll-panel absolute right-0 z-50 mt-2 max-h-[calc(100dvh-6rem)] w-64 animate-slide-up overflow-y-auto rounded-3xl bg-surface shadow-pop"
         >
           <div className="flex items-center gap-3 border-b border-outline-variant/70 bg-surface-container-low px-4 py-3.5">
             <Avatar name={user.fullName} src={user.photoUrl} size={40} />

@@ -71,27 +71,81 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* A restrained scrollbar. The browser default is a wide grey slab that
-   * cheapens an otherwise composed panel, and it shows on every table. */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: theme('colors.outline-variant') transparent;
-  }
+  /* --- Scrollbars --------------------------------------------------------
+   * One scrollbar for the whole product, defined here and nowhere else.
+   *
+   * The shape is a 12px lane carrying a 6px thumb: the lane is what the
+   * pointer has to hit, the thumb is what the eye has to find, and separating
+   * the two is how a scrollbar can be slim without being fiddly. The 3px
+   * transparent border does that — it is padding drawn inside the track, held
+   * clear of the thumb by `background-clip`.
+   *
+   * The track stays transparent. A visible groove down the side of every
+   * panel, table and dialog in a financial back office is a lot of furniture
+   * for a control most people never look at directly.
+   *
+   * Colour moves in three steps — findable at rest, obvious under the pointer,
+   * brand navy while actually being dragged — so the thing under your hand is
+   * always the thing that is lit.
+   *
+   * Firefox gets `scrollbar-width`/`scrollbar-color`, which is the whole of
+   * what it supports; it renders a slim rounded thumb of its own from that. */
   *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
-  *::-webkit-scrollbar-track {
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-corner {
     background: transparent;
   }
   *::-webkit-scrollbar-thumb {
-    background-color: theme('colors.outline-variant');
+    background-color: theme('colors.scroll-thumb');
     border-radius: 999px;
     border: 3px solid transparent;
     background-clip: content-box;
   }
   *::-webkit-scrollbar-thumb:hover {
-    background-color: theme('colors.outline');
+    background-color: theme('colors.scroll-thumb-hover');
+  }
+  *::-webkit-scrollbar-thumb:active {
+    background-color: theme('colors.primary');
+  }
+
+  /* Firefox has no scrollbar pseudo-elements; it has `scrollbar-width` and
+   * `scrollbar-color`, which get it to the same slim two-tone bar without the
+   * hover and drag states, because the standard properties do not have any.
+   *
+   * The guard is load-bearing rather than tidiness. Chromium now supports both
+   * mechanisms, and setting either standard property there switches it to the
+   * standard painter and makes it ignore every `::-webkit-scrollbar` rule
+   * above — including the two state rules, which is the whole reason they are
+   * written. Confining the standard properties to engines that have no
+   * pseudo-elements is what keeps each engine on its best available path. */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: theme('colors.scroll-thumb') transparent;
+    }
+  }
+
+  /* Phones and tablets paint their own overlay scrollbar over the content
+   * while a finger is moving and hide it the rest of the time, which is the
+   * right behaviour there. Reserving a 12px lane would only narrow the content
+   * for a bar that is not being drawn in it.
+   *
+   * `hover: none` is what keeps this off a touchscreen laptop: that device has
+   * a fingertip *and* a mouse, so it wants the full scrollbar the mouse can
+   * grab, and `pointer: coarse` alone would take it away. */
+  @media (hover: none) and (pointer: coarse) {
+    *::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+    @supports not selector(::-webkit-scrollbar) {
+      * {
+        scrollbar-width: none;
+      }
+    }
   }
 }
 
@@ -104,6 +158,51 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* --- Scroll helpers ----------------------------------------------------
+   * Applied by `ScrollArea` / `ScrollRow` in `components/ui/scroll.tsx`. Put
+   * them on a scroller by hand only where those components cannot go. */
+
+  /* The scrollbar for a dark surface: the navigation rails and the drawer,
+   * where the default thumb would be a grey smear on navy. */
+  @supports not selector(::-webkit-scrollbar) {
+    .scroll-dark {
+      scrollbar-color: theme('colors.scroll-thumb-dark') transparent;
+    }
+  }
+  .scroll-dark::-webkit-scrollbar-thumb {
+    background-color: theme('colors.scroll-thumb-dark');
+  }
+  .scroll-dark::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.scroll-thumb-dark-hover');
+  }
+  .scroll-dark::-webkit-scrollbar-thumb:active {
+    background-color: theme('colors.scroll-thumb-dark-hover');
+  }
+
+  /* Hold the scrollbar's lane open whether or not there is a bar in it.
+   *
+   * For the page-length scrollers only. Without it, moving from a screen that
+   * scrolls to one that does not hands 12px back to the content and shifts the
+   * entire layout sideways, which on a dense register reads as the page
+   * flinching. It is also what guarantees the bar is never drawn on top of
+   * something a member needs to read.
+   *
+   * `scrollbar-gutter` is ignored where it is not supported, and the padding
+   * fallback is deliberately not attempted: it would double the gutter in every
+   * browser that does support it. */
+  .scroll-gutter {
+    scrollbar-gutter: stable;
+  }
+
+  /* A scroller whose height is bounded by its own content — dropdown lists,
+   * dialog bodies. `overscroll-contain` stops a flick at the end of the list
+   * carrying on into the page behind it, which is the single most disorienting
+   * thing a nested scroller can do on a touchscreen. */
+  .scroll-panel {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Top-bar clearance and the notch/gesture bar.
@@ -214,6 +313,7 @@
   .scroll-x {
     @apply -mx-container-margin-mobile overflow-x-auto px-container-margin-mobile
            md:mx-0 md:px-0;
+    overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
   }
 }
@@ -241,6 +341,7 @@
    * that must survive. */
   .no-print,
   [data-app-header],
+  [data-scroll-control],
   header nav,
   aside[data-sidebar] {
     display: none !important;

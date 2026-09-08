@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Field, Input, Button } from '@/components/ui/form';
 import { monthStart, monthEnd, toISODate } from '@/lib/format';
+import { ScrollRow } from '@/components/ui/scroll';
 
 /**
  * Date-range picker for statements and reports.
@@ -60,7 +61,7 @@ export function StatementRange({
   return (
     <div className="no-print bg-surface flex flex-col gap-4 rounded-xl p-4 shadow-neu-sm">
       {presets ? (
-        <div className="no-scrollbar flex gap-2 overflow-x-auto">
+        <ScrollRow label="Choose a period" className="no-scrollbar flex gap-2">
           {presetRanges.map((p) => {
             const active = p.from === from && p.to === to;
             return (
@@ -79,7 +80,7 @@ export function StatementRange({
               </button>
             );
           })}
-        </div>
+        </ScrollRow>
       ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">

@@ -2,40 +2,15 @@ import Link from 'next/link';
 import { clsx } from '@/lib/clsx';
 import { formatUGX, formatCompactUGX } from '@/lib/money';
 import { initials } from '@/lib/format';
+import { Icon } from './icon';
+import { ScrollRow } from './scroll';
 import type { IconName } from '@/lib/icons';
 
-/* ---------------------------------------------------------------------------
- * Icon
- *
- * Material Symbols, rendered as a ligature. `aria-hidden` because every icon in
- * this app is paired with a text label or an accessible name on its control.
- * ------------------------------------------------------------------------- */
-export function Icon({
-  name,
-  className,
-  size,
-  filled = true,
-  weight = 400,
-}: {
-  name: IconName | string;
-  className?: string;
-  size?: number;
-  filled?: boolean;
-  weight?: 300 | 400 | 500 | 600;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      className={clsx('material-symbols-outlined select-none', className)}
-      style={{
-        ...(size ? { fontSize: `${size}px`, width: `${size}px`, height: `${size}px` } : null),
-        fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' ${weight}, 'GRAD' 0, 'opsz' 24`,
-      }}
-    >
-      {name}
-    </span>
-  );
-}
+/* `Icon` is defined in `./icon` so that this module and `./scroll` can both
+ * use it without importing each other. It is re-exported here because it has
+ * always been imported from `@/components/ui/primitives` and there is no
+ * reason to touch fifty files to say the same thing differently. */
+export { Icon };
 
 /* ---------------------------------------------------------------------------
  * Money
@@ -158,10 +133,7 @@ export function Panel({
   return (
     <section
       id={id}
-      className={clsx(
-        'flex flex-col overflow-hidden rounded-2xl bg-surface shadow-neu',
-        className,
-      )}
+      className={clsx('flex flex-col overflow-hidden rounded-2xl bg-surface shadow-neu', className)}
     >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/70 px-5 py-4">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -372,7 +344,10 @@ export function MiniStat({
     </>
   );
   return href ? (
-    <Link href={href} className="min-w-0 rounded-xl px-2 py-1 transition-shadow hover:bg-surface hover:shadow-neu-sm">
+    <Link
+      href={href}
+      className="min-w-0 rounded-xl px-2 py-1 transition-shadow hover:bg-surface hover:shadow-neu-sm"
+    >
       {body}
     </Link>
   ) : (
@@ -449,10 +424,7 @@ export function Avatar({
         width={size}
         height={size}
         style={dim}
-        className={clsx(
-          'shrink-0 rounded-full object-cover shadow-neu-sm',
-          className,
-        )}
+        className={clsx('shrink-0 rounded-full object-cover shadow-neu-sm', className)}
       />
     );
   }
@@ -657,8 +629,7 @@ export function QuickAction({
 }) {
   const chip = {
     primary: 'bg-primary-fixed text-primary group-hover:bg-ink group-hover:text-white',
-    success:
-      'bg-tertiary-fixed text-tertiary group-hover:bg-tertiary group-hover:text-on-tertiary',
+    success: 'bg-tertiary-fixed text-tertiary group-hover:bg-tertiary group-hover:text-on-tertiary',
     accent:
       'bg-secondary-fixed text-on-secondary-fixed-variant group-hover:bg-secondary-container group-hover:text-on-secondary-fixed',
     danger: 'bg-error-container text-error group-hover:bg-error group-hover:text-on-error',
@@ -695,41 +666,45 @@ export function TabBar({
   className?: string;
 }) {
   return (
-    <nav
-      className={clsx(
-        'no-scrollbar -mx-container-margin-mobile flex gap-1 overflow-x-auto px-container-margin-mobile md:mx-0 md:px-0',
-        className,
-      )}
-    >
-      {/* The strip is a groove and the chosen tab is the one pill standing
-          out of it — the segmented control from the reference bar. */}
-      <span className="inline-flex gap-1 rounded-full bg-surface-container p-1.5 shadow-neu-inset">
-        {items.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            aria-current={t.active ? 'page' : undefined}
-            className={clsx(
-              'inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-button-text transition-[box-shadow,background-color,color]',
-              t.active
-                ? 'bg-ink text-white shadow-neu-dark-sm'
-                : 'text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm',
-            )}
-          >
-            {t.label}
-            {typeof t.count === 'number' ? (
-              <span
-                className={clsx(
-                  'rounded-full px-1.5 py-0.5 text-label-sm',
-                  t.active ? 'bg-white/20' : 'bg-surface-container-high',
-                )}
-              >
-                {t.count}
-              </span>
-            ) : null}
-          </Link>
-        ))}
-      </span>
+    <nav className={clsx('min-w-0', className)} aria-label="Views">
+      {/* Chip strips keep the scrollbar hidden: a 12px lane under a 44px row of
+          pills takes a quarter of its height for a control the arrows already
+          provide, and on a phone the strip is swiped anyway. */}
+      <ScrollRow
+        label="Views"
+        wrapperClassName="-mx-container-margin-mobile md:mx-0"
+        className="no-scrollbar flex gap-1 px-container-margin-mobile md:px-0"
+      >
+        {/* The strip is a groove and the chosen tab is the one pill standing
+            out of it — the segmented control from the reference bar. */}
+        <span className="inline-flex gap-1 rounded-full bg-surface-container p-1.5 shadow-neu-inset">
+          {items.map((t) => (
+            <Link
+              key={t.href}
+              href={t.href}
+              aria-current={t.active ? 'page' : undefined}
+              className={clsx(
+                'inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-button-text transition-[box-shadow,background-color,color]',
+                t.active
+                  ? 'bg-ink text-white shadow-neu-dark-sm'
+                  : 'text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm',
+              )}
+            >
+              {t.label}
+              {typeof t.count === 'number' ? (
+                <span
+                  className={clsx(
+                    'rounded-full px-1.5 py-0.5 text-label-sm',
+                    t.active ? 'bg-white/20' : 'bg-surface-container-high',
+                  )}
+                >
+                  {t.count}
+                </span>
+              ) : null}
+            </Link>
+          ))}
+        </span>
+      </ScrollRow>
     </nav>
   );
 }
@@ -753,13 +728,12 @@ export function DataTable({
   dense?: boolean;
 }) {
   return (
-    <div
-      className={clsx(
-        'overflow-hidden rounded-2xl bg-surface shadow-neu',
-        className,
-      )}
-    >
-      <div className="overflow-x-auto">
+    <div className={clsx('overflow-hidden rounded-2xl bg-surface shadow-neu', className)}>
+      {/* Overlaid arrows rather than flanking ones: a register is tall, and a
+          pair of full-height button columns either side would cost 70px of the
+          width the columns are already fighting over. They stay invisible
+          until the pointer is over the table. */}
+      <ScrollRow arrows="overlay" label="Table, scrolls sideways">
         <table className="w-full min-w-full border-collapse text-left">
           <thead className="border-b border-outline-variant bg-surface-container-low">
             <tr
@@ -782,7 +756,7 @@ export function DataTable({
             {children}
           </tbody>
         </table>
-      </div>
+      </ScrollRow>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from 'react';
 import { Icon } from './primitives';
+import { ScrollArea } from './scroll';
 import { clsx } from '@/lib/clsx';
 
 /**
@@ -111,12 +112,18 @@ export function Modal({
           </button>
         </div>
 
-        <div
-          className="overflow-y-auto p-5"
+        {/* A long form in a capped dialog is the case the brief calls out: the
+            body scrolls, `overscroll-contain` keeps a flick at the end of it
+            from scrolling the page behind, and a chevron appears at whichever
+            edge still has content. */}
+        <ScrollArea
+          controls="edge"
+          wrapperClassName="min-h-0"
+          className="scroll-panel p-5"
           style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
         >
           {children}
-        </div>
+        </ScrollArea>
       </div>
     </dialog>
   );

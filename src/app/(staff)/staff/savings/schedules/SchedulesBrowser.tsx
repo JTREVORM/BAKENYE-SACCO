@@ -11,6 +11,7 @@ import { SAVINGS_STATUS_LABELS, formatDate } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { SaccoGroupRow, SavingsScheduleRow, SavingsStatus } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 /**
  * Every scheduled contribution, filterable.
@@ -69,7 +70,7 @@ export function SchedulesBrowser({
           placeholder="Search by member name or number…"
         />
 
-        <div className="no-scrollbar flex gap-2 overflow-x-auto">
+        <ScrollRow label="Filter by status" className="no-scrollbar flex gap-2">
           {STATUSES.map((s) => (
             <button
               key={s || 'all'}
@@ -86,7 +87,7 @@ export function SchedulesBrowser({
               {s ? SAVINGS_STATUS_LABELS[s] : 'All'}
             </button>
           ))}
-        </div>
+        </ScrollRow>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <label className="flex flex-col gap-1">
@@ -212,7 +213,7 @@ export function SchedulesBrowser({
 
           {/* Desktop: table */}
           <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
-            <div className="overflow-x-auto">
+            <ScrollRow arrows="overlay" label="Table, scrolls sideways">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -285,7 +286,7 @@ export function SchedulesBrowser({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRow>
           </div>
 
           {totalPages > 1 ? (

@@ -16,6 +16,7 @@ import { formatUGX, percent, toNumber } from '@/lib/money';
 import { formatDate, monthStart, toISODate } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
 import type { SavingsKind, SavingsPerformanceRow } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Savings' };
 
@@ -288,7 +289,7 @@ async function Performance({
 
           {/* Desktop: table */}
           <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
-            <div className="overflow-x-auto">
+            <ScrollRow arrows="overlay" label="Table, scrolls sideways">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -358,7 +359,7 @@ async function Performance({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRow>
           </div>
         </>
       )}

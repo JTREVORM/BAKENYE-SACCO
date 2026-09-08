@@ -17,6 +17,7 @@ import {
 import { EmptyState, PanelSkeleton, Alert } from '@/components/ui/states';
 import { formatDate } from '@/lib/format';
 import type { LoanProductRow } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Settings' };
 
@@ -91,10 +92,12 @@ const SECTIONS = [
 /** In-page jump list. On a long settings screen this is the whole navigation. */
 function SettingsNav() {
   return (
-    <nav
-      aria-label="Settings sections"
-      className="no-scrollbar -mx-container-margin-mobile flex gap-2 overflow-x-auto px-container-margin-mobile pb-1 md:mx-0 md:flex-wrap md:px-0"
-    >
+    <nav aria-label="Settings sections" className="min-w-0">
+      <ScrollRow
+        label="Settings sections"
+        wrapperClassName="-mx-container-margin-mobile md:mx-0"
+        className="no-scrollbar flex gap-2 px-container-margin-mobile pb-1 md:flex-wrap md:px-0"
+      >
       {SECTIONS.map((s) => (
         <a
           key={s.id}
@@ -105,6 +108,7 @@ function SettingsNav() {
           {s.label}
         </a>
       ))}
+    </ScrollRow>
     </nav>
   );
 }

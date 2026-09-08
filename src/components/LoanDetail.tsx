@@ -12,6 +12,7 @@ import type {
   LoanRow,
   LoanScheduleRow,
 } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 export type LoanDetailData = {
   loan: LoanRow;
@@ -240,7 +241,7 @@ export function LoanDetail({
             })}
           </ul>
 
-          <div className="scroll-x hidden md:block">
+          <ScrollRow arrows="overlay" wrapperClassName="hidden md:block" className="scroll-x" label="Table, scrolls sideways">
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -279,7 +280,7 @@ export function LoanDetail({
                 })}
               </tbody>
             </table>
-          </div>
+          </ScrollRow>
         </section>
       ) : null}
 

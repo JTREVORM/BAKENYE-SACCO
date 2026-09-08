@@ -28,6 +28,7 @@ import {
   EmptyState,
 } from '@/components/ui/states';
 import { TrendChart } from '@/components/staff/TrendChart';
+import { ScrollArea } from '@/components/ui/scroll';
 import { formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/format';
 import { formatUGX, percent, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
@@ -662,7 +663,8 @@ async function RecentActivity() {
       icon="history"
       action={<ViewAllLink href="/staff/audit" />}
       className="max-h-[520px]"
-      bodyClassName="overflow-y-auto"
+      padded={false}
+      bodyClassName="flex min-h-0 flex-col"
     >
       {rows.length === 0 ? (
         <EmptyState
@@ -672,7 +674,8 @@ async function RecentActivity() {
           description="Member registrations, savings and loan decisions will appear here."
         />
       ) : (
-        <ol className="space-y-0">
+        <ScrollArea controls="edge" wrapperClassName="min-h-0 flex-1" className="p-5">
+          <ol className="space-y-0">
           {rows.map((a, i) => (
             <li key={a.id} className="flex gap-3.5">
               <div className="relative flex shrink-0 flex-col items-center">
@@ -695,8 +698,9 @@ async function RecentActivity() {
                 </p>
               </div>
             </li>
-          ))}
-        </ol>
+            ))}
+          </ol>
+        </ScrollArea>
       )}
     </Panel>
   );

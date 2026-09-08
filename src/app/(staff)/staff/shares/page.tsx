@@ -10,6 +10,7 @@ import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
 import { formatUGX, toNumber } from '@/lib/money';
 import { formatDate } from '@/lib/format';
 import type { ShareLotRow } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Shares' };
 
@@ -201,7 +202,7 @@ async function Register({ canSell }: { canSell: boolean }) {
             </ul>
 
             {/* Desktop: table */}
-            <div className="hidden overflow-x-auto md:block">
+            <ScrollRow arrows="overlay" wrapperClassName="hidden md:block" label="Table, scrolls sideways">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -249,7 +250,7 @@ async function Register({ canSell }: { canSell: boolean }) {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRow>
           </>
         )}
       </section>

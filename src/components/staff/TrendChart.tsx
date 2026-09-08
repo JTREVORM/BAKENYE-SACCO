@@ -107,13 +107,18 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
 
           return (
             <g key={s.label}>
+              {/* One string, not several. A browser treats every child node of
+                  `<title>` as text and React refuses to reconcile an array
+                  there, so the interpolated form threw a hydration error on
+                  every dashboard load. */}
               <title>
-                {s.label}: {formatUGX(s.total)}
-                {s.total > 0
-                  ? ` — savings ${formatUGX(s.savings)}, repayments ${formatUGX(
-                      s.repayments,
-                    )}, shares ${formatUGX(s.shares)}`
-                  : ''}
+                {`${s.label}: ${formatUGX(s.total)}${
+                  s.total > 0
+                    ? ` — savings ${formatUGX(s.savings)}, repayments ${formatUGX(
+                        s.repayments,
+                      )}, shares ${formatUGX(s.shares)}`
+                    : ''
+                }`}
               </title>
 
               {SERIES.map((seg, j) => {

@@ -8,6 +8,7 @@ import { Button, SearchInput } from '@/components/ui/form';
 import { TXN_LABELS } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
 import type { TransactionFeedRow, TxnType } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 /**
  * Filterable, paginated transaction feed.
@@ -77,7 +78,11 @@ export function TransactionList({
 
       {/* Horizontally scrolling filter chips — the pattern Stitch used for the
           loans screen, reused here so the two feel like one app. */}
-      <div className="no-scrollbar -mx-container-margin-mobile px-container-margin-mobile flex gap-2 overflow-x-auto md:mx-0 md:flex-wrap md:px-0">
+      <ScrollRow
+        label="Filter by type"
+        wrapperClassName="-mx-container-margin-mobile md:mx-0"
+        className="no-scrollbar flex gap-2 px-container-margin-mobile md:flex-wrap md:px-0"
+      >
         {TYPE_FILTERS.map((f) => (
           <button
             key={f.value}
@@ -94,7 +99,7 @@ export function TransactionList({
             {f.label}
           </button>
         ))}
-      </div>
+      </ScrollRow>
 
       {rows.length === 0 ? (
         <div className="bg-surface rounded-xl shadow-neu-sm">

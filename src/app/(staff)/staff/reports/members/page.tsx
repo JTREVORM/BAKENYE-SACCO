@@ -10,6 +10,7 @@ import { documentName } from '@/lib/print';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import type { MemberFinancialsRow, MemberStatus } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Member Register' };
 
@@ -104,7 +105,7 @@ export default async function MemberRegisterPage({
         <EmptyState icon="group" title="No members" description="The register is empty." />
       ) : (
         <div className="bg-surface shadow-card print-block overflow-hidden rounded-xl">
-          <div className="scroll-x">
+          <ScrollRow arrows="overlay" className="scroll-x" label="Table, scrolls sideways">
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -149,7 +150,7 @@ export default async function MemberRegisterPage({
                 </tr>
               </tbody>
             </table>
-          </div>
+          </ScrollRow>
         </div>
       )}
 

@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { SearchInput } from '@/components/ui/form';
 import { clsx } from '@/lib/clsx';
+import { ScrollRow } from '@/components/ui/scroll';
 
 const MODULES = [
   { value: '', label: 'All Modules' },
@@ -37,7 +38,7 @@ export function AuditFilters() {
         placeholder="Search by user, action..."
       />
 
-      <div className="no-scrollbar flex gap-2 overflow-x-auto">
+      <ScrollRow label="Filter by module" className="no-scrollbar flex gap-2">
         {MODULES.map((m) => (
           <button
             key={m.value}
@@ -54,7 +55,7 @@ export function AuditFilters() {
             {m.label}
           </button>
         ))}
-      </div>
+      </ScrollRow>
     </div>
   );
 }

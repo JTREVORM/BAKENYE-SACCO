@@ -14,6 +14,7 @@ import { formatUGX, percent, toNumber } from '@/lib/money';
 import { savingDayLabel } from '@/lib/groups';
 import { clsx } from '@/lib/clsx';
 import type { CollectionSheet as Sheet, SavingsScheduleRow, SavingsStatus } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 const FILTERS: { value: '' | SavingsStatus; label: string }[] = [
   { value: '', label: 'All' },
@@ -156,7 +157,7 @@ export function CollectionSheet({
         />
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto">
+          <ScrollRow label="Filter by status" wrapperClassName="min-w-0 flex-1" className="no-scrollbar flex gap-2">
             {FILTERS.map((f) => (
               <button
                 key={f.value || 'all'}
@@ -174,7 +175,7 @@ export function CollectionSheet({
                 {f.value && counts[f.value] ? ` (${counts[f.value]})` : ''}
               </button>
             ))}
-          </div>
+          </ScrollRow>
 
           {sheet.cycles.length > 1 ? (
             <label className="flex shrink-0 items-center gap-2">
@@ -306,7 +307,7 @@ export function CollectionSheet({
 
           {/* Desktop: the full sheet */}
           <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
-            <div className="overflow-x-auto">
+            <ScrollRow arrows="overlay" label="Table, scrolls sideways">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -392,7 +393,7 @@ export function CollectionSheet({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRow>
           </div>
         </>
       )}

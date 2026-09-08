@@ -16,6 +16,7 @@ import { formatDate, monthStart, toISODate, TXN_LABELS } from '@/lib/format';
 import { formatAmount, formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { MemberStatement } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Member ledger' };
 
@@ -195,7 +196,7 @@ export default async function MemberLedgerPage({
 
           {/* Desktop and print: the real ledger. */}
           <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block print:block">
-            <div className="overflow-x-auto">
+            <ScrollRow arrows="overlay" label="Table, scrolls sideways">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -259,7 +260,7 @@ export default async function MemberLedgerPage({
                   </tr>
                 </tbody>
               </table>
-            </div>
+            </ScrollRow>
           </div>
         </>
       )}

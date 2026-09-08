@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { clsx } from '@/lib/clsx';
 import { Icon } from '@/components/ui/primitives';
+import { ScrollArea } from '@/components/ui/scroll';
 import type { NavItem } from '@/lib/rbac';
 
 /**
@@ -38,7 +39,9 @@ export function Sidebar({
   }
 
   // Close the drawer on navigation and on Escape.
-  useEffect(() => { onClose(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [pathname]);
+  useEffect(() => {
+    onClose(); /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -50,70 +53,83 @@ export function Sidebar({
   }, [open, onClose]);
 
   const nav = (
-    <nav className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-3 py-5" aria-label="Sections">
-      {items.map((item) => {
-        const active = isActive(item.href);
-        const children = item.children ?? [];
+    // Twelve sections with sub-items open under the active one will outrun a
+    // 600px-tall laptop viewport, so the rail scrolls — with the dark-surface
+    // scrollbar and a chevron at whichever end still has something on it.
+    <nav className="flex min-h-0 flex-1 flex-col" aria-label="Sections">
+      <ScrollArea
+        controls="edge"
+        tone="dark"
+        wrapperClassName="flex-1"
+        className="space-y-0.5 px-3 py-5"
+      >
+        {items.map((item) => {
+          const active = isActive(item.href);
+          const children = item.children ?? [];
 
-        return (
-          <div key={item.href}>
-            <Link
-              href={item.href}
-              aria-current={active ? 'page' : undefined}
-              className={clsx(
-                'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-button-text transition-colors duration-150',
-                active
-                  ? 'bg-white/15 text-white'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white',
-              )}
-            >
-              {/* The gold rail marker: legible even where the translucent
-                  active pill washes out in bright sunlight. */}
-              <span
-                aria-hidden="true"
+          return (
+            <div key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
                 className={clsx(
-                  'absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-secondary-container transition-opacity',
-                  active ? 'opacity-100' : 'opacity-0',
+                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-button-text transition-colors duration-150',
+                  active
+                    ? 'bg-white/15 text-white'
+                    : 'text-white/60 hover:bg-white/5 hover:text-white',
                 )}
-              />
-              <Icon
-                name={item.icon}
-                size={21}
-                filled={active}
-                className={clsx('shrink-0', active ? 'text-secondary-container' : 'text-white/55 group-hover:text-white')}
-              />
-              <span className="truncate">{item.label}</span>
-            </Link>
+              >
+                {/* The gold rail marker: legible even where the translucent
+                  active pill washes out in bright sunlight. */}
+                <span
+                  aria-hidden="true"
+                  className={clsx(
+                    'absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-secondary-container transition-opacity',
+                    active ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
+                <Icon
+                  name={item.icon}
+                  size={21}
+                  filled={active}
+                  className={clsx(
+                    'shrink-0',
+                    active ? 'text-secondary-container' : 'text-white/55 group-hover:text-white',
+                  )}
+                />
+                <span className="truncate">{item.label}</span>
+              </Link>
 
-            {/* Sub-sections appear only while their parent is the open section,
+              {/* Sub-sections appear only while their parent is the open section,
                 so the rail stays a scannable list. */}
-            {active && children.length > 0 ? (
-              <ul className="ml-6 mt-1 space-y-0.5 border-l border-white/15 pl-3">
-                {children.map((child) => {
-                  const childActive = pathname === child.href;
-                  return (
-                    <li key={child.href}>
-                      <Link
-                        href={child.href}
-                        aria-current={childActive ? 'page' : undefined}
-                        className={clsx(
-                          'flex min-h-[38px] items-center gap-2 rounded-lg px-3 text-label-md transition-colors',
-                          childActive
-                            ? 'text-secondary-container'
-                            : 'text-white/55 hover:bg-white/5 hover:text-white',
-                        )}
-                      >
-                        <Icon name={child.icon} size={17} filled={childActive} />
-                        <span className="truncate">{child.label}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-          </div>
-        );
-      })}
+              {active && children.length > 0 ? (
+                <ul className="ml-6 mt-1 space-y-0.5 border-l border-white/15 pl-3">
+                  {children.map((child) => {
+                    const childActive = pathname === child.href;
+                    return (
+                      <li key={child.href}>
+                        <Link
+                          href={child.href}
+                          aria-current={childActive ? 'page' : undefined}
+                          className={clsx(
+                            'flex min-h-[38px] items-center gap-2 rounded-lg px-3 text-label-md transition-colors',
+                            childActive
+                              ? 'text-secondary-container'
+                              : 'text-white/55 hover:bg-white/5 hover:text-white',
+                          )}
+                        >
+                          <Icon name={child.icon} size={17} filled={childActive} />
+                          <span className="truncate">{child.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </div>
+          );
+        })}
+      </ScrollArea>
     </nav>
   );
 

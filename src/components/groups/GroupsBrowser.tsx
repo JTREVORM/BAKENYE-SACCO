@@ -18,6 +18,7 @@ import { formatUGX, percent, toNumber } from '@/lib/money';
 import { formatDate } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
 import type { GroupOverviewRow } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 /**
  * The group register.
@@ -79,7 +80,7 @@ export function GroupsBrowser({
         />
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto">
+          <ScrollRow label="Filter by status" wrapperClassName="min-w-0 flex-1" className="no-scrollbar flex gap-2">
             {STATUSES.map((s) => (
               <button
                 key={s.value || 'all'}
@@ -96,7 +97,7 @@ export function GroupsBrowser({
                 {s.label}
               </button>
             ))}
-          </div>
+          </ScrollRow>
 
           <label className="flex shrink-0 items-center gap-2">
             <span className="text-label-md font-label-md text-on-surface-variant">Saving day</span>
@@ -225,7 +226,7 @@ export function GroupsBrowser({
 
           {/* Desktop: table */}
           <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
-            <div className="overflow-x-auto">
+            <ScrollRow arrows="overlay" label="Table, scrolls sideways">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -316,7 +317,7 @@ export function GroupsBrowser({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRow>
           </div>
 
           {totalPages > 1 ? (

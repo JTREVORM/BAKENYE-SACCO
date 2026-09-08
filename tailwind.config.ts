@@ -110,6 +110,17 @@ const config: Config = {
         'on-error': '#ffffff',
         'on-error-container': '#8c1d1d',
 
+        /* --- Scrollbars -----------------------------------------------------
+         * The thumb is its own token rather than a reuse of `outline`, because
+         * it answers a different question. An outline separates two things; a
+         * thumb has to be findable against the page at a glance and then get
+         * out of the way, which lands it a step darker at rest and darker again
+         * under the pointer. The dark pair is for the navy rails. */
+        'scroll-thumb': '#b4bfd2',
+        'scroll-thumb-hover': '#8d97ac',
+        'scroll-thumb-dark': 'rgba(255, 255, 255, 0.22)',
+        'scroll-thumb-dark-hover': 'rgba(255, 255, 255, 0.4)',
+
         /* --- Caution (amber) ------------------------------------------------ */
         warning: '#a35a00',
         'warning-container': '#fdefdc',

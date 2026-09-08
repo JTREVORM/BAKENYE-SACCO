@@ -11,6 +11,7 @@ import { formatDate } from '@/lib/format';
 import { toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { LoanPortfolioRow } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 /**
  * Loan portfolio.
@@ -83,7 +84,7 @@ export function LoansBrowser({
         placeholder="Search by member, loan number or product…"
       />
 
-      <div className="no-scrollbar flex gap-2 overflow-x-auto">
+      <ScrollRow label="Filter by status" className="no-scrollbar flex gap-2">
         {STATUS_FILTERS.map((f) => (
           <button
             key={f.value}
@@ -100,7 +101,7 @@ export function LoansBrowser({
             {f.label}
           </button>
         ))}
-      </div>
+      </ScrollRow>
 
       <p className="text-label-md font-label-md text-on-surface-variant normal-case">
         {total.toLocaleString()} {total === 1 ? 'loan' : 'loans'}
@@ -170,7 +171,7 @@ export function LoansBrowser({
 
           {/* Desktop: table */}
           <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
-            <div className="overflow-x-auto">
+            <ScrollRow arrows="overlay" label="Table, scrolls sideways">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -234,7 +235,7 @@ export function LoansBrowser({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRow>
           </div>
 
           {totalPages > 1 ? (

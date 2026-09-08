@@ -58,18 +58,14 @@ export function TopAppBar({
             className="ml-1 h-8 w-8 shrink-0 object-contain"
           />
         )}
-        <h1 className="ml-1 truncate text-title-md text-on-surface">
-          {title ?? 'BUD-SACCO'}
-        </h1>
+        <h1 className="ml-1 truncate text-title-md text-on-surface">{title ?? 'BUD-SACCO'}</h1>
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
         {action}
         <Link
           href="/notifications"
-          aria-label={
-            unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
-          }
+          aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
           className="relative flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-shadow hover:bg-surface hover:shadow-neu-sm active:shadow-neu-pressed"
         >
           <Icon name="notifications" size={21} filled={false} />

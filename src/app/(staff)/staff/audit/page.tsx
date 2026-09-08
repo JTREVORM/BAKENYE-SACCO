@@ -10,6 +10,7 @@ import { AuditPager } from './AuditPager';
 import { ROLE_LABELS, type Role } from '@/lib/rbac';
 import { formatDateTime } from '@/lib/format';
 import type { AuditLogRow } from '@/types/db';
+import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Audit Log' };
 
@@ -148,7 +149,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
 
       {/* Desktop: table */}
       <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
-        <div className="overflow-x-auto">
+        <ScrollRow arrows="overlay" label="Table, scrolls sideways">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
@@ -199,7 +200,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRow>
       </div>
 
       {totalPages > 1 ? <AuditPager page={page} totalPages={totalPages} /> : null}

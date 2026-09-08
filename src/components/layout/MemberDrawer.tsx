@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { clsx } from '@/lib/clsx';
 import { Icon } from '@/components/ui/primitives';
+import { ScrollArea } from '@/components/ui/scroll';
 import { MEMBER_NAV, MEMBER_MORE_NAV } from '@/lib/rbac';
 import { signOut } from '@/app/(auth)/actions';
 
@@ -122,26 +123,30 @@ export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
           </button>
         </div>
 
-        <nav
-          className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-3 py-5"
-          aria-label="Sections"
-        >
-          {primary.map((item) => (
-            <DrawerLink key={item.href} {...item} active={isActive(item.href)} />
-          ))}
+        <nav className="flex min-h-0 flex-1 flex-col" aria-label="Sections">
+          <ScrollArea
+            controls="edge"
+            tone="dark"
+            wrapperClassName="flex-1"
+            className="scroll-panel space-y-0.5 px-3 py-5"
+          >
+            {primary.map((item) => (
+              <DrawerLink key={item.href} {...item} active={isActive(item.href)} />
+            ))}
 
-          <p className="text-label-sm px-3 pb-1.5 pt-5 uppercase tracking-wider text-white/40">
-            More
-          </p>
+            <p className="text-label-sm px-3 pb-1.5 pt-5 uppercase tracking-wider text-white/40">
+              More
+            </p>
 
-          {MEMBER_MORE_NAV.map((item) => (
-            <DrawerLink
-              key={item.href}
-              {...item}
-              active={isActive(item.href)}
-              badge={item.href === '/notifications' ? unreadCount : 0}
-            />
-          ))}
+            {MEMBER_MORE_NAV.map((item) => (
+              <DrawerLink
+                key={item.href}
+                {...item}
+                active={isActive(item.href)}
+                badge={item.href === '/notifications' ? unreadCount : 0}
+              />
+            ))}
+          </ScrollArea>
         </nav>
 
         <div className="shrink-0 border-t border-white/10 p-3">

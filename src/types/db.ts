@@ -464,20 +464,22 @@ export type AuditLogRow = {
 // --- Share and savings categories -------------------------------------------
 
 /**
- * `share_categories` — Diamond, Gold and Silver.
+ * A share category — Diamond, Gold and Silver — as read from
+ * `share_categories_priced`.
  *
- * `required_amount` is generated in the database (`required_shares` ×
- * `share_price`), so the two can never disagree. `qualification_months` is the
- * window measured from each member's own joining date; null means the category
- * has no deadline.
+ * `share_price` is not a property of the category. It is the SACCO's single
+ * share price from `share_settings`, repeated on each row for convenience, and
+ * `required_amount` is `required_shares` times it. Both are null if the price
+ * cannot be read. `qualification_months` is the window measured from each
+ * member's own joining date; null means the category has no deadline.
  */
 export type ShareCategoryRow = {
   id: string;
   code: string;
   name: string;
   required_shares: number;
-  share_price: number;
-  required_amount: number;
+  share_price: number | null;
+  required_amount: number | null;
   qualification_months: number | null;
   description: string | null;
   status: CategoryStatus;
@@ -486,6 +488,9 @@ export type ShareCategoryRow = {
   created_at: string;
   updated_at: string;
 };
+
+/** The `share_categories` table itself: tiers carry no price of their own. */
+export type ShareCategoryTableRow = Omit<ShareCategoryRow, 'share_price' | 'required_amount'>;
 
 /** `savings_categories` — Diamond Saver, Gold Saver, Silver Saver. */
 export type SavingsCategoryRow = {
@@ -560,8 +565,9 @@ export type ShareCategorySummaryRow = {
   code: string;
   name: string;
   required_shares: number;
-  share_price: number;
-  required_amount: number;
+  /** The SACCO's one share price, and the total derived from it. */
+  share_price: number | null;
+  required_amount: number | null;
   qualification_months: number | null;
   status: CategoryStatus;
   sort_order: number;
@@ -986,7 +992,8 @@ export type ShareCategoryTile = {
   code: string;
   name: string;
   required_shares: number;
-  required_amount: number;
+  /** Required shares × the SACCO's one share price; null if it cannot be read. */
+  required_amount: number | null;
   status: CategoryStatus;
   members: number;
   qualified: number;
@@ -1095,7 +1102,7 @@ export type Database = {
       expense_entries: Table<ExpenseEntryRow>;
       notifications: Table<NotificationRow>;
       audit_logs: Table<AuditLogRow>;
-      share_categories: Table<ShareCategoryRow>;
+      share_categories: Table<ShareCategoryTableRow>;
       savings_categories: Table<SavingsCategoryRow>;
       payment_intents: Table<PaymentIntentRow>;
     };
@@ -1111,6 +1118,7 @@ export type Database = {
       member_share_progress: View<MemberShareProgressRow>;
       savings_category_summary: View<SavingsCategorySummaryRow>;
       share_category_summary: View<ShareCategorySummaryRow>;
+      share_categories_priced: View<ShareCategoryRow>;
     };
     /**
      * RPC signatures.
@@ -1370,12 +1378,13 @@ export type Database = {
         Returns: { rows: LoanPortfolioRow[]; total: number; limit: number; offset: number };
       };
       open_savings_periods: { Args: { p_kind: SavingsKind; p_on?: string }; Returns: number };
+      /** The SACCO's one share price, from `share_settings`. */
+      share_unit_price: { Args: Record<PropertyKey, never>; Returns: number | null };
       /* --- Categories, schedules and collection --------------------------- */
       create_share_category: {
         Args: {
           p_name: string;
           p_required_shares: number;
-          p_share_price: number;
           p_qualification_months?: number | null;
           p_description?: string | null;
           p_code?: string | null;
@@ -1388,7 +1397,6 @@ export type Database = {
           p_id: string;
           p_name: string;
           p_required_shares: number;
-          p_share_price: number;
           p_qualification_months?: number | null;
           p_description?: string | null;
           p_sort_order?: number;

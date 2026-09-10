@@ -5,6 +5,7 @@ import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
 import { getRules } from '@/lib/settings';
+import { getShareUnitPrice } from '@/lib/queries';
 import { Badge, Icon, Money, PageTitle, ProgressBar } from '@/components/ui/primitives';
 import { EmptyState, ErrorState, TableSkeleton } from '@/components/ui/states';
 import { ShareCategoryDialog } from '@/components/categories/ShareCategoryDialog';
@@ -32,10 +33,14 @@ export const metadata: Metadata = { title: 'Categories' };
  * Category management — section 16 of the brief.
  *
  * Share categories and savings categories are configuration, not code. Required
- * shares, share price, qualification window, savings amount and frequency are
- * all editable here, and every screen in the application reads them back — so a
- * SACCO that introduces a fourth tier, or moves the Gold Saver from UGX 50,000
- * to UGX 60,000, does it on this page rather than in a migration.
+ * shares, qualification window, savings amount and frequency are all editable
+ * here, and every screen in the application reads them back — so a SACCO that
+ * introduces a fourth tier, or moves a savings category to a new amount, does it
+ * on this page rather than in a migration.
+ *
+ * The share price is the exception, on purpose: there is one for the whole
+ * SACCO, held in Settings and charged by every purchase. This page shows it and
+ * derives every category total from it, but does not keep a copy of its own.
  *
  * Each category is shown next to what it is actually doing: how many members
  * hold it, what it expects each cycle, and — for shares — how many members have
@@ -58,7 +63,10 @@ export default async function CategoriesPage() {
       </Suspense>
 
       <Suspense fallback={<TableSkeleton rows={3} cols={5} />}>
-        <ShareCategories canManage={canManage} />
+        <ShareCategories
+          canManage={canManage}
+          canChangePrice={can(user.role, 'settings.manage')}
+        />
       </Suspense>
 
       <Suspense fallback={null}>
@@ -222,16 +230,24 @@ async function SavingsCategories({ canManage }: { canManage: boolean }) {
 
 /* ------------------------------------------------------------------------ */
 
-async function ShareCategories({ canManage }: { canManage: boolean }) {
+async function ShareCategories({
+  canManage,
+  canChangePrice,
+}: {
+  canManage: boolean;
+  /** The price itself is a Settings permission, not a category one. */
+  canChangePrice: boolean;
+}) {
   const supabase = await createClient();
-  const [{ data: rows, error }, { data: summaries }] = await Promise.all([
+  const [{ data: rows, error }, { data: summaries }, unitPrice] = await Promise.all([
     supabase
-      .from('share_categories')
+      .from('share_categories_priced')
       .select('*')
       .order('status')
       .order('sort_order')
       .order('name'),
     supabase.from('share_category_summary').select('*'),
+    getShareUnitPrice(),
   ]);
 
   if (error) {
@@ -253,9 +269,11 @@ async function ShareCategories({ canManage }: { canManage: boolean }) {
       <Header
         icon="pie_chart"
         title="Share categories"
-        description="How many shares a member must buy to qualify, at what price, and by when."
-        action={canManage ? <ShareCategoryDialog /> : null}
+        description="How many shares a member must buy to qualify, and by when. Every total is the number of shares times the SACCO's one share price."
+        action={canManage ? <ShareCategoryDialog unitPrice={unitPrice} /> : null}
       />
+
+      <SharePricePanel unitPrice={unitPrice} canChangePrice={canChangePrice} />
 
       {categories.length === 0 ? (
         <div className="bg-surface rounded-xl shadow-neu-sm">
@@ -301,11 +319,17 @@ async function ShareCategories({ canManage }: { canManage: boolean }) {
 
                 <div>
                   <p className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface tabular">
-                    <Money value={c.required_amount} />
+                    {c.required_amount !== null ? (
+                      <Money value={c.required_amount} />
+                    ) : (
+                      'Price not set'
+                    )}
                   </p>
                   <p className="text-body-md font-body-md text-on-surface-variant">
-                    {c.required_shares} {c.required_shares === 1 ? 'share' : 'shares'} at{' '}
-                    {formatUGX(c.share_price)} each
+                    {c.required_shares} {c.required_shares === 1 ? 'share' : 'shares'}
+                    {c.share_price !== null
+                      ? ` at ${formatUGX(c.share_price)} each`
+                      : ' · share price not set'}
                   </p>
                 </div>
 
@@ -344,7 +368,7 @@ async function ShareCategories({ canManage }: { canManage: boolean }) {
 
                 {canManage ? (
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <ShareCategoryDialog category={c} trigger="link" />
+                    <ShareCategoryDialog category={c} unitPrice={unitPrice} trigger="link" />
                     <CategoryStatusControl
                       kind="share"
                       id={c.id}
@@ -360,6 +384,63 @@ async function ShareCategories({ canManage }: { canManage: boolean }) {
         </ul>
       )}
     </section>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+/**
+ * The SACCO's share price, stated once above the tiers that depend on it.
+ *
+ * It is the same value `buy_shares()` charges and the Shares module displays —
+ * `share_settings.unit_price` — so what a manager reads here is what a cashier
+ * will actually take. Changing it lives in Settings, alongside its audited
+ * confirmation step, rather than being a second editor here.
+ */
+function SharePricePanel({
+  unitPrice,
+  canChangePrice,
+}: {
+  unitPrice: number | null;
+  canChangePrice: boolean;
+}) {
+  return (
+    <div
+      className={clsx(
+        'mb-4 flex flex-wrap items-center justify-between gap-4 rounded-xl p-4',
+        unitPrice !== null
+          ? 'bg-surface border-outline-variant border'
+          : 'bg-error-container text-on-error-container',
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="bg-secondary-container text-on-secondary-container flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+          <Icon name="sell" size={20} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-label-md font-label-md text-on-surface-variant">
+            Price per share
+          </p>
+          <p className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface tabular">
+            {unitPrice !== null ? formatUGX(unitPrice) : 'Not set'}
+          </p>
+          <p className="text-label-md font-label-md text-on-surface-variant normal-case">
+            {unitPrice !== null
+              ? 'One price for the whole SACCO — every purchase, receipt and category total uses it.'
+              : 'Shares cannot be sold and category totals cannot be shown until it is set.'}
+          </p>
+        </div>
+      </div>
+      {canChangePrice ? (
+        <Link
+          href="/staff/settings?section=financial"
+          className="bg-surface text-primary h-touch-target-min text-button-text font-button-text inline-flex shrink-0 items-center gap-2 rounded-lg px-4 font-semibold shadow-neu-sm"
+        >
+          <Icon name="settings" size={20} />
+          Change in Settings
+        </Link>
+      ) : null}
+    </div>
   );
 }
 

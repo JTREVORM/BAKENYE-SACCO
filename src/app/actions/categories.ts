@@ -11,10 +11,14 @@ import type { CategoryStatus, SavingsFrequency } from '@/types/db';
 /**
  * Share and savings category administration — section 16 of the brief.
  *
- * Required shares, share price, qualification window, savings amount and
- * frequency are all editable here, because the SACCO said they may change.
- * Nothing in the application hard-codes them: a screen that shows "UGX 100,000
- * monthly" got that from a row this file writes.
+ * Required shares, qualification window, savings amount and frequency are all
+ * editable here, because the SACCO said they may change. Nothing in the
+ * application hard-codes them: a screen that shows "UGX 100,000 monthly" got
+ * that from a row this file writes.
+ *
+ * The share price is not among them. There is one for the whole SACCO, in
+ * `share_settings`, edited through `updateShareSettings()` in `settings.ts`; a
+ * share category only says how many shares, and its total is derived.
  *
  * Editing a category changes what is expected from here on. It never rewrites a
  * schedule already raised, and never touches a payment already banked — that
@@ -66,10 +70,6 @@ const shareCategorySchema = z.object({
     .int('Enter a whole number of shares.')
     .min(1, 'A category must require at least one share.')
     .max(100_000, 'That number of shares looks incorrect.'),
-  share_price: z.coerce
-    .number()
-    .positive('Enter the price of one share.')
-    .max(100_000_000, 'That share price looks incorrect.'),
   // Blank means the category has no deadline, which is what Silver is. It is a
   // real answer, not a missing one, so it is allowed through as undefined
   // rather than rejected.
@@ -107,7 +107,6 @@ export async function saveShareCategory(
         p_id: d.id as string,
         p_name: d.name,
         p_required_shares: d.required_shares,
-        p_share_price: d.share_price,
         p_qualification_months: d.qualification_months ?? null,
         p_description: d.description ?? null,
         p_sort_order: d.sort_order ?? 100,
@@ -115,7 +114,6 @@ export async function saveShareCategory(
     : await supabase.rpc('create_share_category', {
         p_name: d.name,
         p_required_shares: d.required_shares,
-        p_share_price: d.share_price,
         p_qualification_months: d.qualification_months ?? null,
         p_description: d.description ?? null,
         p_sort_order: d.sort_order ?? 100,

@@ -75,12 +75,17 @@ export default async function SharesPage() {
             </div>
             <div className="text-right">
               <p className="font-label-md text-label-md opacity-80">Price per share</p>
-              <p className="font-body-lg text-body-lg font-bold">{formatUGX(unitPrice)}</p>
+              <p className="font-body-lg text-body-lg font-bold">
+                {unitPrice !== null ? formatUGX(unitPrice) : 'Not available'}
+              </p>
             </div>
           </div>
 
+          {/* Not "count × today's price": each purchase is valued at the price
+              it was actually bought at, which is what the ledger holds. */}
           <p className="font-body-md text-body-md relative z-10 mt-4 opacity-80">
-            {count} × {formatUGX(unitPrice)} = {formatUGX(value)}
+            {count} {count === 1 ? 'share' : 'shares'} held, each valued at the price it was
+            bought for.
           </p>
         </section>
 

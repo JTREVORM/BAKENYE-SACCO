@@ -96,7 +96,9 @@ export function MemberCategoryControl({
                   <option key={c.id} value={c.id}>
                     {c.name} · {c.required_shares}{' '}
                     {c.required_shares === 1 ? 'share' : 'shares'} ·{' '}
-                    {formatUGX(c.required_amount)}
+                    {c.required_amount !== null
+                      ? formatUGX(c.required_amount)
+                      : 'price not set'}
                   </option>
                 ))}
               </Select>

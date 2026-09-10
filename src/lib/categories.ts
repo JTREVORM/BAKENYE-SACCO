@@ -91,13 +91,20 @@ export function savingsCategoryLine(
   }`;
 }
 
-/** A share category as one line: "Diamond · 50 shares · UGX 1,000,000". */
+/**
+ * A share category as one line: "Diamond · 50 shares · UGX 1,000,000".
+ *
+ * The total is derived from the SACCO's one share price. If that price cannot
+ * be read the line says so, rather than printing "UGX 0" as if it were a fact.
+ */
 export function shareCategoryLine(
   category: Pick<ShareCategoryRow, 'name' | 'required_shares' | 'required_amount'>,
 ): string {
   return `${category.name} · ${category.required_shares} ${
     category.required_shares === 1 ? 'share' : 'shares'
-  } · ${formatUGX(category.required_amount)}`;
+  } · ${
+    category.required_amount !== null ? formatUGX(category.required_amount) : 'price not set'
+  }`;
 }
 
 /**

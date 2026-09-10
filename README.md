@@ -93,6 +93,7 @@ supabase db push
 | `0022_category_views.sql` | Share progress, `member_financials`, schedules, savings transactions, category summaries |
 | `0023_category_functions.sql` | Schedule arithmetic, collection, waivers, category administration |
 | `0024_category_reports.sql` | Savings dashboard, category analytics, member overview, the collection screen |
+| `0025_one_share_price.sql` | Corrects the share price to UGX 20,000 and removes the per-category copy, so one stored price serves shares, categories and receipts |
 
 ### 4. Create the first administrator
 
@@ -209,11 +210,14 @@ SACCO → MEMBERS → SHARE CATEGORY
 
 **The categories are rows, not constants.** `savings_categories` holds Diamond Saver at UGX 100,000
 monthly, Gold Saver at UGX 50,000 monthly and Silver Saver at UGX 5,000 weekly; `share_categories`
-holds Diamond at 50 shares, Gold at 25 and Silver at 1, all priced at UGX 20,000. Every screen reads
+holds Diamond at 50 shares, Gold at 25 and Silver at 1. Every screen reads
 them back, so a manager who introduces a fourth tier, or moves Gold Saver to UGX 60,000, does it on
-the Categories screen. Nothing is deployed. `required_amount` is a generated column — 50 × 20,000 is
-UGX 1,000,000 because Postgres multiplied it, not because somebody typed it into a second field that
-can later disagree with the first.
+the Categories screen. Nothing is deployed. **There is one share price.** It lives in `share_settings.unit_price` — UGX 20,000 — and
+nowhere else. `buy_shares()` charges it, every share lot records it at the moment of sale, Settings
+edits it, and the Categories screen shows it. A category stores only how many shares and by when;
+its total is derived in `share_categories_priced`, so 50 shares is UGX 1,000,000 because a share
+costs UGX 20,000, not because a second field says so. Changing the price changes every category
+total at once and no purchase already made.
 
 **Share category and savings category are independent.** A member may hold Gold shares and save at
 the Diamond rate; the brief's own worked example says so, and both are separate columns on `members`.

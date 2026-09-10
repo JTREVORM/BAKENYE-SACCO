@@ -179,10 +179,19 @@ export const getCollectionsTrend = cache(async (months = 6): Promise<TrendPoint[
   return data as unknown as TrendPoint[];
 });
 
-export const getShareUnitPrice = cache(async (): Promise<number> => {
+/**
+ * The SACCO's share price — the one value every purchase is charged at, every
+ * category total is derived from, and `buy_shares()` reads in the database.
+ *
+ * Null when the settings row cannot be read. There is deliberately no fallback
+ * number: a share form priced by a guess is a wrong sale, so callers say the
+ * price is unavailable instead.
+ */
+export const getShareUnitPrice = cache(async (): Promise<number | null> => {
   const supabase = await createClient();
   const { data } = await supabase.from('share_settings').select('unit_price').single();
-  return Number(data?.unit_price ?? 50000);
+  const price = Number(data?.unit_price);
+  return Number.isFinite(price) && price > 0 ? price : null;
 });
 
 /* ==========================================================================
@@ -196,7 +205,7 @@ export const getShareUnitPrice = cache(async (): Promise<number> => {
 export const getShareCategories = cache(async (): Promise<ShareCategoryRow[]> => {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('share_categories')
+    .from('share_categories_priced')
     .select('*')
     .eq('status', 'active')
     .order('sort_order')
@@ -220,7 +229,7 @@ export const getSavingsCategories = cache(async (): Promise<SavingsCategoryRow[]
 export const getAllShareCategories = cache(async (): Promise<ShareCategoryRow[]> => {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('share_categories')
+    .from('share_categories_priced')
     .select('*')
     .order('status')
     .order('sort_order')

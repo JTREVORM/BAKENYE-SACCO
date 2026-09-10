@@ -150,6 +150,14 @@ export async function updateShareSettings(
   });
   if (error) return fail(error, 'unit_price');
 
+  // One price, read by every share screen and every category total, so all of
+  // them are stale the moment it moves.
+  revalidatePath('/staff/shares');
+  revalidatePath('/staff/shares/sell');
+  revalidatePath('/staff/categories');
+  revalidatePath('/shares');
+  revalidatePath('/shares/buy');
+
   revalidatePath('/staff/settings');
   revalidatePath('/staff/shares');
   return succeed(null, 'Share settings saved. Shares already bought keep the price they were sold at.');

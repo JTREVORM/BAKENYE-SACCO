@@ -102,7 +102,17 @@ async function Register({ canSell }: { canSell: boolean }) {
         </div>
 
         <Stat label="Shares issued" value={totalShares.toLocaleString()} />
-        <Stat label="Price per share" value={formatUGX(unitPrice)} />
+        {/* The SACCO's one share price — the same value the purchase form
+            charges and the Categories screen totals from. */}
+        <Stat
+          label="Price per share"
+          value={unitPrice !== null ? formatUGX(unitPrice) : 'Not set'}
+          note={
+            unitPrice !== null
+              ? 'Every new purchase is charged at this price.'
+              : 'Set the share price in Settings before recording a purchase.'
+          }
+        />
       </section>
 
       {/* Recent purchases */}
@@ -258,13 +268,18 @@ async function Register({ canSell }: { canSell: boolean }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="bg-surface shadow-card rounded-xl p-5">
       <p className="text-label-md font-label-md text-on-surface-variant mb-1">
         {label}
       </p>
       <p className="text-display-currency font-display-currency text-on-surface tabular">{value}</p>
+      {note ? (
+        <p className="text-label-md font-label-md text-on-surface-variant mt-1 normal-case">
+          {note}
+        </p>
+      ) : null}
     </div>
   );
 }

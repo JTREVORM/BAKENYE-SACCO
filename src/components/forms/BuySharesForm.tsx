@@ -11,7 +11,7 @@ import { formatDate, PAYMENT_METHOD_LABELS, toISODate } from '@/lib/format';
 import type { PaymentMethod } from '@/types/db';
 
 const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheque'];
-const QUICK_PICKS = [1, 2, 5, 10, 20];
+const DEFAULT_QUICK_PICKS = [1, 2, 5, 10, 20];
 
 /**
  * Record a share purchase.
@@ -26,14 +26,22 @@ export function BuySharesForm({
   lockMember = false,
   unitPrice,
   currentShares,
+  quickPicks,
+  target,
   doneHref,
 }: {
   member?: PickedMember | null;
   lockMember?: boolean;
+  /** The SACCO's one share price — the same value `buy_shares()` charges. */
   unitPrice: number;
   currentShares?: number;
+  /** One-tap quantities; the page passes each share category's target. */
+  quickPicks?: number[];
+  /** What this member still needs to reach their share category, if anything. */
+  target?: { name: string; remaining: number } | null;
   doneHref?: string;
 }) {
+  const picks = quickPicks && quickPicks.length > 0 ? quickPicks : DEFAULT_QUICK_PICKS;
   const [picked, setPicked] = useState<PickedMember | null>(member ?? null);
   const [quantity, setQuantity] = useState<number>(1);
   const [method, setMethod] = useState<PaymentMethod>('cash');
@@ -131,7 +139,20 @@ export function BuySharesForm({
         </Field>
 
         <div className="-mt-2 flex flex-wrap gap-2">
-          {QUICK_PICKS.map((n) => (
+          {target && target.remaining > 0 ? (
+            <button
+              type="button"
+              onClick={() => setQuantity(target.remaining)}
+              className={`text-label-md font-label-md h-touch-target-min rounded-full px-4 normal-case transition-colors ${
+                quantity === target.remaining
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-secondary-container text-on-secondary-container hover:opacity-90'
+              }`}
+            >
+              {target.remaining} to reach {target.name}
+            </button>
+          ) : null}
+          {picks.map((n) => (
             <button
               key={n}
               type="button"

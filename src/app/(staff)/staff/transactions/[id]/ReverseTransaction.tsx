@@ -4,8 +4,9 @@ import { useActionState, useState } from 'react';
 import { reverseTransaction } from '@/app/actions/financial';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
-import { Button, Field, SubmitButton, Textarea } from '@/components/ui/form';
+import { Button, Field, Input, SubmitButton, Textarea } from '@/components/ui/form';
 import { formatUGX } from '@/lib/money';
+import { toISODate } from '@/lib/format';
 import type { ActionResult } from '@/lib/errors';
 
 /**
@@ -24,11 +25,14 @@ export function ReverseTransaction({
   reference,
   amount,
   memberName,
+  occurredOn,
 }: {
   transactionId: string;
   reference: string;
   amount: number;
   memberName: string | null;
+  /** The reversal cannot be dated before the transaction it reverses. */
+  occurredOn?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [state, action] = useActionState<
@@ -92,6 +96,24 @@ export function ReverseTransaction({
                 maxLength={1000}
                 invalid={err?.field === 'reason'}
                 placeholder="e.g. Recorded against the wrong member; the payment belonged to BND-M-0000482."
+              />
+            </Field>
+
+            <Field
+              label="Reversal date"
+              htmlFor="reversal-date"
+              required
+              hint="The day the correction is booked. Any account balances move back on this date."
+              error={err?.field === 'reversal_date' ? err.error : null}
+            >
+              <Input
+                id="reversal-date"
+                name="reversal_date"
+                type="date"
+                defaultValue={toISODate()}
+                min={occurredOn}
+                max={toISODate()}
+                required
               />
             </Field>
 

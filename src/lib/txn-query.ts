@@ -61,6 +61,7 @@ function expandTypeFilter(value: string | undefined): TxnType[] | null {
   const valid: TxnType[] = [
     'share_purchase', 'weekly_savings', 'monthly_savings', 'loan_disbursement',
     'loan_repayment', 'deposit', 'withdrawal', 'income', 'expense', 'fee', 'penalty',
+    'transfer', 'payment',
   ];
   return valid.includes(value as TxnType) ? [value as TxnType] : null;
 }

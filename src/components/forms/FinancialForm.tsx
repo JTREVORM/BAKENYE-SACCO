@@ -29,7 +29,7 @@ export type FinancialSummaryLine = { label: string; value: React.ReactNode; emph
 
 type Phase = 'edit' | 'confirm' | 'done';
 
-export function FinancialForm<T extends { reference?: string; transaction_id?: string }>({
+export function FinancialForm<T extends { reference?: string | null; transaction_id?: string | null }>({
   action,
   children,
   summary,
@@ -40,6 +40,8 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
   pendingLabel = 'Processing…',
   idempotencyPrefix,
   successTitle = 'Transaction successful',
+  referenceLabel = 'Transaction reference',
+  draftLabel,
   receiptHref,
   doneHref,
   doneLabel = 'Done',
@@ -58,7 +60,15 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
   submitLabel: string;
   pendingLabel?: string;
   idempotencyPrefix: string;
-  successTitle?: string;
+  /** A fixed title, or one chosen from the result — "Submitted for approval" is not "Completed". */
+  successTitle?: string | ((result: T) => string);
+  /** What the number on the success screen is: a transaction, a transfer, a payment. */
+  referenceLabel?: string;
+  /**
+   * Offer "save as draft" beside the submit button. The submitter's name and
+   * value ride along in the form data as `intent=draft` / `intent=submit`.
+   */
+  draftLabel?: string;
   /** Built from the action's result — usually `/transactions/{id}`. */
   receiptHref?: (result: T) => string | null;
   doneHref?: string;
@@ -102,7 +112,7 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
         </div>
 
         <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">
-          {successTitle}
+          {typeof successTitle === 'function' ? successTitle(state.data) : successTitle}
         </h2>
         <p className="text-body-md font-body-md text-on-surface-variant mt-2 max-w-sm">
           {state.message}
@@ -111,7 +121,7 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
         {state.data?.reference ? (
           <div className="bg-surface-container-low mt-6 w-full max-w-sm rounded-xl p-4 shadow-neu-sm">
             <p className="text-label-md font-label-md text-on-surface-variant">
-              Transaction reference
+              {referenceLabel}
             </p>
             <p className="text-button-text font-button-text text-on-surface tabular mt-1 select-all font-mono">
               {state.data.reference}
@@ -213,7 +223,7 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
         </div>
       ) : null}
 
-      <StickyActions>
+      <StickyActions className={draftLabel ? 'flex-wrap' : undefined}>
         {phase === 'confirm' ? (
           <>
             <Button
@@ -225,9 +235,29 @@ export function FinancialForm<T extends { reference?: string; transaction_id?: s
             >
               Back
             </Button>
-            <SubmitButton size="lg" className="flex-[2]" pendingLabel={pendingLabel} icon="check">
+            <SubmitButton
+              size="lg"
+              className="flex-[2]"
+              pendingLabel={pendingLabel}
+              icon="check"
+              name="intent"
+              value="submit"
+            >
               {submitLabel}
             </SubmitButton>
+            {draftLabel ? (
+              <SubmitButton
+                variant="ghost"
+                size="md"
+                className="basis-full"
+                pendingLabel="Saving…"
+                icon="draft"
+                name="intent"
+                value="draft"
+              >
+                {draftLabel}
+              </SubmitButton>
+            ) : null}
           </>
         ) : (
           <Button

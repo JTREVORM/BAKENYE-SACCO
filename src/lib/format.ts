@@ -119,6 +119,8 @@ export const TXN_LABELS: Record<TxnType, string> = {
   expense: 'Expense',
   fee: 'Fee',
   penalty: 'Penalty',
+  transfer: 'Internal Transfer',
+  payment: 'Payment',
 };
 
 /** Material Symbols glyph per transaction type, as used in the Stitch feed. */
@@ -134,6 +136,8 @@ export const TXN_ICONS: Record<TxnType, string> = {
   expense: 'trending_down',
   fee: 'receipt',
   penalty: 'gavel',
+  transfer: 'swap_horiz',
+  payment: 'request_quote',
 };
 
 export const LOAN_STATUS_LABELS: Record<LoanStatus, string> = {

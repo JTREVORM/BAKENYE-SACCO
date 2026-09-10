@@ -121,6 +121,15 @@ const config: Config = {
         'scroll-thumb-dark': 'rgba(255, 255, 255, 0.22)',
         'scroll-thumb-dark-hover': 'rgba(255, 255, 255, 0.4)',
 
+        /* --- Where the money is ---------------------------------------------
+         * One identity colour per kind of account, used for chart marks and the
+         * small identity stripe on the account cards - never for text. Validated
+         * together as a categorical palette against `surface` (lightness band,
+         * colour-blind separation and 3:1 contrast all pass). */
+        'acct-merchant': '#b07f00',
+        'acct-bank': '#2f5ba8',
+        'acct-cash': '#1d9aa8',
+
         /* --- Caution (amber) ------------------------------------------------ */
         warning: '#a35a00',
         'warning-container': '#fdefdc',

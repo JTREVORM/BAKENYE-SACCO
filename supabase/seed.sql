@@ -42,6 +42,37 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- Demo accounts (0027). Mobile money lands in a merchant account and bank
+-- transfers in a bank account, so a demo database needs one of each. Both are
+-- labelled as demo accounts, and the opening balances exist only so the demo
+-- loans below have cash to be disbursed from.
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  v_cash uuid;
+begin
+  if not exists (select 1 from financial_accounts where account_type = 'merchant') then
+    perform create_financial_account('merchant', 'Demo Merchant Account', 'MTN Mobile Money',
+                                     null, null, null, null, null, 0, current_date - 120,
+                                     'Demo data only.', true);
+  end if;
+  if not exists (select 1 from financial_accounts where account_type = 'bank') then
+    perform create_financial_account('bank', 'Demo Bank Account', null, null, null,
+                                     'Demo Bank', null, '0000000000', 50000000, current_date - 120,
+                                     'Demo data only.', true);
+  end if;
+
+  select id into v_cash from financial_accounts where account_type = 'cash' and is_default;
+  if v_cash is not null
+     and not exists (select 1 from account_ledger_entries where account_id = v_cash) then
+    perform update_financial_account(v_cash, 'Cash at Hand', null, null, null, null, null, null,
+                                     50000000, current_date - 120, 'Demo opening balance.', true,
+                                     'Demo seed');
+  end if;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Members
 -- ---------------------------------------------------------------------------
 do $$

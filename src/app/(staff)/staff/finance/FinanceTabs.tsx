@@ -21,7 +21,7 @@ export function FinanceTabs({ tab, from, to }: { tab: string; from: string; to: 
           key={t.value}
           role="tab"
           aria-selected={tab === t.value}
-          href={`/staff/finance?tab=${t.value}&from=${from}&to=${to}`}
+          href={`/staff/finance/income-expenses?tab=${t.value}&from=${from}&to=${to}`}
           className={clsx(
             'text-button-text font-button-text h-touch-target-min flex items-center rounded-full px-5 transition-colors',
             tab === t.value

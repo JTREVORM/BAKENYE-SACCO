@@ -28,6 +28,7 @@ import {
   EmptyState,
 } from '@/components/ui/states';
 import { TrendChart } from '@/components/staff/TrendChart';
+import { FundsStrip } from '@/components/finance/FundsStrip';
 import { ScrollArea } from '@/components/ui/scroll';
 import { formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/format';
 import { formatUGX, percent, toNumber } from '@/lib/money';
@@ -61,6 +62,12 @@ export default async function StaffDashboard() {
       <Suspense fallback={<StatGridSkeleton />}>
         <Metrics />
       </Suspense>
+
+      {can(user.role, 'finance.view') ? (
+        <Suspense fallback={<StatGridSkeleton />}>
+          <FundsStrip />
+        </Suspense>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
         <div className="space-y-gutter xl:col-span-2">
@@ -267,14 +274,14 @@ async function Metrics() {
           label="Income (MTD)"
           value={<Money value={m.income_mtd} />}
           tone="text-tertiary"
-          href="/staff/finance"
+          href="/staff/finance/income-expenses"
         />
         <MiniStat
           icon="south_west"
           label="Expenses (MTD)"
           value={<Money value={m.expenses_mtd} />}
           tone="text-error"
-          href="/staff/finance?tab=expenses"
+          href="/staff/finance/expenses"
         />
       </section>
 
@@ -314,7 +321,7 @@ async function Metrics() {
           ) : null}
           {m.pending_expenses > 0 ? (
             <AttentionChip
-              href="/staff/finance?tab=expenses&approval=pending"
+              href="/staff/finance/expenses?status=submitted"
               icon="receipt"
               tone="warning"
               label={`${m.pending_expenses} ${m.pending_expenses === 1 ? 'expense' : 'expenses'}`}

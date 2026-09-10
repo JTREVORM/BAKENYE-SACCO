@@ -47,6 +47,10 @@ export const ICON_NAMES = [
   // Configuration centre and loan product management
   'calculate', 'rule', 'inventory_2', 'category', 'sell', 'science',
   'restart_alt', 'save', 'toggle_off', 'account_tree', 'fact_check',
+  // Cash at Merchant, Cash at Bank, Cash at Hand
+  'smartphone', 'local_atm', 'storefront', 'task_alt', 'cancel', 'balance',
+  'hourglass_top', 'draft', 'list_alt', 'call_made', 'call_received',
+  'donut_large', 'bar_chart', 'open_in_new', 'price_check', 'send', 'sync_alt',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

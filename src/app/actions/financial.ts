@@ -632,6 +632,10 @@ export async function reverseTransaction(
         .trim()
         .min(10, 'Give a clear reason — this is recorded permanently in the audit log.')
         .max(1000),
+      reversal_date: isoDate
+        .optional()
+        .or(z.literal(''))
+        .transform((v) => (v ? v : undefined)),
     })
     .safeParse(Object.fromEntries(formData));
 
@@ -641,12 +645,14 @@ export async function reverseTransaction(
   const { data, error } = await supabase.rpc('reverse_transaction', {
     p_transaction_id: parsed.data.transaction_id,
     p_reason: parsed.data.reason,
+    p_reversal_date: parsed.data.reversal_date ?? null,
   });
 
   if (error) return fail(error, 'reason');
 
   revalidateFinancial();
   revalidatePath('/staff/audit');
+  revalidatePath('/staff/finance', 'layout');
 
   const result = data as { reversal_reference: string; original_reference: string };
   return succeed(

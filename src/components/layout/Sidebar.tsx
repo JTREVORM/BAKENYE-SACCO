@@ -107,7 +107,13 @@ export function Sidebar({
               {active && children.length > 0 ? (
                 <ul className="ml-6 mt-1 space-y-0.5 border-l border-white/15 pl-3">
                   {children.map((child) => {
-                    const childActive = pathname === child.href;
+                    // A child is current on its own page and on the pages under
+                    // it - a new transfer is still "Transfers" - except the one
+                    // that shares its parent's address, which would otherwise
+                    // light up on every page in the section.
+                    const childActive =
+                      pathname === child.href ||
+                      (child.href !== item.href && pathname.startsWith(`${child.href}/`));
                     return (
                       <li key={child.href}>
                         <Link

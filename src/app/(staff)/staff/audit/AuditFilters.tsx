@@ -12,6 +12,7 @@ const MODULES = [
   { value: 'Shares', label: 'Shares' },
   { value: 'Loans', label: 'Loans' },
   { value: 'Financials', label: 'Financials' },
+  { value: 'Finance', label: 'Cash & Bank' },
   { value: 'User Management', label: 'User Management' },
 ];
 

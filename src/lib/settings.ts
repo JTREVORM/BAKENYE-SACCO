@@ -212,6 +212,13 @@ export const SETTING_CATEGORIES: {
       'Whether share and savings categories must agree, and whether every member needs one.',
   },
   {
+    id: 'treasury',
+    label: 'Cash & Bank',
+    icon: 'account_balance',
+    description:
+      'Who must approve transfers and payments, and the thresholds the finance dashboard warns at.',
+  },
+  {
     id: 'notifications',
     label: 'Notifications',
     icon: 'notifications',

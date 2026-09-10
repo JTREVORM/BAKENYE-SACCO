@@ -110,6 +110,31 @@ export function Receipt({
           <Line label="Transaction type" value={TXN_LABELS[t.type]} />
           <Line label="Amount" value={formatUGX(t.amount)} emphasis />
           <Line label="Payment method" value={PAYMENT_METHOD_LABELS[t.method]} />
+          {payload.external_ref ? (
+            <Line label="Provider / bank reference" value={payload.external_ref} mono />
+          ) : null}
+          {/* Staff only: the payload carries the accounts to finance roles and
+              to nobody else, so a member's receipt never names a wallet. */}
+          {payload.source_account && payload.destination_account ? (
+            <Line
+              label="Moved"
+              value={`${payload.source_account.name} → ${payload.destination_account.name}`}
+            />
+          ) : payload.destination_account ? (
+            <Line label="Received into" value={payload.destination_account.name} />
+          ) : payload.source_account ? (
+            <Line label="Paid from" value={payload.source_account.name} />
+          ) : null}
+          {payload.transfer?.source_reference ? (
+            <Line label="Source reference" value={payload.transfer.source_reference} mono />
+          ) : null}
+          {payload.transfer?.destination_reference ? (
+            <Line label="Destination reference" value={payload.transfer.destination_reference} mono />
+          ) : null}
+          {payload.transfer?.handled_by ? (
+            <Line label="Handled by" value={payload.transfer.handled_by} />
+          ) : null}
+          {payload.payment ? <Line label="Payee" value={payload.payment.payee} /> : null}
           <Line label="Date & time" value={formatDateTime(t.created_at)} />
           <Line label="Value date" value={formatDate(t.occurred_on)} />
           <Line label="Recorded by" value={t.recorded_by_name ?? 'System'} />

@@ -76,6 +76,10 @@ export type Permission =
   | 'finance.view'
   | 'finance.record'
   | 'finance.approve'
+  /** Record a reconciliation against a counted or bank-statement balance. */
+  | 'finance.reconcile'
+  /** Set up the merchant, bank and cash accounts and the finance categories. */
+  | 'finance.accounts'
   | 'reports.view'
   | 'reports.member'
   | 'users.manage'
@@ -101,7 +105,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'shares.view', 'shares.sell', 'savings.view', 'savings.record', 'savings.waive',
     'loans.view', 'loans.apply', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
     'guarantors.manage', 'transactions.view', 'transactions.reverse', 'cash.movement',
-    'finance.view', 'finance.record', 'finance.approve',
+    'finance.view', 'finance.record', 'finance.approve', 'finance.reconcile', 'finance.accounts',
     'reports.view', 'reports.member', 'users.manage', 'audit.view', 'settings.view',
     'settings.manage',
   ],
@@ -110,7 +114,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'shares.view', 'shares.sell', 'savings.record', 'savings.waive',
     'loans.view', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
     'guarantors.manage', 'transactions.reverse', 'cash.movement',
-    'finance.view', 'finance.record', 'finance.approve', 'reports.member', 'audit.view',
+    'finance.view', 'finance.record', 'finance.approve', 'finance.reconcile', 'finance.accounts',
+    'reports.member', 'audit.view',
     // The manager configures the SACCO: organisation details, share price,
     // savings defaults and the loan products members may borrow under. Every
     // control still re-checks its own permission before it acts, and the
@@ -126,12 +131,17 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     ...STAFF_BASE,
     'shares.view', 'shares.sell', 'savings.record',
     'loans.view', 'loans.repay', 'cash.movement', 'finance.record',
+    // The cashier holds the till and banks the merchant collections, so they
+    // see where the money is. The database already let them read the books
+    // (`can_view_finance()`); the screen now agrees. Approving what they
+    // record stays with a manager.
+    'finance.view',
   ],
   // The books, not the counter: an accountant reports on money that moved and
   // records income and expenses, but does not collect from members.
   accountant: [
     ...STAFF_BASE, 'shares.view', 'loans.view',
-    'finance.view', 'finance.record', 'reports.member', 'audit.view',
+    'finance.view', 'finance.record', 'finance.reconcile', 'reports.member', 'audit.view',
   ],
   // The field role: collecting from members, and nothing that changes the
   // register or the categories those members are held to.
@@ -210,7 +220,26 @@ export const STAFF_NAV: readonly NavItem[] = [
     ],
   },
   { label: 'Transactions', href: '/staff/transactions', icon: 'receipt_long',            permission: 'transactions.view' },
-  { label: 'Finance',      href: '/staff/finance',      icon: 'account_balance',         permission: 'finance.view' },
+  {
+    label: 'Finance',
+    href: '/staff/finance',
+    icon: 'account_balance',
+    permission: 'finance.view',
+    children: [
+      { label: 'Overview',          href: '/staff/finance',                icon: 'dashboard',       permission: 'finance.view' },
+      { label: 'Cash at Merchant',  href: '/staff/finance/merchant',       icon: 'smartphone',      permission: 'finance.view' },
+      { label: 'Cash at Bank',      href: '/staff/finance/bank',           icon: 'account_balance', permission: 'finance.view' },
+      { label: 'Cash at Hand',      href: '/staff/finance/cash',           icon: 'payments',        permission: 'finance.view' },
+      { label: 'Receipts',          href: '/staff/finance/receipts',       icon: 'receipt_long',    permission: 'finance.view' },
+      { label: 'Payments',          href: '/staff/finance/payments',       icon: 'request_quote',   permission: 'finance.view' },
+      { label: 'Expenses',          href: '/staff/finance/expenses',       icon: 'trending_down',   permission: 'finance.view' },
+      { label: 'Transfers',         href: '/staff/finance/transfers',      icon: 'swap_horiz',      permission: 'finance.view' },
+      { label: 'Reconciliation',    href: '/staff/finance/reconciliation', icon: 'fact_check',      permission: 'finance.view' },
+      { label: 'Ledger',            href: '/staff/finance/ledger',         icon: 'list_alt',        permission: 'finance.view' },
+      { label: 'Reports',           href: '/staff/finance/reports',        icon: 'summarize',       permission: 'finance.view' },
+      { label: 'Accounts & Setup',  href: '/staff/finance/accounts',       icon: 'tune',            permission: 'finance.view' },
+    ],
+  },
   { label: 'Reports',      href: '/staff/reports',      icon: 'assessment',              permission: 'reports.view' },
   { label: 'Users',        href: '/staff/users',        icon: 'manage_accounts',         permission: 'users.manage' },
   { label: 'Audit Log',    href: '/staff/audit',        icon: 'policy',                  permission: 'audit.view' },

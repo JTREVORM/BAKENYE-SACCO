@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
   experimental: {
     // Keeps the client bundle small for low-end Android devices.
     optimizePackageImports: ['@supabase/supabase-js'],
+    // Supporting documents (deposit slips, transfer confirmations) travel with
+    // the finance forms. The storage bucket caps a file at 5 MB; this leaves
+    // room for the rest of the form around it.
+    serverActions: { bodySizeLimit: '6mb' },
   },
   async headers() {
     return [

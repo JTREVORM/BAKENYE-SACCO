@@ -94,6 +94,8 @@ supabase db push
 | `0023_category_functions.sql` | Schedule arithmetic, collection, waivers, category administration |
 | `0024_category_reports.sql` | Savings dashboard, category analytics, member overview, the collection screen |
 | `0025_one_share_price.sql` | Corrects the share price to UGX 20,000 and removes the per-category copy, so one stored price serves shares, categories and receipts |
+| `0026_treasury_enums.sql` | The `transfer` and `payment` ledger types and the Cash & Bank enums. Kept apart because new enum values must commit before use |
+| `0027_cash_and_bank.sql` | Cash at Merchant, Cash at Bank, Cash at Hand: accounts, the account ledger, receipts, transfers, payments, reconciliation, supporting documents, approval rules, reports and RLS |
 
 ### 4. Create the first administrator
 
@@ -195,6 +197,48 @@ reason. Both rows stay visible to the member forever.
 
 **Money is `NUMERIC(16,2)`.** Never float, never a JavaScript number doing arithmetic. The browser
 formats; Postgres calculates.
+
+---
+
+## Where the money is: Cash at Merchant, Cash at Bank, Cash at Hand
+
+Members mostly pay through the SACCO merchant code, so money sits in the merchant wallet first and
+is moved to the bank later. Physical cash is a third place. The Finance module keeps the three
+apart and can always say how much is in each - see
+[`0027_cash_and_bank.sql`](supabase/migrations/0027_cash_and_bank.sql).
+
+**Still one ledger.** `transactions` remains the only financial ledger. Every row that moves money
+now names the account it came out of (`source_account_id`), went into (`destination_account_id`),
+or both, and `account_ledger_entries` holds one immutable debit or credit per account touched. A
+balance is the opening balance plus those entries; there is no editable balance field.
+
+**Existing screens needed no rewrite.** Triggers on `transactions` resolve the account from the
+payment method - mobile money → the merchant account, cash → Cash at Hand, bank transfer or cheque
+→ the bank account - unless a person chose one on the Record Collection form. Collections, share
+sales, repayments, disbursements, expenses and reversals all post to the right account.
+
+**A transfer is one row, not income.** Merchant → Bank, Cash → Bank, Bank → Cash and Bank → Bank
+each post a single `transfer` row that credits one account and debits the other in the same
+statement. Total funds, income, expenses and savings are unchanged, and the cashbook and the
+Receipts & Payments report leave transfers out.
+
+**Controls live in Postgres.**
+
+- No account may go below zero unless Settings → Cash & Bank allows it.
+- References are unique per account, and idempotency keys make a double tap post once.
+- Reversals mirror the original entries and link both rows.
+- Recording a reconciliation variance requires a reason, and never adjusts the balance.
+- Transfers and payments recorded by someone who cannot approve them wait for a manager.
+- The approval threshold and a four-eyes rule are settings.
+
+**Numbering.** `BND-RCT-` receipts, `BND-TRF-` transfers, `BND-DEP-` cash deposits, `BND-WD-` bank
+withdrawals, `BND-PAY-` payments and expenses, `BND-REC-` reconciliations. Payment intents moved
+to `BND-PI-` so the payment register owns `PAY`.
+
+**Nothing is invented.** Only a zero-balance *Cash at Hand* account is seeded. The merchant
+account (provider, merchant code) and bank accounts (bank, account number) are created by a
+manager under Finance → Accounts & Setup; until then the dashboard says so. Supporting documents
+go to the private `finance-documents` bucket and open through two-minute signed links.
 
 ---
 
@@ -324,7 +368,10 @@ guards the data. The database expresses the same rules as capability predicates 
 | Loan approval & disbursement | ● | ● | — | — | — | — | — | — |
 | Repayments | ● | ● | ● | ● | — | — | — | own |
 | Deposits & withdrawals | ● | ● | — | ● | — | — | — | — |
-| Finance | ● | ● | — | record | ● | — | — | — |
+| Finance (view, record) | ● | ● | — | ● | ● | — | — | — |
+| Approve transfers & payments | ● | ● | — | — | — | — | — | — |
+| Reconcile accounts | ● | ● | — | — | ● | — | — | — |
+| Set up accounts & categories | ● | ● | — | — | — | — | — | — |
 | Reversals | ● | ● | — | — | — | — | — | — |
 | Users | ● | — | — | — | — | — | — | — |
 | Audit log | ● | ● | — | — | ● | — | — | — |
@@ -426,7 +473,19 @@ npm run test:db                        # the SQL suites in supabase/tests/
 node scripts/responsive-check.mjs      # audits every page at every width
 node scripts/desktop-shots.mjs         # screenshots the signed-in back office at 1280/1440/1920
 node scripts/report-pdfs.mjs           # renders every report to a real PDF, plus a PNG of the same print output
+node scripts/finance-check.mjs [url]   # signs in and loads every Finance screen at 390px and 1440px
 ```
+
+`supabase/tests/treasury_test.sql` walks the Cash & Bank scenario end to end. It covers two member
+merchant payments, a merchant → bank transfer, a bank → cash withdrawal and a stationery expense.
+It then checks each control:
+
+- duplicate references and idempotent replays;
+- the zero-balance rule, reversals and immutability;
+- a cashier's transfer waiting for a manager, and four eyes;
+- reconciliation variances;
+- the reports against the ledger;
+- that a member can read none of it.
 
 `npm run test:db` runs each suite as a real signed-in super administrator, inside a transaction it
 always rolls back, so it exercises the same `auth.uid()` and role checks the application hits and

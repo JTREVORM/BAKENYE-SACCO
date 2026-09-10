@@ -9,6 +9,16 @@
  * Keep the domain aliases at the bottom either way - the app imports those.
  */
 
+import type {
+  FinanceAccountStatus,
+  FinanceAccountType,
+  FinanceDocStatus,
+  TransferKind,
+  TreasuryFunctions,
+  TreasuryTables,
+  TreasuryViews,
+} from './treasury';
+
 export type UserRole =
   | 'super_admin' | 'manager' | 'loan_officer' | 'cashier'
   | 'accountant' | 'field_officer' | 'viewer' | 'member';
@@ -39,7 +49,11 @@ export type LoanStatus =
 export type GuarantorStatus = 'pending' | 'accepted' | 'declined' | 'released';
 export type TxnType =
   | 'share_purchase' | 'weekly_savings' | 'monthly_savings' | 'loan_disbursement'
-  | 'loan_repayment' | 'deposit' | 'withdrawal' | 'income' | 'expense' | 'fee' | 'penalty';
+  | 'loan_repayment' | 'deposit' | 'withdrawal' | 'income' | 'expense' | 'fee' | 'penalty'
+  /** Money moving between two of the SACCO's own accounts. Never income or expense. */
+  | 'transfer'
+  /** Money paid out that is not an operating expense - a refund, a dividend. */
+  | 'payment';
 export type TxnStatus = 'posted' | 'reversed' | 'reversal';
 export type PaymentMethod = 'cash' | 'mobile_money' | 'bank_transfer' | 'cheque' | 'internal';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
@@ -104,6 +118,10 @@ export type TransactionRow = {
   idempotency_key: string | null;
   recorded_by: string | null;
   created_at: string;
+  /** The SACCO account money left - an expense, a payment, a transfer's source. */
+  source_account_id: string | null;
+  /** The SACCO account money arrived in - a collection, a transfer's destination. */
+  destination_account_id: string | null;
 };
 
 export type ShareLotRow = {
@@ -258,7 +276,8 @@ export type SettingCategory =
   | 'categories'
   | 'notifications'
   | 'security'
-  | 'system';
+  | 'system'
+  | 'treasury';
 
 export type SettingValueType =
   | 'money'
@@ -402,7 +421,14 @@ export type LoanDocumentRow = {
   created_at: string;
 };
 
-export type CategoryRow = { id: string; name: string; is_system: boolean };
+export type CategoryRow = {
+  id: string;
+  name: string;
+  is_system: boolean;
+  /** Retired categories stay on history but are not offered for new entries. */
+  is_active?: boolean;
+  description?: string | null;
+};
 
 export type IncomeEntryRow = {
   id: string;
@@ -432,6 +458,14 @@ export type ExpenseEntryRow = {
   transaction_id: string | null;
   recorded_by: string | null;
   created_at: string;
+  /** The account the money leaves when the expense is approved. */
+  payment_account_id: string | null;
+  /** BND-PAY-2026-000001 - expenses share the payment register's numbering. */
+  payment_no: string | null;
+  payee: string | null;
+  reference: string | null;
+  notes: string | null;
+  rejection_reason: string | null;
 };
 
 export type NotificationRow = {
@@ -892,7 +926,30 @@ export type ReceiptPayload = {
   } | null;
   shares: { quantity: number; unit_price: number; total_value: number } | null;
   balance_after: number;
+  /** The provider or bank reference typed when the payment was recorded. */
+  external_ref?: string | null;
+  /** Staff only: which of the SACCO's accounts the money left and arrived in. */
+  source_account?: ReceiptAccount | null;
+  destination_account?: ReceiptAccount | null;
+  transfer?: {
+    id: string;
+    transfer_no: string;
+    kind: TransferKind;
+    source_reference: string | null;
+    destination_reference: string | null;
+    handled_by: string | null;
+    status: FinanceDocStatus;
+  } | null;
+  payment?: {
+    id: string;
+    payment_no: string;
+    payee: string;
+    reference: string | null;
+    status: FinanceDocStatus;
+  } | null;
 };
+
+export type ReceiptAccount = { id: string; name: string; account_type: FinanceAccountType };
 
 export type SavingsPerformanceRow = {
   member_id: string;
@@ -1105,7 +1162,7 @@ export type Database = {
       share_categories: Table<ShareCategoryTableRow>;
       savings_categories: Table<SavingsCategoryRow>;
       payment_intents: Table<PaymentIntentRow>;
-    };
+    } & TreasuryTables;
     Views: {
       member_financials: View<MemberFinancialsRow>;
       member_savings: View<{ member_id: string; weekly_total: number; monthly_total: number; deposits_total: number; withdrawals_total: number; savings_balance: number }>;
@@ -1119,7 +1176,7 @@ export type Database = {
       savings_category_summary: View<SavingsCategorySummaryRow>;
       share_category_summary: View<ShareCategorySummaryRow>;
       share_categories_priced: View<ShareCategoryRow>;
-    };
+    } & TreasuryViews;
     /**
      * RPC signatures.
      *
@@ -1273,15 +1330,25 @@ export type Database = {
           p_method?: PaymentMethod;
           p_attachment_path?: string | null;
           p_idempotency_key?: string | null;
+          /** The account the money will leave once the expense is approved. */
+          p_payment_account_id?: string | null;
+          p_payee?: string | null;
+          p_reference?: string | null;
+          p_notes?: string | null;
         };
-        Returns: { expense_id: string; approval: ApprovalStatus };
+        Returns: {
+          expense_id: string;
+          approval: ApprovalStatus;
+          payment_no: string | null;
+          duplicate: boolean;
+        };
       };
       approve_expense: {
         Args: { p_expense_id: string; p_approve: boolean; p_reason?: string | null };
         Returns: { expense_id: string; approval: ApprovalStatus; reference: string | null };
       };
       reverse_transaction: {
-        Args: { p_transaction_id: string; p_reason: string };
+        Args: { p_transaction_id: string; p_reason: string; p_reversal_date?: string | null };
         Returns: { original_reference: string; reversal_reference: string; reversal_id: string };
       };
       create_member: {
@@ -1661,7 +1728,7 @@ export type Database = {
           };
         };
       };
-    };
+    } & TreasuryFunctions;
     Enums: {
       user_role: UserRole;
       member_status: MemberStatus;
@@ -1676,6 +1743,10 @@ export type Database = {
       category_status: CategoryStatus;
       payment_provider: PaymentProvider;
       payment_state: PaymentState;
+      finance_account_type: FinanceAccountType;
+      finance_account_status: FinanceAccountStatus;
+      finance_doc_status: FinanceDocStatus;
+      transfer_kind: TransferKind;
     };
     CompositeTypes: Record<string, never>;
   };

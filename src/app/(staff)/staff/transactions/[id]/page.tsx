@@ -34,6 +34,7 @@ export default async function StaffReceiptPage({ params }: { params: Promise<{ i
             reference={payload.transaction.reference}
             amount={Number(payload.transaction.amount)}
             memberName={payload.transaction.member_name}
+            occurredOn={payload.transaction.occurred_on}
           />
         </div>
       ) : null}

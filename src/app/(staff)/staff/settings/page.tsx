@@ -239,6 +239,17 @@ async function SectionBody({
         </Alert>
       ) : null}
 
+      {section === 'treasury' ? (
+        <Alert tone="info" title="The accounts themselves are set up under Finance">
+          The merchant, bank and cash accounts - provider, merchant code, bank, account number,
+          opening balance - and the income, expense and payment categories live under{' '}
+          <Link href="/staff/finance/accounts" className="font-semibold text-primary underline">
+            Finance → Accounts &amp; Setup
+          </Link>
+          .
+        </Alert>
+      ) : null}
+
       {section === 'loans' ? (
         <Alert tone="info" title="These are the rules that apply to every product">
           Interest rates, fees, terms and guarantor counts belong to each loan product.{' '}

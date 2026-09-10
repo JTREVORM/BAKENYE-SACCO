@@ -29,7 +29,7 @@ export function StatementRange({
 
   function apply(nextFrom: string, nextTo: string) {
     // Keep whatever else is filtering the page — the savings register carries
-    // `kind` and `group` in the URL, and changing the dates should not silently
+    // `kind` and `category` in the URL, and changing the dates should not silently
     // drop them back to the defaults.
     const next = new URLSearchParams(params.toString());
     next.set('from', nextFrom);

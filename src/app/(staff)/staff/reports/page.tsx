@@ -54,20 +54,21 @@ export default async function StaffReportsPage() {
       ],
     },
     {
-      heading: 'Groups & collections',
+      heading: 'Categories & collections',
       reports: [
         {
-          icon: 'groups',
-          title: 'Group report',
-          description: 'Expected, collected and outstanding for one group, member by member.',
-          href: '/staff/reports/groups',
-          permission: 'groups.view',
+          icon: 'workspace_premium',
+          title: 'Category performance',
+          description:
+            'Members, expected, collected and the collection rate for each savings category.',
+          href: '/staff/savings',
+          permission: 'savings.view',
         },
         {
-          icon: 'event_available',
-          title: 'Today’s collections',
-          description: 'Every group whose saving day falls today, with live progress.',
-          href: '/staff/savings/today',
+          icon: 'assessment',
+          title: 'Savings performance',
+          description: 'Every member’s contribution record over a period, member by member.',
+          href: '/staff/savings/performance',
           permission: 'savings.view',
         },
         {

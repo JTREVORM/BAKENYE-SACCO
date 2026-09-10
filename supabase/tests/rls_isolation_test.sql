@@ -66,7 +66,8 @@ declare
   v_member_user uuid;
   v_self       uuid;     -- the member linked to v_member_user
   v_other      uuid;     -- a member with no login at all
-  v_group      uuid;
+  v_savings_cat uuid;
+  v_share_cat  uuid;
   v_product    uuid;
   v_loan       uuid;
   v_res        jsonb;
@@ -91,17 +92,22 @@ begin
   if v_wed > current_date then v_wed := v_wed - 7; end if;
 
   ------------------------------------------------------------------ set-up
-  v_res := create_group('TEST Isolation Group', 3::smallint, 'weekly',
-                        null, 15000, 0, null, null, null, 'automated test');
-  v_group := (v_res ->> 'group_id')::uuid;
+  -- Both members save under the same category. Sharing a category must not
+  -- make either of them visible to the other: a category is a rule they are
+  -- both held to, not a group they both belong to.
+  select id into v_savings_cat from savings_categories
+   where status = 'active' and frequency = 'weekly'
+   order by sort_order limit 1;
+  select id into v_share_cat from share_categories
+   where status = 'active' order by sort_order limit 1;
 
   v_res := create_member('Test Other Person', '+256779000001',
                          null, null, null, null, null, null, null, null, null, null, null);
   v_other := (v_res ->> 'member_id')::uuid;
 
-  perform assign_member_group(v_other, v_group, 'automated test');
-  perform assign_member_group(v_self, v_group, 'automated test');
-  perform open_group_cycle(v_group, v_wed);
+  perform set_member_categories(v_other, v_share_cat, v_savings_cat, 'automated test');
+  perform set_member_categories(v_self, v_share_cat, v_savings_cat, 'automated test');
+  perform open_savings_schedules(v_wed);
 
   -- Money for the other member only, so anything the signed-in member can see
   -- of it is a leak.
@@ -116,7 +122,7 @@ begin
 
   insert into t_result (step, ok, detail)
   values ('1 set-up complete', v_loan is not null,
-          format('two members in one group, one loan guaranteed by the other'));
+          format('two members in one savings category, one loan guaranteed by the other'));
 
   ------------------------------------------------- staff can read the lot
   select count(*) into v_count from loans;
@@ -127,9 +133,13 @@ begin
   insert into t_result (step, ok, detail)
   values ('2b staff read member_financials', v_count >= 2, v_count || ' member(s)');
 
-  select count(*) into v_count from group_overview;
+  select count(*) into v_count from savings_category_summary;
   insert into t_result (step, ok, detail)
-  values ('2c staff read group_overview', v_count >= 1, v_count || ' group(s)');
+  values ('2c staff read savings_category_summary', v_count >= 1, v_count || ' category(ies)');
+
+  select count(*) into v_count from member_share_progress;
+  insert into t_result (step, ok, detail)
+  values ('2d staff read member_share_progress', v_count >= 2, v_count || ' member(s)');
 
   ------------------------------------------------------- become the member
   perform set_config('request.jwt.claims',
@@ -173,14 +183,23 @@ begin
   insert into t_result (step, ok, detail)
   values ('4d member sees the guarantee naming them', v_count = 1, v_count || ' row(s)');
 
-  ------------------------------------------------- group visibility is own
-  select count(*) into v_count from sacco_groups;
+  ---------------------------- categories are readable, other members are not
+  -- The category register is deliberately open to any signed-in user: a member
+  -- is entitled to know what their own tier expects of them. What must not leak
+  -- is who else is in it, or what they have paid.
+  select count(*) into v_count from savings_categories;
   insert into t_result (step, ok, detail)
-  values ('5a member sees only their own group', v_count = 1, v_count || ' group(s)');
+  values ('5a member may read the savings category register', v_count >= 1,
+          v_count || ' category(ies)');
 
-  select count(*) into v_count from savings_cycles;
+  select count(*) into v_count from member_share_progress;
   insert into t_result (step, ok, detail)
-  values ('5b member sees the cycles of their group', v_count >= 1, v_count || ' cycle(s)');
+  values ('5b member sees only their own share progress', v_count = 1, v_count || ' row(s)');
+
+  select count(*) into v_count from savings_transactions where member_id <> v_self;
+  insert into t_result (step, ok, detail)
+  values ('5d member cannot see the savings transactions of others', v_count = 0,
+          v_count || ' row(s)');
 
   select count(*) into v_count from savings_schedules;
   insert into t_result (step, ok, detail)

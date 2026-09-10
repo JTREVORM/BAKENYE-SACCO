@@ -11,7 +11,7 @@ import { StatementRange } from '@/components/StatementRange';
 import { ExportButtons } from '@/components/ExportButtons';
 import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
 import { documentName } from '@/lib/print';
-import { savingDayLabel } from '@/lib/groups';
+import { SAVINGS_FREQUENCY_ADVERB } from '@/lib/categories';
 import { formatDate, monthStart, toISODate, TXN_LABELS } from '@/lib/format';
 import { formatAmount, formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
@@ -103,7 +103,9 @@ export default async function MemberLedgerPage({
       <div className="print:hidden">
       <PageTitle
         title="Financial ledger"
-        subtitle={`${member.full_name} · ${member.member_no}${member.group_name ? ` · ${member.group_name} (${savingDayLabel(member.group_saving_day)})` : ''}`}
+        subtitle={`${member.full_name} · ${member.member_no}${
+          member.savings_category_name ? ` · ${member.savings_category_name}` : ''
+        }`}
         action={
           <ExportButtons
             filename={`ledger-${member.member_no}-${from}-to-${to}`}
@@ -120,7 +122,16 @@ export default async function MemberLedgerPage({
         generatedBy={user.fullName}
         meta={[
           { label: 'Period', value: `${formatDate(from)} to ${formatDate(to)}` },
-          { label: 'Group', value: member.group_name ?? 'Not in a group' },
+          {
+            label: 'Saves as',
+            value:
+              member.savings_category_name && member.savings_frequency
+                ? `${member.savings_category_name} · ${formatUGX(
+                    member.savings_expected_amount,
+                  )} ${SAVINGS_FREQUENCY_ADVERB[member.savings_frequency]}`
+                : 'No savings category',
+          },
+          { label: 'Shares', value: member.share_category_name ?? 'No share category' },
           { label: 'Opening', value: formatUGX(statement.opening_balance) },
           { label: 'Closing', value: formatUGX(closing) },
         ]}

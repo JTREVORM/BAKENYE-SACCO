@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getActiveGroups } from '@/lib/queries';
+import { getSavingsCategories } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { PageTitle } from '@/components/ui/primitives';
 import { ErrorState, TableSkeleton } from '@/components/ui/states';
@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: 'Savings schedules' };
 const PAGE_SIZE = 25;
 
 /**
- * Every scheduled contribution, across every group.
+ * Every scheduled contribution, across the whole membership.
  *
  * Schedules are never deleted — a missed week in July is still here in
  * September carrying its shortfall — so this doubles as the arrears register.
@@ -29,7 +29,7 @@ export default async function SchedulesPage({
   searchParams: Promise<{
     q?: string;
     status?: string;
-    group?: string;
+    category?: string;
     from?: string;
     to?: string;
     page?: string;
@@ -58,12 +58,19 @@ async function Schedules({
   sp,
   generatedBy,
 }: {
-  sp: { q?: string; status?: string; group?: string; from?: string; to?: string; page?: string };
+  sp: {
+    q?: string;
+    status?: string;
+    category?: string;
+    from?: string;
+    to?: string;
+    page?: string;
+  };
   generatedBy: string;
 }) {
   const page = Math.max(1, Number(sp.page ?? '1') || 1);
   const supabase = await createClient();
-  const groups = await getActiveGroups();
+  const categories = await getSavingsCategories();
 
   let query = supabase
     .from('savings_schedules')
@@ -74,7 +81,7 @@ async function Schedules({
 
   const status = sp.status as SavingsStatus | undefined;
   if (status) query = query.eq('status', status);
-  if (sp.group) query = query.eq('group_id', sp.group);
+  if (sp.category) query = query.eq('savings_category_id', sp.category);
   if (sp.from) query = query.gte('due_on', sp.from);
   if (sp.to) query = query.lte('due_on', sp.to);
   if (sp.q?.trim()) {
@@ -108,12 +115,12 @@ async function Schedules({
   );
 
   const csv = [
-    ['Member No', 'Member', 'Group', 'Cycle', 'Due', 'Expected', 'Paid', 'Outstanding', 'Status'],
+    ['Member No', 'Member', 'Category', 'Cycle', 'Due', 'Expected', 'Paid', 'Outstanding', 'Status'],
     ...rows.map((r) => [
       r.member_no,
       r.member_name,
-      r.group_name ?? '',
-      r.period_label,
+      r.savings_category_name ?? '',
+      r.cycle,
       r.due_on,
       formatAmount(r.expected_amount),
       formatAmount(r.paid_amount),
@@ -133,7 +140,7 @@ async function Schedules({
     ],
   ];
 
-  const scope = groups.find((g) => g.id === sp.group)?.name ?? 'All groups';
+  const scope = categories.find((c) => c.id === sp.category)?.name ?? 'All savings categories';
   const statusLabel = sp.status ? sp.status[0].toUpperCase() + sp.status.slice(1) : 'All statuses';
 
   return (
@@ -170,7 +177,7 @@ async function Schedules({
         total={count ?? rows.length}
         page={page}
         pageSize={PAGE_SIZE}
-        groups={groups}
+        categories={categories}
         totals={totals}
       />
 

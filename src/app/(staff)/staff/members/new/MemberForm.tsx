@@ -16,9 +16,16 @@ import {
 } from '@/components/ui/form';
 import { toISODate } from '@/lib/format';
 import type { ActionResult } from '@/lib/errors';
-import { savingDayLabel } from '@/lib/groups';
+import {
+  SAVINGS_FREQUENCY_ADVERB,
+  qualificationWindow,
+} from '@/lib/categories';
 import { formatUGX } from '@/lib/money';
-import type { MemberFinancialsRow, SaccoGroupRow } from '@/types/db';
+import type {
+  MemberFinancialsRow,
+  SavingsCategoryRow,
+  ShareCategoryRow,
+} from '@/types/db';
 
 /**
  * Register or edit a member.
@@ -33,11 +40,13 @@ import type { MemberFinancialsRow, SaccoGroupRow } from '@/types/db';
  */
 export function MemberForm({
   member,
-  groups = [],
+  shareCategories = [],
+  savingsCategories = [],
 }: {
   member?: MemberFinancialsRow;
-  /** Empty when the signed-in user may not place members in groups. */
-  groups?: SaccoGroupRow[];
+  /** Both empty when the signed-in user may not set a member's categories. */
+  shareCategories?: ShareCategoryRow[];
+  savingsCategories?: SavingsCategoryRow[];
 }) {
   const editing = !!member;
   const [state, action] = useActionState<
@@ -200,31 +209,69 @@ export function MemberForm({
           </div>
         </Section>
 
-        {groups.length > 0 ? (
-          <Section title="Group">
-            <Field
-              label="Savings group"
-              htmlFor="group_id"
-              error={err?.field === 'group_id' ? err.error : null}
-              hint="The group sets the collection day and the default savings target. A member with no group appears on no collection sheet."
-            >
-              <Select
-                id="group_id"
-                name="group_id"
-                defaultValue={member?.group_id ?? ''}
-                invalid={err?.field === 'group_id'}
+        {/* Two independent choices, on purpose. A member may hold Gold shares
+          and still save at the Diamond rate; the SACCO's own example says so. */}
+        {shareCategories.length > 0 || savingsCategories.length > 0 ? (
+          <Section title="Categories">
+            {shareCategories.length > 0 ? (
+              <Field
+                label="Share category"
+                htmlFor="share_category_id"
+                error={err?.field === 'share_category_id' ? err.error : null}
+                hint="How many shares this member is working towards, and by when."
               >
-                <option value="">No group yet</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name} · {savingDayLabel(g.saving_day)}
-                    {Number(g.weekly_target) > 0
-                      ? ` · ${formatUGX(g.weekly_target)} a week`
-                      : ''}
-                  </option>
+                <Select
+                  id="share_category_id"
+                  name="share_category_id"
+                  defaultValue={member?.share_category_id ?? ''}
+                  invalid={err?.field === 'share_category_id'}
+                >
+                  <option value="">Not chosen yet</option>
+                  {shareCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} · {c.required_shares}{' '}
+                      {c.required_shares === 1 ? 'share' : 'shares'} ·{' '}
+                      {formatUGX(c.required_amount)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
+
+            {savingsCategories.length > 0 ? (
+              <Field
+                label="Savings category"
+                htmlFor="savings_category_id"
+                error={err?.field === 'savings_category_id' ? err.error : null}
+                hint="What this member is expected to save, and how often. A member with no savings category has no schedule and nothing is expected of them."
+              >
+                <Select
+                  id="savings_category_id"
+                  name="savings_category_id"
+                  defaultValue={member?.savings_category_id ?? ''}
+                  invalid={err?.field === 'savings_category_id'}
+                >
+                  <option value="">Not chosen yet</option>
+                  {savingsCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} · {formatUGX(c.amount)}{' '}
+                      {SAVINGS_FREQUENCY_ADVERB[c.frequency]}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
+
+            {shareCategories.length > 0 ? (
+              <ul className="text-label-md font-label-md text-on-surface-variant flex flex-col gap-1 normal-case">
+                {shareCategories.map((c) => (
+                  <li key={c.id}>
+                    <strong className="text-on-surface font-semibold">{c.name}</strong>{' '}
+                    — {qualificationWindow(c.qualification_months).toLowerCase()}.
+                  </li>
                 ))}
-              </Select>
-            </Field>
+              </ul>
+            ) : null}
           </Section>
         ) : null}
 

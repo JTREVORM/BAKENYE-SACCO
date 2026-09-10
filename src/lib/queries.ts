@@ -1,19 +1,22 @@
 import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type {
-  CollectionSheet,
   DashboardMetrics,
-  GroupOverviewRow,
-  GroupSavingToday,
   LoanBalanceRow,
   LoanProductRow,
+  MemberCollectionView,
   MemberFinancialsRow,
+  MemberSavingsOverview,
+  MemberShareProgressRow,
   NotificationRow,
-  SaccoGroupRow,
   SaccoSettingsRow,
+  SavingsCategoryAnalytics,
+  SavingsCategoryRow,
+  ShareCategoryRow,
   ShareSettingsRow,
   SavingsDashboard,
   SavingsPeriodRow,
+  SavingsScheduleRow,
   TransactionFeedRow,
 } from '@/types/db';
 
@@ -119,9 +122,6 @@ export const getSaccoSettings = cache(async (): Promise<SaccoSettingsRow> => {
       contact_email: null,
       contact_phone: null,
       address: null,
-      default_saving_frequency: 'weekly',
-      default_weekly_target: 0,
-      default_monthly_target: 0,
       notify_in_app: true,
       updated_at: new Date().toISOString(),
       updated_by: null,
@@ -186,64 +186,151 @@ export const getShareUnitPrice = cache(async (): Promise<number> => {
 });
 
 /* ==========================================================================
- * Groups and group savings
+ * Share and savings categories
+ *
+ * The three tiers are rows, not constants, so a manager who edits the Gold
+ * Saver amount changes what every screen below quotes.
  * ======================================================================== */
 
-/** Active groups, for the pickers on member and group forms. */
-export const getActiveGroups = cache(async (): Promise<SaccoGroupRow[]> => {
+/** Active share categories, for the pickers on the member forms. */
+export const getShareCategories = cache(async (): Promise<ShareCategoryRow[]> => {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('sacco_groups')
+    .from('share_categories')
     .select('*')
-    .neq('status', 'dissolved')
+    .eq('status', 'active')
+    .order('sort_order')
     .order('name');
   return data ?? [];
 });
 
-export const getGroupOverview = cache(async (groupId: string): Promise<GroupOverviewRow | null> => {
+/** Active savings categories, for the pickers on the member forms. */
+export const getSavingsCategories = cache(async (): Promise<SavingsCategoryRow[]> => {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('group_overview')
+    .from('savings_categories')
     .select('*')
-    .eq('id', groupId)
-    .maybeSingle();
-  return data ?? null;
+    .eq('status', 'active')
+    .order('sort_order')
+    .order('name');
+  return data ?? [];
 });
 
-/**
- * The whole collection screen in one round trip: the group, the cycle, the
- * member rows and the recent cycles to switch between.
- */
-export const getCollectionSheet = cache(
-  async (groupId: string, cycleId?: string | null): Promise<CollectionSheet | null> => {
+/** Every category, retired ones included — the administration screen shows both. */
+export const getAllShareCategories = cache(async (): Promise<ShareCategoryRow[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('share_categories')
+    .select('*')
+    .order('status')
+    .order('sort_order')
+    .order('name');
+  return data ?? [];
+});
+
+export const getAllSavingsCategories = cache(async (): Promise<SavingsCategoryRow[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('savings_categories')
+    .select('*')
+    .order('status')
+    .order('sort_order')
+    .order('name');
+  return data ?? [];
+});
+
+/** How far one member is towards their share category. */
+export const getShareProgress = cache(
+  async (memberId: string): Promise<MemberShareProgressRow | null> => {
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('group_collection_sheet', {
-      p_group_id: groupId,
-      p_cycle_id: cycleId ?? null,
-    });
-    if (error || !data) return null;
-    return data as unknown as CollectionSheet;
+    const { data } = await supabase
+      .from('member_share_progress')
+      .select('*')
+      .eq('member_id', memberId)
+      .maybeSingle();
+    return data ?? null;
   },
 );
 
-/** The groups whose configured saving day falls on `on`. */
-export const getGroupsSavingOn = cache(async (on: string): Promise<GroupSavingToday[]> => {
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('groups_saving_on', { p_on: on });
-  if (error || !data) return [];
-  return data as unknown as GroupSavingToday[];
-});
-
-export const getSavingsDashboard = cache(
-  async (on: string): Promise<SavingsDashboard | null> => {
+/** The schedules a member is judged against, most recent first. */
+export const getMemberSchedules = cache(
+  async (memberId: string, limit = 12): Promise<SavingsScheduleRow[]> => {
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('savings_dashboard', { p_on: on });
+    const { data } = await supabase
+      .from('savings_schedules')
+      .select('*')
+      .eq('member_id', memberId)
+      .order('due_on', { ascending: false })
+      .limit(limit);
+    return data ?? [];
+  },
+);
+
+/* ==========================================================================
+ * Savings dashboards and collection
+ * ======================================================================== */
+
+/**
+ * The staff savings dashboard — section 13 of the brief.
+ *
+ * Bounded by a date range rather than a single collection day, because members
+ * now save on their own category's cadence rather than on a shared meeting day.
+ */
+export const getSavingsDashboard = cache(
+  async (from?: string, to?: string): Promise<SavingsDashboard | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('savings_dashboard', {
+      p_from: from ?? null,
+      p_to: to ?? null,
+    });
     if (error || !data) return null;
     return data as unknown as SavingsDashboard;
   },
 );
 
-/** Staff accounts that can be assigned to a group as its loan officer. */
+/** Category-level statistics — section 14. */
+export const getCategoryAnalytics = cache(
+  async (from?: string, to?: string): Promise<SavingsCategoryAnalytics | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('savings_category_analytics', {
+      p_from: from ?? null,
+      p_to: to ?? null,
+    });
+    if (error || !data) return null;
+    return data as unknown as SavingsCategoryAnalytics;
+  },
+);
+
+/**
+ * Everything the centralised collection screen needs for one member, in one
+ * round trip: who they are, what their category expects, what is outstanding,
+ * when they are next due, and their history.
+ */
+export const getMemberCollectionView = cache(
+  async (memberId: string, on?: string): Promise<MemberCollectionView | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('member_collection_view', {
+      p_member_id: memberId,
+      p_on: on ?? undefined,
+    });
+    if (error || !data) return null;
+    return data as unknown as MemberCollectionView;
+  },
+);
+
+/** The member's own financial dashboard — section 12. */
+export const getMemberSavingsOverview = cache(
+  async (memberId: string): Promise<MemberSavingsOverview | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('member_savings_overview', {
+      p_member_id: memberId,
+    });
+    if (error || !data) return null;
+    return data as unknown as MemberSavingsOverview;
+  },
+);
+
+/** Staff accounts that may be assigned savings work. */
 export const getAssignableOfficers = cache(
   async (): Promise<{ id: string; full_name: string; role: string }[]> => {
     const supabase = await createClient();
@@ -251,7 +338,7 @@ export const getAssignableOfficers = cache(
       .from('app_users')
       .select('id, full_name, role')
       .eq('is_active', true)
-      .in('role', ['super_admin', 'manager', 'loan_officer', 'group_officer', 'cashier'])
+      .in('role', ['super_admin', 'manager', 'loan_officer', 'field_officer', 'cashier'])
       .order('full_name');
     return data ?? [];
   },

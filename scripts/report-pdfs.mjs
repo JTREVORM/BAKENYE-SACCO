@@ -20,9 +20,9 @@ const PASSWORD = process.env.STAFF_PASSWORD ?? 'Admin@123';
 
 const DOCS = [
   { path: '/staff/reports/members', name: 'member-register' },
-  { path: '/staff/savings', name: 'savings-performance' },
+  { path: '/staff/savings', name: 'savings-dashboard' },
+  { path: '/staff/savings/performance', name: 'savings-performance' },
   { path: '/staff/savings/schedules', name: 'savings-schedules' },
-  { path: '/staff/reports/groups', name: 'group-report' },
 ];
 
 const OUT = 'screenshots/pdf';

@@ -1,7 +1,7 @@
 /**
  * Run a SQL file (or an inline statement) against the project database.
  *
- *   node scripts/db-exec.mjs supabase/migrations/0007_groups.sql
+ *   node scripts/db-exec.mjs supabase/migrations/0021_categories_replace_groups.sql
  *   node scripts/db-exec.mjs "select count(*) from members"
  *   node scripts/db-exec.mjs --as <app_user_id> "select savings_dashboard()"
  *

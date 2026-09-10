@@ -14,17 +14,17 @@ the visual source of truth, and every screen below names the file it came from.
 
 | Area | Covered |
 | --- | --- |
-| **Members** | Register, edit, search, filter, activate/deactivate, group placement, full financial history and ledger |
-| **Groups** | The collection unit. Each group has its own saving day, frequency, targets, leader, secretary and officer |
-| **Collections** | Per-group collection sheets on the saving day; manual entry per member, with cash, mobile money, bank or cheque recorded against a reference |
-| **Shares** | Share capital kept separate from savings; lots priced at purchase time; register and receipts |
-| **Savings** | Group cycles and per-member schedules with targets, paid/partial/pending/missed/waived status, arrears reporting |
+| **Members** | Register, edit, search, filter, activate/deactivate, share and savings categories, full financial history and ledger |
+| **Categories** | Diamond / Gold / Silver share tiers and Diamond / Gold / Silver Saver savings tiers — created, edited and retired by a manager, never hard-coded |
+| **Collections** | One centralised screen: search a member by number, name or phone, see what their category expects, and record cash, mobile money, bank or cheque against a reference |
+| **Shares** | Share capital kept separate from savings; lots priced at purchase time; per-member progress towards the share category and its qualification deadline |
+| **Savings** | Per-member schedules driven by the savings category, with paid/partial/pending/missed/waived status, arrears and per-category analytics |
 | **Loans** | Applied → Under Review → Approved → Disbursed → Active → Completed, plus Rejected; amortisation schedule; guarantors |
 | **Repayments** | Interest-first allocation, automatic status transitions, guarantor release on completion |
 | **Transactions** | One immutable ledger, `BND-TX-2026-004582` references, reversal workflow |
 | **Receipts** | Printable / PDF / shareable, with the SACCO crest and full transaction detail |
 | **Finance** | Income by category, expenses with a mandatory approval step, cashbook, profit & loss |
-| **Reports** | Member register, group report, savings performance, schedules, statements, ledgers, cashbook — every one downloadable as a letterheaded PDF and as CSV |
+| **Reports** | Member register, category performance, savings performance, schedules, statements, ledgers, cashbook — every one downloadable as a letterheaded PDF and as CSV |
 | **Users & roles** | Seven staff roles with a permission matrix generated from the rules the app actually enforces |
 | **Audit log** | Append-only, with before/after values and a mandatory reason on sensitive actions |
 
@@ -83,12 +83,16 @@ supabase db push
 | `0004_rls.sql` | Row-level security and function grants |
 | `0005_seed.sql` | Loan products, income/expense categories, share price |
 | `0006_app_support.sql` | Search, pagination, receipts, reports |
-| `0007_groups.sql` | Groups, savings cycles, the schedule columns, `payment_intents` |
-| `0008_group_views.sql` | Schedules, cycle summaries, group overview, group on `member_financials` |
-| `0009_group_functions.sql` | Cycles, manual collection, waivers, group admin and read models |
-| `0010_roles.sql` | The accountant, group officer and viewer roles |
+| `0007_groups.sql` | The original group layer, superseded by `0021`–`0024`. Kept so the history replays |
+| `0008_group_views.sql` | Group views, superseded by `0022` |
+| `0009_group_functions.sql` | Group cycles and collection, superseded by `0023` |
+| `0010_roles.sql` | The accountant, field officer and viewer roles |
 | `0011_rbac_and_rls.sql` | Capability predicates, policies restated against them, RLS for the new tables |
 | `0012_fix_loan_policy_recursion.sql` | Breaks a mutually recursive policy pair on `loans` and `loan_guarantors` |
+| `0021_categories_replace_groups.sql` | `share_categories`, `savings_categories`, the member columns, and the removal of every group table, column, function and setting |
+| `0022_category_views.sql` | Share progress, `member_financials`, schedules, savings transactions, category summaries |
+| `0023_category_functions.sql` | Schedule arithmetic, collection, waivers, category administration |
+| `0024_category_reports.sql` | Savings dashboard, category analytics, member overview, the collection screen |
 
 ### 4. Create the first administrator
 
@@ -193,32 +197,52 @@ formats; Postgres calculates.
 
 ---
 
-## How group savings work
+## How savings work
 
-The SACCO does not collect from 500 individuals one at a time. It collects from groups, and every
-group meets on its own day:
+The SACCO does not run group meetings. Each member saves on the cadence of the savings category
+they chose, and the office collects from whoever comes to the counter:
 
 ```
-SACCO → GROUPS → MEMBERS → SAVINGS PLANS → CYCLES → SCHEDULES → LEDGER
+SACCO → MEMBERS → SHARE CATEGORY
+                → SAVINGS CATEGORY → SAVINGS PLAN → SCHEDULE → MANUAL TRANSACTION → LEDGER
 ```
 
-**The saving day is data, not code.** `sacco_groups.saving_day` is an ISO weekday, so a group that
-saves on Monday and one that saves on Saturday run the same code path with a different number.
-Moving a group from Wednesday to Friday is one edit on its profile; nothing is deployed.
-`groups_saving_on(date)` answers "who is collecting today" by comparing that column against the
-date, and biweekly groups alternate on the parity of the ISO week rather than on a stored calendar.
+**The categories are rows, not constants.** `savings_categories` holds Diamond Saver at UGX 100,000
+monthly, Gold Saver at UGX 50,000 monthly and Silver Saver at UGX 5,000 weekly; `share_categories`
+holds Diamond at 50 shares, Gold at 25 and Silver at 1, all priced at UGX 20,000. Every screen reads
+them back, so a manager who introduces a fourth tier, or moves Gold Saver to UGX 60,000, does it on
+the Categories screen. Nothing is deployed. `required_amount` is a generated column — 50 × 20,000 is
+UGX 1,000,000 because Postgres multiplied it, not because somebody typed it into a second field that
+can later disagree with the first.
 
-**A cycle is an expectation, not an account.** `open_group_cycle()` creates one `savings_cycles`
-row for the group and one schedule row per active member, each carrying what that member is
-expected to bring — their own savings plan if they have one, otherwise the target of the group.
-Opening the sheet *before* the meeting is what turns a member who pays nothing into a measurable
-`missed` schedule rather than no row at all.
+**Share category and savings category are independent.** A member may hold Gold shares and save at
+the Diamond rate; the brief's own worked example says so, and both are separate columns on `members`.
+A SACCO that later decides the two must always agree turns on
+`categories.share_matches_savings`, and `set_member_categories()` starts refusing the mismatch.
 
-**A group has no balance.** Expected, collected and outstanding are all `SUM()`s over the member
-schedules, in `group_cycle_summary` and `group_overview`. 25 members at UGX 20,000 is UGX 500,000
-expected; 23 who pay make UGX 460,000 collected and UGX 40,000 outstanding — computed, never typed.
-Because there is no second copy, a group total cannot drift away from what its members can see on
-their own phones.
+**Due dates are computed, never stored.** A weekly saver falls due at the end of their
+Monday-to-Sunday week; a monthly saver on the last day of the month. `next_savings_due_date()`
+answers "when next?" from the member's own open schedules and their category's frequency, so it is
+right the morning after a cycle closes without anything having run overnight. Moving a member
+between categories changes when they are next due with no code change.
+
+**A schedule is an expectation, not an account.** `open_savings_schedules()` raises one row per
+active categorised member for the current period, carrying what that member is expected to bring —
+their own savings plan if they have one, otherwise their category's amount. A member with neither
+gets an expectation of zero rather than an invented target. Raising the schedule *before* the money
+is due is what turns a member who pays nothing into a measurable `missed` schedule rather than no
+row at all.
+
+**A category has no balance.** Members, expected, collected, outstanding and the collection rate are
+all `SUM()`s over the member schedules, in `savings_category_summary` and
+`savings_category_analytics()`. Forty-two Diamond Savers at UGX 100,000 is UGX 4,200,000 expected;
+what they actually paid is what the ledger says. Because there is no second copy, a category total
+cannot drift away from what its members see on their own phones.
+
+**Progress towards a share category is arithmetic on real lots.** `member_share_progress` reads the
+shares a member actually bought and the joining date on their own record: 32 of 50 Diamond shares is
+64%, 18 remaining, UGX 360,000 to go, and the deadline is their `joined_on` plus their category's
+qualification window. A category with no window — Silver — simply has no deadline to show.
 
 **Schedules are never deleted.** Paid, partial, missed and waived are all states of the same row,
 so a week somebody missed in July is still visible in September with its shortfall attached. A
@@ -240,8 +264,8 @@ each one carries a letterhead of its own, rendered by
 [`PrintLetterhead.tsx`](src/components/print/PrintLetterhead.tsx):
 
 - the SACCO crest and full registered name;
-- what the document **is** — *Group Report*, *Member Register*, *Member Financial Ledger*;
-- what it is **about** — the group, the member, the filter applied;
+- what the document **is** — *Savings by Category*, *Member Register*, *Member Financial Ledger*;
+- what it is **about** — the category, the member, the filter applied;
 - the **period** it covers, its headline totals, when it was generated and **by whom**.
 
 It is `hidden` on screen, because the page already has a heading, and `print:block` in the output,
@@ -252,7 +276,7 @@ suppressed so a printed ledger is always the ledger table.
 **Download PDF** goes through the browser's own print engine with "Save as PDF" as the destination.
 Browsers name that file from `document.title`, so [`lib/print.ts`](src/lib/print.ts) swaps in a real
 document name for the duration of the print and restores it afterwards — the file lands as
-`BUD-SACCO Member Register 2026-09-07.pdf` rather than `Group report.pdf`, four times over, in the
+`BUD-SACCO Member Register 2026-09-07.pdf` rather than `Savings.pdf`, four times over, in the
 same Downloads folder.
 
 Checking the output is a command, not an eyeball:
@@ -283,13 +307,13 @@ calls the same settlement function; the savings, ledger, audit and UI code does 
 Seven staff roles and the member, defined once in [`src/lib/rbac.ts`](src/lib/rbac.ts) and enforced
 three times: navigation hides what you cannot use, `requirePermission()` guards the route, and RLS
 guards the data. The database expresses the same rules as capability predicates —
-`can_view_operations()`, `can_record_savings()`, `can_manage_groups()`, `can_view_finance()`,
+`can_view_operations()`, `can_record_savings()`, `can_manage_categories()`, `can_view_finance()`,
 `can_view_audit()` — so adding the next role is one edit rather than a search across the schema.
 
-| | Super Admin | Manager | Loan Officer | Cashier | Accountant | Group Officer | Viewer | Member |
+| | Super Admin | Manager | Loan Officer | Cashier | Accountant | Field Officer | Viewer | Member |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | Members | ● | ● | view | view | view | view | view | own |
-| Groups | ● | ● | view | view | view | view | view | own |
+| Categories | ● | ● | view | view | view | view | view | own |
 | Collections | ● | ● | view | ● | view | ● | view | own |
 | Savings & shares | ● | ● | view | ● | view | savings | view | own |
 | Loan assessment | ● | ● | ● | view | view | — | view | apply |
@@ -331,7 +355,7 @@ Mobile is the primary platform, not a breakpoint.
 
 The authenticated screens are audited through a development-only harness at **`/dev/preview`**,
 which renders the real components against [`src/lib/fixtures.ts`](src/lib/fixtures.ts) — including
-the group register and the collection sheet. It returns a 404 in production. See
+the member register and the savings collection panel. It returns a 404 in production. See
 [Testing](#testing) below for how to run the audit.
 
 ---
@@ -349,18 +373,18 @@ src/
 ├── components/
 │   ├── ui/             primitives carrying the Stitch design tokens
 │   ├── layout/         TopAppBar, BottomNav, Sidebar, shells
-│   ├── groups/         group register, form, status, placement, cycle opening
-│   ├── collections/    the collection sheet and its record/waive dialogs
+│   ├── categories/     category register dialogs, status, member placement
+│   ├── collections/    the member collection panel and its record/waive dialogs
 │   └── forms/          financial forms, all wrapped in FinancialForm
 ├── lib/
 │   ├── rbac.ts         roles, permissions, navigation — one source of truth
-│   ├── groups.ts       saving days, frequencies, group vocabulary
+│   ├── categories.ts   tiers, frequencies, category vocabulary
 │   ├── money.ts        UGX formatting and input parsing
 │   ├── auth.ts         session and permission guards
 │   └── icons.ts        the icon subset
 └── types/db.ts         schema and RPC signatures
 
-supabase/migrations/    schema → functions → views → RLS → reference data → groups → roles
+supabase/migrations/    schema → functions → views → RLS → reference data → roles → categories
 supabase/tests/         SQL suites, run in a transaction that is always rolled back
 scripts/                responsive-check.mjs, db-exec.mjs, test-db.mjs
 docs/                   setup, architecture, responsive results
@@ -374,15 +398,18 @@ These expect to be run on a schedule — with `pg_cron`, or any external schedul
 
 ```sql
 select run_daily_maintenance();              -- nightly: mark missed schedules, flag loan
-                                             -- defaults, and open today's group sheets
-select open_cycles_for_day(current_date);    -- every morning, if run separately
-select open_savings_periods('weekly');       -- members with no group
-select open_savings_periods('monthly');      -- members with no group
+                                             -- defaults, and raise today's schedules
+select open_savings_schedules(current_date); -- every morning, if run separately
+select open_savings_periods('weekly');       -- one cadence only, if wanted
+select open_savings_periods('monthly');
 ```
 
-`run_daily_maintenance()` already calls `open_cycles_for_day()`, so a single nightly job is enough.
-Opening sheets in advance matters: a member who pays nothing then has a `missed` schedule rather
-than no row at all, which is the difference between a measurable shortfall and a silent gap.
+`run_daily_maintenance()` already calls `open_savings_schedules()`, so a single nightly job is
+enough. Raising schedules in advance matters: a member who pays nothing then has a `missed` schedule
+rather than no row at all, which is the difference between a measurable shortfall and a silent gap.
+Members with no savings category are skipped and counted, not given a default — the count is on the
+savings dashboard, because it is a problem for a person to fix rather than for the database to paper
+over.
 
 ---
 
@@ -399,12 +426,10 @@ node scripts/report-pdfs.mjs           # renders every report to a real PDF, plu
 
 `npm run test:db` runs each suite as a real signed-in super administrator, inside a transaction it
 always rolls back, so it exercises the same `auth.uid()` and role checks the application hits and
-leaves nothing behind. The group savings suite covers the scenarios that matter: 25 members on one
-sheet, expected totalling correctly, a full payment, a partial payment, a missed schedule, a
-duplicate submission, a duplicate external reference, a future-dated payment, a closed cycle, and
-an ordinary member being refused every operational action. A second suite checks row-level
-security end to end: staff read everything, a member reads only their own rows plus the loans they
-guarantee, and the books, the audit log and the statement of anyone else stay closed to them.
+leaves nothing behind. The row-level security suite checks isolation end to end: staff read
+everything, a member reads only their own rows plus the loans they guarantee, sharing a savings
+category with somebody does not make either of them visible to the other, and the books, the audit
+log and the statement of anyone else stay closed to them.
 
 `scripts/db-exec.mjs` applies a migration or runs a statement from `DATABASE_URL` directly, with
 `--as <user_id>` to run it as a given user — useful when the Supabase CLI has no linked project.
@@ -415,10 +440,12 @@ guarantee, and the books, the audit log and the statement of anyone else stay cl
 
 - **No payment gateway — deliberately.** Phase One records payments that already happened.
   `payment_intents` is the seam a provider plugs into in Phase Two; nothing calls one today.
-- **Biweekly groups alternate on ISO-week parity**, anchored to the week the group was created.
-  A group that needs a different rhythm — first and third Tuesday, say — needs a rule of its own.
-- **Group history stays with the group that collected it.** Moving a member carries only their
-  unpaid, not-yet-due schedules across, so an old collection sheet never rewrites itself.
+- **A savings category collects weekly or monthly, and nothing else.** A tier that needs a different
+  rhythm — fortnightly, or quarterly — needs a new value on `savings_kind` and the period arithmetic
+  to match.
+- **Editing a category is forward-looking.** Changing an amount re-prices only schedules that are
+  still pending, unpaid and not yet due. A cycle already collected keeps the figure it was actually
+  judged against, so last month's receipts and last month's report never disagree.
 - **Excel export is CSV.** Opens natively in Excel, with a UTF-8 BOM so member names with accents
   survive. A true `.xlsx` writer was not worth ~200 KB for flat reports.
 - **Loan interest is flat-rate by default.** `quote_loan()` also implements reducing-balance

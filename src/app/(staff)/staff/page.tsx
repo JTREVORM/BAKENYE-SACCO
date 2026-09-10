@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getCollectionsTrend, getDashboardMetrics, getGroupsSavingOn } from '@/lib/queries';
+import { getCategoryAnalytics, getCollectionsTrend, getDashboardMetrics } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { can, type Role } from '@/lib/rbac';
 import {
@@ -65,7 +65,7 @@ export default async function StaffDashboard() {
       <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
         <div className="space-y-gutter xl:col-span-2">
           <Suspense fallback={<PanelSkeleton height="h-40" />}>
-            <CollectingToday />
+            <CategoryPerformance />
           </Suspense>
 
           <Suspense fallback={<PanelSkeleton height="h-56" />}>
@@ -369,10 +369,10 @@ function AttentionChip({
 function QuickActions({ role }: { role: Role }) {
   const actions = [
     { href: '/staff/members/new', icon: 'person_add', label: 'Add Member', permission: 'members.manage', tone: 'primary' },
-    { href: '/staff/savings/record', icon: 'savings', label: 'Record Saving', permission: 'savings.record', tone: 'success' },
+    { href: '/staff/savings/collect', icon: 'point_of_sale', label: 'Collect Savings', permission: 'savings.record', tone: 'success' },
     { href: '/staff/loans/new', icon: 'request_quote', label: 'New Loan', permission: 'loans.assess', tone: 'accent' },
     { href: '/staff/transactions/cash', icon: 'swap_horiz', label: 'Cash Movement', permission: 'cash.movement', tone: 'neutral' },
-    { href: '/staff/groups/new', icon: 'group_add', label: 'Add Group', permission: 'groups.manage', tone: 'primary' },
+    { href: '/staff/categories', icon: 'workspace_premium', label: 'Categories', permission: 'categories.manage', tone: 'primary' },
     { href: '/staff/reports', icon: 'summarize', label: 'View Reports', permission: 'reports.view', tone: 'neutral' },
   ] as const;
 
@@ -395,22 +395,24 @@ function QuickActions({ role }: { role: Role }) {
  * ------------------------------------------------------------------------ */
 
 /**
- * What is due next, derived from the group saving days and the loan schedule.
+ * What is due next, derived from the member schedules and the loan schedule.
  *
- * These are real rows: a group's next collection date comes from its configured
- * saving day, and a repayment reminder comes from `loan_schedule`. Nothing here
- * is a placeholder for a reminder system that does not exist yet — when email
- * reminders are added in a later phase they will send exactly these.
+ * These are real rows: a savings reminder is a schedule that is genuinely open
+ * and falls due, and a repayment reminder comes from `loan_schedule`. Nothing
+ * here is a placeholder for a reminder system that does not exist yet — when
+ * email reminders are added in a later phase they will send exactly these.
  */
 async function UpcomingReminders() {
   const supabase = await createClient();
   const today = toISODate();
 
-  const [{ data: cycles }, { data: due }] = await Promise.all([
+  const [{ data: schedules }, { data: due }] = await Promise.all([
     supabase
-      .from('group_cycle_summary')
-      .select('cycle_id, group_id, group_name, due_on, members_expected, expected_amount, status')
-      .eq('status', 'open')
+      .from('savings_schedules')
+      .select(
+        'schedule_id, member_id, member_name, savings_category_name, due_on, expected_amount, outstanding, status',
+      )
+      .in('status', ['pending', 'partial'])
       .gte('due_on', today)
       .order('due_on', { ascending: true })
       .limit(4),
@@ -437,21 +439,24 @@ async function UpcomingReminders() {
   };
 
   const items: Reminder[] = [
-    ...((cycles ?? []) as {
-      cycle_id: string;
-      group_id: string;
-      group_name: string;
+    ...((schedules ?? []) as {
+      schedule_id: string;
+      member_id: string;
+      member_name: string;
+      savings_category_name: string | null;
       due_on: string;
-      members_expected: number;
       expected_amount: number;
+      outstanding: number;
     }[]).map((c) => ({
-      key: `cycle-${c.cycle_id}`,
+      key: `schedule-${c.schedule_id}`,
       icon: 'event_available',
       tone: 'success' as const,
-      title: `Collection day · ${c.group_name}`,
-      detail: `${c.members_expected} members · ${formatUGX(c.expected_amount)} expected`,
+      title: `Savings due · ${c.member_name}`,
+      detail: `${formatUGX(c.outstanding)} outstanding${
+        c.savings_category_name ? ` · ${c.savings_category_name}` : ''
+      }`,
       on: c.due_on,
-      href: `/staff/groups/${c.group_id}/collect`,
+      href: `/staff/savings/collect?q=${encodeURIComponent(c.member_name)}&member=${c.member_id}`,
     })),
     ...((due ?? []) as unknown as {
       id: string;
@@ -483,7 +488,7 @@ async function UpcomingReminders() {
           compact
           icon="event_busy"
           title="Nothing scheduled"
-          description="Group collection days and loan repayment dates will appear here as they are set."
+          description="Savings due dates and loan repayment dates appear here as they fall."
         />
       ) : (
         <ul className="divide-y divide-outline-variant/70">
@@ -541,100 +546,103 @@ function relativeDay(iso: string): string {
 }
 
 /* ------------------------------------------------------------------------ *
- * Collecting today
+ * Category performance
  * ------------------------------------------------------------------------ */
 
 /**
- * Which groups are collecting today.
+ * How each savings category is performing this month.
  *
- * Derived from the saving day each group configured, so a manager arriving in
- * the morning sees the round for the day without asking anyone. Nothing here is
- * keyed to a hard-coded weekday.
+ * Replaces the collection-day board the group model needed: members save on
+ * their own category's cadence now, so the question a manager arrives with is
+ * "are the Silver Savers keeping up?", not "who meets on a Wednesday?".
+ *
+ * Every figure comes from `savings_category_analytics()`, which aggregates the
+ * schedules actually raised. A category with no members shows zero and says so.
  */
-async function CollectingToday() {
-  const today = toISODate();
-  const groups = await getGroupsSavingOn(today);
+async function CategoryPerformance() {
+  const analytics = await getCategoryAnalytics();
 
-  if (groups.length === 0) {
+  if (!analytics || analytics.rows.length === 0) {
     return (
       <Panel
-        title="Collections today"
-        icon="event_busy"
-        action={<ViewAllLink href="/staff/savings/today">Check another day</ViewAllLink>}
+        title="Category performance"
+        icon="workspace_premium"
+        action={<ViewAllLink href="/staff/categories">Manage categories</ViewAllLink>}
         padded={false}
       >
         <EmptyState
           compact
-          icon="event_busy"
-          title="No group collects today"
-          description="Groups save on the day set in their profile. Open the collections screen to check another day."
+          icon="workspace_premium"
+          title="No savings categories yet"
+          description="Create the categories members save under, and their performance will be tracked here."
         />
       </Panel>
     );
   }
 
-  const expected = groups.reduce((n, g) => n + toNumber(g.expected_amount), 0);
-  const collected = groups.reduce((n, g) => n + toNumber(g.collected_amount), 0);
-  const rate = percent(collected, expected);
+  const { totals } = analytics;
+  const rate = percent(totals.collected, totals.expected);
 
   return (
     <Panel
-      title={`Collecting today · ${groups.length} ${groups.length === 1 ? 'group' : 'groups'}`}
-      subtitle={`${formatUGX(collected)} of ${formatUGX(expected)} expected`}
-      icon="event_available"
+      title="Category performance"
+      subtitle={`${formatUGX(totals.collected)} of ${formatUGX(totals.expected)} expected this month`}
+      icon="workspace_premium"
       action={
         <Link
-          href="/staff/savings/today"
-          className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-button-text text-on-primary shadow-card transition-colors hover:bg-primary-container"
+          href="/staff/savings"
+          className="text-button-text text-on-primary bg-primary hover:bg-primary-container inline-flex h-11 items-center gap-2 rounded-xl px-4 shadow-card transition-colors"
         >
-          <Icon name="event_available" size={18} />
-          Open collections
+          <Icon name="assessment" size={18} />
+          Savings dashboard
         </Link>
       }
       padded={false}
     >
-      <div className="border-b border-outline-variant px-5 py-3.5">
-        <div className="mb-2 flex items-center justify-between text-label-md font-semibold text-on-surface-variant">
+      <div className="border-outline-variant border-b px-5 py-3.5">
+        <div className="text-label-md text-on-surface-variant mb-2 flex items-center justify-between font-semibold">
           <span>Overall collection rate</span>
           <span className="tabular text-on-surface">{rate.toFixed(0)}%</span>
         </div>
         <ProgressBar
           value={rate}
           tone={rate >= 80 ? 'tertiary' : rate >= 40 ? 'secondary' : 'error'}
-          label="Overall collection rate today"
+          label="Overall collection rate this month"
         />
       </div>
 
-      <ul className="divide-y divide-outline-variant/70">
-        {groups.slice(0, 5).map((g) => {
-          const r = percent(g.collected_amount, g.expected_amount);
+      <ul className="divide-outline-variant/70 divide-y">
+        {analytics.rows.map((c) => {
+          const r = toNumber(c.collection_rate);
           return (
-            <li key={g.group_id}>
+            <li key={c.savings_category_id}>
               <Link
-                href={`/staff/groups/${g.group_id}/collect`}
-                className="flex min-h-touch-target-min items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-container-low"
+                href={`/staff/savings/performance?category=${c.savings_category_id}`}
+                className="min-h-touch-target-min hover:bg-surface-container-low flex items-center gap-4 px-5 py-3.5 transition-colors"
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-body-md font-semibold text-on-surface">
-                    {g.name}
+                  <span className="text-body-md text-on-surface block truncate font-semibold">
+                    {c.name}
                   </span>
-                  <span className="block truncate text-label-md font-normal text-on-surface-variant">
-                    {g.cycle_id
-                      ? `${g.paid_members} of ${g.members_expected} paid`
-                      : `${g.active_members} members · sheet not opened`}
+                  <span className="text-label-md text-on-surface-variant block truncate font-normal">
+                    {c.members} {c.members === 1 ? 'member' : 'members'} ·{' '}
+                    {formatUGX(c.collected)} collected
+                    {toNumber(c.outstanding) > 0
+                      ? ` · ${formatUGX(c.outstanding)} outstanding`
+                      : ''}
                   </span>
                 </span>
                 <span className="hidden w-28 shrink-0 sm:block">
                   <ProgressBar
                     value={r}
                     tone={r >= 80 ? 'tertiary' : r >= 40 ? 'secondary' : 'error'}
-                    label={`${g.name} collection rate`}
+                    label={`${c.name} collection rate`}
                   />
                 </span>
-                <span className="tabular w-12 shrink-0 text-right text-body-md font-bold text-on-surface">
+                <span className="tabular text-body-md text-on-surface w-12 shrink-0 text-right font-bold">
                   {r.toFixed(0)}%
                 </span>
-                <Icon name="chevron_right" size={19} className="shrink-0 text-on-surface-variant" />
+                <Icon name="chevron_right" size={19} className="text-on-surface-variant shrink-0" />
               </Link>
             </li>
           );

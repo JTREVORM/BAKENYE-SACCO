@@ -1,7 +1,11 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getActiveGroups, getMemberFinancials } from '@/lib/queries';
+import {
+  getMemberFinancials,
+  getSavingsCategories,
+  getShareCategories,
+} from '@/lib/queries';
 import { can } from '@/lib/rbac';
 import { PageTitle } from '@/components/ui/primitives';
 import { MemberForm } from '../../new/MemberForm';
@@ -11,9 +15,12 @@ export const metadata: Metadata = { title: 'Edit Member' };
 export default async function EditMemberPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requirePermission('members.manage');
   const { id } = await params;
-  const [member, groups] = await Promise.all([
+  const mayCategorise = can(user.role, 'categories.manage');
+
+  const [member, shareCategories, savingsCategories] = await Promise.all([
     getMemberFinancials(id),
-    can(user.role, 'groups.manage') ? getActiveGroups() : Promise.resolve([]),
+    mayCategorise ? getShareCategories() : Promise.resolve([]),
+    mayCategorise ? getSavingsCategories() : Promise.resolve([]),
   ]);
 
   if (!member) notFound();
@@ -21,7 +28,11 @@ export default async function EditMemberPage({ params }: { params: Promise<{ id:
   return (
     <div>
       <PageTitle title={`Edit ${member.full_name}`} subtitle={member.member_no} />
-      <MemberForm member={member} groups={groups} />
+      <MemberForm
+        member={member}
+        shareCategories={shareCategories}
+        savingsCategories={savingsCategories}
+      />
     </div>
   );
 }

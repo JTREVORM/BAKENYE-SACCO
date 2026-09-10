@@ -7,7 +7,7 @@ import { requireUser } from '@/lib/auth';
 import { can } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
 import { getSettingRows } from '@/lib/settings';
-import type { SavingFrequency, SettingValue, SystemSettingRow } from '@/types/db';
+import type { SettingValue, SystemSettingRow } from '@/types/db';
 
 /**
  * SACCO configuration.
@@ -89,40 +89,6 @@ export async function updateOrganisation(
   // is stale, not just this screen.
   revalidatePath('/', 'layout');
   return succeed(null, 'Organisation details saved.');
-}
-
-/* -------------------------------------------------------------------------- */
-
-const savingsDefaultsSchema = z.object({
-  default_saving_frequency: z.enum(['weekly', 'biweekly', 'monthly']),
-  default_weekly_target: z.coerce.number().min(0, 'Enter a target of zero or more.'),
-  default_monthly_target: z.coerce.number().min(0, 'Enter a target of zero or more.'),
-});
-
-export async function updateSavingsDefaults(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<ActionResult<null>> {
-  const user = await requireUser();
-  if (!can(user.role, 'settings.manage')) {
-    return { ok: false, error: 'You do not have permission to change these settings.' };
-  }
-
-  const parsed = savingsDefaultsSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return firstIssue(parsed.error);
-  const d = parsed.data;
-
-  const supabase = await createClient();
-  const { error } = await supabase.rpc('update_savings_defaults', {
-    p_default_saving_frequency: d.default_saving_frequency as SavingFrequency,
-    p_default_weekly_target: d.default_weekly_target,
-    p_default_monthly_target: d.default_monthly_target,
-  });
-  if (error) return fail(error, 'default_weekly_target');
-
-  revalidatePath('/staff/settings');
-  revalidatePath('/staff/groups/new');
-  return succeed(null, 'Savings defaults saved.');
 }
 
 /* -------------------------------------------------------------------------- */

@@ -14,18 +14,18 @@ import type { SavingsScheduleRow, SavingsStatus } from '@/types/db';
  * Forgive one scheduled contribution.
  *
  * A waiver writes off money the SACCO expected, so it is a management decision
- * with a mandatory reason. The schedule stays on the sheet marked "Waived"
- * rather than disappearing, because the group still met that week and the
- * record of the decision belongs with it.
+ * with a mandatory reason. The schedule stays visible, marked "Waived", rather
+ * than disappearing: the cycle still happened, and the record of the decision
+ * belongs with it.
  */
 export function WaiveScheduleDialog({
   row,
-  groupId,
+  memberId,
   open,
   onClose,
 }: {
   row: SavingsScheduleRow | null;
-  groupId: string;
+  memberId: string;
   open: boolean;
   onClose: () => void;
 }) {
@@ -55,7 +55,7 @@ export function WaiveScheduleDialog({
     >
       <form action={formAction} noValidate className="flex flex-col gap-5">
         <input type="hidden" name="schedule_id" value={row.schedule_id} />
-        <input type="hidden" name="group_id" value={groupId} />
+        <input type="hidden" name="member_id" value={memberId} />
 
         {state && !state.ok ? <Alert tone="error">{state.error}</Alert> : null}
 

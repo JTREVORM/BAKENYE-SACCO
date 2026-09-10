@@ -134,9 +134,13 @@ function toRules(map: SettingsMap) {
     guarantorCoverPct: settingNumber(map, 'loans.guarantor_cover_pct', 100),
     approvalRequiredAbove: settingNumber(map, 'loans.auto_approve_limit'),
 
-    minGroupMembers: settingNumber(map, 'groups.min_members', 1),
-    maxGroupMembers: settingNumber(map, 'groups.max_members'),
-    allowMultipleGroups: settingBool(map, 'groups.allow_member_multiple_groups'),
+    /**
+     * Whether a member's savings category has to match their share category.
+     * Off by default: the SACCO's own worked example is a Gold shareholder who
+     * saves at the Diamond rate.
+     */
+    shareMatchesSavings: settingBool(map, 'categories.share_matches_savings'),
+    requireSavingsCategory: settingBool(map, 'categories.require_savings_category'),
 
     collectionReminderDays: settingNumber(map, 'notifications.collection_reminder_days', 1),
     loanDueReminderDays: settingNumber(map, 'notifications.loan_due_reminder_days', 3),
@@ -201,10 +205,11 @@ export const SETTING_CATEGORIES: {
     description: 'Minimum contributions and how part payments are treated.',
   },
   {
-    id: 'groups',
-    label: 'Groups',
-    icon: 'groups',
-    description: 'How large a group may be, and whether a member may belong to several.',
+    id: 'categories',
+    label: 'Categories',
+    icon: 'workspace_premium',
+    description:
+      'Whether share and savings categories must agree, and whether every member needs one.',
   },
   {
     id: 'notifications',

@@ -24,9 +24,9 @@ export function PrintLetterhead({
   generatedBy,
   generatedAt,
 }: {
-  /** What the document is: "Group Report", "Member Register". */
+  /** What the document is: "Savings by Category", "Member Register". */
   title: string;
-  /** What it is about: the group, the member, the filter applied. */
+  /** What it is about: the category, the member, the filter applied. */
   subtitle?: string;
   /** Period covered, filters, totals — whatever the reader needs to trust it. */
   meta?: { label: string; value: string }[];

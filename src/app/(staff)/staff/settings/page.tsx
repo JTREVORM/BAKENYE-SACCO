@@ -37,7 +37,7 @@ export const metadata: Metadata = { title: 'Settings' };
  *    in particular is read by `buy_shares()` itself, which is why it stays in
  *    `share_settings` rather than moving into the registry: one value, one
  *    home.
- *  - **Financial, Loans, Members, Savings, Groups, Notifications, Security**
+ *  - **Financial, Loans, Members, Savings, Categories, Notifications, Security**
  *    and **System** are rendered from the settings registry. Their fields,
  *    labels, help text, units and bounds are all rows in `system_settings`, so
  *    adding a setting to the database adds a field to this screen and nothing

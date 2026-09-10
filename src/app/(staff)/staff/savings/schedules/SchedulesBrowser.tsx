@@ -10,7 +10,8 @@ import { Button, SearchInput } from '@/components/ui/form';
 import { SAVINGS_STATUS_LABELS, formatDate } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
-import type { SaccoGroupRow, SavingsScheduleRow, SavingsStatus } from '@/types/db';
+import { SAVINGS_FREQUENCY_ADVERB } from '@/lib/categories';
+import type { SavingsCategoryRow, SavingsScheduleRow, SavingsStatus } from '@/types/db';
 import { ScrollRow } from '@/components/ui/scroll';
 
 /**
@@ -27,14 +28,14 @@ export function SchedulesBrowser({
   total,
   page,
   pageSize,
-  groups,
+  categories,
   totals,
 }: {
   rows: SavingsScheduleRow[];
   total: number;
   page: number;
   pageSize: number;
-  groups: SaccoGroupRow[];
+  categories: SavingsCategoryRow[];
   totals: { expected: number; paid: number; outstanding: number };
 }) {
   const router = useRouter();
@@ -53,12 +54,12 @@ export function SchedulesBrowser({
   );
 
   const status = params.get('status') ?? '';
-  const group = params.get('group') ?? '';
+  const category = params.get('category') ?? '';
   const from = params.get('from') ?? '';
   const to = params.get('to') ?? '';
   const q = params.get('q') ?? '';
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const filtered = !!(status || group || from || to || q);
+  const filtered = !!(status || category || from || to || q);
 
   return (
     <div className="flex flex-col gap-4">
@@ -92,17 +93,17 @@ export function SchedulesBrowser({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <label className="flex flex-col gap-1">
             <span className="text-label-md font-label-md text-on-surface-variant">
-              Group
+              Savings category
             </span>
             <select
-              value={group}
-              onChange={(e) => setParam('group', e.target.value)}
+              value={category}
+              onChange={(e) => setParam('category', e.target.value)}
               className="bg-surface-container text-body-md font-body-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-primary rounded-full border-0 px-4 outline-none"
             >
-              <option value="">All groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
+              <option value="">All categories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {formatUGX(c.amount)} {SAVINGS_FREQUENCY_ADVERB[c.frequency]}
                 </option>
               ))}
             </select>
@@ -163,8 +164,8 @@ export function SchedulesBrowser({
             title={filtered ? 'No schedules match' : 'No schedules yet'}
             description={
               filtered
-                ? 'Try a different status, group or date range.'
-                : 'Schedules appear when a group cycle is opened.'
+                ? 'Try a different status, category or date range.'
+                : 'Schedules appear once members are given a savings category and their cycles open.'
             }
           />
         </div>
@@ -188,7 +189,9 @@ export function SchedulesBrowser({
                     </span>
                     <span className="text-label-md font-label-md text-on-surface-variant tabular block truncate normal-case">
                       {r.member_no}
-                      {r.group_name ? ` · ${r.group_name}` : ' · no group'}
+                      {r.savings_category_name
+                        ? ` · ${r.savings_category_name}`
+                        : ' · no category'}
                     </span>
                   </Link>
                   <SavingsStatusBadge status={r.status} />
@@ -218,7 +221,7 @@ export function SchedulesBrowser({
                 <thead>
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
-                    <th className="p-4 font-semibold">Group</th>
+                    <th className="p-4 font-semibold">Category</th>
                     <th className="p-4 font-semibold">Cycle</th>
                     <th className="p-4 font-semibold">Due</th>
                     <th className="p-4 text-right font-semibold">Expected</th>
@@ -250,19 +253,14 @@ export function SchedulesBrowser({
                         </Link>
                       </td>
                       <td className="p-4">
-                        {r.group_id ? (
-                          <Link
-                            href={`/staff/groups/${r.group_id}`}
-                            className="text-primary hover:underline"
-                          >
-                            {r.group_name}
-                          </Link>
+                        {r.savings_category_name ? (
+                          <span className="text-on-surface">{r.savings_category_name}</span>
                         ) : (
                           <span className="text-on-surface-variant">—</span>
                         )}
                       </td>
                       <td className="text-on-surface-variant p-4 whitespace-nowrap">
-                        {r.period_label}
+                        {r.cycle}
                       </td>
                       <td className="text-on-surface-variant p-4 whitespace-nowrap">
                         {formatDate(r.due_on)}

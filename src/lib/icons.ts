@@ -32,9 +32,11 @@ export const ICON_NAMES = [
   'person', 'person_add', 'logout', 'lock', 'badge', 'phone', 'mail',
   'location_on', 'work', 'cake', 'handshake', 'description', 'request_quote',
   'assignment', 'calendar_today', 'calendar_month', 'star', 'help',
-  // Groups and collection days
-  'event_available', 'event_busy', 'today', 'group_add', 'checklist',
+  // Categories, schedules and collection
+  'event_available', 'event_busy', 'today',
   'pending_actions', 'lock_open', 'percent',
+  'workspace_premium', 'diamond', 'military_tech', 'point_of_sale',
+  'person_search', 'search_off',
   // Sign-in and brand chrome
   'login', 'verified_user',
   // Redesign: dashboard, reporting centre and settings chrome

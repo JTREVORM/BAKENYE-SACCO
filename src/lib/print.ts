@@ -3,7 +3,7 @@
  *
  * Every browser that offers "Save as PDF" as a print destination takes the
  * suggested file name from `document.title`. Left alone that is the Next.js
- * page title — "Group report" — so every report a manager saves lands in
+ * page title — "Savings by Category" — so every report a manager saves lands in
  * Downloads with the same generic name and no date on it.
  *
  * So the title is swapped for a real document name for the duration of the

@@ -2,391 +2,543 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { createClient } from '@/lib/supabase/server';
-import { getActiveGroups } from '@/lib/queries';
+import { getCategoryAnalytics, getSavingsDashboard } from '@/lib/queries';
+import { can } from '@/lib/rbac';
 import { ExportButtons } from '@/components/ExportButtons';
 import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
 import { documentName } from '@/lib/print';
-import { can } from '@/lib/rbac';
-import { PageTitle, Icon, Money, Avatar, ProgressBar } from '@/components/ui/primitives';
-import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
-import { SavingsKindTabs } from './SavingsKindTabs';
-import { OpenPeriodsButton } from './OpenPeriodsButton';
-import { formatUGX, percent, toNumber } from '@/lib/money';
+import { Badge, Icon, Money, PageTitle, ProgressBar } from '@/components/ui/primitives';
+import { EmptyState, ErrorState, StatGridSkeleton } from '@/components/ui/states';
+import { StatementRange } from '@/components/StatementRange';
+import {
+  SAVINGS_FREQUENCY_ADVERB,
+  SAVINGS_FREQUENCY_LABELS,
+  categoryTier,
+} from '@/lib/categories';
 import { formatDate, monthStart, toISODate } from '@/lib/format';
+import { formatAmount, formatUGX, percent, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
-import type { SavingsKind, SavingsPerformanceRow } from '@/types/db';
 import { ScrollRow } from '@/components/ui/scroll';
+import type { SavingsCategoryAnalytics, SavingsDashboard } from '@/types/db';
 
 export const metadata: Metadata = { title: 'Savings' };
 
 /**
- * Savings register.
+ * The savings dashboard — sections 13 and 14 of the brief.
  *
- * The collection sheet a cashier works from: every active member, what they
- * were expected to save in the period, what they actually paid, and how far
- * behind they are. `savings_performance()` computes it in one query rather than
- * a row-per-member round trip.
+ * Members by savings category, expected against collected, the schedule counts
+ * by status, and a per-category collection rate. Every figure is an aggregate
+ * over member schedules and the ledger, computed in two round trips. Where the
+ * database has nothing to report — a category with no members, a period with no
+ * schedules — the screen says so rather than filling the space with a
+ * plausible-looking number.
  */
 export default async function StaffSavingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kind?: string; from?: string; to?: string; group?: string }>;
+  searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const user = await requirePermission('savings.view');
   const sp = await searchParams;
-  const kind: SavingsKind = sp.kind === 'monthly' ? 'monthly' : 'weekly';
-  const group = sp.group ?? '';
 
   const today = new Date();
   const from = isDate(sp.from) ? sp.from! : monthStart(today);
   const to = isDate(sp.to) ? sp.to! : toISODate(today);
-  const groups = await getActiveGroups();
 
   return (
-    <div>
+    <div className="flex flex-col gap-6">
       <div className="print:hidden">
-      <PageTitle
-        title="Savings"
-        subtitle="Contribution performance across the membership."
-        action={
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/staff/savings/today"
-              className="bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors shadow-neu-sm"
-            >
-              <Icon name="event_available" size={20} />
-              <span className="hidden sm:inline">Today’s collections</span>
-              <span className="sm:hidden">Today</span>
-            </Link>
-            {can(user.role, 'savings.record') ? (
-              <>
-                <OpenPeriodsButton kind={kind} />
+        <PageTitle
+          title="Savings"
+          subtitle="What the membership is expected to save, and what has actually come in."
+          action={
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/staff/savings/schedules"
+                className="bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold shadow-neu-sm transition-colors"
+              >
+                <Icon name="calendar_month" size={20} />
+                <span className="hidden sm:inline">Schedules</span>
+                <span className="sm:hidden">Sched.</span>
+              </Link>
+              {can(user.role, 'savings.record') ? (
                 <Link
-                  href="/staff/savings/record"
+                  href="/staff/savings/collect"
                   className="bg-primary text-on-primary hover:bg-primary-container h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors"
                 >
-                  <Icon name="add" size={20} />
-                  <span className="hidden sm:inline">Record savings</span>
-                  <span className="sm:hidden">Record</span>
+                  <Icon name="point_of_sale" size={20} />
+                  <span className="hidden sm:inline">Collect savings</span>
+                  <span className="sm:hidden">Collect</span>
                 </Link>
-              </>
-            ) : null}
-          </div>
-        }
-      />
-
-      </div>
-
-      <div className="print:hidden">
-        <SavingsKindTabs kind={kind} from={from} to={to} group={group} groups={groups} />
-      </div>
-
-      <Suspense
-        key={`${kind}-${from}-${to}-${group}`}
-        fallback={<TableSkeleton rows={8} cols={6} />}
-      >
-        <Performance
-          kind={kind}
-          from={from}
-          to={to}
-          group={group}
-          canRecord={can(user.role, 'savings.record')}
-          generatedBy={user.fullName}
-          groupName={groups.find((g) => g.id === group)?.name}
+              ) : null}
+            </div>
+          }
         />
+
+        <StatementRange from={from} to={to} />
+      </div>
+
+      <Suspense key={`${from}-${to}`} fallback={<StatGridSkeleton />}>
+        <Board from={from} to={to} generatedBy={user.fullName} />
       </Suspense>
     </div>
   );
 }
 
-async function Performance({
-  kind,
+async function Board({
   from,
   to,
-  group,
-  canRecord,
   generatedBy,
-  groupName,
 }: {
-  kind: SavingsKind;
   from: string;
   to: string;
-  group: string;
-  canRecord: boolean;
   generatedBy: string;
-  groupName?: string;
 }) {
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('savings_performance', {
-    p_kind: kind,
-    p_from: from,
-    p_to: to,
-    p_group_id: group || null,
-  });
+  const [dash, analytics] = await Promise.all([
+    getSavingsDashboard(from, to),
+    getCategoryAnalytics(from, to),
+  ]);
 
-  if (error) {
+  if (!dash) {
     return (
       <ErrorState
-        title="Unable to load savings performance"
+        title="Unable to load the savings dashboard"
         description="Please check your connection and try again."
       />
     );
   }
 
-  const rows = (data ?? []) as SavingsPerformanceRow[];
-  const withActivity = rows.filter((r) => r.periods > 0);
-
-  const totals = rows.reduce(
-    (acc, r) => ({
-      expected: acc.expected + toNumber(r.expected),
-      paid: acc.paid + toNumber(r.paid),
-      balance: acc.balance + toNumber(r.balance),
-    }),
-    { expected: 0, paid: 0, balance: 0 },
-  );
-
-  const csv = [
-    ['Member No', 'Member', 'Group', 'Periods', 'Expected', 'Paid', 'Shortfall', 'Paid periods', 'Missed periods', 'Compliance %'],
-    ...withActivity.map((r) => [
-      r.member_no,
-      r.full_name,
-      r.group_name ?? '',
-      r.periods,
-      toNumber(r.expected),
-      toNumber(r.paid),
-      toNumber(r.balance),
-      r.paid_periods,
-      r.missed_periods,
-      toNumber(r.compliance),
-    ]),
-    [],
-    ['TOTAL', '', '', '', totals.expected, totals.paid, totals.balance],
-  ];
-
-  const scope = groupName ?? 'All groups';
-  const label = kind === 'weekly' ? 'Weekly' : 'Monthly';
+  const rate = percent(dash.collected_savings, dash.expected_savings);
 
   return (
-    <div className="mt-6 flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <PrintLetterhead
-        title={`${label} Savings Performance`}
-        subtitle={scope}
+        title="Savings Dashboard"
+        subtitle={`${formatDate(from)} to ${formatDate(to)}`}
         generatedBy={generatedBy}
         meta={[
-          { label: 'Period', value: `${formatDate(from)} to ${formatDate(to)}` },
-          { label: 'Members', value: String(withActivity.length) },
-          { label: 'Expected', value: formatUGX(totals.expected) },
-          { label: 'Collected', value: formatUGX(totals.paid) },
-          {
-            label: 'Rate',
-            value: `${Math.round(percent(totals.paid, totals.expected))}%`,
-          },
+          { label: 'Members', value: String(dash.total_members) },
+          { label: 'Expected', value: formatUGX(dash.expected_savings) },
+          { label: 'Collected', value: formatUGX(dash.collected_savings) },
+          { label: 'Outstanding', value: formatUGX(dash.outstanding_savings) },
+          { label: 'Rate', value: `${rate.toFixed(2)}%` },
         ]}
       />
 
-      <div className="flex justify-end print:hidden">
-        <ExportButtons
-          rows={csv}
-          filename={`savings-performance-${kind}-${from}-to-${to}`}
-          documentTitle={documentName(
-            `${label} Savings Performance`,
-            `${scope} ${from} to ${to}`,
-          )}
-        />
-      </div>
-
-      {/* Period totals */}
+      {/* ------------------------------------------------------- headline */}
       <section className="gap-gutter grid grid-cols-2 lg:grid-cols-4">
-        <Total label="Expected" value={totals.expected} />
-        <Total label="Collected" value={totals.paid} tone="text-tertiary" />
-        <Total label="Shortfall" value={totals.balance} tone="text-error" />
+        <Tile label="Total savings held" money={dash.total_savings} icon="savings" />
+        <Tile label="Expected this period" money={dash.expected_savings} icon="calendar_month" />
+        <Tile
+          label="Collected"
+          money={dash.collected_savings}
+          icon="check_circle"
+          tone="text-tertiary"
+        />
         <div className="bg-surface shadow-card rounded-xl p-5">
+          <div className="bg-primary-fixed text-primary mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg">
+            <Icon name="assessment" size={20} />
+          </div>
           <p className="text-label-md font-label-md text-on-surface-variant mb-1">
             Collection rate
           </p>
           <p className="text-display-currency font-display-currency text-on-surface tabular">
-            {Math.round(percent(totals.paid, totals.expected))}%
+            {rate.toFixed(2)}%
           </p>
           <ProgressBar
-            value={percent(totals.paid, totals.expected)}
-            tone="tertiary"
+            value={rate}
+            tone={rate >= 80 ? 'tertiary' : rate >= 40 ? 'secondary' : 'error'}
             label="Collection rate"
             className="mt-3"
           />
         </div>
       </section>
 
-      {withActivity.length === 0 ? (
-        <div className="bg-surface rounded-xl shadow-neu-sm">
-          <EmptyState
-            icon="savings"
-            title="No savings activity in this period"
-            description={
-              canRecord
-                ? 'Open the periods for this cycle, then record contributions as members pay.'
-                : 'Nothing has been recorded for this date range.'
-            }
+      {/* ------------------------------------------- schedules, by status */}
+      <section className="bg-surface shadow-card grid grid-cols-2 gap-4 rounded-xl p-4 sm:grid-cols-3 lg:grid-cols-6">
+        <Count label="Paid" value={dash.paid_schedules} tone="text-tertiary" />
+        <Count label="Partial" value={dash.partial_schedules} />
+        <Count label="Pending" value={dash.pending_schedules} />
+        <Count label="Missed" value={dash.missed_schedules} tone="text-error" />
+        <Count label="Waived" value={dash.waived_schedules} />
+        <Count label="Due today" value={dash.due_today} />
+      </section>
+
+      {/* ------------------------------------------------ savings tiers */}
+      <CategoryTiles dash={dash} />
+
+      {/* ------------------------------------------- category analytics */}
+      <CategoryAnalytics analytics={analytics} from={from} to={to} />
+
+      {/* ------------------------------------------------ share tiers */}
+      <ShareTiles dash={dash} />
+
+      {/* Members with nothing expected of them are a real operational
+        problem, not a rounding error — surface them where a manager will act. */}
+      {dash.uncategorised_members > 0 ? (
+        <section className="bg-secondary-fixed text-on-secondary-fixed flex flex-wrap items-start justify-between gap-3 rounded-xl p-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <Icon name="info" size={20} className="mt-0.5 shrink-0" />
+            <div>
+              <p className="text-button-text font-button-text">
+                {dash.uncategorised_members}{' '}
+                {dash.uncategorised_members === 1 ? 'member has' : 'members have'} no savings
+                category
+              </p>
+              <p className="text-body-md font-body-md mt-0.5">
+                No schedule is raised for them and nothing is expected, so they will never appear
+                as being in arrears.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/staff/members?category=none"
+            className="text-label-md font-label-md h-touch-target-min inline-flex shrink-0 items-center font-semibold normal-case underline"
+          >
+            Review them →
+          </Link>
+        </section>
+      ) : null}
+
+      {toNumber(dash.total_arrears) > 0 ? (
+        <section className="bg-error-container text-on-error-container flex items-start gap-3 rounded-xl p-4">
+          <Icon name="warning" size={20} className="mt-0.5 shrink-0" />
+          <div>
+            <p className="text-button-text font-button-text">
+              {formatUGX(dash.total_arrears)} in savings arrears
+            </p>
+            <p className="text-body-md font-body-md mt-0.5">
+              From cycles whose due date has already passed. Partial and missed schedules stay
+              visible until they are settled or waived.
+            </p>
+            <Link
+              href="/staff/savings/schedules?status=missed"
+              className="text-label-md font-label-md mt-2 inline-block font-semibold normal-case underline"
+            >
+              Review outstanding schedules →
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      <PrintFooter note="Every figure is computed from member schedules and the transaction ledger." />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+/** Membership and expected value by savings category. */
+function CategoryTiles({ dash }: { dash: SavingsDashboard }) {
+  if (dash.savings_categories.length === 0) {
+    return (
+      <section className="bg-surface rounded-xl shadow-neu-sm print:hidden">
+        <EmptyState
+          icon="workspace_premium"
+          title="No savings categories yet"
+          description="Create the categories members save under before schedules can be raised."
+          action={
+            <Link
+              href="/staff/categories"
+              className="bg-surface text-primary h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold shadow-neu-sm"
+            >
+              <Icon name="workspace_premium" size={20} />
+              Open category management
+            </Link>
+          }
+        />
+      </section>
+    );
+  }
+
+  return (
+    <section>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-button-text font-button-text text-on-surface">Savings categories</h2>
+        <Link
+          href="/staff/categories"
+          className="text-label-md font-label-md text-primary normal-case hover:underline print:hidden"
+        >
+          Manage categories →
+        </Link>
+      </div>
+
+      <ul className="gap-gutter grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {dash.savings_categories.map((c) => {
+          const tier = categoryTier(c.code);
+          return (
+            <li key={c.id} className="bg-surface shadow-card flex flex-col gap-3 rounded-xl p-5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="bg-primary-fixed text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+                    <Icon name={tier.icon} size={20} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
+                      {c.name}
+                    </p>
+                    <p className="text-label-md font-label-md text-on-surface-variant normal-case">
+                      {formatUGX(c.amount)} {SAVINGS_FREQUENCY_ADVERB[c.frequency]}
+                    </p>
+                  </div>
+                </div>
+                {c.status === 'inactive' ? <Badge tone="neutral">Retired</Badge> : null}
+              </div>
+
+              <dl className="border-outline-variant grid grid-cols-2 gap-2 border-t pt-3">
+                <div className="min-w-0">
+                  <dt className="text-label-md font-label-md text-on-surface-variant truncate">
+                    Members
+                  </dt>
+                  <dd className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface tabular">
+                    {c.members}
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-label-md font-label-md text-on-surface-variant truncate">
+                    Expected each {SAVINGS_FREQUENCY_LABELS[c.frequency].toLowerCase() === 'weekly' ? 'week' : 'month'}
+                  </dt>
+                  <dd className="text-body-lg font-body-lg text-on-surface tabular font-bold">
+                    <Money value={c.expected_per_cycle} compact />
+                  </dd>
+                </div>
+              </dl>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Section 14 — expected, collected, outstanding and rate, per category. */
+function CategoryAnalytics({
+  analytics,
+  from,
+  to,
+}: {
+  analytics: SavingsCategoryAnalytics | null;
+  from: string;
+  to: string;
+}) {
+  if (!analytics || analytics.rows.length === 0) return null;
+
+  const csv = [
+    [
+      'Category',
+      'Frequency',
+      'Members',
+      'Expected',
+      'Collected',
+      'Outstanding',
+      'Paid',
+      'Partial',
+      'Missed',
+      'Collection rate %',
+    ],
+    ...analytics.rows.map((r) => [
+      r.name,
+      r.frequency,
+      r.members,
+      formatAmount(r.expected),
+      formatAmount(r.collected),
+      formatAmount(r.outstanding),
+      r.paid_schedules,
+      r.partial_schedules,
+      r.missed_schedules,
+      formatAmount(r.collection_rate),
+    ]),
+    [],
+    [
+      'TOTAL',
+      '',
+      analytics.totals.members,
+      formatAmount(analytics.totals.expected),
+      formatAmount(analytics.totals.collected),
+      formatAmount(analytics.totals.outstanding),
+      '',
+      '',
+      '',
+      formatAmount(analytics.collection_rate),
+    ],
+  ];
+
+  return (
+    <section>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-button-text font-button-text text-on-surface">
+          Category performance
+        </h2>
+        <div className="print:hidden">
+          <ExportButtons
+            rows={csv}
+            filename={`savings-categories-${from}-to-${to}`}
+            documentTitle={documentName('Savings by Category', `${from} to ${to}`)}
           />
         </div>
-      ) : (
-        <>
-          {/* Mobile: cards */}
-          <ul className="flex flex-col gap-2 lg:hidden print:hidden">
-            {withActivity.map((r) => (
-              <li
-                key={r.member_id}
-                className="bg-surface border-surface-container shadow-card rounded-xl border p-3"
-              >
-                <div className="flex items-start gap-3">
-                  <Avatar name={r.full_name} size={44} />
-                  <Link
-                    href={`/staff/members/${r.member_id}`}
-                    className="min-h-touch-target-min flex min-w-0 flex-1 flex-col justify-center"
+      </div>
+
+      <div className="bg-surface shadow-card overflow-hidden rounded-xl">
+        <ScrollRow arrows="overlay" label="Table, scrolls sideways">
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
+                <th className="p-4 font-semibold">Category</th>
+                <th className="p-4 text-center font-semibold">Members</th>
+                <th className="p-4 text-right font-semibold">Expected</th>
+                <th className="p-4 text-right font-semibold">Collected</th>
+                <th className="p-4 text-right font-semibold">Outstanding</th>
+                <th className="p-4 font-semibold">Rate</th>
+              </tr>
+            </thead>
+            <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
+              {analytics.rows.map((r) => (
+                <tr key={r.savings_category_id} className="hover:bg-surface-container-low transition-colors">
+                  <td className="p-4">
+                    <div className="text-on-surface font-semibold">{r.name}</div>
+                    <div className="text-on-surface-variant text-xs">
+                      {formatUGX(r.amount)} {SAVINGS_FREQUENCY_ADVERB[r.frequency]}
+                    </div>
+                  </td>
+                  <td className="tabular p-4 text-center">{r.members}</td>
+                  <td className="tabular p-4 text-right">{formatUGX(r.expected)}</td>
+                  <td className="tabular text-tertiary p-4 text-right font-semibold">
+                    {formatUGX(r.collected)}
+                  </td>
+                  <td
+                    className={clsx(
+                      'tabular p-4 text-right',
+                      toNumber(r.outstanding) > 0 && 'text-error font-semibold',
+                    )}
                   >
-                    <span className="text-body-lg font-body-lg text-primary block truncate font-semibold">
-                      {r.full_name}
+                    {formatUGX(r.outstanding)}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <ProgressBar
+                        value={toNumber(r.collection_rate)}
+                        tone={toNumber(r.collection_rate) >= 80 ? 'tertiary' : 'secondary'}
+                        label={`${r.name} collection rate`}
+                        className="w-20"
+                      />
+                      <span className="tabular text-xs">{r.collection_rate}%</span>
+                    </div>
+                    <span className="text-on-surface-variant text-xs">
+                      {r.paid_schedules} paid · {r.partial_schedules} partial ·{' '}
+                      {r.missed_schedules} missed
                     </span>
-                    <span className="text-label-md font-label-md text-on-surface-variant tabular block truncate normal-case">
-                      {r.member_no} · {r.group_name ?? 'no group'} · {r.periods}{' '}
-                      {r.periods === 1 ? 'period' : 'periods'}
-                    </span>
-                  </Link>
-                  {canRecord ? (
-                    <Link
-                      href={`/staff/savings/record?member=${r.member_id}&kind=${kind}`}
-                      aria-label={`Record savings for ${r.full_name}`}
-                      className="bg-primary text-on-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
-                    >
-                      <Icon name="add" size={20} />
-                    </Link>
-                  ) : null}
-                </div>
-
-                <dl className="border-outline-variant mt-3 grid grid-cols-3 gap-2 border-t pt-3">
-                  <Cell label="Expected" value={r.expected} />
-                  <Cell label="Paid" value={r.paid} tone="text-tertiary" />
-                  <Cell
-                    label="Shortfall"
-                    value={r.balance}
-                    tone={toNumber(r.balance) > 0 ? 'text-error' : undefined}
-                  />
-                </dl>
-
-                <div className="mt-3">
-                  <ProgressBar
-                    value={toNumber(r.compliance)}
-                    tone={toNumber(r.compliance) >= 80 ? 'tertiary' : 'secondary'}
-                    label={`${r.full_name} compliance`}
-                  />
-                  <p className="text-label-md font-label-md text-on-surface-variant mt-1 normal-case">
-                    {r.paid_periods} paid · {r.missed_periods} missed · {r.compliance}% on target
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          {/* Desktop: table */}
-          <div className="bg-surface shadow-card hidden overflow-hidden rounded-xl lg:block">
-            <ScrollRow arrows="overlay" label="Table, scrolls sideways">
-              <table className="w-full border-collapse text-left">
-                <thead>
-                  <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
-                    <th className="p-4 font-semibold">Member</th>
-                    <th className="p-4 font-semibold">Group</th>
-                    <th className="p-4 text-center font-semibold">Periods</th>
-                    <th className="p-4 text-right font-semibold">Expected</th>
-                    <th className="p-4 text-right font-semibold">Paid</th>
-                    <th className="p-4 text-right font-semibold">Shortfall</th>
-                    <th className="p-4 font-semibold">Compliance</th>
-                    {canRecord ? <th className="p-4 text-center font-semibold">Action</th> : null}
-                  </tr>
-                </thead>
-                <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
-                  {withActivity.map((r) => (
-                    <tr key={r.member_id} className="hover:bg-surface-container-low transition-colors">
-                      <td className="p-4">
-                        <Link href={`/staff/members/${r.member_id}`} className="min-h-touch-target-min flex items-center gap-3">
-                          <Avatar name={r.full_name} size={32} />
-                          <div className="min-w-0">
-                            <div className="text-primary truncate font-semibold">{r.full_name}</div>
-                            <div className="text-on-surface-variant tabular text-xs">
-                              {r.member_no}
-                            </div>
-                          </div>
-                        </Link>
-                      </td>
-                      <td className="text-on-surface-variant p-4">{r.group_name ?? '—'}</td>
-                      <td className="tabular p-4 text-center">{r.periods}</td>
-                      <td className="tabular p-4 text-right">{formatUGX(r.expected)}</td>
-                      <td className="tabular text-tertiary p-4 text-right font-semibold">
-                        {formatUGX(r.paid)}
-                      </td>
-                      <td
-                        className={clsx(
-                          'tabular p-4 text-right',
-                          toNumber(r.balance) > 0 && 'text-error font-semibold',
-                        )}
-                      >
-                        {formatUGX(r.balance)}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <ProgressBar
-                            value={toNumber(r.compliance)}
-                            tone={toNumber(r.compliance) >= 80 ? 'tertiary' : 'secondary'}
-                            label={`${r.full_name} compliance`}
-                            className="w-20"
-                          />
-                          <span className="tabular text-xs">{r.compliance}%</span>
-                        </div>
-                        <span className="text-on-surface-variant text-xs">
-                          {r.paid_periods} paid · {r.missed_periods} missed
-                        </span>
-                      </td>
-                      {canRecord ? (
-                        <td className="p-4 text-center">
-                          <Link
-                            href={`/staff/savings/record?member=${r.member_id}&kind=${kind}`}
-                            className="bg-surface-container-high hover:bg-surface-container text-label-md font-label-md text-primary inline-flex h-touch-target-min items-center rounded-lg px-3 font-semibold transition-colors shadow-neu-sm"
-                          >
-                            Record
-                          </Link>
-                        </td>
-                      ) : null}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </ScrollRow>
-          </div>
-        </>
-      )}
-
-      <PrintFooter />
-    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-surface-container-low text-body-md font-body-md text-on-surface border-outline-variant border-t font-semibold">
+                <td className="p-4">Total</td>
+                <td className="tabular p-4 text-center">{analytics.totals.members}</td>
+                <td className="tabular p-4 text-right">{formatUGX(analytics.totals.expected)}</td>
+                <td className="tabular p-4 text-right">{formatUGX(analytics.totals.collected)}</td>
+                <td className="tabular p-4 text-right">
+                  {formatUGX(analytics.totals.outstanding)}
+                </td>
+                <td className="tabular p-4">{analytics.collection_rate}%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </ScrollRow>
+      </div>
+    </section>
   );
 }
 
-function Total({ label, value, tone = 'text-on-surface' }: { label: string; value: number; tone?: string }) {
+/** Take-up of each share category, and who is running out of time. */
+function ShareTiles({ dash }: { dash: SavingsDashboard }) {
+  if (dash.share_categories.length === 0) return null;
+
+  return (
+    <section>
+      <h2 className="text-button-text font-button-text text-on-surface mb-3">
+        Share categories
+      </h2>
+      <ul className="gap-gutter grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {dash.share_categories.map((c) => {
+          const tier = categoryTier(c.code);
+          const rate = percent(c.qualified, c.members);
+          return (
+            <li key={c.id} className="bg-surface shadow-card flex flex-col gap-3 rounded-xl p-5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="bg-primary-fixed text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+                    <Icon name={tier.icon} size={20} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
+                      {c.name}
+                    </p>
+                    <p className="text-label-md font-label-md text-on-surface-variant normal-case">
+                      {c.required_shares} {c.required_shares === 1 ? 'share' : 'shares'} ·{' '}
+                      {formatUGX(c.required_amount)}
+                    </p>
+                  </div>
+                </div>
+                {c.lapsed > 0 ? <Badge tone="error">{c.lapsed} lapsed</Badge> : null}
+              </div>
+
+              <div>
+                <p className="text-label-md font-label-md text-on-surface-variant mb-1.5 normal-case">
+                  {c.qualified} of {c.members} {c.members === 1 ? 'member' : 'members'} qualified
+                </p>
+                <ProgressBar
+                  value={rate}
+                  tone={rate >= 80 ? 'tertiary' : 'secondary'}
+                  label={`${c.name} qualification rate`}
+                />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function Tile({
+  label,
+  money,
+  icon,
+  tone,
+}: {
+  label: string;
+  money: unknown;
+  icon: string;
+  tone?: string;
+}) {
   return (
     <div className="bg-surface shadow-card rounded-xl p-5">
-      <p className="text-label-md font-label-md text-on-surface-variant mb-1">
-        {label}
-      </p>
-      <Money value={value} compact className={clsx('text-display-currency font-display-currency', tone)} />
+      <div className="bg-primary-fixed text-primary mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg">
+        <Icon name={icon} size={20} />
+      </div>
+      <p className="text-label-md font-label-md text-on-surface-variant mb-1">{label}</p>
+      <Money
+        value={money}
+        compact
+        className={clsx('text-display-currency font-display-currency', tone ?? 'text-on-surface')}
+      />
     </div>
   );
 }
 
-function Cell({ label, value, tone }: { label: string; value: unknown; tone?: string }) {
+function Count({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-label-md font-label-md text-on-surface-variant truncate">{label}</dt>
-      <dd className={clsx('text-body-md font-body-md truncate font-semibold', tone ?? 'text-on-surface')}>
-        <Money value={value} />
-      </dd>
+      <p className="text-label-md font-label-md text-on-surface-variant truncate">{label}</p>
+      <p
+        className={clsx(
+          'text-headline-lg-mobile font-headline-lg-mobile tabular mt-0.5',
+          tone ?? 'text-on-surface',
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }

@@ -28,9 +28,10 @@ const VIEWPORTS = [
 const ROUTES = [
   { path: '/staff', name: 'dashboard' },
   { path: '/staff/members', name: 'members' },
-  { path: '/staff/groups', name: 'groups' },
+  { path: '/staff/categories', name: 'categories' },
   { path: '/staff/savings', name: 'savings' },
-  { path: '/staff/savings/today', name: 'savings-today' },
+  { path: '/staff/savings/collect', name: 'savings-collect' },
+  { path: '/staff/savings/performance', name: 'savings-performance' },
   { path: '/staff/savings/schedules', name: 'savings-schedules' },
   { path: '/staff/shares', name: 'shares' },
   { path: '/staff/loans', name: 'loans' },
@@ -41,7 +42,6 @@ const ROUTES = [
   { path: '/staff/audit', name: 'audit' },
   { path: '/staff/settings', name: 'settings' },
   { path: '/staff/members/new', name: 'member-new' },
-  { path: '/staff/groups/new', name: 'group-new' },
   { path: '/staff/savings/record', name: 'savings-record' },
 ];
 

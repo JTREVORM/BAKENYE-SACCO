@@ -28,7 +28,7 @@ const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheq
 const NEEDS_REFERENCE: PaymentMethod[] = ['mobile_money', 'bank_transfer'];
 
 /**
- * Record one contribution on a collection day.
+ * Record one contribution against a member's schedule.
  *
  * Three steps, same as every other money movement in this application: fill in,
  * confirm the amount and the member, then post. The submit control is disabled
@@ -42,12 +42,12 @@ const NEEDS_REFERENCE: PaymentMethod[] = ['mobile_money', 'bank_transfer'];
  */
 export function RecordCollectionDialog({
   row,
-  groupId,
+  memberId,
   open,
   onClose,
 }: {
   row: SavingsScheduleRow | null;
-  groupId: string;
+  memberId: string;
   open: boolean;
   onClose: () => void;
 }) {
@@ -170,7 +170,7 @@ export function RecordCollectionDialog({
     >
       <form action={formAction} noValidate>
         <input type="hidden" name="schedule_id" value={row.schedule_id} />
-        <input type="hidden" name="group_id" value={groupId} />
+        <input type="hidden" name="member_id" value={memberId} />
         <input type="hidden" name="idempotency_key" value={idemKey} />
 
         {state && !state.ok ? (

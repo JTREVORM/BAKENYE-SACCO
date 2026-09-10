@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveGroups } from '@/lib/queries';
+import { getSavingsCategories } from '@/lib/queries';
 import { can } from '@/lib/rbac';
 import { PageTitle, Icon } from '@/components/ui/primitives';
 import { TableSkeleton, ErrorState } from '@/components/ui/states';
@@ -22,8 +22,8 @@ export default async function MembersPage({
     status?: string;
     sort?: string;
     page?: string;
-    /** A group id, or `none` for members not placed in any group. */
-    group?: string;
+    /** A savings category id, or `none` for members without one. */
+    category?: string;
   }>;
 }) {
   const user = await requirePermission('members.view');
@@ -60,14 +60,14 @@ async function Directory({
   sp,
   canRegister,
 }: {
-  sp: { q?: string; status?: string; sort?: string; page?: string; group?: string };
+  sp: { q?: string; status?: string; sort?: string; page?: string; category?: string };
   canRegister: boolean;
 }) {
   const page = Math.max(1, Number(sp.page ?? '1') || 1);
   const supabase = await createClient();
-  const groups = await getActiveGroups();
+  const savingsCategories = await getSavingsCategories();
 
-  const unassigned = sp.group === 'none';
+  const uncategorised = sp.category === 'none';
 
   const { data, error } = await supabase.rpc('search_members', {
     p_query: sp.q?.trim() || null,
@@ -75,8 +75,8 @@ async function Directory({
     p_sort: sp.sort ?? 'name',
     p_limit: PAGE_SIZE,
     p_offset: (page - 1) * PAGE_SIZE,
-    p_group_id: unassigned ? null : sp.group || null,
-    p_unassigned: unassigned,
+    p_savings_category_id: uncategorised ? null : sp.category || null,
+    p_uncategorised: uncategorised,
   });
 
   if (error || !data) {
@@ -97,7 +97,7 @@ async function Directory({
       page={page}
       pageSize={PAGE_SIZE}
       canRegister={canRegister}
-      groups={groups}
+      savingsCategories={savingsCategories}
     />
   );
 }

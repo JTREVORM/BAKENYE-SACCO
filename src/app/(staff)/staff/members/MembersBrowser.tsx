@@ -9,8 +9,13 @@ import { EmptyState } from '@/components/ui/states';
 import { Button, SearchInput } from '@/components/ui/form';
 import { formatDate, formatPhone } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
-import { savingDayLabel } from '@/lib/groups';
-import type { MemberFinancialsRow, MemberStatus, SaccoGroupRow } from '@/types/db';
+import { SAVINGS_FREQUENCY_ADVERB } from '@/lib/categories';
+import { formatUGX } from '@/lib/money';
+import type {
+  MemberFinancialsRow,
+  MemberStatus,
+  SavingsCategoryRow,
+} from '@/types/db';
 import { ScrollRow } from '@/components/ui/scroll';
 
 /**
@@ -40,7 +45,7 @@ const SORTS: { value: string; label: string }[] = [
   { value: 'savings', label: 'Savings' },
   { value: 'shares', label: 'Shares' },
   { value: 'loan', label: 'Loan balance' },
-  { value: 'group', label: 'Group' },
+  { value: 'category', label: 'Savings category' },
 ];
 
 export function MembersBrowser({
@@ -49,14 +54,14 @@ export function MembersBrowser({
   page,
   pageSize,
   canRegister,
-  groups,
+  savingsCategories,
 }: {
   rows: MemberFinancialsRow[];
   total: number;
   page: number;
   pageSize: number;
   canRegister: boolean;
-  groups: SaccoGroupRow[];
+  savingsCategories: SavingsCategoryRow[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -75,10 +80,10 @@ export function MembersBrowser({
 
   const status = params.get('status') ?? '';
   const sort = params.get('sort') ?? 'name';
-  const group = params.get('group') ?? '';
+  const category = params.get('category') ?? '';
   const q = params.get('q') ?? '';
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const filtered = !!(status || q || group);
+  const filtered = !!(status || q || category);
 
   return (
     <div className="flex flex-col gap-4">
@@ -110,18 +115,21 @@ export function MembersBrowser({
             ))}
           </ScrollRow>
 
+          {/* "No category" is a filter in its own right: those members have no
+            schedule and nothing expected of them, which is a list somebody
+            needs to be able to pull up and act on. */}
           <label className="flex shrink-0 items-center gap-2">
-            <span className="text-label-md font-label-md text-on-surface-variant">Group</span>
+            <span className="text-label-md font-label-md text-on-surface-variant">Saves as</span>
             <select
-              value={group}
-              onChange={(e) => setParam('group', e.target.value)}
-              className="bg-surface-container text-label-md font-label-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-min max-w-[12rem] rounded-full border-0 py-0 pl-4 pr-8 normal-case outline-none"
+              value={category}
+              onChange={(e) => setParam('category', e.target.value)}
+              className="bg-surface-container text-label-md font-label-md text-on-surface shadow-neu-inset focus:ring-2 focus:ring-primary/40 h-touch-target-min max-w-[14rem] rounded-full border-0 py-0 pl-4 pr-8 normal-case outline-none"
             >
-              <option value="">All groups</option>
-              <option value="none">Not in a group</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} · {savingDayLabel(g.saving_day)}
+              <option value="">All categories</option>
+              <option value="none">No savings category</option>
+              {savingsCategories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {formatUGX(c.amount)} {SAVINGS_FREQUENCY_ADVERB[c.frequency]}
                 </option>
               ))}
             </select>
@@ -196,9 +204,11 @@ export function MembersBrowser({
                         {m.member_no} · {formatPhone(m.phone)}
                       </p>
                       <p className="text-label-md font-label-md text-on-surface-variant/80 truncate normal-case">
-                        {m.group_name
-                          ? `${m.group_name} · ${savingDayLabel(m.group_saving_day)}`
-                          : 'Not in a group'}
+                        {m.savings_category_name && m.savings_frequency
+                          ? `${m.savings_category_name} · ${formatUGX(
+                              m.savings_expected_amount,
+                            )} ${SAVINGS_FREQUENCY_ADVERB[m.savings_frequency]}`
+                          : 'No savings category'}
                       </p>
                     </div>
                     <div className="shrink-0">
@@ -228,7 +238,7 @@ export function MembersBrowser({
                   <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                     <th className="p-4 font-semibold">Member</th>
                     <th className="p-4 font-semibold">Phone</th>
-                    <th className="p-4 font-semibold">Group</th>
+                    <th className="p-4 font-semibold">Categories</th>
                     <th className="p-4 text-right font-semibold">Savings</th>
                     <th className="p-4 text-right font-semibold">Shares</th>
                     <th className="p-4 text-right font-semibold">Loan balance</th>
@@ -253,22 +263,29 @@ export function MembersBrowser({
                       <td className="tabular text-on-surface-variant p-4 whitespace-nowrap">
                         {formatPhone(m.phone)}
                       </td>
+                      {/* Share and savings category on one line each: they are
+                        set separately and a member may well differ across them. */}
                       <td className="p-4">
-                        {m.group_id ? (
+                        {m.savings_category_name && m.savings_frequency ? (
                           <>
-                            <Link
-                              href={`/staff/groups/${m.group_id}`}
-                              className="text-primary hover:underline"
-                            >
-                              {m.group_name}
-                            </Link>
+                            <span className="text-on-surface font-semibold">
+                              {m.savings_category_name}
+                            </span>
                             <span className="text-on-surface-variant block text-xs">
-                              {savingDayLabel(m.group_saving_day)}
+                              {formatUGX(m.savings_expected_amount)}{' '}
+                              {SAVINGS_FREQUENCY_ADVERB[m.savings_frequency]}
                             </span>
                           </>
                         ) : (
-                          <span className="text-on-surface-variant text-xs">Not in a group</span>
+                          <span className="text-on-surface-variant text-xs">
+                            No savings category
+                          </span>
                         )}
+                        <span className="text-on-surface-variant block text-xs">
+                          {m.share_category_name
+                            ? `${m.share_category_name} shares`
+                            : 'No share category'}
+                        </span>
                       </td>
                       <td className="tabular p-4 text-right">
                         <Money value={m.savings_balance} />

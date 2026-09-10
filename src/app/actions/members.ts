@@ -67,14 +67,23 @@ const memberSchema = z.object({
     .transform((v) => (v ? normalisePhone(v) : undefined)),
   next_of_kin_relation: optionalText(60),
   photo_url: optionalText(500),
-  group_id: z
+  share_category_id: z
     .string()
     .trim()
     .optional()
     .transform((v) => (v ? v : undefined))
     .refine(
       (v) => v === undefined || z.string().uuid().safeParse(v).success,
-      'Choose a group from the list.',
+      'Choose a share category from the list.',
+    ),
+  savings_category_id: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : undefined))
+    .refine(
+      (v) => v === undefined || z.string().uuid().safeParse(v).success,
+      'Choose a savings category from the list.',
     ),
   create_login: z.enum(['on', 'off']).optional(),
 });
@@ -158,28 +167,29 @@ export async function createMember(
 
   const result = data as { member_id: string; member_no: string };
 
-  // Placement is a separate, audited step - assign_member_group() records who
-  // put this member in which group, and moves their pending schedules with
-  // them if they are ever moved again.
-  if (d.group_id) {
-    const { error: groupError } = await supabase.rpc('assign_member_group', {
+  // Categories are a separate, audited step — set_member_categories() records
+  // who put this member in which tier, and re-prices their unpaid schedules if
+  // they are ever moved again.
+  if (d.share_category_id || d.savings_category_id) {
+    const { error: categoryError } = await supabase.rpc('set_member_categories', {
       p_member_id: result.member_id,
-      p_group_id: d.group_id,
+      p_share_category_id: d.share_category_id ?? null,
+      p_savings_category_id: d.savings_category_id ?? null,
       p_reason: 'Set at registration',
     });
-    if (groupError) {
-      // The member exists and is usable; only the placement failed.
+    if (categoryError) {
+      // The member exists and is usable; only the categories failed.
       revalidatePath('/staff/members');
       return {
         ok: false,
-        error: `${d.full_name} was registered as ${result.member_no}, but could not be placed in the group. Assign the group from their profile.`,
-        field: 'group_id',
+        error: `${d.full_name} was registered as ${result.member_no}, but the categories could not be set. Set them from their profile.`,
+        field: 'savings_category_id',
       };
     }
   }
 
   revalidatePath('/staff/members');
-  revalidatePath('/staff/groups');
+  revalidatePath('/staff/categories');
   revalidatePath('/staff');
 
   return succeed(
@@ -244,23 +254,28 @@ export async function updateMember(
   const { error } = await supabase.from('members').update(patch).eq('id', memberId);
   if (error) return fail(error);
 
-  // Group placement never rides along on a column update - it goes through the
-  // audited RPC, which also decides which schedules follow the member.
-  if (can(user.role, 'groups.manage')) {
+  // Categories never ride along on a column update — they go through the
+  // audited RPC, which also decides which schedules get re-priced.
+  if (can(user.role, 'categories.manage')) {
     const { data: current } = await supabase
       .from('members')
-      .select('group_id')
+      .select('share_category_id, savings_category_id')
       .eq('id', memberId)
       .maybeSingle();
 
-    if ((current?.group_id ?? null) !== (d.group_id ?? null)) {
-      const { error: groupError } = await supabase.rpc('assign_member_group', {
+    const changed =
+      (current?.share_category_id ?? null) !== (d.share_category_id ?? null) ||
+      (current?.savings_category_id ?? null) !== (d.savings_category_id ?? null);
+
+    if (changed) {
+      const { error: categoryError } = await supabase.rpc('set_member_categories', {
         p_member_id: memberId,
-        p_group_id: d.group_id ?? null,
+        p_share_category_id: d.share_category_id ?? null,
+        p_savings_category_id: d.savings_category_id ?? null,
         p_reason: 'Changed while editing the member',
       });
-      if (groupError) return fail(groupError, 'group_id');
-      revalidatePath('/staff/groups');
+      if (categoryError) return fail(categoryError, 'savings_category_id');
+      revalidatePath('/staff/categories');
     }
   }
 
@@ -384,7 +399,10 @@ export async function createStaffUser(
       full_name: z.string().trim().min(3, 'Enter the full name.').max(120),
       email: z.string().trim().email('Enter a valid email address.'),
       phone: phone.optional().or(z.literal('')),
-      role: z.enum(['super_admin', 'manager', 'loan_officer', 'cashier']),
+      role: z.enum([
+        'super_admin', 'manager', 'loan_officer', 'cashier',
+        'accountant', 'field_officer', 'viewer',
+      ]),
     })
     .safeParse(Object.fromEntries(formData));
 
@@ -430,7 +448,10 @@ export async function setUserRole(
   const parsed = z
     .object({
       user_id: z.string().uuid(),
-      role: z.enum(['super_admin', 'manager', 'loan_officer', 'cashier', 'member']),
+      role: z.enum([
+        'super_admin', 'manager', 'loan_officer', 'cashier',
+        'accountant', 'field_officer', 'viewer', 'member',
+      ]),
       reason: z.string().trim().min(5, 'Give a reason for this change.').max(500),
     })
     .safeParse(Object.fromEntries(formData));

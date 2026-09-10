@@ -11,15 +11,19 @@
 
 export type UserRole =
   | 'super_admin' | 'manager' | 'loan_officer' | 'cashier'
-  | 'accountant' | 'group_officer' | 'viewer' | 'member';
+  | 'accountant' | 'field_officer' | 'viewer' | 'member';
 export type MemberStatus = 'active' | 'inactive' | 'suspended' | 'exited';
 export type SavingsKind = 'weekly' | 'monthly';
 export type SavingsStatus = 'paid' | 'partial' | 'pending' | 'missed' | 'waived';
 
-/** How often a group collects. Weekly and biweekly both settle on a weekday. */
-export type SavingFrequency = 'weekly' | 'biweekly' | 'monthly';
-export type GroupStatus = 'active' | 'inactive' | 'dissolved';
-export type CycleStatus = 'open' | 'closed';
+/**
+ * A share or savings category is either in use or retired. Categories are never
+ * deleted: members hold history against them.
+ */
+export type CategoryStatus = 'active' | 'inactive';
+
+/** How often a savings category collects. */
+export type SavingsFrequency = SavingsKind;
 
 /**
  * The payment seam. Phase One writes 'manual' only — no gateway is called and
@@ -29,8 +33,6 @@ export type PaymentProvider =
   | 'manual' | 'mtn_momo' | 'airtel_money' | 'flutterwave' | 'pesapal' | 'bank';
 export type PaymentState = 'pending' | 'processing' | 'successful' | 'failed' | 'cancelled';
 
-/** ISO weekday, 1 = Monday .. 7 = Sunday. */
-export type SavingDay = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type LoanStatus =
   | 'applied' | 'under_review' | 'approved' | 'rejected'
   | 'disbursed' | 'active' | 'completed' | 'defaulted' | 'written_off';
@@ -73,7 +75,8 @@ export type MemberRow = {
   photo_url: string | null;
   status: MemberStatus;
   joined_on: string;
-  group_id: string | null;
+  share_category_id: string | null;
+  savings_category_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -126,8 +129,7 @@ export type SavingsPeriodRow = {
   expected_amount: number;
   paid_amount: number;
   status: SavingsStatus;
-  cycle_id: string | null;
-  group_id: string | null;
+  savings_category_id: string | null;
   due_on: string | null;
   created_at: string;
   updated_at: string;
@@ -140,6 +142,7 @@ export type SavingsPaymentRow = {
   external_ref: string | null;
   note: string | null;
   member_id: string;
+  savings_category_id: string | null;
   amount: number;
   paid_on: string;
   method: PaymentMethod;
@@ -252,7 +255,7 @@ export type SettingCategory =
   | 'loans'
   | 'members'
   | 'savings'
-  | 'groups'
+  | 'categories'
   | 'notifications'
   | 'security'
   | 'system';
@@ -307,9 +310,6 @@ export type SaccoSettingsRow = {
   contact_email: string | null;
   contact_phone: string | null;
   address: string | null;
-  default_saving_frequency: SavingFrequency;
-  default_weekly_target: number;
-  default_monthly_target: number;
   notify_in_app: boolean;
   updated_at: string;
   updated_by: string | null;
@@ -461,48 +461,146 @@ export type AuditLogRow = {
   created_at: string;
 };
 
-// --- Groups, cycles and the payment seam ------------------------------------
+// --- Share and savings categories -------------------------------------------
 
-export type SaccoGroupRow = {
+/**
+ * `share_categories` — Diamond, Gold and Silver.
+ *
+ * `required_amount` is generated in the database (`required_shares` ×
+ * `share_price`), so the two can never disagree. `qualification_months` is the
+ * window measured from each member's own joining date; null means the category
+ * has no deadline.
+ */
+export type ShareCategoryRow = {
   id: string;
-  group_code: string;
+  code: string;
   name: string;
-  location: string | null;
-  saving_day: SavingDay;
-  saving_frequency: SavingFrequency;
-  weekly_target: number;
-  monthly_target: number;
-  leader_member_id: string | null;
-  secretary_member_id: string | null;
-  loan_officer_id: string | null;
-  status: GroupStatus;
-  notes: string | null;
+  required_shares: number;
+  share_price: number;
+  required_amount: number;
+  qualification_months: number | null;
+  description: string | null;
+  status: CategoryStatus;
+  sort_order: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;
 };
 
-export type SavingsCycleRow = {
+/** `savings_categories` — Diamond Saver, Gold Saver, Silver Saver. */
+export type SavingsCategoryRow = {
   id: string;
-  group_id: string;
-  kind: SavingsKind;
-  cycle_start: string;
-  cycle_end: string;
-  due_on: string;
-  label: string;
-  status: CycleStatus;
-  opened_by: string | null;
-  opened_at: string;
-  closed_by: string | null;
-  closed_at: string | null;
+  code: string;
+  name: string;
+  amount: number;
+  frequency: SavingsFrequency;
+  description: string | null;
+  status: CategoryStatus;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/**
+ * `member_share_progress` — how far one member is towards their share category.
+ *
+ * Every field is derived from the member's own share lots and joining date. A
+ * member with no share category still gets a row, with nulls where a target
+ * would be, so the screen can say "no category chosen" rather than draw a
+ * progress bar against nothing.
+ */
+export type MemberShareProgressRow = {
+  member_id: string;
+  share_category_id: string | null;
+  share_category_code: string | null;
+  share_category_name: string | null;
+  target_shares: number | null;
+  share_price: number | null;
+  target_amount: number | null;
+  qualification_months: number | null;
+  shares_owned: number;
+  share_value: number;
+  shares_remaining: number | null;
+  amount_remaining: number | null;
+  progress_percent: number | null;
+  qualifies_by: string | null;
+  days_to_qualify: number | null;
+  qualified: boolean;
+  qualification_lapsed: boolean;
+};
+
+/** `savings_category_summary` — the lifetime position of one savings category. */
+export type SavingsCategorySummaryRow = {
+  savings_category_id: string;
+  code: string;
+  name: string;
+  amount: number;
+  frequency: SavingsFrequency;
+  status: CategoryStatus;
+  sort_order: number;
+  member_count: number;
+  active_member_count: number;
+  expected_per_cycle: number;
+  expected_total: number;
+  collected_total: number;
+  outstanding_total: number;
+  schedules: number;
+  paid_schedules: number;
+  partial_schedules: number;
+  pending_schedules: number;
+  missed_schedules: number;
+  waived_schedules: number;
+  collection_rate: number;
+};
+
+/** `share_category_summary` — how a share category is being taken up. */
+export type ShareCategorySummaryRow = {
+  share_category_id: string;
+  code: string;
+  name: string;
+  required_shares: number;
+  share_price: number;
+  required_amount: number;
+  qualification_months: number | null;
+  status: CategoryStatus;
+  sort_order: number;
+  member_count: number;
+  active_member_count: number;
+  qualified_members: number;
+  lapsed_members: number;
+  shares_held: number;
+  value_held: number;
+  value_targeted: number;
+  qualification_rate: number;
+};
+
+/** `savings_transactions` — one posted savings payment, names resolved. */
+export type SavingsTransactionRow = {
+  id: string;
+  member_id: string;
+  member_no: string;
+  member_name: string;
+  savings_category_id: string | null;
+  savings_category_name: string | null;
+  schedule_id: string;
+  cycle: string | null;
+  amount: number;
+  payment_method: PaymentMethod;
+  reference: string;
+  external_ref: string | null;
+  transaction_date: string;
   note: string | null;
+  transaction_id: string | null;
+  recorded_by: string | null;
+  recorded_by_name: string | null;
+  created_at: string;
 };
 
 export type PaymentIntentRow = {
   id: string;
   reference: string;
   member_id: string | null;
-  group_id: string | null;
   purpose: TxnType;
   amount: number;
   provider: PaymentProvider;
@@ -555,80 +653,46 @@ export type MemberFinancialsRow = {
   next_due_on: string | null;
   next_due_amount: number | null;
   total_equity: number;
-  group_id: string | null;
-  group_name: string | null;
-  group_code: string | null;
-  group_saving_day: SavingDay | null;
+
+  /** Share category, and how far this member is towards qualifying for it. */
+  share_category_id: string | null;
+  share_category_code: string | null;
+  share_category_name: string | null;
+  share_target_shares: number | null;
+  share_target_amount: number | null;
+  share_shares_remaining: number | null;
+  share_amount_remaining: number | null;
+  share_progress_percent: number | null;
+  share_qualifies_by: string | null;
+  share_qualified: boolean | null;
+  share_qualification_lapsed: boolean | null;
+
+  /** Savings category, and what it expects of them. */
+  savings_category_id: string | null;
+  savings_category_code: string | null;
+  savings_category_name: string | null;
+  savings_expected_amount: number | null;
+  savings_frequency: SavingsFrequency | null;
+
+  /** The next expectation that is not yet settled. */
+  savings_next_due_on: string | null;
+  savings_next_expected: number | null;
+  savings_next_paid: number | null;
+  savings_next_status: SavingsStatus | null;
+  savings_current_cycle: string | null;
+
   /** Savings still owed across every unsettled schedule. */
   savings_outstanding: number;
+  /** Everything ever paid against a savings schedule. */
+  savings_contributed: number;
 };
 
-/** `group_overview` — the group register row and the group dashboard header. */
-export type GroupOverviewRow = {
-  id: string;
-  group_code: string;
-  name: string;
-  location: string | null;
-  saving_day: SavingDay;
-  saving_frequency: SavingFrequency;
-  weekly_target: number;
-  monthly_target: number;
-  status: GroupStatus;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  leader_member_id: string | null;
-  leader_name: string | null;
-  leader_phone: string | null;
-  secretary_member_id: string | null;
-  secretary_name: string | null;
-  secretary_phone: string | null;
-  loan_officer_id: string | null;
-  loan_officer_name: string | null;
-  member_count: number;
-  active_member_count: number;
-  total_savings: number;
-  total_shares: number;
-  total_loan_balance: number;
-  current_cycle_id: string | null;
-  current_cycle_label: string | null;
-  current_cycle_due_on: string | null;
-  current_expected: number | null;
-  current_collected: number | null;
-  current_outstanding: number | null;
-  current_collection_rate: number | null;
-};
-
-/** `group_cycle_summary` — what one collection day adds up to. */
-export type GroupCycleSummaryRow = {
-  cycle_id: string;
-  group_id: string;
-  group_name: string;
-  group_code: string;
-  location: string | null;
-  saving_day: SavingDay;
-  saving_frequency: SavingFrequency;
-  kind: SavingsKind;
-  cycle_start: string;
-  cycle_end: string;
-  due_on: string;
-  label: string;
-  status: CycleStatus;
-  opened_at: string;
-  closed_at: string | null;
-  members_expected: number;
-  expected_amount: number;
-  collected_amount: number;
-  outstanding_amount: number;
-  paid_members: number;
-  partial_members: number;
-  pending_members: number;
-  missed_members: number;
-  waived_members: number;
-  collection_rate: number;
-};
-
-/** `savings_schedules` — one member, one cycle: expected, paid, outstanding. */
+/**
+ * `savings_schedules` — one member, one cycle: expected, paid, outstanding.
+ *
+ * This is the collection row and the "my savings" row at the same time.
+ * `outstanding` is derived in the view, never stored.
+ */
 export type SavingsScheduleRow = {
   schedule_id: string;
   member_id: string;
@@ -637,17 +701,18 @@ export type SavingsScheduleRow = {
   member_phone: string;
   member_photo: string | null;
   member_status: MemberStatus;
-  group_id: string | null;
-  group_name: string | null;
-  group_code: string | null;
-  saving_day: SavingDay | null;
-  cycle_id: string | null;
-  cycle_label: string | null;
-  cycle_status: CycleStatus | null;
+  savings_category_id: string | null;
+  savings_category_code: string | null;
+  savings_category_name: string | null;
+  savings_category_frequency: SavingsFrequency | null;
+  share_category_id: string | null;
+  share_category_name: string | null;
   kind: SavingsKind;
   period_start: string;
   period_end: string;
   period_label: string;
+  /** The period label, under the name section 6 of the brief gives it. */
+  cycle: string;
   due_on: string;
   expected_amount: number;
   paid_amount: number;
@@ -720,8 +785,12 @@ export type DashboardMetrics = {
   income_mtd: number;
   expenses_mtd: number;
   pending_expenses: number;
-  total_groups: number;
-  groups_saving_today: number;
+  /** How many share and savings categories are currently in use. */
+  share_categories: number;
+  savings_categories: number;
+  /** Active members with no savings category, so nothing is expected of them. */
+  members_uncategorised: number;
+  schedules_due_today: number;
   savings_arrears: number;
 };
 
@@ -823,7 +892,8 @@ export type SavingsPerformanceRow = {
   member_id: string;
   member_no: string;
   full_name: string;
-  group_name: string | null;
+  savings_category_name: string | null;
+  share_category_name: string | null;
   periods: number;
   expected: number;
   paid: number;
@@ -857,81 +927,122 @@ export type LoanPortfolioRow = {
   product_name: string;
 };
 
-/** `group_collection_sheet()` — the whole collection screen in one round trip. */
-export type CollectionSheet = {
-  group: GroupOverviewRow;
-  cycle: GroupCycleSummaryRow | null;
-  rows: SavingsScheduleRow[];
-  cycles: { cycle_id: string; label: string; due_on: string; status: CycleStatus }[];
+/**
+ * `member_collection_view()` — everything the centralised collection screen
+ * needs for one member, in one round trip.
+ *
+ * `current` is the schedule for the period the cashier is collecting; it is
+ * raised on demand if it does not exist yet, so a member standing at the
+ * counter never produces an empty screen.
+ */
+export type MemberCollectionView = {
+  member: MemberFinancialsRow;
+  current: SavingsScheduleRow | null;
+  share_progress: MemberShareProgressRow | null;
+  next_due_on: string | null;
+  schedules: SavingsScheduleRow[];
+  history: SavingsTransactionRow[];
+  as_of: string;
 };
 
-/** One row of `groups_saving_on()` — a group due to collect today. */
-export type GroupSavingToday = {
-  group_id: string;
-  group_code: string;
+/** `member_savings_overview()` — the member's own financial dashboard. */
+export type MemberSavingsOverview = {
+  member: MemberFinancialsRow;
+  share_progress: MemberShareProgressRow | null;
+  next_due_on: string | null;
+  schedules: SavingsScheduleRow[];
+  recent_payments: SavingsTransactionRow[];
+  loans: {
+    loan_id: string;
+    loan_no: string;
+    status: LoanStatus;
+    principal: number;
+    total_payable: number;
+    amount_paid: number;
+    outstanding: number;
+    percent_repaid: number;
+    next_due_on: string | null;
+    next_due_amount: number | null;
+    overdue_amount: number;
+  }[];
+  generated_at: string;
+};
+
+/** One savings category on the staff dashboard. */
+export type SavingsCategoryTile = {
+  id: string;
+  code: string;
   name: string;
-  location: string | null;
-  saving_day: SavingDay;
-  saving_day_label: string;
-  saving_frequency: SavingFrequency;
-  weekly_target: number;
-  monthly_target: number;
-  active_members: number;
-  cycle_id: string | null;
-  cycle_label: string | null;
-  due_on: string | null;
-  cycle_status: CycleStatus | null;
-  members_expected: number;
-  expected_amount: number;
-  collected_amount: number;
-  outstanding_amount: number;
-  paid_members: number;
-  partial_members: number;
-  pending_members: number;
-  missed_members: number;
-  collection_rate: number;
+  amount: number;
+  frequency: SavingsFrequency;
+  status: CategoryStatus;
+  members: number;
+  expected_per_cycle: number;
 };
 
+/** One share category on the staff dashboard. */
+export type ShareCategoryTile = {
+  id: string;
+  code: string;
+  name: string;
+  required_shares: number;
+  required_amount: number;
+  status: CategoryStatus;
+  members: number;
+  qualified: number;
+  lapsed: number;
+};
+
+/** `savings_dashboard()` — section 13 of the brief. */
 export type SavingsDashboard = {
-  date: string;
+  from: string;
+  to: string;
   total_members: number;
-  total_groups: number;
-  grouped_members: number;
+  uncategorised_members: number;
+  savings_categories: SavingsCategoryTile[];
+  share_categories: ShareCategoryTile[];
   total_savings: number;
-  today_expected: number;
-  today_collected: number;
-  today_outstanding: number;
-  members_paid: number;
-  members_partial: number;
-  members_pending: number;
-  members_missed: number;
+  expected_savings: number;
+  collected_savings: number;
+  outstanding_savings: number;
+  paid_schedules: number;
+  partial_schedules: number;
+  pending_schedules: number;
+  missed_schedules: number;
+  waived_schedules: number;
+  due_today: number;
   collected_today: number;
   total_arrears: number;
   collection_rate: number;
-  groups_today: GroupSavingToday[];
 };
 
-export type GroupReportRow = {
-  member_id: string;
-  member_no: string;
-  full_name: string;
-  phone: string;
-  status: MemberStatus;
-  schedules: number;
+/** One row of `savings_category_analytics()` — section 14. */
+export type SavingsCategoryAnalyticsRow = {
+  savings_category_id: string;
+  code: string;
+  name: string;
+  amount: number;
+  frequency: SavingsFrequency;
+  status: CategoryStatus;
+  sort_order: number;
+  members: number;
+  expected_per_cycle: number;
   expected: number;
-  paid: number;
+  collected: number;
   outstanding: number;
-  paid_count: number;
-  partial_count: number;
-  missed_count: number;
+  schedules: number;
+  paid_schedules: number;
+  partial_schedules: number;
+  pending_schedules: number;
+  missed_schedules: number;
+  collection_rate: number;
 };
 
-export type GroupReport = {
-  group: GroupOverviewRow;
+export type SavingsCategoryAnalytics = {
   from: string;
   to: string;
-  rows: GroupReportRow[];
-  totals: { expected: number; paid: number; outstanding: number; members: number };
+  rows: SavingsCategoryAnalyticsRow[];
+  totals: { members: number; expected: number; collected: number; outstanding: number };
   collection_rate: number;
   generated_at: string;
 };
@@ -984,8 +1095,8 @@ export type Database = {
       expense_entries: Table<ExpenseEntryRow>;
       notifications: Table<NotificationRow>;
       audit_logs: Table<AuditLogRow>;
-      sacco_groups: Table<SaccoGroupRow>;
-      savings_cycles: Table<SavingsCycleRow>;
+      share_categories: Table<ShareCategoryRow>;
+      savings_categories: Table<SavingsCategoryRow>;
       payment_intents: Table<PaymentIntentRow>;
     };
     Views: {
@@ -995,9 +1106,11 @@ export type Database = {
       member_loans_summary: View<{ member_id: string; active_loans: number; pending_loans: number; loan_balance: number; overdue_amount: number; next_due_on: string | null; next_due_amount: number | null }>;
       loan_balances: View<LoanBalanceRow>;
       transaction_feed: View<TransactionFeedRow>;
-      group_overview: View<GroupOverviewRow>;
-      group_cycle_summary: View<GroupCycleSummaryRow>;
       savings_schedules: View<SavingsScheduleRow>;
+      savings_transactions: View<SavingsTransactionRow>;
+      member_share_progress: View<MemberShareProgressRow>;
+      savings_category_summary: View<SavingsCategorySummaryRow>;
+      share_category_summary: View<ShareCategorySummaryRow>;
     };
     /**
      * RPC signatures.
@@ -1040,9 +1153,11 @@ export type Database = {
           reference: string;
           payment_id: string;
           period_id: string;
+          schedule_id: string;
           period_label: string;
           expected: number;
           paid: number;
+          outstanding: number;
           balance: number;
           status: SavingsStatus;
         };
@@ -1215,8 +1330,9 @@ export type Database = {
           p_sort?: string;
           p_limit?: number;
           p_offset?: number;
-          p_group_id?: string | null;
-          p_unassigned?: boolean;
+          p_savings_category_id?: string | null;
+          p_share_category_id?: string | null;
+          p_uncategorised?: boolean;
         };
         Returns: { rows: MemberFinancialsRow[]; total: number; limit: number; offset: number };
       };
@@ -1238,7 +1354,7 @@ export type Database = {
           p_kind: SavingsKind;
           p_from: string;
           p_to: string;
-          p_group_id?: string | null;
+          p_savings_category_id?: string | null;
           p_status?: SavingsStatus | null;
         };
         Returns: SavingsPerformanceRow[];
@@ -1254,71 +1370,91 @@ export type Database = {
         Returns: { rows: LoanPortfolioRow[]; total: number; limit: number; offset: number };
       };
       open_savings_periods: { Args: { p_kind: SavingsKind; p_on?: string }; Returns: number };
-      /* --- Groups and group savings ------------------------------------- */
-      create_group: {
+      /* --- Categories, schedules and collection --------------------------- */
+      create_share_category: {
         Args: {
           p_name: string;
-          p_saving_day: SavingDay;
-          p_saving_frequency?: SavingFrequency;
-          p_location?: string | null;
-          p_weekly_target?: number;
-          p_monthly_target?: number;
-          p_leader_member_id?: string | null;
-          p_secretary_member_id?: string | null;
-          p_loan_officer_id?: string | null;
-          p_notes?: string | null;
+          p_required_shares: number;
+          p_share_price: number;
+          p_qualification_months?: number | null;
+          p_description?: string | null;
+          p_code?: string | null;
+          p_sort_order?: number;
         };
-        Returns: { group_id: string; group_code: string; name: string };
+        Returns: { id: string; code: string; name: string };
       };
-      update_group: {
+      update_share_category: {
         Args: {
-          p_group_id: string;
+          p_id: string;
           p_name: string;
-          p_saving_day: SavingDay;
-          p_saving_frequency: SavingFrequency;
-          p_location?: string | null;
-          p_weekly_target?: number;
-          p_monthly_target?: number;
-          p_leader_member_id?: string | null;
-          p_secretary_member_id?: string | null;
-          p_loan_officer_id?: string | null;
-          p_notes?: string | null;
+          p_required_shares: number;
+          p_share_price: number;
+          p_qualification_months?: number | null;
+          p_description?: string | null;
+          p_sort_order?: number;
         };
-        Returns: { group_id: string; group_code: string; name: string };
+        Returns: { id: string; code: string; name: string };
       };
-      set_group_status: {
-        Args: { p_group_id: string; p_status: GroupStatus; p_reason: string };
-        Returns: { group_id: string; status: GroupStatus };
+      set_share_category_status: {
+        Args: { p_id: string; p_status: CategoryStatus; p_reason: string };
+        Returns: { id: string; status: CategoryStatus; members: number };
       };
-      assign_member_group: {
-        Args: { p_member_id: string; p_group_id: string | null; p_reason?: string | null };
+      create_savings_category: {
+        Args: {
+          p_name: string;
+          p_amount: number;
+          p_frequency: SavingsFrequency;
+          p_description?: string | null;
+          p_code?: string | null;
+          p_sort_order?: number;
+        };
+        Returns: { id: string; code: string; name: string };
+      };
+      update_savings_category: {
+        Args: {
+          p_id: string;
+          p_name: string;
+          p_amount: number;
+          p_frequency: SavingsFrequency;
+          p_description?: string | null;
+          p_sort_order?: number;
+        };
+        Returns: { id: string; code: string; name: string };
+      };
+      set_savings_category_status: {
+        Args: { p_id: string; p_status: CategoryStatus; p_reason: string };
+        Returns: { id: string; status: CategoryStatus; members: number };
+      };
+      set_member_categories: {
+        Args: {
+          p_member_id: string;
+          p_share_category_id: string | null;
+          p_savings_category_id: string | null;
+          p_reason?: string | null;
+        };
         Returns: {
           member_id: string;
-          group_id: string | null;
-          group_name: string | null;
-          schedules_moved: number;
+          share_category_id: string | null;
+          share_category_name: string | null;
+          savings_category_id: string | null;
+          savings_category_name: string | null;
+          schedules_repriced: number;
         };
       };
-      open_group_cycle: {
-        Args: { p_group_id: string; p_on?: string };
-        Returns: {
-          cycle_id: string;
-          group_id: string;
-          group_name: string;
-          kind: SavingsKind;
-          label: string;
-          due_on: string;
-          members: number;
-          created: boolean;
-        };
-      };
-      open_cycles_for_day: {
+      /** Raise the schedules every categorised member owes for a date. */
+      open_savings_schedules: {
         Args: { p_on?: string };
-        Returns: { date: string; groups: number; schedules: number };
+        Returns: {
+          date: string;
+          schedules: number;
+          weekly: number;
+          monthly: number;
+          uncategorised: number;
+        };
       };
-      close_savings_cycle: {
-        Args: { p_cycle_id: string; p_note?: string | null };
-        Returns: { cycle_id: string; status: CycleStatus; marked_missed: number };
+      next_savings_due_date: {
+        Args: { p_member_id: string; p_on?: string };
+        Returns: string | null;
       };
       /**
        * The one call the collection screen makes. Manual by design: it records
@@ -1339,7 +1475,9 @@ export type Database = {
           reference: string;
           payment_id: string;
           schedule_id: string;
+          member_id: string;
           member_name: string;
+          savings_category: string | null;
           period_label: string;
           expected: number;
           paid: number;
@@ -1351,27 +1489,28 @@ export type Database = {
         Args: { p_schedule_id: string; p_reason: string };
         Returns: { schedule_id: string; status: SavingsStatus };
       };
-      search_groups: {
-        Args: {
-          p_query?: string | null;
-          p_status?: GroupStatus | null;
-          p_saving_day?: SavingDay | null;
-          p_limit?: number;
-          p_offset?: number;
-        };
-        Returns: { rows: GroupOverviewRow[]; total: number; limit: number; offset: number };
+      /**
+       * Everything the centralised collection screen needs for one member.
+       * Raises the current schedule on demand, so a member at the counter never
+       * produces an empty screen.
+       */
+      member_collection_view: {
+        Args: { p_member_id: string; p_on?: string };
+        Returns: MemberCollectionView;
       };
-      group_collection_sheet: {
-        Args: { p_group_id: string; p_cycle_id?: string | null };
-        Returns: CollectionSheet;
+      /** The member's own financial dashboard — savings, shares and loans. */
+      member_savings_overview: {
+        Args: { p_member_id: string };
+        Returns: MemberSavingsOverview;
       };
-      groups_saving_on: { Args: { p_on?: string }; Returns: GroupSavingToday[] };
-      savings_dashboard: { Args: { p_on?: string }; Returns: SavingsDashboard };
-      group_report: {
-        Args: { p_group_id: string; p_from: string; p_to: string };
-        Returns: GroupReport;
+      savings_dashboard: {
+        Args: { p_from?: string | null; p_to?: string | null };
+        Returns: SavingsDashboard;
       };
-      saving_day_label: { Args: { p_day: SavingDay }; Returns: string };
+      savings_category_analytics: {
+        Args: { p_from?: string | null; p_to?: string | null };
+        Returns: SavingsCategoryAnalytics;
+      };
 
       /* --- Configuration (0014) --------------------------------------------
        * Every one of these is `SECURITY DEFINER` and re-checks
@@ -1391,7 +1530,6 @@ export type Database = {
       };
       update_savings_defaults: {
         Args: {
-          p_default_saving_frequency: SavingFrequency;
           p_default_weekly_target: number;
           p_default_monthly_target: number;
         };
@@ -1506,7 +1644,13 @@ export type Database = {
         Returns: {
           periods_marked_missed: number;
           loans_defaulted: number;
-          cycles_opened: { date: string; groups: number; schedules: number };
+          schedules_opened: {
+            date: string;
+            schedules: number;
+            weekly: number;
+            monthly: number;
+            uncategorised: number;
+          };
         };
       };
     };
@@ -1521,9 +1665,7 @@ export type Database = {
       txn_status: TxnStatus;
       payment_method: PaymentMethod;
       approval_status: ApprovalStatus;
-      saving_frequency: SavingFrequency;
-      group_status: GroupStatus;
-      cycle_status: CycleStatus;
+      category_status: CategoryStatus;
       payment_provider: PaymentProvider;
       payment_state: PaymentState;
     };

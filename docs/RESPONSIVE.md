@@ -1,7 +1,15 @@
 # Responsive audit
 
+> **Superseded in part.** This records an audit carried out while the SACCO still collected through
+> groups. The group register, the group form, the group report and *Today's Collections* have since
+> been removed, and the savings section rebuilt around share and savings categories. The findings
+> below are kept as written — they are a record of work actually done, and every fix they describe
+> lives on in the shared primitives (`ScrollRow`, `.sticky-actions`, the 44px control sizes) that the
+> replacement screens use. The pass count and the route list are stale until the script is re-run
+> against the current routes.
+
 Every page is checked at the nine widths the brief lists, with an automated script rather than by
-eye. The current result is **39/45 clean**. All six reports are `/login` below 1024px, where the
+eye. The result recorded below was **39/45 clean**. All six reports are `/login` below 1024px, where the
 signed-out design is a fixed composition scaled to fit by design — see
 [the exception below](#the-signed-out-screens-are-a-deliberate-exception). Every other route is
 clean at every width.
@@ -95,6 +103,9 @@ clipped text.
 
 ### Phase One — groups and collections
 
+*The two screens named here no longer exist; both fixes were carried into the member collection
+panel and the schedules browser that replaced them.*
+
 Adding the group register and the collection sheet to the harness caught two more, both since
 fixed and both the same mistake in new code:
 
@@ -102,8 +113,8 @@ fixed and both the same mistake in new code:
 On a card that also carries action buttons, the whole card cannot be one link, so the name was a
 bare line of text. The name and the member number are now wrapped in a single
 `min-h-touch-target-min` link — one 44px target instead of two small ones. The same pattern was
-applied to the savings register, the schedules browser, the group report and the group cards on
-*Today's Collections*.
+applied to the savings register, the schedules browser and, since the rebuild, the member search
+results on *Collect savings*.
 
 **6 · Collection-sheet table actions were 36px.**
 *Record* and the waive control used `size="sm"`. Staff work a collection sheet on a tablet as often

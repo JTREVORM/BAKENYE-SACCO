@@ -24,7 +24,9 @@ export type CollectionResult = {
   transaction_id: string;
   reference: string;
   schedule_id: string;
+  member_id: string;
   member_name: string;
+  savings_category: string | null;
   period_label: string;
   expected: number;
   paid: number;
@@ -57,17 +59,17 @@ const collectionSchema = z.object({
     .optional()
     .transform((v) => (v ? v : undefined)),
   idempotency_key: z.string().min(8).max(120),
-  /** Where to send the user back to; used only for cache revalidation. */
-  group_id: z.string().uuid().optional().or(z.literal('')),
+  /** Whose screen to refresh afterwards; used only for cache revalidation. */
+  member_id: z.string().uuid().optional().or(z.literal('')),
 });
 
 /**
  * Record one member's contribution against their schedule for the cycle.
  *
- * The schedule is the unit of work, not the member: a cashier working down a
- * collection sheet is settling specific expectations, and posting against the
- * schedule is what keeps "expected 20,000 / paid 10,000 / outstanding 10,000"
- * true without any arithmetic in the browser.
+ * The schedule is the unit of work, not the member: a cashier at the counter is
+ * settling a specific expectation, and posting against the schedule is what
+ * keeps "expected 50,000 / paid 30,000 / outstanding 20,000" true without any
+ * arithmetic in the browser.
  */
 export async function recordCollection(
   _prev: ActionResult<CollectionResult> | null,
@@ -115,11 +117,11 @@ export async function recordCollection(
 
   const result = data as unknown as CollectionResult;
 
-  revalidatePath('/staff/savings/today');
+  revalidatePath('/staff/savings/collect');
   revalidatePath('/staff/savings/schedules');
   revalidatePath('/staff/savings');
   revalidatePath('/staff');
-  if (d.group_id) revalidatePath(`/staff/groups/${d.group_id}`);
+  if (d.member_id) revalidatePath(`/staff/members/${d.member_id}`);
 
   const remaining = Number(result.outstanding);
   return succeed(
@@ -154,7 +156,7 @@ export async function waiveSchedule(
         .trim()
         .min(5, 'Give a reason — this is recorded in the audit log.')
         .max(500),
-      group_id: z.string().uuid().optional().or(z.literal('')),
+      member_id: z.string().uuid().optional().or(z.literal('')),
     })
     .safeParse(Object.fromEntries(formData));
 
@@ -171,9 +173,9 @@ export async function waiveSchedule(
 
   if (error) return fail(error, 'reason');
 
-  revalidatePath('/staff/savings/today');
+  revalidatePath('/staff/savings/collect');
   revalidatePath('/staff/savings/schedules');
-  if (parsed.data.group_id) revalidatePath(`/staff/groups/${parsed.data.group_id}`);
+  if (parsed.data.member_id) revalidatePath(`/staff/members/${parsed.data.member_id}`);
 
   return succeed(data as { status: SavingsStatus }, 'Schedule waived.');
 }

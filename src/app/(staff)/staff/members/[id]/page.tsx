@@ -2,22 +2,34 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getActiveGroups, getMemberFinancials } from '@/lib/queries';
+import {
+  getMemberFinancials,
+  getSavingsCategories,
+  getShareCategories,
+  getShareProgress,
+} from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
-import { Avatar, Icon, Money, PageTitle } from '@/components/ui/primitives';
+import { Avatar, Badge, Icon, Money, PageTitle, ProgressBar } from '@/components/ui/primitives';
 import { LoanStatusBadge, MemberStatusBadge, SavingsStatusBadge } from '@/components/ui/status';
 import { EmptyState } from '@/components/ui/states';
 import { TransactionRow } from '@/components/member/TransactionRow';
 import { MemberStatusControl } from './MemberStatusControl';
 import { SavingsPlanControl } from './SavingsPlanControl';
-import { AssignGroupControl } from '@/components/groups/AssignGroupControl';
-import { savingDayLabel } from '@/lib/groups';
+import { MemberCategoryControl } from '@/components/categories/MemberCategoryControl';
+import {
+  SAVINGS_FREQUENCY_ADVERB,
+  SAVINGS_FREQUENCY_PERIOD,
+  categoryTier,
+  qualificationWindow,
+} from '@/lib/categories';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type {
   LoanBalanceRow,
+  MemberFinancialsRow,
+  MemberShareProgressRow,
   SavingsPeriodRow,
   SavingsPlanRow,
   ShareLotRow,
@@ -41,7 +53,12 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   if (!member) notFound();
 
   const supabase = await createClient();
-  const groups = can(user.role, 'groups.manage') ? await getActiveGroups() : [];
+  const mayCategorise = can(user.role, 'categories.manage');
+  const [shareProgress, shareCategories, savingsCategories] = await Promise.all([
+    getShareProgress(id),
+    mayCategorise ? getShareCategories() : Promise.resolve([]),
+    mayCategorise ? getSavingsCategories() : Promise.resolve([]),
+  ]);
   const [loansRes, txnRes, sharesRes, weeklyRes, monthlyRes, plansRes] = await Promise.all([
     supabase.from('loan_balances').select('*').eq('member_id', id).order('disbursed_on', { ascending: false, nullsFirst: false }),
     supabase
@@ -162,12 +179,14 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         </div>
 
         <div className="flex shrink-0 flex-wrap gap-2">
-          {can(user.role, 'groups.manage') ? (
-            <AssignGroupControl
+          {mayCategorise ? (
+            <MemberCategoryControl
               memberId={id}
               memberName={member.full_name}
-              currentGroupId={member.group_id}
-              groups={groups}
+              currentShareCategoryId={member.share_category_id}
+              currentSavingsCategoryId={member.savings_category_id}
+              shareCategories={shareCategories}
+              savingsCategories={savingsCategories}
             />
           ) : null}
           {can(user.role, 'members.status') ? (
@@ -176,62 +195,12 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         </div>
       </section>
 
-      {/* Group placement — this is what decides when they are collected from. */}
-      <section
-        className={clsx(
-          'flex flex-wrap items-center justify-between gap-4 rounded-xl border p-4',
-          member.group_id
-            ? 'bg-surface border-outline-variant'
-            : 'bg-secondary-fixed text-on-secondary-fixed border-transparent',
-        )}
-      >
-        <div className="flex min-w-0 items-center gap-3">
-          <span
-            className={clsx(
-              'flex h-12 w-12 shrink-0 items-center justify-center rounded-full',
-              member.group_id
-                ? 'bg-primary-fixed text-primary'
-                : 'bg-white/40 text-on-secondary-fixed',
-            )}
-          >
-            <Icon name="groups" size={24} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-label-md font-label-md text-on-surface-variant">Savings group</p>
-            {member.group_id ? (
-              <>
-                <Link
-                  href={`/staff/groups/${member.group_id}`}
-                  className="text-body-lg font-body-lg text-primary block truncate font-semibold"
-                >
-                  {member.group_name}
-                </Link>
-                <p className="text-label-md font-label-md text-on-surface-variant normal-case">
-                  {member.group_code} · collects on {savingDayLabel(member.group_saving_day)}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-body-lg font-body-lg font-semibold">Not in a group</p>
-                <p className="text-label-md font-label-md normal-case">
-                  This member appears on no collection sheet until they are placed in one.
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-
-        {toNumber(member.savings_outstanding) > 0 ? (
-          <div className="text-right">
-            <p className="text-label-md font-label-md text-on-surface-variant">
-              Savings arrears
-            </p>
-            <Money
-              value={member.savings_outstanding}
-              className="text-headline-lg-mobile font-headline-lg-mobile text-error"
-            />
-          </div>
-        ) : null}
+      {/* Categories — what this member is expected to buy, and to save.
+        Both are read from the member's own row, so a blank one says so rather
+        than being filled in with a plausible default. */}
+      <section className="gap-gutter grid grid-cols-1 lg:grid-cols-2">
+        <SavingsCategoryPanel member={member} />
+        <ShareCategoryPanel progress={shareProgress} />
       </section>
 
       {/* The three balances, deliberately separate. */}
@@ -523,6 +492,210 @@ function TargetCell({ label, value }: { label: string; value: unknown }) {
       ) : (
         <p className="text-body-md font-body-md text-on-surface-variant/70">Not set</p>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+/**
+ * What this member is expected to save, and where they stand on it.
+ *
+ * Every figure comes from `member_financials`, which derives it from the
+ * savings category and the schedules actually raised. A member with no category
+ * gets a plain statement of that fact — not a zero target that reads like a
+ * decision somebody made.
+ */
+function SavingsCategoryPanel({ member }: { member: MemberFinancialsRow }) {
+  const tier = categoryTier(member.savings_category_code);
+
+  if (!member.savings_category_id) {
+    return (
+      <div className="bg-secondary-fixed text-on-secondary-fixed flex flex-col gap-2 rounded-xl p-5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/40">
+            <Icon name="savings" size={22} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-label-md font-label-md">Savings category</p>
+            <p className="text-body-lg font-body-lg font-semibold">Not chosen yet</p>
+          </div>
+        </div>
+        <p className="text-body-md font-body-md">
+          No savings schedule is raised for this member, and nothing is expected of them,
+          until a category is set.
+        </p>
+      </div>
+    );
+  }
+
+  const frequency = member.savings_frequency ?? 'monthly';
+
+  return (
+    <div className="bg-surface border-outline-variant shadow-card flex flex-col gap-4 rounded-xl border p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="bg-primary-fixed text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
+            <Icon name={tier.icon} size={22} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-label-md font-label-md text-on-surface-variant">
+              Savings category
+            </p>
+            <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
+              {member.savings_category_name}
+            </p>
+          </div>
+        </div>
+        <Badge tone={tier.tone}>
+          {formatUGX(member.savings_expected_amount)} {SAVINGS_FREQUENCY_ADVERB[frequency]}
+        </Badge>
+      </div>
+
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Figure label="Contributed" value={member.savings_contributed} tone="text-tertiary" />
+        <Figure
+          label="Outstanding"
+          value={member.savings_outstanding}
+          tone={toNumber(member.savings_outstanding) > 0 ? 'text-error' : undefined}
+        />
+        <div className="min-w-0">
+          <dt className="text-label-md font-label-md text-on-surface-variant truncate">
+            Next due
+          </dt>
+          <dd className="text-body-md font-body-md text-on-surface truncate font-semibold">
+            {member.savings_next_due_on ? formatDate(member.savings_next_due_on) : '—'}
+          </dd>
+        </div>
+      </dl>
+
+      <p className="text-label-md font-label-md text-on-surface-variant normal-case">
+        {member.savings_current_cycle
+          ? `Current cycle: ${member.savings_current_cycle}`
+          : `No open ${SAVINGS_FREQUENCY_PERIOD[frequency]} to collect for yet.`}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Progress towards the share category — section 15 of the brief.
+ *
+ * The deadline is computed from this member's own joining date and their
+ * category's qualification window, so it moves when either does. A category
+ * with no window — Silver — simply has no deadline to show.
+ */
+function ShareCategoryPanel({ progress }: { progress: MemberShareProgressRow | null }) {
+  if (!progress?.share_category_id || !progress.target_shares) {
+    return (
+      <div className="bg-surface border-outline-variant flex flex-col gap-2 rounded-xl border p-5">
+        <div className="flex items-center gap-3">
+          <span className="bg-surface-container-high text-on-surface-variant flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
+            <Icon name="pie_chart" size={22} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-label-md font-label-md text-on-surface-variant">
+              Share category
+            </p>
+            <p className="text-body-lg font-body-lg text-on-surface font-semibold">
+              Not chosen yet
+            </p>
+          </div>
+        </div>
+        <p className="text-body-md font-body-md text-on-surface-variant">
+          There is no share target to measure this member against until a category is set.
+        </p>
+      </div>
+    );
+  }
+
+  const tier = categoryTier(progress.share_category_code);
+  const pct = toNumber(progress.progress_percent);
+
+  return (
+    <div className="bg-surface border-outline-variant shadow-card flex flex-col gap-4 rounded-xl border p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="bg-primary-fixed text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
+            <Icon name={tier.icon} size={22} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-label-md font-label-md text-on-surface-variant">
+              Share category
+            </p>
+            <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
+              {progress.share_category_name}
+            </p>
+          </div>
+        </div>
+        {progress.qualified ? (
+          <Badge tone="success" dot>
+            Qualified
+          </Badge>
+        ) : progress.qualification_lapsed ? (
+          <Badge tone="error" dot>
+            Deadline passed
+          </Badge>
+        ) : (
+          <Badge tone={tier.tone}>{Math.round(pct)}%</Badge>
+        )}
+      </div>
+
+      <div>
+        <p className="text-label-md font-label-md text-on-surface-variant mb-1.5 normal-case">
+          {progress.shares_owned} of {progress.target_shares} shares ·{' '}
+          {formatUGX(progress.share_value)} of {formatUGX(progress.target_amount)}
+        </p>
+        <ProgressBar
+          value={pct}
+          tone={
+            progress.qualified ? 'tertiary' : progress.qualification_lapsed ? 'error' : 'primary'
+          }
+          label="Share category progress"
+        />
+      </div>
+
+      <dl className="grid grid-cols-2 gap-3">
+        <div className="min-w-0">
+          <dt className="text-label-md font-label-md text-on-surface-variant truncate">
+            Shares remaining
+          </dt>
+          <dd className="text-body-md font-body-md text-on-surface tabular truncate font-semibold">
+            {progress.shares_remaining ?? 0} · {formatUGX(progress.amount_remaining)}
+          </dd>
+        </div>
+        <div className="min-w-0">
+          <dt className="text-label-md font-label-md text-on-surface-variant truncate">
+            Qualifies by
+          </dt>
+          <dd
+            className={clsx(
+              'text-body-md font-body-md truncate font-semibold',
+              progress.qualification_lapsed ? 'text-error' : 'text-on-surface',
+            )}
+          >
+            {progress.qualifies_by
+              ? formatDate(progress.qualifies_by)
+              : qualificationWindow(progress.qualification_months)}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+function Figure({ label, value, tone }: { label: string; value: unknown; tone?: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-label-md font-label-md text-on-surface-variant truncate">{label}</dt>
+      <dd
+        className={clsx(
+          'text-body-md font-body-md truncate font-semibold',
+          tone ?? 'text-on-surface',
+        )}
+      >
+        <Money value={value} />
+      </dd>
     </div>
   );
 }

@@ -8,8 +8,9 @@
  * hand-crafts an API call gets nothing back.
  *
  * The database expresses the same rules as capability predicates
- * (`can_view_operations()`, `can_record_savings()`, `can_manage_groups()`,
- * `can_view_finance()`, `can_view_audit()` in `0011_rbac_and_rls.sql`). The two
+ * (`can_view_operations()`, `can_record_savings()`, `can_manage_categories()`,
+ * `can_view_finance()`, `can_view_audit()` in `0011_rbac_and_rls.sql` and
+ * `0023_category_functions.sql`). The two
  * are meant to agree; where they cannot, the database wins, because it is the
  * one an attacker cannot skip.
  */
@@ -20,7 +21,7 @@ export type Role =
   | 'loan_officer'
   | 'cashier'
   | 'accountant'
-  | 'group_officer'
+  | 'field_officer'
   | 'viewer'
   | 'member';
 
@@ -30,7 +31,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   loan_officer: 'Loan Officer',
   cashier: 'Cashier / Teller',
   accountant: 'Accountant',
-  group_officer: 'Group Officer',
+  field_officer: 'Field Officer',
   viewer: 'Viewer',
   member: 'Member',
 };
@@ -39,10 +40,10 @@ export const ROLE_LABELS: Record<Role, string> = {
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
   super_admin: 'Full access, including staff accounts and reversals.',
   manager: 'Management and reporting across every module.',
-  loan_officer: 'Members, groups, savings, loans and collections.',
+  loan_officer: 'Members, savings, loans and collections.',
   cashier: 'Front-desk collections, deposits, shares and repayments.',
   accountant: 'Transactions, income, expenses and the financial reports.',
-  group_officer: 'Assigned groups: member savings and collection days.',
+  field_officer: 'Collects savings from members in the field.',
   viewer: 'Read-only. Cannot record or change anything.',
   member: 'Their own savings, shares and loans.',
 };
@@ -53,8 +54,10 @@ export type Permission =
   | 'members.view'
   | 'members.manage'
   | 'members.status'
-  | 'groups.view'
-  | 'groups.manage'
+  /** See the share and savings categories, and which members are in them. */
+  | 'categories.view'
+  /** Create, edit, retire a category, and set a member's categories. */
+  | 'categories.manage'
   | 'shares.view'
   | 'shares.sell'
   | 'savings.view'
@@ -85,7 +88,7 @@ export type Permission =
 const STAFF_BASE: Permission[] = [
   'dashboard.staff',
   'members.view',
-  'groups.view',
+  'categories.view',
   'savings.view',
   'transactions.view',
   'reports.view',
@@ -94,7 +97,7 @@ const STAFF_BASE: Permission[] = [
 export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   super_admin: [
     'dashboard.staff', 'members.view', 'members.manage', 'members.status',
-    'groups.view', 'groups.manage',
+    'categories.view', 'categories.manage',
     'shares.view', 'shares.sell', 'savings.view', 'savings.record', 'savings.waive',
     'loans.view', 'loans.apply', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
     'guarantors.manage', 'transactions.view', 'transactions.reverse', 'cash.movement',
@@ -103,7 +106,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'settings.manage',
   ],
   manager: [
-    ...STAFF_BASE, 'members.manage', 'members.status', 'groups.manage',
+    ...STAFF_BASE, 'members.manage', 'members.status', 'categories.manage',
     'shares.view', 'shares.sell', 'savings.record', 'savings.waive',
     'loans.view', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
     'guarantors.manage', 'transactions.reverse', 'cash.movement',
@@ -130,8 +133,9 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     ...STAFF_BASE, 'shares.view', 'loans.view',
     'finance.view', 'finance.record', 'reports.member', 'audit.view',
   ],
-  // The field role: collection days, and nothing that changes the register.
-  group_officer: [...STAFF_BASE, 'savings.record', 'reports.member'],
+  // The field role: collecting from members, and nothing that changes the
+  // register or the categories those members are held to.
+  field_officer: [...STAFF_BASE, 'savings.record', 'reports.member'],
   viewer: [...STAFF_BASE, 'shares.view', 'loans.view'],
   member: ['loans.apply'],
 };
@@ -152,7 +156,7 @@ export function isStaff(role: Role | null | undefined): boolean {
 /** Roles a super admin may assign to a staff account. */
 export const STAFF_ROLES: readonly Role[] = [
   'super_admin', 'manager', 'loan_officer', 'cashier',
-  'accountant', 'group_officer', 'viewer',
+  'accountant', 'field_officer', 'viewer',
 ];
 
 // ---------------------------------------------------------------------------
@@ -177,7 +181,6 @@ export type NavItem = {
 export const STAFF_NAV: readonly NavItem[] = [
   { label: 'Dashboard',    href: '/staff',              icon: 'dashboard',               permission: 'dashboard.staff', bottomBar: true },
   { label: 'Members',      href: '/staff/members',      icon: 'group',                   permission: 'members.view',    bottomBar: true },
-  { label: 'Groups',       href: '/staff/groups',       icon: 'groups',                  permission: 'groups.view',     bottomBar: true },
   {
     label: 'Savings',
     href: '/staff/savings',
@@ -185,11 +188,12 @@ export const STAFF_NAV: readonly NavItem[] = [
     permission: 'savings.view',
     bottomBar: true,
     children: [
-      { label: 'Today’s Collections', href: '/staff/savings/today',        icon: 'event_available', permission: 'savings.view' },
-      { label: 'Schedules',           href: '/staff/savings/schedules',    icon: 'calendar_month',  permission: 'savings.view' },
-      { label: 'Performance',         href: '/staff/savings',              icon: 'assessment',      permission: 'savings.view' },
+      { label: 'Collect Savings', href: '/staff/savings/collect',   icon: 'point_of_sale',  permission: 'savings.view' },
+      { label: 'Schedules',       href: '/staff/savings/schedules', icon: 'calendar_month', permission: 'savings.view' },
+      { label: 'Performance',     href: '/staff/savings/performance', icon: 'assessment',   permission: 'savings.view' },
     ],
   },
+  { label: 'Categories',   href: '/staff/categories',   icon: 'workspace_premium',       permission: 'categories.view', bottomBar: true },
   { label: 'Shares',       href: '/staff/shares',       icon: 'pie_chart',               permission: 'shares.view' },
   {
     label: 'Loans',

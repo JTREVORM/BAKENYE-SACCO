@@ -20,7 +20,14 @@ import { ScrollRow } from '@/components/ui/scroll';
  * table. Printing always uses the table, because a printed statement in card
  * form is not a statement.
  */
-export function Statement({ statement }: { statement: MemberStatement }) {
+export function Statement({
+  statement,
+  footer,
+}: {
+  statement: MemberStatement;
+  /** `system.statement_footer`, printed under every statement. */
+  footer?: string | null;
+}) {
   const rows = statement.rows ?? [];
   const closing =
     rows.length > 0
@@ -198,6 +205,9 @@ export function Statement({ statement }: { statement: MemberStatement }) {
         This statement covers savings, deposits and withdrawals. Share capital and loan balances are
         reported separately.
       </p>
+      {footer ? (
+        <p className="text-label-md font-label-md text-on-surface-variant/70 -mt-4 text-center normal-case">{footer}</p>
+      ) : null}
 
       <StatementActions
         documentTitle={documentName(

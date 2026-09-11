@@ -12,7 +12,7 @@ import { PeriodPicker } from '@/components/finance/PeriodPicker';
 import { ExportButtons } from '@/components/ExportButtons';
 import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
 import { ACCOUNT_TYPE_META, ACCOUNT_TYPES, TRANSFER_KIND_META } from '@/lib/treasury-format';
-import { formatDate, monthStart, toISODate } from '@/lib/format';
+import { addDaysISO, formatDate, monthStart, toISODate } from '@/lib/format';
 import { formatAmount, formatUGX, toNumber } from '@/lib/money';
 import type { AccountMovementRow } from '@/types/treasury';
 
@@ -240,7 +240,7 @@ async function Statement({ from, to, accountId, by }: { from: string; to: string
   }
 
   const supabase = await createClient();
-  const dayBefore = toISODate(new Date(new Date(`${from}T12:00:00`).getTime() - 86_400_000));
+  const dayBefore = addDaysISO(from, -1);
   const [{ data: opening }, { data: closing }, { data: rows, error }] = await Promise.all([
     supabase.rpc('finance_account_balance_at', { p_account_id: account.id, p_on: dayBefore }),
     supabase.rpc('finance_account_balance_at', { p_account_id: account.id, p_on: to }),

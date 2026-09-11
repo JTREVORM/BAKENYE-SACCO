@@ -8,7 +8,6 @@ import { Badge, Icon, Money, ProgressBar } from '@/components/ui/primitives';
 import { SavingsStatusBadge } from '@/components/ui/status';
 import { EmptyState } from '@/components/ui/states';
 import {
-  SAVINGS_FREQUENCY_ADVERB,
   SAVINGS_FREQUENCY_EVERY,
   categoryTier,
 } from '@/lib/categories';

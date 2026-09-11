@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireUser } from '@/lib/auth';
 import { can } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
-import { normalisePhone, normaliseUgandanMobile } from '@/lib/format';
+import { normaliseUgandanMobile } from '@/lib/format';
 import { provisionMemberLogin, staffAuthEmail, temporaryPassword } from '@/lib/accounts';
 import type { RegistrationResult, TemporaryPassword } from '@/types/access';
 
@@ -507,23 +507,15 @@ export async function setSavingsPlan(
 
   if (!parsed.success) return firstIssue(parsed.error);
 
+  // One audited, atomic database call. It closes the previous plan the day
+  // before (so past periods keep the target they were judged against) and a
+  // second change on the same day corrects today's plan instead (0036).
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
-
-  // Close the previous plan rather than editing it, so historic periods keep
-  // the target they were actually judged against.
-  await supabase
-    .from('savings_plans')
-    .update({ active_to: today })
-    .eq('member_id', parsed.data.member_id)
-    .eq('kind', parsed.data.kind)
-    .is('active_to', null);
-
-  const { error } = await supabase.from('savings_plans').insert({
-    member_id: parsed.data.member_id,
-    kind: parsed.data.kind,
-    target_amount: parsed.data.target_amount,
-    active_from: today,
+  const { error } = await supabase.rpc('set_savings_plan', {
+    p_member_id: parsed.data.member_id,
+    p_kind: parsed.data.kind,
+    p_target_amount: parsed.data.target_amount,
+    p_reason: null,
   });
 
   if (error) return fail(error);

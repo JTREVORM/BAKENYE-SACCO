@@ -105,13 +105,11 @@ function toRules(map: SettingsMap) {
     map,
 
     currency: settingText(map, 'financial.currency_code', 'UGX'),
-    financialYearStartMonth: settingNumber(map, 'financial.financial_year_start_month', 1),
     minDeposit: settingNumber(map, 'financial.min_deposit'),
     minWithdrawal: settingNumber(map, 'financial.min_withdrawal'),
     /** Zero means no ceiling, consistently across every limit here. */
     maxWithdrawal: settingNumber(map, 'financial.max_withdrawal_per_transaction'),
     maxCashTransaction: settingNumber(map, 'financial.max_cash_transaction'),
-    withdrawalFee: settingNumber(map, 'financial.withdrawal_fee'),
 
     // Fees are not settings: they are rows in `fees`, managed under
     // Settings -> Fees, and read by registration itself.
@@ -127,8 +125,6 @@ function toRules(map: SettingsMap) {
     minWeeklySaving: settingNumber(map, 'savings.min_weekly_amount'),
     minMonthlySaving: settingNumber(map, 'savings.min_monthly_amount'),
     allowPartialSaving: settingBool(map, 'savings.allow_partial_payment', true),
-    allowAdvanceSaving: settingBool(map, 'savings.allow_advance_payment', true),
-    missedPeriodPenalty: settingNumber(map, 'savings.missed_period_penalty'),
 
     maxActiveLoans: settingNumber(map, 'loans.max_active_per_member', 1),
     maxSavingsMultiple: settingNumber(map, 'loans.max_savings_multiple'),
@@ -137,7 +133,6 @@ function toRules(map: SettingsMap) {
     defaultLatePenaltyPct: settingNumber(map, 'loans.default_late_penalty_pct'),
     requireGuarantors: settingBool(map, 'loans.require_guarantors', true),
     guarantorCoverPct: settingNumber(map, 'loans.guarantor_cover_pct', 100),
-    approvalRequiredAbove: settingNumber(map, 'loans.auto_approve_limit'),
 
     /**
      * Whether a member's savings category has to match their share category.
@@ -145,20 +140,13 @@ function toRules(map: SettingsMap) {
      * saves at the Diamond rate.
      */
     shareMatchesSavings: settingBool(map, 'categories.share_matches_savings'),
-    requireSavingsCategory: settingBool(map, 'categories.require_savings_category'),
 
-    collectionReminderDays: settingNumber(map, 'notifications.collection_reminder_days', 1),
-    loanDueReminderDays: settingNumber(map, 'notifications.loan_due_reminder_days', 3),
     notifyOnLoanDecision: settingBool(map, 'notifications.notify_on_loan_decision', true),
 
     sessionTimeoutMinutes: settingNumber(map, 'security.session_timeout_minutes', 60),
     passwordMinLength: settingNumber(map, 'security.password_min_length', 8),
     requireReasonOnReversal: settingBool(map, 'security.require_reason_on_reversal', true),
 
-    /** ISO weekdays the SACCO is open, 1 = Monday. */
-    businessDays: settingList(map, 'system.business_days', ['1', '2', '3', '4', '5'])
-      .map(Number)
-      .filter((d) => d >= 1 && d <= 7),
     receiptFooter: settingText(map, 'system.receipt_footer'),
     receiptShowBalance: settingBool(map, 'system.receipt_show_balance', true),
     statementFooter: settingText(map, 'system.statement_footer'),
@@ -227,7 +215,7 @@ export const SETTING_CATEGORIES: {
     id: 'notifications',
     label: 'Notifications',
     icon: 'notifications',
-    description: 'When members are reminded, and what they are told.',
+    description: 'What members are told about their loans.',
   },
   {
     id: 'security',
@@ -239,7 +227,7 @@ export const SETTING_CATEGORIES: {
     id: 'system',
     label: 'System',
     icon: 'tune',
-    description: 'Business days, and the wording printed on receipts and statements.',
+    description: 'The wording printed on receipts and statements.',
   },
 ];
 

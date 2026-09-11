@@ -14,7 +14,7 @@ import {
   SubmitButton,
   Textarea,
 } from '@/components/ui/form';
-import { formatDate } from '@/lib/format';
+import { formatDate, todayISO } from '@/lib/format';
 import { formatUGX } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { ActionResult } from '@/lib/errors';
@@ -169,7 +169,7 @@ function FeeCard({
   onToggle: () => void;
 }) {
   const active = fee.status === 'active';
-  const upcoming = fee.effective_from > new Date().toISOString().slice(0, 10);
+  const upcoming = fee.effective_from > todayISO();
 
   return (
     <li

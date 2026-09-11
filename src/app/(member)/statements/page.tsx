@@ -4,9 +4,10 @@ import { getUnreadCount } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { MemberShell } from '@/components/layout/MemberShell';
 import { Statement } from '@/components/Statement';
+import { getRules } from '@/lib/settings';
 import { StatementRange } from '@/components/StatementRange';
 import { ErrorState } from '@/components/ui/states';
-import { monthStart, toISODate } from '@/lib/format';
+import { monthStartISO, todayISO } from '@/lib/format';
 import type { MemberStatement } from '@/types/db';
 
 export const metadata: Metadata = { title: 'Statement' };
@@ -29,10 +30,9 @@ export default async function StatementsPage({
 
   // Default to the last three months — long enough to be useful, short enough
   // to stay fast on a phone.
-  const today = new Date();
-  const defaultFrom = monthStart(new Date(today.getFullYear(), today.getMonth() - 2, 1));
+  const defaultFrom = monthStartISO(todayISO(), -2);
   const from = isValidDate(sp.from) ? sp.from! : defaultFrom;
-  const to = isValidDate(sp.to) ? sp.to! : toISODate(today);
+  const to = isValidDate(sp.to) ? sp.to! : todayISO();
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('member_statement', {
@@ -61,7 +61,7 @@ export default async function StatementsPage({
             description="Please check your connection and try again."
           />
         ) : (
-          <Statement statement={data as MemberStatement} />
+          <Statement statement={data as MemberStatement} footer={(await getRules()).statementFooter || null} />
         )}
       </div>
     </MemberShell>

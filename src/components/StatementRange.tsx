@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Field, Input, Button } from '@/components/ui/form';
-import { monthStart, monthEnd, toISODate } from '@/lib/format';
+import { monthEndISO, monthStartISO, todayISO, toISODate, yearStartISO } from '@/lib/format';
 import { ScrollRow } from '@/components/ui/scroll';
 
 /**
@@ -38,24 +38,12 @@ export function StatementRange({
     router.push(`${pathname}?${next.toString()}`);
   }
 
-  const today = new Date();
+  const today = todayISO();
   const presetRanges = [
-    { label: 'This month', from: monthStart(today), to: toISODate(today) },
-    {
-      label: 'Last month',
-      from: monthStart(new Date(today.getFullYear(), today.getMonth() - 1, 1)),
-      to: monthEnd(new Date(today.getFullYear(), today.getMonth() - 1, 1)),
-    },
-    {
-      label: 'Last 3 months',
-      from: monthStart(new Date(today.getFullYear(), today.getMonth() - 2, 1)),
-      to: toISODate(today),
-    },
-    {
-      label: 'This year',
-      from: `${today.getFullYear()}-01-01`,
-      to: toISODate(today),
-    },
+    { label: 'This month', from: monthStartISO(today), to: today },
+    { label: 'Last month', from: monthStartISO(today, -1), to: monthEndISO(today, -1) },
+    { label: 'Last 3 months', from: monthStartISO(today, -2), to: today },
+    { label: 'This year', from: yearStartISO(today), to: today },
   ];
 
   return (

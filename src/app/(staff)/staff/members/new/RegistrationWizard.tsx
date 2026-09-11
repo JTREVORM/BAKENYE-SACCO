@@ -921,6 +921,9 @@ function Success({ result }: { result: RegistrationOutcome }) {
         >
           Open member profile
         </Link>
+        {/* A full page load on purpose: it starts the next registration from an
+            empty form with a new registration key, not this member's state. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/staff/members/new"
           className="text-primary text-button-text h-touch-target-min flex items-center justify-center"

@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE, idleMinutes, sessionCookieOptions } from '@/lib/session-timeout';
 
 /**
  * Refreshes the Supabase session cookie on every navigation and keeps
@@ -54,6 +55,28 @@ export async function middleware(request: NextRequest) {
     url.pathname = '/login';
     url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);
+  }
+
+  // Idle sign-out: a session untouched for longer than the SACCO's timeout is
+  // ended here, on its next request. See lib/session-timeout.ts.
+  if (user) {
+    const limit = idleMinutes(request.cookies.get(IDLE_LIMIT_COOKIE)?.value);
+    const lastSeen = Number(request.cookies.get(LAST_SEEN_COOKIE)?.value);
+    const now = Date.now();
+    if (limit > 0 && Number.isFinite(lastSeen) && lastSeen > 0 && now - lastSeen > limit * 60_000) {
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.search = '';
+      url.searchParams.set('reason', 'timeout');
+      if (!isPublic) url.searchParams.set('next', pathname);
+      const redirect = NextResponse.redirect(url);
+      // Carry the cleared Supabase session cookies onto the redirect.
+      for (const c of response.cookies.getAll()) redirect.cookies.set(c);
+      redirect.cookies.delete(LAST_SEEN_COOKIE);
+      return redirect;
+    }
+    response.cookies.set(LAST_SEEN_COOKIE, String(now), sessionCookieOptions);
   }
 
   // A signed-in visitor to /login is sent on by the page itself, which knows

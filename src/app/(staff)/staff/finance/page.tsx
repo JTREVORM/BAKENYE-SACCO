@@ -15,7 +15,7 @@ import { LedgerLink, LedgerTable } from '@/components/finance/LedgerTable';
 import { DocStatusBadge } from '@/components/finance/DocStatusBadge';
 import { ApprovalControls } from '@/components/finance/ApprovalControls';
 import { ACCOUNT_TYPE_META, ACCOUNT_TYPES, activityLines, dayFigures, TRANSFER_KIND_META } from '@/lib/treasury-format';
-import { formatDate, toISODate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { IconName } from '@/lib/icons';

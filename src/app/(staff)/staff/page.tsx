@@ -30,7 +30,7 @@ import {
 import { TrendChart } from '@/components/staff/TrendChart';
 import { FundsStrip } from '@/components/finance/FundsStrip';
 import { ScrollArea } from '@/components/ui/scroll';
-import { formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/format';
+import { daysUntil, formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/format';
 import { formatUGX, percent, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { AuditLogRow } from '@/types/db';
@@ -162,7 +162,7 @@ async function HeroFigures() {
   if (!m) return null;
 
   const figures = [
-    { icon: 'group', label: 'Total Members', value: m.total_members.toLocaleString() },
+    { icon: 'group', label: 'Active Members', value: m.total_members.toLocaleString() },
     { icon: 'savings', label: 'Total Savings', value: formatUGX(m.total_savings) },
     { icon: 'payments', label: 'Loans Outstanding', value: formatUGX(m.outstanding_loans) },
   ];
@@ -208,7 +208,7 @@ async function Metrics() {
         <KpiCard
           icon="group"
           tone="primary"
-          label="Total Members"
+          label="Active Members"
           value={m.total_members.toLocaleString()}
           footnote={
             m.members_this_month > 0
@@ -542,9 +542,7 @@ async function UpcomingReminders() {
 
 /** "Today" / "Tomorrow" / "In 5 days" — read at a glance, unlike a bare date. */
 function relativeDay(iso: string): string {
-  const today = new Date(toISODate());
-  const then = new Date(iso);
-  const days = Math.round((then.getTime() - today.getTime()) / 86_400_000);
+  const days = daysUntil(iso) ?? 0;
   if (days <= 0) return 'Today';
   if (days === 1) return 'Tomorrow';
   if (days < 7) return `In ${days} days`;

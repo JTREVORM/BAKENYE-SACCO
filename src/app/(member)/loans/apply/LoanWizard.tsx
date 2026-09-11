@@ -17,7 +17,6 @@ import {
   Textarea,
 } from '@/components/ui/form';
 import { formatUGX, toNumber } from '@/lib/money';
-import { formatDate } from '@/lib/format';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
 import { clsx } from '@/lib/clsx';
 import { REPAYMENT_FREQUENCY_LABELS, type LoanProductRow, type LoanQuote } from '@/types/db';
@@ -702,9 +701,7 @@ export function LoanWizard({
               <ReviewLine label="Details" value={purpose} />
               <ReviewLine
                 label="First payment"
-                value={formatDate(
-                  new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().slice(0, 10),
-                )}
+                value="One month after the loan is paid out"
               />
             </dl>
           </div>

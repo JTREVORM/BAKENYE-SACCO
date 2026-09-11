@@ -205,7 +205,7 @@ function StatusDialog({
   const err = state && !state.ok ? state : null;
 
   return (
-    <Modal open={open} onClose={onClose} title={title} description={description}>
+    <Modal open={open} onClose={onClose} title={`${title} · ${loanNo}`} description={description}>
       {state?.ok ? (
         <div className="flex flex-col gap-4">
           <Alert tone="success">{state.message}</Alert>

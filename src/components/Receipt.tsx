@@ -30,9 +30,12 @@ export function Receipt({
    * could edit; whatever the SACCO sets in Settings is printed instead.
    */
   footer,
+  /** `system.receipt_show_balance`: print the member's savings balance after the payment. */
+  showBalance = true,
 }: {
   payload: ReceiptPayload;
   footer?: string | null;
+  showBalance?: boolean;
 }) {
   const t = payload.transaction;
   const reversed = t.status !== 'posted';
@@ -193,7 +196,7 @@ export function Receipt({
         ) : null}
 
         {/* Savings balance after */}
-        {['weekly_savings', 'monthly_savings', 'deposit', 'withdrawal'].includes(t.type) ? (
+        {showBalance && ['weekly_savings', 'monthly_savings', 'deposit', 'withdrawal'].includes(t.type) ? (
           <div className="bg-surface-container-low border-outline-variant border-t px-4 py-3">
             <p className="text-label-md font-label-md text-on-surface-variant mb-1">
               Savings balance after this transaction

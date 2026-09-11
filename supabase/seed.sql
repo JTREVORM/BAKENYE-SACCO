@@ -261,6 +261,17 @@ declare
   v_g1 uuid;
   v_g2 uuid;
 begin
+  -- Demo products. A real SACCO defines its own under Loans -> Products; the
+  -- migrations ship none (0037).
+  insert into loan_products
+    (name, code, interest_rate, interest_method, min_amount, max_amount,
+     min_period_months, max_period_months, processing_fee_pct, min_guarantors, description)
+  values
+    ('Business Loan',    'BIZ', 18.0, 'flat', 200000, 20000000, 3, 24, 1.0, 2, 'Demo product.'),
+    ('Emergency Loan',   'EMG', 12.0, 'flat',  50000,  3000000, 1,  6, 0.5, 1, 'Demo product.'),
+    ('School Fees Loan', 'SCH', 15.0, 'flat', 100000,  5000000, 3, 12, 1.0, 2, 'Demo product.')
+  on conflict (code) do nothing;
+
   select id into v_biz from loan_products where code = 'BIZ';
   select id into v_emg from loan_products where code = 'EMG';
   select id into v_sch from loan_products where code = 'SCH';

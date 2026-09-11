@@ -236,15 +236,6 @@ function SettingField({
     .filter(Boolean)
     .join(' ');
 
-  const label = (
-    <span className="inline-flex items-center gap-2">
-      {row.label}
-      {dirty ? (
-        <span className="inline-flex h-1.5 w-1.5 rounded-full bg-primary" aria-label="Changed" />
-      ) : null}
-    </span>
-  );
-
   if (row.value_type === 'boolean') {
     const on = value === true;
     return (

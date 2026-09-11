@@ -33,8 +33,9 @@ for (const file of ['.env.local', '.env']) {
 }
 
 const BASE = process.argv[2] ?? 'http://localhost:3000';
-const STAFF_EMAIL = process.env.STAFF_EMAIL ?? 'trevor@gmail.com';
-const STAFF_PASSWORD = process.env.STAFF_PASSWORD ?? 'Admin@123';
+const STAFF_EMAIL = process.env.STAFF_EMAIL;
+const STAFF_PASSWORD = process.env.STAFF_PASSWORD;
+if (!STAFF_EMAIL || !STAFF_PASSWORD) { console.error('Set STAFF_EMAIL and STAFF_PASSWORD to a staff account to test with.'); process.exit(1); }
 const MEMBER_NO = process.env.MEMBER_NO ?? 'BND-M-0000001';
 const CHOSEN = `Chosen${Math.floor(Math.random() * 9000 + 1000)}x`;
 

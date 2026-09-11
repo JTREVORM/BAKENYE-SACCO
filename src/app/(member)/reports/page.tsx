@@ -4,7 +4,7 @@ import { requireMember } from '@/lib/auth';
 import { getMemberFinancials, getUnreadCount } from '@/lib/queries';
 import { MemberShell } from '@/components/layout/MemberShell';
 import { Icon, Money } from '@/components/ui/primitives';
-import { monthStart, toISODate } from '@/lib/format';
+import { monthStartISO, todayISO, yearStartISO } from '@/lib/format';
 import type { IconName } from '@/lib/icons';
 
 export const metadata: Metadata = { title: 'Reports' };
@@ -27,10 +27,9 @@ export default async function MemberReportsPage() {
     getUnreadCount(),
   ]);
 
-  const today = new Date();
-  const yearStart = `${today.getFullYear()}-01-01`;
-  const quarterStart = monthStart(new Date(today.getFullYear(), today.getMonth() - 2, 1));
-  const now = toISODate(today);
+  const now = todayISO();
+  const yearStart = yearStartISO(now);
+  const quarterStart = monthStartISO(now, -2);
 
   const reports: {
     icon: IconName;
@@ -64,7 +63,7 @@ export default async function MemberReportsPage() {
     },
     {
       icon: 'receipt_long',
-      title: `Annual Statement ${today.getFullYear()}`,
+      title: `Annual Statement ${yearStart.slice(0, 4)}`,
       description: 'Everything from 1 January to today.',
       href: `/statements?from=${yearStart}&to=${now}`,
     },

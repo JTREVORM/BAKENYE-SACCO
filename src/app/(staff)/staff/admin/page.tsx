@@ -6,6 +6,7 @@ import { can } from '@/lib/rbac';
 import { createClient } from '@/lib/supabase/server';
 import { getDashboardMetrics } from '@/lib/queries';
 import { DashboardHeader } from '@/components/staff/DashboardHeader';
+import { FundsStrip } from '@/components/finance/FundsStrip';
 import { KpiCard, Panel, QuickAction, Badge, Icon } from '@/components/ui/primitives';
 import { EmptyState, PanelSkeleton, StatGridSkeleton } from '@/components/ui/states';
 import { formatAgo } from '@/lib/format';
@@ -46,6 +47,14 @@ export default async function AdministrationDashboard() {
       {can(user, 'users.manage') || can(user, 'audit.view') ? (
         <Suspense fallback={<StatGridSkeleton />}>
           <SecurityFigures />
+        </Suspense>
+      ) : null}
+
+      {/* Where the money is: Cash at Merchant, Bank and Hand, and their total,
+          straight from the account ledger. */}
+      {can(user, 'finance.view') ? (
+        <Suspense fallback={<StatGridSkeleton />}>
+          <FundsStrip />
         </Suspense>
       ) : null}
 
@@ -132,7 +141,7 @@ async function SaccoFigures() {
   if (!m) return null;
   return (
     <section aria-label="The SACCO" className="grid grid-cols-2 gap-gutter lg:grid-cols-4">
-      <KpiCard icon="group" label="Members" value={m.total_members} href="/staff/members" footnote={`${m.members_this_month} joined this month`} />
+      <KpiCard icon="group" label="Active members" value={m.total_members} href="/staff/members" footnote={`${m.members_this_month} joined this month`} />
       <KpiCard icon="savings" label="Total savings" value={formatUGX(m.total_savings)} tone="success" />
       <KpiCard icon="payments" label="Loans outstanding" value={formatUGX(m.outstanding_loans)} tone="accent" footnote={`${m.active_loan_count} active`} />
       <KpiCard

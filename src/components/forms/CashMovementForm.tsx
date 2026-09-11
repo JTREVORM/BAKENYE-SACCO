@@ -187,7 +187,7 @@ export function CashMovementForm({
 
         {isWithdrawal ? (
           <Alert tone="warning">
-            Confirm the member's identity before paying out. Withdrawals are recorded against their
+            Confirm the member&rsquo;s identity before paying out. Withdrawals are recorded against their
             savings only.
           </Alert>
         ) : null}

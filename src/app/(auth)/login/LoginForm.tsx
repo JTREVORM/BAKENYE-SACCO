@@ -88,15 +88,31 @@ export function PasswordField({
  * server works out whose account it is, checks the password, reads the role
  * from the database and opens that role's dashboard.
  */
-export function LoginForm({ next, notice }: { next?: string; notice?: 'reset' | null }) {
+export function LoginForm({
+  next,
+  notice,
+}: {
+  next?: string;
+  notice?: 'reset' | 'timeout' | 'link_expired' | null;
+}) {
   const [state, action] = useActionState<ActionResult<null> | null, FormData>(signIn, null);
   const error = state && !state.ok ? state : null;
 
   return (
     <form action={action} className="mt-6 flex flex-col gap-4 sm:gap-5" noValidate>
-      {notice === 'reset' ? (
+      {!state && notice === 'reset' ? (
         <Alert tone="success" title="Password changed">
           Sign in with your new password.
+        </Alert>
+      ) : null}
+      {!state && notice === 'timeout' ? (
+        <Alert tone="info" title="Signed out">
+          You were signed out after a period of inactivity. Please sign in again.
+        </Alert>
+      ) : null}
+      {!state && notice === 'link_expired' ? (
+        <Alert tone="error" title="Link expired">
+          That link has expired or was already used. Request a new one from Forgot password.
         </Alert>
       ) : null}
 

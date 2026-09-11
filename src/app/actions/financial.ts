@@ -384,7 +384,13 @@ export async function applyForLoan(
 
   let guarantors: z.infer<typeof guarantorSchema>[] = [];
   if (parsed.data.guarantors) {
-    const list = z.array(guarantorSchema).safeParse(JSON.parse(parsed.data.guarantors));
+    let raw: unknown;
+    try {
+      raw = JSON.parse(parsed.data.guarantors);
+    } catch {
+      return { ok: false, error: 'One of the guarantors is not valid.', field: 'guarantors' };
+    }
+    const list = z.array(guarantorSchema).safeParse(raw);
     if (!list.success) {
       return { ok: false, error: 'One of the guarantors is not valid.', field: 'guarantors' };
     }

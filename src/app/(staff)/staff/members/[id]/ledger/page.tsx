@@ -12,7 +12,7 @@ import { ExportButtons } from '@/components/ExportButtons';
 import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
 import { documentName } from '@/lib/print';
 import { SAVINGS_FREQUENCY_ADVERB } from '@/lib/categories';
-import { formatDate, monthStart, toISODate, TXN_LABELS } from '@/lib/format';
+import { formatDate, todayISO, yearStartISO, TXN_LABELS } from '@/lib/format';
 import { formatAmount, formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { MemberStatement } from '@/types/db';
@@ -42,9 +42,8 @@ export default async function MemberLedgerPage({
   const member = await getMemberFinancials(id);
   if (!member) notFound();
 
-  const today = new Date();
-  const from = isDate(sp.from) ? sp.from! : firstOfYear(today);
-  const to = isDate(sp.to) ? sp.to! : toISODate(today);
+  const from = isDate(sp.from) ? sp.from! : yearStartISO();
+  const to = isDate(sp.to) ? sp.to! : todayISO();
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('member_statement', {
@@ -296,9 +295,6 @@ function isDate(v: string | undefined): boolean {
   return !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
 }
 
-function firstOfYear(d: Date): string {
-  return toISODate(new Date(d.getFullYear(), 0, 1)) || monthStart(d);
-}
 
 function Total({
   label,

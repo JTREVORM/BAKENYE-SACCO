@@ -117,7 +117,7 @@ async function Board({
         subtitle={`${formatDate(from)} to ${formatDate(to)}`}
         generatedBy={generatedBy}
         meta={[
-          { label: 'Members', value: String(dash.total_members) },
+          { label: 'Active members', value: String(dash.total_members) },
           { label: 'Expected', value: formatUGX(dash.expected_savings) },
           { label: 'Collected', value: formatUGX(dash.collected_savings) },
           { label: 'Outstanding', value: formatUGX(dash.outstanding_savings) },

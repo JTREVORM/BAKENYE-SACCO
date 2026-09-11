@@ -33,7 +33,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   return (
     <MemberShell title="Receipt" backHref="/transactions" unreadCount={unread}>
       <div className="py-2">
-        <Receipt payload={data as ReceiptPayload} footer={rules.receiptFooter || null} />
+        <Receipt payload={data as ReceiptPayload} footer={rules.receiptFooter || null} showBalance={rules.receiptShowBalance} />
       </div>
     </MemberShell>
   );

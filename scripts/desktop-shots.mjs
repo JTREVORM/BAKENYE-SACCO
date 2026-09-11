@@ -15,8 +15,9 @@ import { mkdir } from 'node:fs/promises';
 const BASE = process.argv[2] ?? 'http://localhost:3000';
 const TAG = process.argv[3] ? `-${process.argv[3]}` : '';
 
-const EMAIL = process.env.STAFF_EMAIL ?? 'trevor@gmail.com';
-const PASSWORD = process.env.STAFF_PASSWORD ?? 'Admin@123';
+const EMAIL = process.env.STAFF_EMAIL;
+const PASSWORD = process.env.STAFF_PASSWORD;
+if (!EMAIL || !PASSWORD) { console.error('Set STAFF_EMAIL and STAFF_PASSWORD to a staff account to test with.'); process.exit(1); }
 
 const WIDTHS = [1280, 1440, 1920];
 

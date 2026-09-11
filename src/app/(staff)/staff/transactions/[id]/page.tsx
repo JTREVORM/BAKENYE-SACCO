@@ -25,7 +25,7 @@ export default async function StaffReceiptPage({ params }: { params: Promise<{ i
 
   return (
     <div className="mx-auto max-w-md">
-      <Receipt payload={payload} footer={rules.receiptFooter || null} />
+      <Receipt payload={payload} footer={rules.receiptFooter || null} showBalance={rules.receiptShowBalance} />
 
       {can(user, 'transactions.reverse') && payload.transaction.status === 'posted' ? (
         <div className="no-print mt-8">

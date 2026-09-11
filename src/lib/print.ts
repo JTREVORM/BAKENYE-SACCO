@@ -12,6 +12,7 @@
  * asynchronous in others, and a tab left renamed is worse than one never
  * renamed at all.
  */
+import { toISODate } from '@/lib/format';
 
 /** Strip anything a file system would object to, and collapse whitespace. */
 function safeName(name: string): string {
@@ -53,8 +54,6 @@ export function printDocument(title?: string): void {
 
 /** `BUD-SACCO Member Register 2026-09-07` — the shape every export uses. */
 export function documentName(title: string, subject?: string, on: Date = new Date()): string {
-  const date = `${on.getFullYear()}-${String(on.getMonth() + 1).padStart(2, '0')}-${String(
-    on.getDate(),
-  ).padStart(2, '0')}`;
+  const date = toISODate(on);
   return safeName(['BUD-SACCO', title, subject, date].filter(Boolean).join(' '));
 }

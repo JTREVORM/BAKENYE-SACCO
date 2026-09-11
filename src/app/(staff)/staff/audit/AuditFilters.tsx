@@ -29,7 +29,7 @@ export function AuditFilters() {
     router.push(`${pathname}?${next.toString()}`);
   }
 
-  const module = params.get('module') ?? '';
+  const moduleFilter = params.get('moduleFilter') ?? '';
 
   return (
     <div className="flex flex-col gap-3">
@@ -39,16 +39,16 @@ export function AuditFilters() {
         placeholder="Search by user, action..."
       />
 
-      <ScrollRow label="Filter by module" className="no-scrollbar flex gap-2">
+      <ScrollRow label="Filter by moduleFilter" className="no-scrollbar flex gap-2">
         {MODULES.map((m) => (
           <button
             key={m.value}
             type="button"
-            onClick={() => setParam('module', m.value)}
-            aria-pressed={module === m.value}
+            onClick={() => setParam('moduleFilter', m.value)}
+            aria-pressed={moduleFilter === m.value}
             className={clsx(
               'text-label-md font-label-md h-touch-target-min shrink-0 rounded-full px-4 normal-case transition-colors',
-              module === m.value
+              moduleFilter === m.value
                 ? 'bg-primary text-on-primary'
                 : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high',
             )}

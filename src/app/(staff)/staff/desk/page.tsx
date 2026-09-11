@@ -85,7 +85,7 @@ async function TodayFigures() {
         value={formatUGX(m.savings_arrears)}
         tone={Number(m.savings_arrears) > 0 ? 'warning' : 'neutral'}
       />
-      <KpiCard icon="group" label="Members" value={m.total_members} href="/staff/members" />
+      <KpiCard icon="group" label="Active members" value={m.total_members} href="/staff/members" />
     </section>
   );
 }

@@ -1,6 +1,7 @@
 import { getSettingsMap, settingBool, settingNumber } from '@/lib/settings';
 import { can, type Access } from '@/lib/rbac';
 import { formatUGX } from '@/lib/money';
+import { toISODate, weekStartISO } from '@/lib/format';
 
 /**
  * What happens after "confirm" on a transfer or payment, for this person,
@@ -27,9 +28,7 @@ export async function approvalNoteFor(role: Access): Promise<string> {
     : "It waits for a manager's approval before any money moves.";
 }
 
-/** Monday of the week containing `d`, as YYYY-MM-DD. */
+/** Monday of the Uganda week containing `d`, as YYYY-MM-DD. */
 export function weekStart(d: Date = new Date()): string {
-  const day = (d.getDay() + 6) % 7;
-  const m = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day);
-  return `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, '0')}-${String(m.getDate()).padStart(2, '0')}`;
+  return weekStartISO(toISODate(d));
 }

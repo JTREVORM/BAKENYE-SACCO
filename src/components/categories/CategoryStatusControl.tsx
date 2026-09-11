@@ -83,7 +83,7 @@ export function CategoryStatusControl({
           {retiring ? (
             <>
               <p className="text-body-lg text-on-surface">
-                {name} will no longer be offered when a member's categories are set.
+                {name} will no longer be offered when a member&rsquo;s categories are set.
               </p>
               <Alert
                 tone={members > 0 ? 'warning' : 'info'}
@@ -102,7 +102,7 @@ export function CategoryStatusControl({
             </>
           ) : (
             <p className="text-body-lg text-on-surface">
-              {name} will be offered again when a member's categories are set.
+              {name} will be offered again when a member&rsquo;s categories are set.
             </p>
           )}
 

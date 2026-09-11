@@ -42,9 +42,15 @@ import {
 export function LoanProductForm({
   product,
   canManage,
+  defaults,
 }: {
   product?: LoanProductRow | null;
   canManage: boolean;
+  /**
+   * Starting values for a new product from Settings -> Loans
+   * (loans.default_grace_period_days, loans.default_late_penalty_pct).
+   */
+  defaults?: { gracePeriodDays: number; latePenaltyPct: number };
 }) {
   const router = useRouter();
   const [state, action] = useActionState<
@@ -446,7 +452,7 @@ export function LoanProductForm({
                 min={0}
                 step={1}
                 className="tabular pr-16"
-                defaultValue={String(d?.grace_period_days ?? 0)}
+                defaultValue={String(d?.grace_period_days ?? defaults?.gracePeriodDays ?? 0)}
                 disabled={!canManage}
                 invalid={invalid('grace_period_days')}
               />
@@ -464,7 +470,7 @@ export function LoanProductForm({
             <PercentField
               id="late_penalty_pct"
               name="late_penalty_pct"
-              defaultValue={d ? Number(d.late_penalty_pct) : 0}
+              defaultValue={d ? Number(d.late_penalty_pct) : (defaults?.latePenaltyPct ?? 0)}
               disabled={!canManage}
               invalid={invalid('late_penalty_pct')}
             />

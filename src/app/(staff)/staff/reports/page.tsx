@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { can } from '@/lib/rbac';
 import { PageTitle, Icon } from '@/components/ui/primitives';
-import { monthStart, toISODate } from '@/lib/format';
+import { monthStartISO, todayISO, yearStartISO } from '@/lib/format';
 import type { IconName } from '@/lib/icons';
 import type { Permission } from '@/lib/rbac';
 
@@ -19,10 +19,9 @@ export const metadata: Metadata = { title: 'Reports' };
 export default async function StaffReportsPage() {
   const user = await requirePermission('reports.view');
 
-  const today = new Date();
-  const from = monthStart(today);
-  const to = toISODate(today);
-  const yearStart = `${today.getFullYear()}-01-01`;
+  const to = todayISO();
+  const from = monthStartISO(to);
+  const yearStart = yearStartISO(to);
 
   const groups: {
     heading: string;

@@ -12,29 +12,39 @@ import type {
 // Stitch screens - not "Sep 15".
 // ---------------------------------------------------------------------------
 
+// Every formatter reads the clock in Uganda time, whatever zone the server or
+// the phone is set to (see SACCO_TIME_ZONE below).
 const dayMonthYear = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: 'short',
   year: 'numeric',
+  timeZone: 'Africa/Kampala',
 });
 
-const dayMonth = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short' });
+const dayMonth = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', timeZone: 'Africa/Kampala' });
 
 const timeOnly = new Intl.DateTimeFormat('en-GB', {
   hour: '2-digit',
   minute: '2-digit',
   hour12: true,
+  timeZone: 'Africa/Kampala',
 });
 
 function asDate(value: string | Date | null | undefined): Date | null {
   if (!value) return null;
-  // A bare `YYYY-MM-DD` from Postgres must not be shifted by the local
-  // timezone, or a payment recorded on the 1st shows as the previous month.
+  // A bare `YYYY-MM-DD` from Postgres is a Uganda calendar day. Pin it to
+  // midday in Kampala so no zone can shift it to a neighbouring day - or a
+  // payment recorded on the 1st would show as the previous month.
   const d =
     typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
-      ? new Date(`${value}T12:00:00`)
+      ? new Date(`${value}T12:00:00+03:00`)
       : new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Whole days from Uganda date `a` to Uganda date `b`. */
+function dayDiff(a: string, b: string): number {
+  return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 }
 
 export function formatDate(value: string | Date | null | undefined, fallback = '—'): string {
@@ -57,8 +67,7 @@ export function formatRelativeDay(value: string | Date | null | undefined): stri
   const d = asDate(value);
   if (!d) return '—';
 
-  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
-  const days = Math.round((startOfDay(new Date()) - startOfDay(d)) / 86_400_000);
+  const days = dayDiff(toISODate(d), toISODate());
 
   if (days === 0) return `Today, ${timeOnly.format(d)}`;
   if (days === 1) return 'Yesterday';
@@ -81,26 +90,96 @@ export function formatAgo(value: string | Date | null | undefined): string {
   return dayMonthYear.format(d);
 }
 
-/** `YYYY-MM-DD` for `<input type="date">` and Postgres date params. */
+// ---------------------------------------------------------------------------
+// The SACCO's calendar is Uganda's: East Africa Time, UTC+3, no daylight
+// saving. The database runs in Africa/Kampala too (0036), so "today" means
+// the same day to a server in a UTC data centre, to a phone set to any zone,
+// and to Postgres. Never derive a business date from a Date's local getters:
+// between midnight and 3 a.m. in Kampala, a UTC server still thinks it is
+// yesterday.
+// ---------------------------------------------------------------------------
+
+export const SACCO_TIME_ZONE = 'Africa/Kampala';
+const EAT_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+/** A calendar date built from year / month (0-based, may overflow) / day, as YYYY-MM-DD. */
+function ymd(year: number, month: number, day: number): string {
+  const d = new Date(Date.UTC(year, month, day));
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+}
+
+function parts(iso: string): { y: number; m: number; d: number } {
+  const [y, m, d] = iso.split('-').map(Number);
+  return { y, m: m - 1, d };
+}
+
+/**
+ * The Uganda calendar date of an instant, as `YYYY-MM-DD` - for
+ * `<input type="date">` and Postgres date parameters. Defaults to now.
+ */
 export function toISODate(d: Date = new Date()): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate(),
-  ).padStart(2, '0')}`;
+  const eat = new Date(d.getTime() + EAT_OFFSET_MS);
+  return `${eat.getUTCFullYear()}-${pad2(eat.getUTCMonth() + 1)}-${pad2(eat.getUTCDate())}`;
 }
 
+/** Today in Uganda, `YYYY-MM-DD`. */
+export function todayISO(): string {
+  return toISODate();
+}
+
+/** `YYYY-MM-DD` moved by whole days (negative to go back). */
+export function addDaysISO(iso: string, days: number): string {
+  const { y, m, d } = parts(iso);
+  return ymd(y, m, d + days);
+}
+
+/** The first day of the month `months` away from the one containing `iso`. */
+export function monthStartISO(iso: string = todayISO(), months = 0): string {
+  const { y, m } = parts(iso);
+  return ymd(y, m + months, 1);
+}
+
+/** The last day of the month `months` away from the one containing `iso`. */
+export function monthEndISO(iso: string = todayISO(), months = 0): string {
+  const { y, m } = parts(iso);
+  return ymd(y, m + months + 1, 0);
+}
+
+/** 1 January of the year containing `iso`. */
+export function yearStartISO(iso: string = todayISO()): string {
+  return `${parts(iso).y}-01-01`;
+}
+
+/** The Monday of the week containing `iso` (weeks run Monday to Sunday). */
+export function weekStartISO(iso: string = todayISO()): string {
+  const { y, m, d } = parts(iso);
+  const weekday = (new Date(Date.UTC(y, m, d)).getUTCDay() + 6) % 7;
+  return ymd(y, m, d - weekday);
+}
+
+/** The Uganda year, e.g. for "Annual Statement 2026". */
+export function currentYear(): number {
+  return parts(todayISO()).y;
+}
+
+/** The first day of the Uganda month containing the instant `d`. */
 export function monthStart(d: Date = new Date()): string {
-  return toISODate(new Date(d.getFullYear(), d.getMonth(), 1));
+  return monthStartISO(toISODate(d));
 }
 
+/** The last day of the Uganda month containing the instant `d`. */
 export function monthEnd(d: Date = new Date()): string {
-  return toISODate(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+  return monthEndISO(toISODate(d));
 }
 
 export function daysUntil(value: string | Date | null | undefined): number | null {
   const d = asDate(value);
   if (!d) return null;
-  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
-  return Math.round((startOfDay(d) - startOfDay(new Date())) / 86_400_000);
+  return dayDiff(toISODate(), toISODate(d));
 }
 
 // ---------------------------------------------------------------------------

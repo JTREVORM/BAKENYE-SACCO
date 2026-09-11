@@ -6,7 +6,7 @@
  * Configuration comes from the environment, so no credential is written into
  * this file beyond the local development defaults:
  *
- *   STAFF_EMAIL, STAFF_PASSWORD   a staff account (default: the dev super admin)
+ *   STAFF_EMAIL, STAFF_PASSWORD   a staff account to test with (required)
  *   STAFF_HOME                    where that account should land (default /staff/admin)
  *   STAFF_PHONE                   optional - also sign that account in by phone
  *   MEMBER_NO, MEMBER_PHONE,
@@ -27,8 +27,9 @@ import { mkdir } from 'node:fs/promises';
 
 const BASE = process.argv[2] ?? 'http://localhost:3000';
 const env = process.env;
-const STAFF_EMAIL = env.STAFF_EMAIL ?? 'trevor@gmail.com';
-const STAFF_PASSWORD = env.STAFF_PASSWORD ?? 'Admin@123';
+const STAFF_EMAIL = env.STAFF_EMAIL;
+const STAFF_PASSWORD = env.STAFF_PASSWORD;
+if (!STAFF_EMAIL || !STAFF_PASSWORD) { console.error('Set STAFF_EMAIL and STAFF_PASSWORD to a staff account to test with.'); process.exit(1); }
 const STAFF_HOME = env.STAFF_HOME ?? '/staff/admin';
 const OUT = 'screenshots/access';
 const INVALID = 'Invalid login credentials. Please check your identifier and password.';

@@ -3,8 +3,9 @@ import { mkdir } from 'node:fs/promises';
 
 const BASE = process.argv[2] ?? 'http://localhost:3000';
 const OUT = 'screenshots/finance';
-const EMAIL = process.env.STAFF_EMAIL ?? 'trevor@gmail.com';
-const PASSWORD = process.env.STAFF_PASSWORD ?? 'Admin@123';
+const EMAIL = process.env.STAFF_EMAIL;
+const PASSWORD = process.env.STAFF_PASSWORD;
+if (!EMAIL || !PASSWORD) { console.error('Set STAFF_EMAIL and STAFF_PASSWORD to a staff account to test with.'); process.exit(1); }
 
 const ROUTES = [
   '/staff', '/staff/finance', '/staff/finance/merchant', '/staff/finance/bank', '/staff/finance/cash',

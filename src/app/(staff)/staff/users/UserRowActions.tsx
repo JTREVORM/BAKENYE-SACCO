@@ -156,7 +156,7 @@ function RoleDialog({
 
           <Alert tone="warning">
             Changing a role changes what this person can see and do immediately, including which
-            members' financial records they can open.
+            members&rsquo; financial records they can open.
           </Alert>
 
           <Field

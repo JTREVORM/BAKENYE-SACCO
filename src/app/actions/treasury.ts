@@ -96,6 +96,28 @@ function refreshFinance() {
 const DOCUMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const DOCUMENT_MAX_BYTES = 5 * 1024 * 1024;
 
+/**
+ * The browser's declared type is only a label. Check the file's first bytes
+ * really are the PDF or image it claims to be, so a renamed web page or script
+ * cannot be stored among the SACCO's receipts.
+ */
+async function matchesSignature(file: File): Promise<boolean> {
+  const b = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const ascii = (from: number, to: number) => String.fromCharCode(...b.slice(from, to));
+  switch (file.type) {
+    case 'application/pdf':
+      return ascii(0, 5) === '%PDF-';
+    case 'image/jpeg':
+      return b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
+    case 'image/png':
+      return b[0] === 0x89 && ascii(1, 4) === 'PNG';
+    case 'image/webp':
+      return ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP';
+    default:
+      return false;
+  }
+}
+
 async function attachDocument(
   ownerType: FinanceDocumentRow['owner_type'],
   ownerId: string,
@@ -106,7 +128,7 @@ async function attachDocument(
   if (file.size > DOCUMENT_MAX_BYTES) {
     return 'The supporting document is larger than 5 MB and was not attached.';
   }
-  if (!DOCUMENT_TYPES.includes(file.type)) {
+  if (!DOCUMENT_TYPES.includes(file.type) || !(await matchesSignature(file))) {
     return 'The supporting document must be a PDF or a photo (JPEG, PNG or WebP). It was not attached.';
   }
 

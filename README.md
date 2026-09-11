@@ -106,19 +106,26 @@ supabase db push
 | `0033_existing_passwords.sql` | Marks staff accounts that were already signing in as having chosen their password |
 | `0034_temporary_passwords.sql` | Replaces setup codes: every new or reset account gets a temporary password that must be changed at first sign-in, enforced in the database |
 | `0035_provision_on_app_metadata.sql` | Provisions a login when Supabase writes its role or member link (a moment after creating the user), and repairs accounts created before the fix |
+| `0036_production_audit_fixes.sql` | Uganda time (Africa/Kampala) for the database; dashboard income/expenses exclude reversals; reversing a disbursement undoes the loan and its fees; reopening a loan restores its guarantors' real standing; `set_savings_plan()` |
+| `0037_settings_enforced_or_removed.sql` | Every setting on the Settings screen is enforced (loan-decision notices, minimum savings balance, part payments) or removed; the invented seed loan products are not shipped |
 
 ### 4. Create the first administrator
 
-Supabase → Authentication → Users → **Add user** (email + password, "Auto Confirm" on). An account
-made there was not provisioned by the application, so it arrives switched off. Then in the SQL editor:
+There is no default account, and no web page that creates one - a "first run" screen on a public
+URL would hand the SACCO to whoever found it first. On your own machine, with `.env.local` filled
+in:
 
-```sql
-update app_users set role = 'super_admin', is_active = true where email = 'you@example.com';
+```bash
+npm run bootstrap:admin -- --name "Jane Namara" --phone 0772123456
+# or, for someone who uses email:
+npm run bootstrap:admin -- --name "Jane Namara" --email jane@example.org
 ```
 
-Sign in at `/login` with that email and password. From there, staff accounts are created in the app
-under **Users**, and members get their login when they are registered - each ready at once, with a
-temporary password that must be changed at first sign-in.
+It uses the service-role key, refuses to run once any Super Admin exists, and prints a generated
+temporary password once. Sign in at `/login` with that phone (or email) and password; you are asked
+to choose your own password before anything else opens. From there, staff accounts are created in
+the app under **Users**, and members get their login when they are registered - each ready at once,
+with a temporary password that must be changed at first sign-in.
 
 **Turn off public sign-up.** Supabase → Authentication → Sign In / Providers → *Allow new users to
 sign up* → off. Nobody should be able to create an account for themselves: staff accounts come from
@@ -446,6 +453,10 @@ where staff press **Reset password** (member page, or Users), after checking who
 password stops working, a new temporary one is shown once, and the change is forced again. Nobody at the
 SACCO ends up knowing a password that is actually in use.
 
+A reset link opens `/reset-password` for fifteen minutes and for that account only; an ordinary
+signed-in session cannot use that page to skip the current password. A session left idle longer than
+**Settings → Security → Session timeout** is signed out on its next request.
+
 A member can change their **password** from their profile; they cannot change their name, phone,
 member number or categories, which are the SACCO's record. Sign-in, failures, sign-out, resets and
 password changes all go to the audit log (module *Security*); no password ever does.
@@ -601,9 +612,10 @@ over.
 ## Testing
 
 ```bash
+npm run lint                           # ESLint (Next.js core-web-vitals + TypeScript rules)
 npm run typecheck                      # strict TypeScript over the whole app
 npm run build                          # production build
-npm run test:db                        # the SQL suites in supabase/tests/
+npm run test:db                        # the SQL suites in supabase/tests/ (needs one active Super Admin)
 node scripts/access-check.mjs [url] [memberNo] [phone]  # sign-in, roles, registration, fees and the member portal at 390px and 1440px
 node scripts/responsive-check.mjs      # audits every page at every width
 node scripts/desktop-shots.mjs         # screenshots the signed-in back office at 1280/1440/1920
@@ -641,8 +653,27 @@ everything, a member reads only their own rows plus the loans they guarantee, sh
 category with somebody does not make either of them visible to the other, and the books, the audit
 log and the statement of anyone else stay closed to them.
 
+`supabase/tests/audit_fixes_test.sql` guards the production-readiness fixes: Uganda time, the
+enforced settings, atomic savings plans, disbursement and repayment reversals, and the dashboard
+agreeing with the cashbook.
+
+The browser scripts need a staff account to sign in with: set `STAFF_EMAIL` (an email or phone)
+and `STAFF_PASSWORD`. No credential is written into them.
+
 `scripts/db-exec.mjs` applies a migration or runs a statement from `DATABASE_URL` directly, with
 `--as <user_id>` to run it as a given user — useful when the Supabase CLI has no linked project.
+
+### Starting again from nothing
+
+`scripts/reset-data.sql` removes every login (Super Admins included), member and business record
+in one transaction, keeps the schema and the SACCO's configuration (roles, permissions, settings,
+share and savings categories, fees table, Cash at Hand), and refuses to finish if anything is left.
+It is destructive by design - run it only on data you mean to discard, then create the first
+administrator again with `npm run bootstrap:admin`.
+
+```bash
+node scripts/db-exec.mjs scripts/reset-data.sql
+```
 
 ---
 

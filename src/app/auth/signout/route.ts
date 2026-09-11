@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE } from '@/lib/session-timeout';
 
 /**
  * Sign out.
@@ -22,5 +23,7 @@ export async function POST(request: NextRequest) {
   const res = NextResponse.redirect(url, { status: 303 });
   res.headers.set('Cache-Control', 'no-store');
   res.headers.set('Clear-Site-Data', '"cache"');
+  res.cookies.delete(LAST_SEEN_COOKIE);
+  res.cookies.delete(IDLE_LIMIT_COOKIE);
   return res;
 }

@@ -2,7 +2,9 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { RECOVERY_COOKIE } from '@/lib/recovery';
+import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE, sessionCookieOptions } from '@/lib/session-timeout';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -90,6 +92,12 @@ async function admitOrRefuse(
   await admin.rpc('login_record', {
     p_identifier: identifier, p_client: client, p_user_id: s!.id, p_succeeded: true,
   });
+
+  // Start the idle clock with the SACCO's own timeout (Settings -> Security).
+  const rules = await getRules();
+  const jar = await cookies();
+  jar.set(IDLE_LIMIT_COOKIE, String(Math.round(rules.sessionTimeoutMinutes)), sessionCookieOptions);
+  jar.set(LAST_SEEN_COOKIE, String(Date.now()), sessionCookieOptions);
 
   const access: Access = {
     role: s!.role,
@@ -295,13 +303,17 @@ export async function resetPassword(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
+  // Only a session opened from the emailed link may skip the current password;
+  // an ordinary signed-in session changes its password from the profile.
+  const jar = await cookies();
+  if (!user || jar.get(RECOVERY_COOKIE)?.value !== user.id) {
     return { ok: false, error: 'This reset link has expired. Please request a new one.' };
   }
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return fail(error, 'password');
 
+  jar.delete(RECOVERY_COOKIE);
   await supabase.rpc('log_password_changed');
   revalidatePath('/', 'layout');
   return succeed(null, 'Your password has been changed.');

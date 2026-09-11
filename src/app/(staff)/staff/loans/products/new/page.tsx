@@ -3,6 +3,7 @@ import { requirePermission } from '@/lib/auth';
 import { PageTitle } from '@/components/ui/primitives';
 import { Alert } from '@/components/ui/states';
 import { LoanProductForm } from '@/components/loans/LoanProductForm';
+import { getRules } from '@/lib/settings';
 
 export const metadata: Metadata = { title: 'New Loan Product' };
 
@@ -15,6 +16,7 @@ export const metadata: Metadata = { title: 'New Loan Product' };
  */
 export default async function NewLoanProductPage() {
   await requirePermission('settings.manage');
+  const rules = await getRules();
 
   return (
     <div className="space-y-gutter">
@@ -35,7 +37,10 @@ export default async function NewLoanProductPage() {
         on exactly these terms, and those terms are then fixed on their loan for its whole life.
       </Alert>
 
-      <LoanProductForm canManage />
+      <LoanProductForm
+        canManage
+        defaults={{ gracePeriodDays: rules.defaultGracePeriodDays, latePenaltyPct: rules.defaultLatePenaltyPct }}
+      />
     </div>
   );
 }

@@ -413,9 +413,10 @@ export function Avatar({
 
   if (src) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- sizes are known and
-      // fixed; next/image's wrapper adds no value for a 40px avatar and costs
-      // an extra optimisation round trip per row on a 500-row list.
+      // Sizes are known and fixed; next/image's wrapper adds no value for a
+      // 40px avatar and costs an extra optimisation round trip per row on a
+      // 500-row list.
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt=""

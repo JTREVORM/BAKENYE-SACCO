@@ -35,7 +35,7 @@ begin
   if exists (
     select 1 from members m
       join app_users u on u.id = m.user_id
-     where u.role = 'member' and u.is_active and not u.must_change_password
+     where u.role = 'member' and u.is_active and not u.must_change_password and m.status = 'active'
   ) then
     return;
   end if;
@@ -84,7 +84,7 @@ begin
   select u.id, m.id into v_member_user, v_self
     from app_users u
     join members m on m.user_id = u.id
-   where u.role = 'member' and u.is_active and not u.must_change_password
+   where u.role = 'member' and u.is_active and not u.must_change_password and m.status = 'active'
    limit 1;
   if v_self is null then
     insert into t_result (step, ok, detail)
@@ -122,7 +122,20 @@ begin
   -- of it is a leak.
   perform record_savings_payment(v_other, 'weekly', 15000, v_wed, 'cash', 'test:iso:1');
 
-  select id into v_product from loan_products where code = 'EMG';
+  -- The suite brings its own loan product rather than relying on one the SACCO
+  -- happens to have configured; a fresh installation has none. The whole run
+  -- is rolled back, so it never survives.
+  v_res := save_loan_product(null, jsonb_build_object(
+             'name', 'TEST Isolation Loan', 'code', 'TESTISO', 'interest_rate', 12,
+             'interest_method', 'flat', 'min_amount', 100000, 'max_amount', 1000000,
+             'min_period_months', 1, 'max_period_months', 12, 'repayment_frequency', 'monthly',
+             'processing_fee_pct', 0, 'insurance_fee_pct', 0, 'application_fee', 0,
+             'late_penalty_pct', 0, 'penalty_basis', 'overdue', 'grace_period_days', 0,
+             'min_savings_balance', 0, 'min_savings_multiple', 0, 'min_membership_months', 0,
+             'required_shares', 0, 'requires_guarantors', true, 'min_guarantors', 1,
+             'requires_collateral', false, 'is_active', true, 'sort_order', 999),
+             'automated test fixture');
+  v_product := (v_res ->> 'id')::uuid;
   v_res := apply_for_loan(v_other, v_product, 300000, 6, 'Test isolation loan', null,
                           jsonb_build_array(jsonb_build_object('member_id', v_self,
                                                                'amount', 300000)),
@@ -175,22 +188,37 @@ begin
   values ('3e member cannot see the ledger of others', v_count = 0, v_count || ' row(s)');
 
   --------------------------------------------- loans: own + guaranteed only
-  select count(*) into v_count from loans;
+  -- The member may have loans of their own as well; what must never appear
+  -- is a loan that is neither theirs nor one they guarantee.
+  select count(*) into v_count from loans l
+   where l.member_id <> v_self
+     and not exists (select 1 from loan_guarantors g
+                      where g.loan_id = l.id and g.member_id = v_self);
   insert into t_result (step, ok, detail)
-  values ('4a member sees the loan they guarantee', v_count = 1,
-          v_count || ' loan(s) visible');
+  values ('4a member sees only their own loans and the ones they guarantee', v_count = 0,
+          v_count || ' other loan(s) visible');
 
   select count(*) into v_count from loans where id = v_loan;
   insert into t_result (step, ok, detail)
   values ('4b and it is the right one', v_count = 1, v_count || ' match(es)');
 
-  select count(*) into v_count from loan_balances;
+  select count(*) into v_count from loan_balances b
+   where b.member_id = v_self
+      or b.loan_id in (select g.loan_id from loan_guarantors g where g.member_id = v_self);
   insert into t_result (step, ok, detail)
-  values ('4c loan_balances resolves without recursing', v_count = 1, v_count || ' row(s)');
+  values ('4c loan_balances resolves without recursing',
+          v_count >= 1 and v_count = (select count(*) from loan_balances), v_count || ' row(s)');
 
-  select count(*) into v_count from loan_guarantors;
+  select count(*) into v_count from loan_guarantors g
+   where g.loan_id = v_loan and g.member_id = v_self;
   insert into t_result (step, ok, detail)
   values ('4d member sees the guarantee naming them', v_count = 1, v_count || ' row(s)');
+
+  select count(*) into v_count from loan_guarantors g
+   where g.member_id <> v_self
+     and g.loan_id not in (select id from loans where member_id = v_self);
+  insert into t_result (step, ok, detail)
+  values ('4e member sees no guarantee between other people', v_count = 0, v_count || ' row(s)');
 
   ---------------------------- categories are readable, other members are not
   -- The category register is deliberately open to any signed-in user: a member

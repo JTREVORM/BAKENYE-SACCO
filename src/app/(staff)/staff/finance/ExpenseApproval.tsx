@@ -60,6 +60,7 @@ export function ExpenseApproval({
 
       {mode === 'approve' ? (
         <Alert tone="warning" title={`Approving releases ${formatUGX(amount)}`}>
+          {description ? <>For: {description}. </> : null}
           A transaction is posted to the ledger and the expense is booked against the cashbook.
         </Alert>
       ) : (

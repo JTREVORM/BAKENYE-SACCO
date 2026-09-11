@@ -1375,6 +1375,10 @@ export type Database = {
         Args: { p_member_id: string; p_status: MemberStatus; p_reason: string };
         Returns: { member_id: string; status: MemberStatus };
       };
+      set_savings_plan: {
+        Args: { p_member_id: string; p_kind: SavingsKind; p_target_amount: number; p_reason: string | null };
+        Returns: { id: string; changed: boolean };
+      };
       set_user_role: {
         Args: { p_user_id: string; p_role: UserRole; p_reason: string };
         Returns: { user_id: string; role: UserRole };

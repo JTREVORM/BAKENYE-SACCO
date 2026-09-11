@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
-import { Icon, PageTitle, Money } from '@/components/ui/primitives';
+import { Badge, Icon, PageTitle, Money } from '@/components/ui/primitives';
 import { ApprovalBadge } from '@/components/ui/status';
 import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
 import { StatementRange } from '@/components/StatementRange';
@@ -184,7 +184,7 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('income_entries')
-    .select('*, income_categories!income_entries_category_id_fkey(name), members!income_entries_member_id_fkey(full_name, member_no)')
+    .select('*, income_categories!income_entries_category_id_fkey(name), members!income_entries_member_id_fkey(full_name, member_no), transactions!income_entries_transaction_id_fkey(status)')
     .gte('received_on', from)
     .lte('received_on', to)
     .order('received_on', { ascending: false })
@@ -195,8 +195,12 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
   const rows = (data ?? []) as unknown as (IncomeEntryRow & {
     income_categories: { name: string } | null;
     members: { full_name: string; member_no: string } | null;
+    transactions: { status: string } | null;
   })[];
-  const total = rows.reduce((s, r) => s + toNumber(r.amount), 0);
+  // A reversed entry stays listed, marked, but is no longer income - the same
+  // rule the cashbook (Summary tab) and the dashboard apply.
+  const isReversed = (r: (typeof rows)[number]) => !!r.transactions && r.transactions.status !== 'posted';
+  const total = rows.filter((r) => !isReversed(r)).reduce((s, r) => s + toNumber(r.amount), 0);
 
   return (
     <div className="mt-6 flex flex-col gap-4">
@@ -223,7 +227,13 @@ async function IncomeLedger({ from, to }: { from: string; to: string }) {
                   {r.members ? ` · ${r.members.full_name} (${r.members.member_no})` : ''}
                 </p>
               </div>
-              <Money value={r.amount} className="text-body-md font-body-md text-tertiary shrink-0 font-bold" />
+              <div className="shrink-0 text-right">
+                <Money
+                  value={r.amount}
+                  className={clsx('text-body-md font-body-md block font-bold', isReversed(r) ? 'text-on-surface-variant line-through' : 'text-tertiary')}
+                />
+                {isReversed(r) ? <Badge tone="warning" className="mt-1">Reversed</Badge> : null}
+              </div>
             </li>
           ))}
         </ul>
@@ -243,7 +253,7 @@ async function ExpenseLedger({
   const supabase = await createClient();
   let query = supabase
     .from('expense_entries')
-    .select('*, expense_categories!expense_entries_category_id_fkey(name), app_users!expense_entries_recorded_by_fkey(full_name)')
+    .select('*, expense_categories!expense_entries_category_id_fkey(name), app_users!expense_entries_recorded_by_fkey(full_name), transactions!expense_entries_transaction_id_fkey(status)')
     .gte('spent_on', from)
     .lte('spent_on', to)
     .order('spent_on', { ascending: false })
@@ -259,9 +269,12 @@ async function ExpenseLedger({
   const rows = (data ?? []) as unknown as (ExpenseEntryRow & {
     expense_categories: { name: string } | null;
     app_users: { full_name: string } | null;
+    transactions: { status: string } | null;
   })[];
 
-  const approved = rows.filter((r) => r.approval === 'approved');
+  // An approved expense whose payment was later reversed is no longer spent.
+  const isReversed = (r: (typeof rows)[number]) => !!r.transactions && r.transactions.status !== 'posted';
+  const approved = rows.filter((r) => r.approval === 'approved' && !isReversed(r));
   const pending = rows.filter((r) => r.approval === 'pending');
   const total = approved.reduce((s, r) => s + toNumber(r.amount), 0);
   const pendingTotal = pending.reduce((s, r) => s + toNumber(r.amount), 0);
@@ -301,9 +314,12 @@ async function ExpenseLedger({
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <Money value={r.amount} className="text-body-md font-body-md text-on-surface block font-bold" />
+                  <Money
+                    value={r.amount}
+                    className={clsx('text-body-md font-body-md block font-bold', isReversed(r) ? 'text-on-surface-variant line-through' : 'text-on-surface')}
+                  />
                   <div className="mt-1">
-                    <ApprovalBadge status={r.approval} />
+                    {isReversed(r) ? <Badge tone="warning">Reversed</Badge> : <ApprovalBadge status={r.approval} />}
                   </div>
                 </div>
               </div>

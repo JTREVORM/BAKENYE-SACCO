@@ -4,9 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 import { PageTitle } from '@/components/ui/primitives';
 import { EmptyState, ErrorState } from '@/components/ui/states';
 import { Statement } from '@/components/Statement';
+import { getRules } from '@/lib/settings';
 import { StatementRange } from '@/components/StatementRange';
 import { StatementMemberPicker } from './StatementMemberPicker';
-import { monthStart, toISODate } from '@/lib/format';
+import { monthStartISO, todayISO } from '@/lib/format';
 import type { MemberStatement } from '@/types/db';
 
 export const metadata: Metadata = { title: 'Member Statement' };
@@ -26,9 +27,8 @@ export default async function StaffStatementPage({
   await requirePermission('reports.member');
   const sp = await searchParams;
 
-  const today = new Date();
-  const from = isDate(sp.from) ? sp.from! : monthStart(new Date(today.getFullYear(), today.getMonth() - 2, 1));
-  const to = isDate(sp.to) ? sp.to! : toISODate(today);
+  const from = isDate(sp.from) ? sp.from! : monthStartISO(todayISO(), -2);
+  const to = isDate(sp.to) ? sp.to! : todayISO();
 
   let statement: MemberStatement | null = null;
   let failed = false;
@@ -72,7 +72,7 @@ export default async function StaffStatementPage({
           description="Please check your connection and try again."
         />
       ) : (
-        <Statement statement={statement} />
+        <Statement statement={statement} footer={(await getRules()).statementFooter || null} />
       )}
     </div>
   );

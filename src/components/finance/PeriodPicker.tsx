@@ -4,13 +4,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Field, Input } from '@/components/ui/form';
 import { ScrollRow } from '@/components/ui/scroll';
-import { monthStart, toISODate } from '@/lib/format';
+import { monthStartISO, todayISO, weekStartISO, yearStartISO } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
-
-function mondayOf(d: Date): string {
-  const day = (d.getDay() + 6) % 7;
-  return toISODate(new Date(d.getFullYear(), d.getMonth(), d.getDate() - day));
-}
 
 /**
  * Today · This week · This month · This year · Custom.
@@ -25,13 +20,12 @@ export function PeriodPicker({ from, to }: { from: string; to: string }) {
   const [localFrom, setLocalFrom] = useState(from);
   const [localTo, setLocalTo] = useState(to);
 
-  const now = new Date();
-  const today = toISODate(now);
+  const today = todayISO();
   const presets = [
     { label: 'Today', from: today, to: today },
-    { label: 'This week', from: mondayOf(now), to: today },
-    { label: 'This month', from: monthStart(now), to: today },
-    { label: 'This year', from: `${now.getFullYear()}-01-01`, to: today },
+    { label: 'This week', from: weekStartISO(today), to: today },
+    { label: 'This month', from: monthStartISO(today), to: today },
+    { label: 'This year', from: yearStartISO(today), to: today },
   ];
   const matched = presets.find((p) => p.from === from && p.to === to);
   const [custom, setCustom] = useState(!matched);

@@ -21,9 +21,9 @@ export const metadata: Metadata = { title: 'Sign in' };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; reset?: string }>;
+  searchParams: Promise<{ next?: string; reset?: string; reason?: string; error?: string }>;
 }) {
-  const { next, reset } = await searchParams;
+  const { next, reset, reason, error } = await searchParams;
   const current = await getSessionUser();
   if (current) redirect(current.mustChangePassword ? '/change-password' : landingPath(current));
 
@@ -52,7 +52,12 @@ export default async function LoginPage({
 
         <LoginForm
           next={next}
-          notice={reset === 'done' ? 'reset' : null}
+          notice={
+            reset === 'done' ? 'reset'
+              : reason === 'timeout' ? 'timeout'
+              : error === 'link_expired' ? 'link_expired'
+              : null
+          }
         />
 
         {/* The assurance, pressed into the sheet rather than laid on top of it,

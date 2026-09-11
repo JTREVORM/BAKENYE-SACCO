@@ -242,8 +242,8 @@ async function Statement({ from, to, accountId, by }: { from: string; to: string
   const supabase = await createClient();
   const dayBefore = toISODate(new Date(new Date(`${from}T12:00:00`).getTime() - 86_400_000));
   const [{ data: opening }, { data: closing }, { data: rows, error }] = await Promise.all([
-    supabase.rpc('account_balance_at', { p_account_id: account.id, p_on: dayBefore }),
-    supabase.rpc('account_balance_at', { p_account_id: account.id, p_on: to }),
+    supabase.rpc('finance_account_balance_at', { p_account_id: account.id, p_on: dayBefore }),
+    supabase.rpc('finance_account_balance_at', { p_account_id: account.id, p_on: to }),
     supabase
       .from('account_movements')
       .select('*')

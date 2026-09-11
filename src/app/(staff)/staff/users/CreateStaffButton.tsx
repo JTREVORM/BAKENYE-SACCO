@@ -5,10 +5,9 @@ import { createStaffUser } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, PhoneInput, Select, SubmitButton } from '@/components/ui/form';
-import { ROLE_DESCRIPTIONS, ROLE_LABELS, STAFF_ROLES, type Role } from '@/lib/rbac';
 import type { ActionResult } from '@/lib/errors';
 
-
+type RoleOption = { key: string; name: string; description: string | null };
 
 /**
  * Create a staff account.
@@ -18,11 +17,13 @@ import type { ActionResult } from '@/lib/errors';
  * creating the account hands it over directly and the new user changes it on
  * first sign-in.
  */
-export function CreateStaffButton() {
+export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
   const [open, setOpen] = useState(false);
   // Held in state so the hint under the picker describes the role actually
-  // selected — the seven roles are not self-explanatory from their names alone.
-  const [role, setRole] = useState<Role>('cashier');
+  // selected — roles are not self-explanatory from their names alone.
+  const [role, setRole] = useState<string>(
+    roles.find((r) => r.key === 'cashier')?.key ?? roles[0]?.key ?? '',
+  );
   const [state, action] = useActionState<
     ActionResult<{ user_id: string; temp_password: string }> | null,
     FormData
@@ -112,18 +113,19 @@ export function CreateStaffButton() {
               label="Role"
               htmlFor="staff-role"
               required
-              hint={ROLE_DESCRIPTIONS[role]}
+              hint={roles.find((r) => r.key === role)?.description ?? undefined}
+              error={err?.field === 'role' ? err.error : null}
             >
               <Select
                 id="staff-role"
                 name="role"
                 value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
+                onChange={(e) => setRole(e.target.value)}
                 required
               >
-                {STAFF_ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {ROLE_LABELS[r]}
+                {roles.map((r) => (
+                  <option key={r.key} value={r.key}>
+                    {r.name}
                   </option>
                 ))}
               </Select>

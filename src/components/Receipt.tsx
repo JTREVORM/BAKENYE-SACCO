@@ -36,6 +36,7 @@ export function Receipt({
 }) {
   const t = payload.transaction;
   const reversed = t.status !== 'posted';
+  const feeLines = payload.fee_lines ?? [];
 
   return (
     <div className="mx-auto w-full max-w-md">
@@ -81,10 +82,10 @@ export function Receipt({
           />
           <div className="min-w-0">
             <p className="text-button-text font-button-text text-primary leading-tight">
-              BAKENYE UNITY AND DEVELOPMENT SACCO
+              {(payload.sacco_name || 'Bakenye Unity and Development SACCO').toUpperCase()}
             </p>
             <p className="text-label-md font-label-md text-on-surface-variant normal-case">
-              Official transaction receipt
+              {payload.receipt_title ? payload.receipt_title.toUpperCase() : 'Official transaction receipt'}
             </p>
           </div>
         </div>
@@ -137,9 +138,30 @@ export function Receipt({
           {payload.payment ? <Line label="Payee" value={payload.payment.payee} /> : null}
           <Line label="Date & time" value={formatDateTime(t.created_at)} />
           <Line label="Value date" value={formatDate(t.occurred_on)} />
-          <Line label="Recorded by" value={t.recorded_by_name ?? 'System'} />
+          <Line label={feeLines.length > 0 ? 'Received by' : 'Recorded by'} value={t.recorded_by_name ?? 'System'} />
           <Line label="Status" value={<TxnStatusBadge status={t.status} />} />
         </dl>
+
+        {/* What a fee payment paid for, line by line. */}
+        {feeLines.length > 0 ? (
+          <div className="border-outline-variant border-t px-4 py-3">
+            <p className="text-label-md font-label-md text-on-surface-variant mb-2">
+              {payload.receipt_title ?? 'Fees paid'}
+            </p>
+            <div className="font-mono text-[14px]">
+              {feeLines.map((l, i) => (
+                <div key={`${l.description}-${i}`} className="flex justify-between gap-4 py-0.5">
+                  <span className="text-on-surface">{l.description}</span>
+                  <span className="tabular text-on-surface">{formatUGX(l.amount)}</span>
+                </div>
+              ))}
+              <div className="border-on-surface/40 mt-2 flex justify-between gap-4 border-t border-dashed pt-2 font-bold">
+                <span>TOTAL</span>
+                <span className="tabular">{formatUGX(t.amount)}</span>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {/* Share detail */}
         {payload.shares ? (

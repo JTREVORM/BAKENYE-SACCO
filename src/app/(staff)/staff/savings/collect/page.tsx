@@ -53,8 +53,8 @@ export default async function CollectSavingsPage({
             <Suspense key={memberId} fallback={<PanelSkeleton />}>
               <Selected
                 memberId={memberId}
-                canRecord={can(user.role, 'savings.record')}
-                canWaive={can(user.role, 'savings.waive')}
+                canRecord={can(user, 'savings.record')}
+                canWaive={can(user, 'savings.waive')}
               />
             </Suspense>
           ) : (

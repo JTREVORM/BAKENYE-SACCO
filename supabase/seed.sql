@@ -103,23 +103,28 @@ begin
       continue;
     end if;
 
-    v_id := (create_member(
-      p_full_name  => v_row[1],
-      p_phone      => v_row[2],
-      p_national_id => 'CM' || lpad((90000000 + v_i)::text, 8, '0') || 'XY',
-      p_email      => null,
-      p_address    => 'Bugungumale Trading Centre, Mayuge District',
-      p_date_of_birth => (date '1985-01-01' + (v_i * 137))::date,
-      p_gender     => v_row[4],
-      p_occupation => v_row[3],
-      p_next_of_kin_name => 'Next of Kin ' || v_i,
-      p_next_of_kin_phone => '+25678210' || lpad(v_i::text, 4, '0'),
-      p_next_of_kin_relation => case when v_i % 2 = 0 then 'Spouse' else 'Sibling' end
-    ) ->> 'member_id')::uuid;
+    -- Registered through the same function the registration wizard calls, with
+    -- the join backdated so the register does not look like everyone arrived
+    -- on the same day. Any registration fees the SACCO has configured are
+    -- waived: this is demo data, and inventing payments would not be.
+    v_id := (register_member(jsonb_build_object(
+      'full_name',            v_row[1],
+      'phone',                v_row[2],
+      'national_id',          'CM' || lpad((90000000 + v_i)::text, 8, '0') || 'XY',
+      'address',              'Bugungumale Trading Centre, Mayuge District',
+      'date_of_birth',        (date '1985-01-01' + (v_i * 137))::date,
+      'gender',               v_row[4],
+      'occupation',           v_row[3],
+      'next_of_kin_name',     'Next of Kin ' || v_i,
+      'next_of_kin_phone',    '+25678210' || lpad(v_i::text, 4, '0'),
+      'next_of_kin_relation', case when v_i % 2 = 0 then 'Spouse' else 'Sibling' end,
+      'joined_on',            current_date - (v_i * 47),
+      'share_category_id',    (select id from share_categories where status = 'active' order by sort_order limit 1),
+      'savings_category_id',  (select id from savings_categories where status = 'active' order by sort_order limit 1)
+    )) ->> 'member_id')::uuid;
 
-    -- Backdate the join so the register does not look like everyone arrived
-    -- on the same day.
-    update members set joined_on = current_date - (v_i * 47) where id = v_id;
+    perform waive_member_fee(mf.id, 'Demo data: fee not collected')
+       from member_fees mf where mf.member_id = v_id and mf.status = 'unpaid';
 
     -- Savings plans: a weekly target for everyone, monthly for most.
     insert into savings_plans (member_id, kind, target_amount, active_from)

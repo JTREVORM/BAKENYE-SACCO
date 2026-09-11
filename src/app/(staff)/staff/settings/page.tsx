@@ -3,14 +3,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
-import {
-  can,
-  ROLE_DESCRIPTIONS,
-  ROLE_LABELS,
-  ROLE_PERMISSIONS,
-  STAFF_ROLES,
-  type Role,
-} from '@/lib/rbac';
+import { can, roleLabel, type Access } from '@/lib/rbac';
+import { getEffectivePermissions, getFees, getIncomeCategories, getRoles } from '@/lib/access-queries';
+import { FeeManager } from '@/components/fees/FeeManager';
 import { getSaccoSettings, getShareSettings, getAllLoanProducts } from '@/lib/queries';
 import { getSettingsByCategory, SETTING_CATEGORIES } from '@/lib/settings';
 import { Icon, Panel, Badge, PageTitle } from '@/components/ui/primitives';
@@ -56,6 +51,7 @@ export const metadata: Metadata = { title: 'Settings' };
 
 type SectionId =
   | 'organisation'
+  | 'fees'
   | SettingCategory
   | 'products'
   | 'users'
@@ -67,6 +63,12 @@ const SECTIONS: { id: SectionId; label: string; icon: string; description: strin
     label: 'Organisation',
     icon: 'apartment',
     description: 'The name, contact details and registration of the SACCO itself.',
+  },
+  {
+    id: 'fees',
+    label: 'Fees',
+    icon: 'receipt',
+    description: 'Membership, registration and other fees - what they cost and when they apply.',
   },
   ...SETTING_CATEGORIES.map((c) => ({
     id: c.id as SectionId,
@@ -106,7 +108,7 @@ export default async function SettingsPage({
   const user = await requirePermission('settings.view');
   const params = await searchParams;
   const section: SectionId = isSection(params.section) ? params.section : 'organisation';
-  const canManage = can(user.role, 'settings.manage');
+  const canManage = can(user, 'settings.manage');
 
   const current = SECTIONS.find((s) => s.id === section)!;
 
@@ -122,7 +124,7 @@ export default async function SettingsPage({
       {!canManage ? (
         <Alert tone="info" title="You have read-only access to settings">
           You can see how the SACCO is configured. Changing a value needs the settings
-          permission, which belongs to a Super Admin or the SACCO Manager.
+          permission, which a Super Admin gives to roles under Roles & Permissions.
         </Alert>
       ) : null}
 
@@ -135,7 +137,7 @@ export default async function SettingsPage({
         key={section}
       >
         <Suspense fallback={<PanelSkeleton height="h-64" />}>
-          <SectionBody section={section} canManage={canManage} role={user.role} />
+          <SectionBody section={section} canManage={canManage} role={user} />
         </Suspense>
       </Panel>
     </div>
@@ -193,11 +195,22 @@ async function SectionBody({
 }: {
   section: SectionId;
   canManage: boolean;
-  role: Role;
+  role: Access;
 }) {
   if (section === 'organisation') {
     const settings = await getSaccoSettings();
     return <OrganisationForm settings={settings} canManage={canManage} />;
+  }
+
+  if (section === 'fees') {
+    const [fees, incomeCategories] = await Promise.all([getFees(), getIncomeCategories()]);
+    return (
+      <FeeManager
+        fees={fees}
+        incomeCategories={incomeCategories}
+        canManage={can(role, 'fees.manage')}
+      />
+    );
   }
 
   if (section === 'products') return <LoanProductsSummary canManage={canManage} />;
@@ -361,12 +374,13 @@ async function LoanProductsSummary({ canManage }: { canManage: boolean }) {
 
 /* ------------------------------------------------------------------------ */
 
-async function UsersAndRoles({ role }: { role: Role }) {
+async function UsersAndRoles({ role }: { role: Access }) {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from('app_users')
-    .select('id, role, is_active')
-    .neq('role', 'member');
+  const [{ data }, roles, effective] = await Promise.all([
+    supabase.from('app_users').select('id, role, is_active'),
+    getRoles(),
+    getEffectivePermissions(),
+  ]);
 
   const rows = (data ?? []) as { id: string; role: string; is_active: boolean }[];
   const counts = new Map<string, number>();
@@ -374,32 +388,51 @@ async function UsersAndRoles({ role }: { role: Role }) {
     if (!r.is_active) continue;
     counts.set(r.role, (counts.get(r.role) ?? 0) + 1);
   }
+  const staffRoles = roles.filter((r) => r.kind === 'staff');
+  const activeStaff = rows.filter(
+    (r) => r.is_active && staffRoles.some((sr) => sr.key === r.role),
+  ).length;
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-body-md text-on-surface-variant">
-          {rows.filter((r) => r.is_active).length} active staff accounts. Only roles carrying
-          the settings permission can change the configuration.
+          {activeStaff} active staff {activeStaff === 1 ? 'account' : 'accounts'} across{' '}
+          {staffRoles.filter((r) => r.status === 'active').length} roles. Only roles holding the
+          settings permission can change the configuration.
         </p>
-        {can(role, 'users.manage') ? (
-          <Link
-            href="/staff/users"
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
-          >
-            Manage users
-            <Icon name="chevron_right" size={15} />
-          </Link>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {can(role, 'users.manage') ? (
+            <Link
+              href="/staff/users"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
+            >
+              Manage users
+              <Icon name="chevron_right" size={15} />
+            </Link>
+          ) : null}
+          {can(role, 'roles.manage') ? (
+            <Link
+              href="/staff/roles"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
+            >
+              Roles &amp; permissions
+              <Icon name="chevron_right" size={15} />
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <ul className="space-y-2.5">
-        {STAFF_ROLES.map((r) => {
-          const manages = ROLE_PERMISSIONS[r].includes('settings.manage');
+        {staffRoles.map((r) => {
+          const manages = effective.get(r.key)?.has('settings.manage') ?? false;
           return (
             <li
-              key={r}
-              className="flex items-start gap-3 rounded-2xl bg-surface-container p-3.5 shadow-neu-inset-sm"
+              key={r.key}
+              className={clsx(
+                'flex items-start gap-3 rounded-2xl bg-surface-container p-3.5 shadow-neu-inset-sm',
+                r.status !== 'active' && 'opacity-60',
+              )}
             >
               <span
                 className={clsx(
@@ -411,15 +444,16 @@ async function UsersAndRoles({ role }: { role: Role }) {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-body-md font-semibold text-on-surface">
-                    {ROLE_LABELS[r]}
-                  </span>
-                  <Badge tone={counts.get(r) ? 'info' : 'neutral'}>{counts.get(r) ?? 0}</Badge>
+                  <span className="text-body-md font-semibold text-on-surface">{r.name}</span>
+                  <Badge tone={counts.get(r.key) ? 'info' : 'neutral'}>{counts.get(r.key) ?? 0}</Badge>
                   {manages ? <Badge tone="warning">Can change settings</Badge> : null}
+                  {r.status !== 'active' ? <Badge tone="neutral">Retired</Badge> : null}
                 </div>
-                <p className="mt-0.5 text-label-md font-normal text-on-surface-variant">
-                  {ROLE_DESCRIPTIONS[r]}
-                </p>
+                {r.description ? (
+                  <p className="mt-0.5 text-label-md font-normal text-on-surface-variant">
+                    {r.description}
+                  </p>
+                ) : null}
               </div>
             </li>
           );
@@ -476,7 +510,7 @@ async function ConfigurationHistory() {
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-label-md font-normal text-on-surface-variant">
               <span className="font-semibold">{row.actor_name}</span>
               {row.actor_role ? (
-                <span>· {ROLE_LABELS[row.actor_role as Role] ?? row.actor_role}</span>
+                <span>· {roleLabel(row.actor_role)}</span>
               ) : null}
               <span>· {formatDate(row.created_at)}</span>
             </p>

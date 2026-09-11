@@ -26,7 +26,7 @@ export default async function LoanProductPage({
 }) {
   const { id } = await params;
   const user = await requirePermission('loans.view');
-  const canManage = can(user.role, 'settings.manage');
+  const canManage = can(user, 'settings.manage');
 
   const supabase = await createClient();
   const { data } = await supabase.from('loan_products').select('*').eq('id', id).maybeSingle();

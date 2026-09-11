@@ -40,21 +40,21 @@ begin
     return;
   end if;
 
-  -- The on_auth_user_created trigger writes the matching app_users row.
+  v_mid := (register_member(jsonb_build_object(
+              'full_name', 'Test Signed-In Member', 'phone', '+256779000002',
+              'share_category_id', (select id from share_categories where status = 'active' order by sort_order limit 1),
+              'savings_category_id', (select id from savings_categories where status = 'active' order by sort_order limit 1)))
+            ->> 'member_id')::uuid;
+
+  -- A member login names its member in app metadata, exactly as the sign-in
+  -- action creates it; the on_auth_user_created trigger links the two.
   insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
                           email_confirmed_at, raw_app_meta_data,
                           raw_user_meta_data, created_at, updated_at)
   values (v_uid, '00000000-0000-0000-0000-000000000000',
           'authenticated', 'authenticated', 'rls.fixture@test.invalid', '',
-          now(), '{}'::jsonb,
-          jsonb_build_object('full_name', 'Test Signed-In Member'),
-          now(), now());
-
-  v_mid := (create_member('Test Signed-In Member', '+256779000002',
-                          null, null, null, null, null, null, null, null,
-                          null, null, null) ->> 'member_id')::uuid;
-
-  update members set user_id = v_uid where id = v_mid;
+          now(), jsonb_build_object('member_id', v_mid),
+          '{}'::jsonb, now(), now());
 end;
 $fixture$;
 
@@ -101,9 +101,14 @@ begin
   select id into v_share_cat from share_categories
    where status = 'active' order by sort_order limit 1;
 
-  v_res := create_member('Test Other Person', '+256779000001',
-                         null, null, null, null, null, null, null, null, null, null, null);
+  v_res := register_member(jsonb_build_object(
+             'full_name', 'Test Other Person', 'phone', '+256779000001',
+             'share_category_id', v_share_cat, 'savings_category_id', v_savings_cat));
   v_other := (v_res ->> 'member_id')::uuid;
+  -- Whatever registration fees this SACCO has configured are waived, so the
+  -- fixture member is active and can save.
+  perform waive_member_fee(mf.id, 'automated test fixture')
+     from member_fees mf where mf.member_id = v_other and mf.status = 'unpaid';
 
   perform set_member_categories(v_other, v_share_cat, v_savings_cat, 'automated test');
   perform set_member_categories(v_self, v_share_cat, v_savings_cat, 'automated test');

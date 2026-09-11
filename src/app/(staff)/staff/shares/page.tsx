@@ -31,7 +31,7 @@ export default async function StaffSharesPage() {
         title="Share Capital"
         subtitle="Member ownership stakes, held separately from savings."
         action={
-          can(user.role, 'shares.sell') ? (
+          can(user, 'shares.sell') ? (
             <Link
               href="/staff/shares/sell"
               className="bg-primary text-on-primary hover:bg-primary-container h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors"
@@ -45,7 +45,7 @@ export default async function StaffSharesPage() {
       />
 
       <Suspense fallback={<TableSkeleton rows={8} cols={5} />}>
-        <Register canSell={can(user.role, 'shares.sell')} />
+        <Register canSell={can(user, 'shares.sell')} />
       </Suspense>
     </div>
   );

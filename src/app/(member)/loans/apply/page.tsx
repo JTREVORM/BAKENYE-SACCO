@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { requireMember } from '@/lib/auth';
+import { can } from '@/lib/rbac';
 import { getLoanProducts, getMemberFinancials, getUnreadCount } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { MemberShell } from '@/components/layout/MemberShell';
@@ -19,6 +21,9 @@ export const metadata: Metadata = { title: 'Apply for a Loan' };
  */
 export default async function ApplyPage() {
   const user = await requireMember();
+  // Applying from the portal is a member permission the SACCO can switch off
+  // on Roles & Permissions; apply_for_loan() refuses it in the database too.
+  if (!can(user, 'portal.loan_apply')) redirect('/loans');
   const [products, financials, unread] = await Promise.all([
     getLoanProducts(),
     getMemberFinancials(user.memberId),

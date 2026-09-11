@@ -65,7 +65,7 @@ export async function updateOrganisation(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const user = await requireUser();
-  if (!can(user.role, 'settings.manage')) {
+  if (!can(user, 'settings.manage')) {
     return { ok: false, error: 'You do not have permission to change these settings.' };
   }
 
@@ -98,7 +98,7 @@ export async function updateNotificationSettings(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const user = await requireUser();
-  if (!can(user.role, 'settings.manage')) {
+  if (!can(user, 'settings.manage')) {
     return { ok: false, error: 'You do not have permission to change these settings.' };
   }
 
@@ -135,7 +135,7 @@ export async function updateShareSettings(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const user = await requireUser();
-  if (!can(user.role, 'settings.manage')) {
+  if (!can(user, 'settings.manage')) {
     return { ok: false, error: 'You do not have permission to change these settings.' };
   }
 
@@ -238,7 +238,7 @@ export async function updateSettings(
   formData: FormData,
 ): Promise<ActionResult<{ changed: string[] }>> {
   const user = await requireUser();
-  if (!can(user.role, 'settings.manage')) {
+  if (!can(user, 'settings.manage')) {
     return { ok: false, error: 'You do not have permission to change these settings.' };
   }
 
@@ -291,7 +291,7 @@ export async function resetSetting(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const user = await requireUser();
-  if (!can(user.role, 'settings.manage')) {
+  if (!can(user, 'settings.manage')) {
     return { ok: false, error: 'You do not have permission to change these settings.' };
   }
 

@@ -111,8 +111,8 @@ async function Rows({
     ? await supabase.from('finance_documents').select('id, owner_id, file_name, created_at').in('owner_id', ids)
     : { data: [] as Pick<FinanceDocumentRow, 'id' | 'owner_id' | 'file_name' | 'created_at'>[] };
 
-  const canApprove = can(user.role, 'finance.approve');
-  const canRecord = can(user.role, 'finance.record');
+  const canApprove = can(user, 'finance.approve');
+  const canRecord = can(user, 'finance.record');
 
   const csv: (string | number)[][] = [
     ['Payment no', 'Date', 'Kind', 'Payee', 'Category', 'Paid from', 'Method', 'Reference', 'Amount', 'Status', 'Recorded by', 'Approved by'],

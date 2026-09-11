@@ -153,10 +153,26 @@ export const LOAN_STATUS_LABELS: Record<LoanStatus, string> = {
 };
 
 export const MEMBER_STATUS_LABELS: Record<MemberStatus, string> = {
+  pending: 'Pending',
   active: 'Active',
-  inactive: 'Inactive',
   suspended: 'Suspended',
+  inactive: 'Inactive',
+  archived: 'Archived',
   exited: 'Exited',
+};
+
+/** The statuses a person may choose; `exited` survives only in history. */
+export const SELECTABLE_MEMBER_STATUSES: readonly MemberStatus[] = [
+  'active', 'suspended', 'inactive', 'archived',
+];
+
+export const MEMBER_STATUS_HINTS: Record<MemberStatus, string> = {
+  pending: 'Registered; mandatory registration fees not yet paid.',
+  active: 'A full member.',
+  suspended: 'Temporarily barred. Balances and obligations stand.',
+  inactive: 'Dormant. Needs no loan owing.',
+  archived: 'Has left the SACCO. The record is kept, never deleted. Needs no loan owing.',
+  exited: 'Left the SACCO (historical status).',
 };
 
 export const SAVINGS_STATUS_LABELS: Record<SavingsStatus, string> = {
@@ -202,9 +218,20 @@ export function formatPhone(phone: string | null | undefined): string {
 
 /** Normalise a typed phone number to E.164 for storage. */
 export function normalisePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.startsWith('256')) return `+${digits}`;
-  if (digits.startsWith('0')) return `+256${digits.slice(1)}`;
-  if (digits.length === 9) return `+256${digits}`;
-  return `+${digits}`;
+  return normaliseUgandanMobile(phone) ?? `+${phone.replace(/\D/g, '')}`;
+}
+
+/**
+ * A Ugandan mobile number in its one stored form, +2567XXXXXXXX, or null if
+ * it is not one. Accepts 07XXXXXXXX, 7XXXXXXXX, 2567XXXXXXXX, +2567XXXXXXXX and
+ * 002567XXXXXXXX with any spaces or dashes - the same rules as the database's
+ * `normalize_ug_phone()`, which has the final say.
+ */
+export function normaliseUgandanMobile(phone: string | null | undefined): string | null {
+  let d = (phone ?? '').replace(/\D/g, '');
+  if (!d) return null;
+  if (d.startsWith('00256')) d = d.slice(2);
+  if (d.startsWith('256')) d = d.slice(3);
+  else if (d.startsWith('0')) d = d.slice(1);
+  return /^7\d{8}$/.test(d) ? `+256${d}` : null;
 }

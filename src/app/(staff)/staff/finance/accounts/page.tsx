@@ -23,7 +23,7 @@ export const metadata: Metadata = { title: 'Accounts & Setup' };
  */
 export default async function AccountsPage() {
   const user = await requirePermission('finance.view');
-  const manage = can(user.role, 'finance.accounts');
+  const manage = can(user, 'finance.accounts');
 
   return (
     <div className="space-y-gutter">

@@ -17,6 +17,16 @@ import { TransactionRow } from '@/components/member/TransactionRow';
 import { MemberStatusControl } from './MemberStatusControl';
 import { SavingsPlanControl } from './SavingsPlanControl';
 import { MemberCategoryControl } from '@/components/categories/MemberCategoryControl';
+import { MemberFeeActions } from '@/components/fees/MemberFeeActions';
+import {
+  getCollectionAccounts,
+  getFees,
+  getMemberFees,
+  getMemberProfileChanges,
+} from '@/lib/access-queries';
+import { formatDateTime, MEMBER_STATUS_HINTS } from '@/lib/format';
+import type { MemberFeeRow, MemberProfileChangeRow } from '@/types/access';
+import type { AuditLogRow } from '@/types/db';
 import {
   SAVINGS_FREQUENCY_ADVERB,
   SAVINGS_FREQUENCY_PERIOD,
@@ -53,7 +63,33 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   if (!member) notFound();
 
   const supabase = await createClient();
-  const mayCategorise = can(user.role, 'categories.manage');
+  const mayCategorise = can(user, 'categories.manage');
+  const mayCollect = can(user, 'fees.collect');
+  const [memberFees, profileChanges, allFees, accounts, auditRes] = await Promise.all([
+    getMemberFees(id),
+    getMemberProfileChanges(id),
+    mayCollect ? getFees() : Promise.resolve([]),
+    mayCollect ? getCollectionAccounts() : Promise.resolve([]),
+    // Status and category changes, from the audit log. RLS returns nothing to
+    // someone without the audit permission, and the panel says so.
+    supabase
+      .from('audit_logs')
+      .select('*')
+      .eq('record_id', id)
+      .in('module', ['Members', 'Categories'])
+      .not('action', 'in', '("member.profile_updated","member.phone_changed","member.name_changed")')
+      .order('created_at', { ascending: false })
+      .limit(30),
+  ]);
+  const unpaidFees = memberFees.filter((f) => f.status === 'unpaid');
+  const owedMandatory = unpaidFees
+    .filter((f) => f.is_mandatory && f.charged_at_registration)
+    .reduce((sum, f) => sum + Number(f.amount), 0);
+  const chargeable = allFees
+    .filter((f) => f.status === 'active' && f.applies_to_existing_members)
+    .map((f) => ({ id: f.id, name: f.name, amount: Number(f.amount) }));
+  const statusEvents = (auditRes.data ?? []) as AuditLogRow[];
+  const canSeeHistory = can(user, 'members.manage') || can(user, 'audit.view');
   const [shareProgress, shareCategories, savingsCategories] = await Promise.all([
     getShareProgress(id),
     mayCategorise ? getShareCategories() : Promise.resolve([]),
@@ -85,31 +121,31 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   const monthlyPlan = plans.find((p) => p.kind === 'monthly');
 
   const actions = [
-    can(user.role, 'savings.record') && {
+    can(user, 'savings.record') && {
       href: `/staff/savings/record?member=${id}`,
       icon: 'savings',
       label: 'Record savings',
       tone: 'bg-primary-container text-on-primary-container',
     },
-    can(user.role, 'shares.sell') && {
+    can(user, 'shares.sell') && {
       href: `/staff/shares/sell?member=${id}`,
       icon: 'pie_chart',
       label: 'Sell shares',
       tone: 'bg-secondary-container text-on-secondary-container',
     },
-    can(user.role, 'cash.movement') && {
+    can(user, 'cash.movement') && {
       href: `/staff/transactions/cash?member=${id}&type=deposit`,
       icon: 'add_circle',
       label: 'Deposit',
       tone: 'bg-tertiary-container text-white',
     },
-    can(user.role, 'cash.movement') && {
+    can(user, 'cash.movement') && {
       href: `/staff/transactions/cash?member=${id}&type=withdrawal`,
       icon: 'remove_circle',
       label: 'Withdraw',
       tone: 'bg-error-container text-error',
     },
-    can(user.role, 'loans.assess') && {
+    can(user, 'loans.assess') && {
       href: `/staff/loans/new?member=${id}`,
       icon: 'request_quote',
       label: 'New loan',
@@ -135,17 +171,36 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         title={member.full_name}
         subtitle={`${member.member_no} · member since ${formatDate(member.joined_on)}`}
         action={
-          can(user.role, 'members.manage') ? (
+          can(user, 'members.manage') ? (
             <Link
               href={`/staff/members/${id}/edit`}
               className="bg-surface text-primary hover:bg-surface-container-high h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors shadow-neu-sm"
             >
               <Icon name="edit" size={20} />
-              Edit
+              Edit Member
             </Link>
           ) : undefined
         }
       />
+
+      {member.status === 'pending' ? (
+        <div className="bg-primary-fixed text-on-primary-fixed-variant flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <Icon name="pending_actions" size={22} className="mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-button-text">Pending - not yet an active member</p>
+              <p className="text-body-md">
+                {owedMandatory > 0
+                  ? `${formatUGX(owedMandatory)} in mandatory registration fees is unpaid. The member becomes active as soon as it is paid or waived.`
+                  : MEMBER_STATUS_HINTS.pending}
+              </p>
+            </div>
+          </div>
+          <a href="#fees" className="text-primary bg-surface h-touch-target-min inline-flex items-center rounded-full px-4 font-semibold shadow-neu-sm">
+            Go to fees
+          </a>
+        </div>
+      ) : null}
 
       {/* Identity card */}
       <section className="bg-surface shadow-card flex flex-wrap items-start gap-4 rounded-xl p-5">
@@ -159,6 +214,11 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           </div>
           <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
             <Detail icon="badge" label="Member number" value={member.member_no} mono />
+            <Detail
+              icon="login"
+              label="Sign-in"
+              value={member.user_id ? 'Member number + registered phone' : 'Set up the first time they sign in'}
+            />
             <Detail icon="phone" label="Phone" value={formatPhone(member.phone)} />
             <Detail icon="mail" label="Email" value={member.email ?? '—'} />
             <Detail icon="assignment" label="National ID" value={member.national_id ?? '—'} />
@@ -189,7 +249,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
               savingsCategories={savingsCategories}
             />
           ) : null}
-          {can(user.role, 'members.status') ? (
+          {can(user, 'members.status') ? (
             <MemberStatusControl memberId={id} status={member.status} name={member.full_name} />
           ) : null}
         </div>
@@ -301,7 +361,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         <Panel
           title="Savings"
           action={
-            can(user.role, 'savings.record') ? (
+            can(user, 'savings.record') ? (
               <SavingsPlanControl
                 memberId={id}
                 weeklyTarget={weeklyPlan ? Number(weeklyPlan.target_amount) : null}
@@ -390,6 +450,25 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             </div>
           )}
         </Panel>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <FeesPanel
+          fees={memberFees}
+          actions={
+            mayCollect || can(user, 'fees.manage') ? (
+              <MemberFeeActions
+                memberId={id}
+                unpaid={unpaidFees}
+                chargeable={chargeable}
+                accounts={accounts}
+                canCollect={mayCollect}
+                canWaive={can(user, 'fees.manage')}
+              />
+            ) : null
+          }
+        />
+        <HistoryPanel changes={profileChanges} events={statusEvents} canSee={canSeeHistory} />
       </div>
     </div>
   );
@@ -697,5 +776,126 @@ function Figure({ label, value, tone }: { label: string; value: unknown; tone?: 
         <Money value={value} />
       </dd>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+const FEE_STATUS_TONE = { unpaid: 'warning', paid: 'success', waived: 'neutral' } as const;
+
+/** What this member has been charged, and what became of each charge. */
+function FeesPanel({
+  fees,
+  actions,
+}: {
+  fees: MemberFeeRow[];
+  actions: React.ReactNode;
+}) {
+  const owed = fees.filter((f) => f.status === 'unpaid').reduce((s, f) => s + Number(f.amount), 0);
+  return (
+    <section id="fees" className="bg-surface shadow-card scroll-mt-24 overflow-hidden rounded-xl">
+      <div className="border-outline-variant flex flex-wrap items-center justify-between gap-3 border-b p-4">
+        <div>
+          <h2 className="text-button-text font-button-text text-on-surface font-bold">Fees</h2>
+          <p className="text-label-md text-on-surface-variant font-normal">
+            {fees.length === 0 ? 'Nothing charged.' : owed > 0 ? `${formatUGX(owed)} owed` : 'Nothing owed.'}
+          </p>
+        </div>
+      </div>
+      {fees.length === 0 ? (
+        <EmptyState compact icon="receipt" title="No fees charged" description="Registration fees and any fee charged later appear here." />
+      ) : (
+        <ul className="divide-outline-variant/70 divide-y">
+          {fees.map((f) => (
+            <li key={f.id} className="flex items-center justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <p className="text-body-md text-on-surface truncate font-semibold">{f.fee_name}</p>
+                <p className="text-label-md text-on-surface-variant font-normal normal-case">
+                  {f.charged_at_registration ? 'At registration' : f.charge_reason ?? 'Charged'} · {formatDate(f.charged_on)}
+                  {f.status === 'paid' && f.paid_on ? ` · paid ${formatDate(f.paid_on)}` : ''}
+                  {f.status === 'waived' && f.waived_reason ? ` · waived: ${f.waived_reason}` : ''}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <Money value={f.amount} className="text-body-md text-on-surface font-semibold" />
+                {f.status === 'paid' && f.paid_transaction_id ? (
+                  <Link href={`/staff/transactions/${f.paid_transaction_id}`} className="text-primary text-label-md hover:underline">
+                    Receipt
+                  </Link>
+                ) : (
+                  <Badge tone={FEE_STATUS_TONE[f.status]}>{f.status === 'unpaid' ? 'Unpaid' : 'Waived'}</Badge>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {actions ? <div className="border-outline-variant border-t p-4">{actions}</div> : null}
+    </section>
+  );
+}
+
+/**
+ * Who changed this member's record, what it was before, and why - field by
+ * field - together with status and category changes from the audit log.
+ */
+function HistoryPanel({
+  changes,
+  events,
+  canSee,
+}: {
+  changes: MemberProfileChangeRow[];
+  events: AuditLogRow[];
+  canSee: boolean;
+}) {
+  type Entry = { at: string; key: string; title: string; detail: string | null; who: string | null; reason: string | null };
+  const entries: Entry[] = [
+    ...changes.map((c) => ({
+      at: c.changed_at,
+      key: `c${c.id}`,
+      title: `${c.field_label} changed`,
+      detail: `${c.old_value ?? '—'} → ${c.new_value ?? '—'}`,
+      who: c.changed_by_name,
+      reason: c.reason,
+    })),
+    ...events.map((e) => ({
+      at: e.created_at,
+      key: `a${e.id}`,
+      title: e.summary ?? e.action,
+      detail: null,
+      who: e.actor_name,
+      reason: e.reason,
+    })),
+  ].sort((a, b) => b.at.localeCompare(a.at));
+
+  return (
+    <section className="bg-surface shadow-card overflow-hidden rounded-xl">
+      <div className="border-outline-variant border-b p-4">
+        <h2 className="text-button-text font-button-text text-on-surface font-bold">History</h2>
+        <p className="text-label-md text-on-surface-variant font-normal">Changes to this member’s official record.</p>
+      </div>
+      {!canSee ? (
+        <p className="text-body-md text-on-surface-variant p-4">
+          The change history is visible to staff who edit member records or read the audit log.
+        </p>
+      ) : entries.length === 0 ? (
+        <EmptyState compact icon="history" title="No changes recorded" description="Every edit to this member’s record will be listed here, with who made it and why." />
+      ) : (
+        <ol className="divide-outline-variant/70 divide-y">
+          {entries.map((e) => (
+            <li key={e.key} className="p-4">
+              <p className="text-body-md text-on-surface font-semibold">{e.title}</p>
+              {e.detail ? <p className="text-body-md text-on-surface-variant tabular break-words">{e.detail}</p> : null}
+              <p className="text-label-md text-on-surface-variant mt-1 font-normal normal-case">
+                {e.who ?? 'System'} · {formatDateTime(e.at)}
+              </p>
+              {e.reason ? (
+                <p className="text-label-md text-on-surface-variant mt-0.5 font-normal italic normal-case">Reason: {e.reason}</p>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
   );
 }

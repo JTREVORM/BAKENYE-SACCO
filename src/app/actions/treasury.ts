@@ -166,7 +166,7 @@ export async function recordMemberCollection(
   formData: FormData,
 ): Promise<ActionResult<MemberCollectionResult>> {
   const user = await requireUser();
-  if (!canAny(user.role, 'finance.record', 'savings.record')) {
+  if (!canAny(user, 'finance.record', 'savings.record')) {
     return { ok: false, error: 'You do not have permission to record collections.' };
   }
 
@@ -232,7 +232,7 @@ export async function recordOtherReceipt(
   formData: FormData,
 ): Promise<ActionResult<OtherReceiptResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to record receipts.' };
   }
 
@@ -294,7 +294,7 @@ export async function createTransfer(
   formData: FormData,
 ): Promise<ActionResult<TransferActionResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to record transfers.' };
   }
 
@@ -352,7 +352,7 @@ export async function decideTransfer(
   formData: FormData,
 ): Promise<ActionResult<TransferResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.approve')) {
+  if (!can(user, 'finance.approve')) {
     return { ok: false, error: 'You do not have permission to approve transfers.' };
   }
   const parsed = decisionSchema.safeParse(Object.fromEntries(formData));
@@ -389,7 +389,7 @@ export async function cancelTransfer(
   formData: FormData,
 ): Promise<ActionResult<TransferResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to cancel transfers.' };
   }
   const parsed = cancelSchema.safeParse(Object.fromEntries(formData));
@@ -412,7 +412,7 @@ export async function submitTransfer(
   formData: FormData,
 ): Promise<ActionResult<TransferResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to submit transfers.' };
   }
   const parsed = z.object({ id: uuid }).safeParse(Object.fromEntries(formData));
@@ -458,7 +458,7 @@ export async function createPayment(
   formData: FormData,
 ): Promise<ActionResult<PaymentActionResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to record payments.' };
   }
   const parsed = paymentSchema.safeParse(Object.fromEntries(formData));
@@ -501,7 +501,7 @@ export async function decidePayment(
   formData: FormData,
 ): Promise<ActionResult<PaymentResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.approve')) {
+  if (!can(user, 'finance.approve')) {
     return { ok: false, error: 'You do not have permission to approve payments.' };
   }
   const parsed = decisionSchema.safeParse(Object.fromEntries(formData));
@@ -533,7 +533,7 @@ export async function cancelPayment(
   formData: FormData,
 ): Promise<ActionResult<PaymentResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to cancel payments.' };
   }
   const parsed = cancelSchema.safeParse(Object.fromEntries(formData));
@@ -556,7 +556,7 @@ export async function submitPayment(
   formData: FormData,
 ): Promise<ActionResult<PaymentResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to submit payments.' };
   }
   const parsed = z.object({ id: uuid }).safeParse(Object.fromEntries(formData));
@@ -607,7 +607,7 @@ export async function recordExpenseRequest(
   formData: FormData,
 ): Promise<ActionResult<ExpenseActionResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to record expenses.' };
   }
   const parsed = expenseSchema.safeParse(Object.fromEntries(formData));
@@ -666,7 +666,7 @@ export async function recordReconciliation(
   formData: FormData,
 ): Promise<ActionResult<ReconciliationActionResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.reconcile')) {
+  if (!can(user, 'finance.reconcile')) {
     return { ok: false, error: 'You do not have permission to reconcile accounts.' };
   }
   // An empty money field posts "", which would coerce to zero - a count of
@@ -712,7 +712,7 @@ export async function attachFinanceDocument(
   formData: FormData,
 ): Promise<ActionResult<{ attached: boolean }>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to attach documents.' };
   }
   const parsed = z
@@ -768,7 +768,7 @@ export async function saveFinancialAccount(
   formData: FormData,
 ): Promise<ActionResult<{ id: string; name: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.accounts')) {
+  if (!can(user, 'finance.accounts')) {
     return { ok: false, error: 'You do not have permission to set up accounts.' };
   }
   const raw = Object.fromEntries(formData);
@@ -819,7 +819,7 @@ export async function setFinancialAccountStatus(
   formData: FormData,
 ): Promise<ActionResult<{ id: string; status: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.accounts')) {
+  if (!can(user, 'finance.accounts')) {
     return { ok: false, error: 'You do not have permission to change an account.' };
   }
   const parsed = z
@@ -848,7 +848,7 @@ export async function saveFinanceCategory(
   formData: FormData,
 ): Promise<ActionResult<{ id: string; name: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.accounts')) {
+  if (!can(user, 'finance.accounts')) {
     return { ok: false, error: 'You do not have permission to manage categories.' };
   }
   const parsed = z

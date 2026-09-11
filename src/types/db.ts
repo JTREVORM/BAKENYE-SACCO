@@ -18,11 +18,18 @@ import type {
   TreasuryTables,
   TreasuryViews,
 } from './treasury';
+import type { AccessFunctions, AccessTables } from './access';
 
-export type UserRole =
-  | 'super_admin' | 'manager' | 'loan_officer' | 'cashier'
-  | 'accountant' | 'field_officer' | 'viewer' | 'member';
-export type MemberStatus = 'active' | 'inactive' | 'suspended' | 'exited';
+/**
+ * A role key. Roles are rows in `roles` (0029), so a Super Admin can add one
+ * without a deployment; the key is therefore a string, not a closed union.
+ */
+export type UserRole = string;
+/**
+ * `exited` survives only in history: enum values cannot be dropped, and a
+ * member who leaves is now `archived`.
+ */
+export type MemberStatus = 'pending' | 'active' | 'inactive' | 'suspended' | 'archived' | 'exited';
 export type SavingsKind = 'weekly' | 'monthly';
 export type SavingsStatus = 'paid' | 'partial' | 'pending' | 'missed' | 'waived';
 
@@ -94,6 +101,11 @@ export type MemberRow = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** When the member last became active; null while pending. */
+  activated_at: string | null;
+  /** Set only by a permissioned, audited override. */
+  allow_shared_phone: boolean;
+  shared_phone_reason: string | null;
 };
 
 export type TransactionRow = {
@@ -926,6 +938,10 @@ export type ReceiptPayload = {
   } | null;
   shares: { quantity: number; unit_price: number; total_value: number } | null;
   balance_after: number;
+  /** 'Membership Payment Receipt' / 'Fee Payment Receipt' for fee payments. */
+  receipt_title?: string | null;
+  /** What a fee payment paid for, line by line. Empty for anything else. */
+  fee_lines?: { description: string; amount: number }[];
   /** The provider or bank reference typed when the payment was recorded. */
   external_ref?: string | null;
   /** Staff only: which of the SACCO's accounts the money left and arrived in. */
@@ -1162,7 +1178,7 @@ export type Database = {
       share_categories: Table<ShareCategoryTableRow>;
       savings_categories: Table<SavingsCategoryRow>;
       payment_intents: Table<PaymentIntentRow>;
-    } & TreasuryTables;
+    } & TreasuryTables & AccessTables;
     Views: {
       member_financials: View<MemberFinancialsRow>;
       member_savings: View<{ member_id: string; weekly_total: number; monthly_total: number; deposits_total: number; withdrawals_total: number; savings_balance: number }>;
@@ -1351,24 +1367,6 @@ export type Database = {
         Args: { p_transaction_id: string; p_reason: string; p_reversal_date?: string | null };
         Returns: { original_reference: string; reversal_reference: string; reversal_id: string };
       };
-      create_member: {
-        Args: {
-          p_full_name: string;
-          p_phone: string;
-          p_national_id?: string | null;
-          p_email?: string | null;
-          p_address?: string | null;
-          p_date_of_birth?: string | null;
-          p_gender?: string | null;
-          p_occupation?: string | null;
-          p_next_of_kin_name?: string | null;
-          p_next_of_kin_phone?: string | null;
-          p_next_of_kin_relation?: string | null;
-          p_photo_url?: string | null;
-          p_user_id?: string | null;
-        };
-        Returns: { member_id: string; member_no: string };
-      };
       set_member_status: {
         Args: { p_member_id: string; p_status: MemberStatus; p_reason: string };
         Returns: { member_id: string; status: MemberStatus };
@@ -1397,7 +1395,6 @@ export type Database = {
         Returns: MemberStatement;
       };
       cashbook: { Args: { p_from: string; p_to: string }; Returns: Cashbook };
-      email_for_member_no: { Args: { p_member_no: string }; Returns: string | null };
       search_members: {
         Args: {
           p_query?: string | null;
@@ -1728,7 +1725,7 @@ export type Database = {
           };
         };
       };
-    } & TreasuryFunctions;
+    } & TreasuryFunctions & AccessFunctions;
     Enums: {
       user_role: UserRole;
       member_status: MemberStatus;

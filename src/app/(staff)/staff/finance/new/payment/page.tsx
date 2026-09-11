@@ -13,7 +13,7 @@ export default async function NewPaymentPage() {
   const [accounts, categories, approvalNote] = await Promise.all([
     getAccounts({ activeOnly: true }),
     getPaymentCategories(),
-    approvalNoteFor(user.role),
+    approvalNoteFor(user),
   ]);
 
   return (

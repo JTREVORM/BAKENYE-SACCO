@@ -7,7 +7,7 @@ import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
 import { AuditFilters } from './AuditFilters';
 import { AuditDiff } from './AuditDiff';
 import { AuditPager } from './AuditPager';
-import { ROLE_LABELS, type Role } from '@/lib/rbac';
+import { roleLabel } from '@/lib/rbac';
 import { formatDateTime } from '@/lib/format';
 import type { AuditLogRow } from '@/types/db';
 import { ScrollRow } from '@/components/ui/scroll';
@@ -121,7 +121,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
                 </p>
                 <p className="text-label-md font-label-md text-on-surface-variant mt-1 normal-case">
                   {r.actor_name ?? 'System'}
-                  {r.actor_role ? ` · ${ROLE_LABELS[r.actor_role as Role]}` : ''}
+                  {r.actor_role ? ` · ${roleLabel(r.actor_role)}` : ''}
                 </p>
                 <p className="text-label-md font-label-md text-on-surface-variant/70 normal-case">
                   {formatDateTime(r.created_at)}
@@ -173,7 +173,7 @@ async function Log({ sp }: { sp: { q?: string; module?: string; page?: string } 
                         <div className="truncate font-medium">{r.actor_name ?? 'System'}</div>
                         {r.actor_role ? (
                           <div className="text-on-surface-variant text-xs">
-                            {ROLE_LABELS[r.actor_role as Role]}
+                            {roleLabel(r.actor_role)}
                           </div>
                         ) : null}
                       </div>

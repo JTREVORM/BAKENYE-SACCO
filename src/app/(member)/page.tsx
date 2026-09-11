@@ -9,6 +9,10 @@ import {
 } from '@/lib/queries';
 import { MemberShell } from '@/components/layout/MemberShell';
 import { Icon, Money, SectionHeader } from '@/components/ui/primitives';
+import { MemberStatusBadge } from '@/components/ui/status';
+import { getMemberFees } from '@/lib/access-queries';
+import { can } from '@/lib/rbac';
+import { formatUGX } from '@/lib/money';
 import { EmptyState, ListSkeleton, BalanceCardSkeleton } from '@/components/ui/states';
 import { TransactionRow } from '@/components/member/TransactionRow';
 import { formatDate, daysUntil } from '@/lib/format';
@@ -34,18 +38,25 @@ export default async function MemberDashboard() {
       {/* Greeting */}
       <section className="py-4">
         <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">
-          Hello, {user.fullName.split(' ')[0]} 👋
+          Welcome, {user.fullName.split(' ')[0]}
         </h2>
-        <p className="text-body-md font-body-md text-on-surface-variant">
-          Here is your financial overview.
-        </p>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <span className="text-body-md text-on-surface-variant tabular font-mono">{user.memberNo}</span>
+          {user.memberStatus ? <MemberStatusBadge status={user.memberStatus} /> : null}
+        </div>
       </section>
+
+      {user.memberStatus === 'pending' ? (
+        <Suspense fallback={null}>
+          <PendingNotice memberId={user.memberId} />
+        </Suspense>
+      ) : null}
 
       <Suspense fallback={<BalancesFallback />}>
         <Balances memberId={user.memberId} />
       </Suspense>
 
-      <QuickActions />
+      <QuickActions canApply={can(user, 'portal.loan_apply')} />
 
       <section className="mb-6">
         <SectionHeader
@@ -131,6 +142,31 @@ async function Balances({ memberId }: { memberId: string }) {
         </div>
       </section>
 
+      {/* Next Savings — from the member's own savings category and schedule.
+          A member with no category has nothing expected of them, so no card. */}
+      {m.savings_category_id && m.savings_next_due_on && m.savings_expected_amount ? (
+        <section className="mb-4">
+          <Link
+            href="/savings"
+            className="border-outline-variant bg-surface shadow-card flex items-center justify-between rounded-xl border p-4"
+          >
+            <div className="min-w-0">
+              <h4 className="text-button-text font-button-text text-on-surface flex items-center gap-1.5">
+                <Icon name="savings" size={18} className="text-primary" />
+                Next Savings
+              </h4>
+              <p className="text-body-md font-body-md text-on-surface-variant">
+                {m.savings_category_name} · due {weekdayOrDate(m.savings_next_due_on)}
+              </p>
+            </div>
+            <Money
+              value={m.savings_expected_amount}
+              className="text-headline-lg-mobile font-headline-lg-mobile text-primary shrink-0"
+            />
+          </Link>
+        </section>
+      ) : null}
+
       {/* Next Payment — only shown when there is one, rather than a card
           reading "UGX 0" that the member has to interpret. */}
       {m.next_due_on ? (
@@ -201,12 +237,12 @@ const ACTIONS = [
   { href: '/notifications', icon: 'notifications_active', label: 'Alerts', tone: 'bg-surface-container-high text-on-surface-variant' },
 ] as const;
 
-function QuickActions() {
+function QuickActions({ canApply }: { canApply: boolean }) {
   return (
     <section className="mb-6">
       <h3 className="text-button-text font-button-text text-on-surface mb-3">Quick Actions</h3>
       <div className="gap-unit grid grid-cols-3">
-        {ACTIONS.map((a) => (
+        {ACTIONS.filter((a) => canApply || a.href !== '/loans/apply').map((a) => (
           <Link
             key={a.href}
             href={a.href}
@@ -248,5 +284,39 @@ async function RecentTransactions({ memberId }: { memberId: string }) {
         <TransactionRow key={t.id} txn={t} href={`/transactions/${t.id}`} />
       ))}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+/** "Friday" within the coming week, otherwise the date. */
+function weekdayOrDate(iso: string): string {
+  const days = daysUntil(iso);
+  if (days === 0) return 'today';
+  if (days === 1) return 'tomorrow';
+  if (days !== null && days > 1 && days < 7) {
+    return new Intl.DateTimeFormat('en-GB', { weekday: 'long' }).format(new Date(`${iso}T12:00:00`));
+  }
+  return formatDate(iso);
+}
+
+/** Why a newly registered member is pending, from their own fee charges. */
+async function PendingNotice({ memberId }: { memberId: string }) {
+  const fees = await getMemberFees(memberId);
+  const owed = fees.filter((f) => f.status === 'unpaid' && f.is_mandatory && f.charged_at_registration);
+  const total = owed.reduce((sum, f) => sum + Number(f.amount), 0);
+
+  return (
+    <section className="bg-primary-fixed text-on-primary-fixed-variant mb-6 flex items-start gap-3 rounded-xl p-4">
+      <Icon name="pending_actions" size={22} className="mt-0.5 shrink-0" />
+      <div className="min-w-0">
+        <p className="text-button-text">Your membership is pending</p>
+        <p className="text-body-md mt-0.5">
+          {total > 0
+            ? `Registration fees of ${formatUGX(total)} (${owed.map((f) => f.fee_name).join(', ')}) are still to be paid. Your membership becomes active once the SACCO records the payment.`
+            : 'The SACCO office will activate your membership shortly.'}
+        </p>
+      </div>
+    </section>
   );
 }

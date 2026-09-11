@@ -1,16 +1,25 @@
 import type { Metadata } from 'next';
 import { requireStaff } from '@/lib/auth';
 import { PageTitle, Avatar, Badge } from '@/components/ui/primitives';
-import { ChangePasswordForm } from '@/app/(member)/profile/ChangePasswordForm';
+import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { SignOutButton } from '@/components/SignOutButton';
-import { ROLE_LABELS, ROLE_PERMISSIONS } from '@/lib/rbac';
 import { formatPhone } from '@/lib/format';
+import { createClient } from '@/lib/supabase/server';
+import type { PermissionRow } from '@/types/access';
 
 export const metadata: Metadata = { title: 'My Profile' };
 
 export default async function StaffProfilePage() {
   const user = await requireStaff();
-  const permissions = ROLE_PERMISSIONS[user.role];
+  // The labels come from the permission catalogue; which ones apply comes
+  // from the session, so this is exactly what the database will allow.
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('permissions')
+    .select('key, label, module, sort_order')
+    .order('sort_order');
+  const held = new Set(user.permissions);
+  const permissions = ((data ?? []) as PermissionRow[]).filter((p) => held.has(p.key));
 
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-6">
@@ -31,7 +40,7 @@ export default async function StaffProfilePage() {
             </p>
           ) : null}
           <div className="mt-2">
-            <Badge tone="info">{ROLE_LABELS[user.role]}</Badge>
+            <Badge tone="info">{user.roleName}</Badge>
           </div>
         </div>
       </section>
@@ -45,15 +54,16 @@ export default async function StaffProfilePage() {
         <ul className="flex flex-wrap gap-2 p-4">
           {permissions.map((p) => (
             <li
-              key={p}
+              key={p.key}
+              title={p.module}
               className="bg-surface-container text-on-surface-variant text-label-md font-label-md rounded-full px-3 py-1 normal-case"
             >
-              {p.replace('.', ' · ')}
+              {p.label}
             </li>
           ))}
         </ul>
         <p className="text-label-md font-label-md text-on-surface-variant border-outline-variant border-t p-4 normal-case">
-          Only a super admin can change your role. Ask them if you need different access.
+          Your access comes from your role. Only someone who manages staff accounts can change it.
         </p>
       </section>
 

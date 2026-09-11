@@ -14,7 +14,9 @@ the visual source of truth, and every screen below names the file it came from.
 
 | Area | Covered |
 | --- | --- |
-| **Members** | Register, edit, search, filter, activate/deactivate, share and savings categories, full financial history and ledger |
+| **Members** | Five-step registration (member, categories, fees, payment, confirmation) in one database transaction; search by number, name or phone; Pending / Active / Suspended / Inactive / Archived; share and savings categories; fees; field-by-field change history; full financial history and ledger |
+| **Member sign-in** | Member number + the phone number on the member's official record. No email, no password |
+| **Fees** | Membership, registration and any other fee the SACCO defines under Settings → Fees. Amounts are rows, never code; a change never touches a past receipt |
 | **Categories** | Diamond / Gold / Silver share tiers and Diamond / Gold / Silver Saver savings tiers — created, edited and retired by a manager, never hard-coded |
 | **Collections** | One centralised screen: search a member by number, name or phone, see what their category expects, and record cash, mobile money, bank or cheque against a reference |
 | **Shares** | Share capital kept separate from savings; lots priced at purchase time; per-member progress towards the share category and its qualification deadline |
@@ -25,7 +27,7 @@ the visual source of truth, and every screen below names the file it came from.
 | **Receipts** | Printable / PDF / shareable, with the SACCO crest and full transaction detail |
 | **Finance** | Income by category, expenses with a mandatory approval step, cashbook, profit & loss |
 | **Reports** | Member register, category performance, savings performance, schedules, statements, ledgers, cashbook — every one downloadable as a letterheaded PDF and as CSV |
-| **Users & roles** | Seven staff roles with a permission matrix generated from the rules the app actually enforces |
+| **Users & roles** | Roles and permissions are data: eight built-in staff roles plus any a Super Admin creates, edited on Roles & Permissions and enforced by the database |
 | **Audit log** | Append-only, with before/after values and a mandatory reason on sensitive actions |
 
 ---
@@ -65,6 +67,7 @@ cp .env.example .env.local
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API → `anon` `public` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → `service_role`. **Server-only.** Never prefix it with `NEXT_PUBLIC_`. |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` locally; your real URL in production |
+| `MEMBER_LOGIN_SECRET` | Optional. A long random string that keys member sign-in credentials (see [Member sign-in](#member-sign-in)). If unset, the service-role key is used. **Server-only.** |
 
 ### 3. Apply the migrations
 
@@ -96,17 +99,27 @@ supabase db push
 | `0025_one_share_price.sql` | Corrects the share price to UGX 20,000 and removes the per-category copy, so one stored price serves shares, categories and receipts |
 | `0026_treasury_enums.sql` | The `transfer` and `payment` ledger types and the Cash & Bank enums. Kept apart because new enum values must commit before use |
 | `0027_cash_and_bank.sql` | Cash at Merchant, Cash at Bank, Cash at Hand: accounts, the account ledger, receipts, transfers, payments, reconciliation, supporting documents, approval rules, reports and RLS |
+| `0028_member_lifecycle_enums.sql` | The `pending` and `archived` member statuses. Kept apart because new enum values must commit before use |
+| `0029_roles_and_permissions.sql` | `roles`, `permissions`, `role_permissions`; `has_permission()`; every role list in a function rewritten as a permission; the sign-up, self-edit and guarantor-search fixes |
+| `0030_member_registration_and_fees.sql` | Fees, `register_member()`, audited profile edits, phone normalisation, member sign-in verification and lock-out, fee receipts, and the function-grant allowlist |
+| `0031_collection_accounts.sql` | The receiving accounts (names, no balances) for the people who take money at the counter |
 
 ### 4. Create the first administrator
 
-Supabase → Authentication → Users → **Add user** (email + password, "Auto Confirm" on). Then in
-the SQL editor:
+Supabase → Authentication → Users → **Add user** (email + password, "Auto Confirm" on). An account
+made there was not provisioned by the application, so it arrives switched off. Then in the SQL editor:
 
 ```sql
-update app_users set role = 'super_admin' where email = 'you@example.com';
+update app_users set role = 'super_admin', is_active = true where email = 'you@example.com';
 ```
 
-Sign in at `/login`. From there, staff accounts are created in the app under **Users**.
+Sign in at `/login` on the **Staff** tab. From there, staff accounts are created in the app under
+**Users**, and members get their sign-in when they are registered.
+
+**Turn off public sign-up.** Supabase → Authentication → Sign In / Providers → *Allow new users to
+sign up* → off. Nobody should be able to create an account for themselves: staff accounts come from
+**Users**, member sign-ins from registration. The database already switches self-made accounts off
+and gives them no role (see [Security](#security)), but there is no reason to let them exist.
 
 ### 5. Optional — demo data
 
@@ -145,7 +158,7 @@ screen is *for*:
 | Brand | a ~110px strip above the card: crest, name, motto line, photograph behind | the full left panel |
 | Promise, assurances, motto | below the card, for whoever reads on | in the panel |
 
-A member opening the app to check a balance should not scroll past a hero to reach the password
+A member opening the app to check a balance should not scroll past a hero to reach the sign-in
 field, so on a phone the card comes first and **the Sign In button sits above the fold at every
 width down to 320 × 568** — measured, not assumed. The lockup and the brand copy are the same
 components in both arrangements, so the wording lives in one place.
@@ -350,34 +363,128 @@ calls the same settlement function; the savings, ledger, audit and UI code does 
 
 ---
 
+## Members, registration and fees
+
+**Registration is one transaction.** The five-step wizard at **Members → Register Member** collects
+everything and changes nothing until the last step. Then `register_member()`
+([`0030`](supabase/migrations/0030_member_registration_and_fees.sql)) validates the member, issues the
+next `BND-M-0000123` number, sets both categories, charges every applicable fee at its current
+amount, posts the payment as one `fee` ledger row into Cash at Merchant, Cash at Bank or Cash at
+Hand, issues the `BND-RCT-` receipt, books each fee as income in the cashbook, and writes the audit
+trail. If any part fails - a duplicate phone, a missing mobile-money reference, a fee that changed
+while the form was open - none of it happened. A double-tapped submit returns the member already
+registered.
+
+**Fees are rows.** Settings → Fees lists every fee: amount, mandatory or optional, when it applies
+(at registration, annually, when requested), who it applies to, and from when. Registration totals
+the active ones. A fee is never deleted, only made inactive. Each member's charge copies the fee's
+name and amount when it is made, so raising the Membership Fee from UGX 10,000 to UGX 20,000 changes
+what the next member pays and leaves every earlier receipt exactly as it was. Nothing in the code
+holds a fee amount; a SACCO with no fees set up charges nothing, and the screens say so.
+
+**Pending until the mandatory fees are paid.** With *Mandatory fees must be paid before a member is
+active* on (Settings → Members), a member registered without paying is **Pending**, and becomes
+**Active** automatically the moment the fees are paid or waived. A reversed registration payment puts
+them back to Pending. Status can also be set to Suspended, Inactive or Archived, with a reason; a
+member is never deleted.
+
+**One phone, one member.** Phone numbers are stored in one form, `+2567XXXXXXXX`, whatever was typed
+(`0772 123 456`, `+256 772 123456`), so the same person cannot be registered twice under two
+spellings of their number. Two live members may share a number only through an explicit override by
+someone holding *Allow a shared phone number*, with a reason that is recorded.
+
+**Members cannot change their official record.** Name, phone, member number, membership date,
+categories, status and fees are shown to the member read-only. There is no edit control in the
+member portal, and more importantly no write path: members have no `UPDATE` privilege on
+`members`, no policy allows one, and `update_member_profile()` refuses anyone without *Edit member
+records*. Staff who hold it must give a reason, and every changed field is kept in
+`member_profile_changes` - field, old value, new value, who, when, why - and shown under **History**
+on the member's page. The member number cannot change at all: a trigger refuses it, even from SQL.
+
+### Member sign-in
+
+Members sign in with their **member number** and the **phone number on their SACCO record**. Many
+have no email address, so none is needed.
+
+Supabase Auth still needs an email and password underneath, so each member login gets an internal
+address (`bnd-m-0000123@members.bnd-sacco.invalid` - `.invalid` can never receive mail) and a
+password nobody types: an HMAC of the login's id and the member's registered phone, keyed with a
+server-only secret (`MEMBER_LOGIN_SECRET`, or the service-role key). Signing in:
+
+1. `member_login_verify()` checks the member number and phone against the register. It is callable
+   only with the service-role key, answers the same way whether or not the number exists, and locks
+   a member number for a while after too many wrong phones (Settings → Security).
+2. Only then does the server derive the password and sign in. If the password has fallen out of step
+   with the register - the phone was changed, the secret rotated - the register wins and it is reset.
+
+So the register is the credential: changing a member's phone number changes how they sign in, at
+once, and nothing sensitive is stored. A member's first sign-in creates their login if registration
+could not. Members have no password to forget; the *Forgot password* page tells them to visit the
+office if their number has changed. Staff sign in with email and password on the **Staff** tab, and
+the Staff tab turns member logins away.
+
+---
+
 ## Who can see what
 
-Seven staff roles and the member, defined once in [`src/lib/rbac.ts`](src/lib/rbac.ts) and enforced
-three times: navigation hides what you cannot use, `requirePermission()` guards the route, and RLS
-guards the data. The database expresses the same rules as capability predicates —
-`can_view_operations()`, `can_record_savings()`, `can_manage_categories()`, `can_view_finance()`,
-`can_view_audit()` — so adding the next role is one edit rather than a search across the schema.
+Roles are data. The `roles`, `permissions` and `role_permissions` tables
+([`0029`](supabase/migrations/0029_roles_and_permissions.sql)) say who may do what, and **Users →
+Roles & Permissions** edits them. Every function and policy asks `has_permission('loans.approve')`,
+never "is this caller one of these roles", so switching a permission off on that screen switches it
+off for the REST API as well as the app. The permission *catalogue* stays in code (a permission is
+only real if something enforces it); roles are created, renamed and retired without a deployment.
 
-| | Super Admin | Manager | Loan Officer | Cashier | Accountant | Field Officer | Viewer | Member |
-| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| Members | ● | ● | view | view | view | view | view | own |
-| Categories | ● | ● | view | view | view | view | view | own |
-| Collections | ● | ● | view | ● | view | ● | view | own |
-| Savings & shares | ● | ● | view | ● | view | savings | view | own |
-| Loan assessment | ● | ● | ● | view | view | — | view | apply |
-| Loan approval & disbursement | ● | ● | — | — | — | — | — | — |
-| Repayments | ● | ● | ● | ● | — | — | — | own |
-| Deposits & withdrawals | ● | ● | — | ● | — | — | — | — |
-| Finance (view, record) | ● | ● | — | ● | ● | — | — | — |
-| Approve transfers & payments | ● | ● | — | — | — | — | — | — |
-| Reconcile accounts | ● | ● | — | — | ● | — | — | — |
-| Set up accounts & categories | ● | ● | — | — | — | — | — | — |
-| Reversals | ● | ● | — | — | — | — | — | — |
-| Users | ● | — | — | — | — | — | — | — |
-| Audit log | ● | ● | — | — | ● | — | — | — |
+Rules that cannot be configured away: the **Super Admin** role always holds every permission, so the
+SACCO cannot lock itself out; the **Member** role can only ever hold member-portal permissions; only a
+Super Admin can grant *Manage staff accounts* or *Manage roles & permissions*; nobody can edit the
+role they hold; and every grant or withdrawal is audited with exactly what changed.
+
+The session carries the permission list (`my_session()`), and the app checks it three times:
+navigation hides what you cannot use, `requirePermission()` guards the route, and the database guards
+the data. The built-in roles start like this - the live matrix is on the Roles & Permissions screen:
+
+| | Super Admin | Admin | Manager | Loan Officer | Cashier | Accountant | Field Officer | Viewer | Member |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| View members, categories, savings, transactions | ● | ● | ● | ● | ● | ● | ● | ● | own |
+| Register members & take registration fees | ● | ● | ● | — | — | — | — | — | — |
+| Edit official member records | ● | ● | ● | — | — | — | — | — | — |
+| Change member status | ● | ● | ● | — | — | — | — | — | — |
+| Allow a shared phone number | ● | ● | — | — | — | — | — | — | — |
+| Manage categories | ● | ● | ● | — | — | — | — | — | — |
+| Collect fees / manage fees | ● | ● / ● | ● / ● | — | ● / — | — | — | — | — |
+| Record savings | ● | ● | ● | — | ● | — | ● | — | — |
+| Sell shares | ● | ● | ● | — | ● | — | — | — | — |
+| Loan assessment | ● | ● | ● | ● | — | — | — | — | apply |
+| Loan approval & disbursement | ● | ● | ● | — | — | — | — | — | — |
+| Repayments | ● | ● | ● | ● | ● | — | — | — | — |
+| Deposits & withdrawals | ● | ● | ● | — | ● | — | — | — | — |
+| Finance (view, record) | ● | ● | ● | — | ● | ● | — | — | — |
+| Approve transfers & payments | ● | ● | ● | — | — | — | — | — | — |
+| Reconcile accounts | ● | ● | ● | — | — | ● | — | — | — |
+| Reversals | ● | ● | ● | — | — | — | — | — | — |
+| Settings | ● | ● | ● | — | — | — | — | — | — |
+| Staff accounts | ● | ● | — | — | — | — | — | — | — |
+| Roles & permissions | ● | — | — | — | — | — | — | — | — |
+| Audit log | ● | ● | ● | — | — | ● | — | — | — |
 
 A member can read exactly their own rows — plus the loans they have agreed to guarantee, because
 that is a real obligation of theirs. Everything else returns nothing, at the database.
+
+### Security
+
+- **Nothing internal is callable from outside.** Supabase grants `EXECUTE` on every new function to
+  `anon` and `authenticated` by default, and `revoke ... from public` does not undo that. Until
+  0030, any signed-in member - or anyone with the public anon key - could call
+  `post_transaction()`, `post_account_entry()` or `write_audit()` directly. Now every function is
+  revoked from both, and only an explicit list of API functions, each of which checks its caller, is
+  granted back (0030 §14). New functions are not exposed by default either: grant them there.
+- **A sign-up cannot choose its role.** New accounts take their role only from app metadata, which
+  only the service role can write. An account nobody provisioned is created switched off.
+- **No direct writes to people or money.** `authenticated` has `SELECT` on tables and nothing else,
+  except the three writes a policy was written for (savings targets, marking notifications read,
+  loan documents). Members, users, roles, fees and the ledger change only through audited functions.
+- **Members see only themselves.** The guarantor search gives a member a name and member number,
+  never another member's phone, savings or shares.
 
 **Members do not write to the ledger.** Only a cashier, manager or super admin can post a
 transaction. A self-service "I paid UGX 50,000" button, with no payment gateway to verify it,
@@ -470,11 +577,24 @@ over.
 npm run typecheck                      # strict TypeScript over the whole app
 npm run build                          # production build
 npm run test:db                        # the SQL suites in supabase/tests/
+node scripts/access-check.mjs [url] [memberNo] [phone]  # sign-in, roles, registration, fees and the member portal at 390px and 1440px
 node scripts/responsive-check.mjs      # audits every page at every width
 node scripts/desktop-shots.mjs         # screenshots the signed-in back office at 1280/1440/1920
 node scripts/report-pdfs.mjs           # renders every report to a real PDF, plus a PNG of the same print output
 node scripts/finance-check.mjs [url]   # signs in and loads every Finance screen at 390px and 1440px
 ```
+
+`supabase/tests/members_access_test.sql` walks the registration scenario from the brief: John
+Bakenye, 0700000000, Gold saver, Silver shares, a UGX 20,000 Membership Fee and a UGX 5,000
+Registration Fee paid by mobile money. It checks the member number, the stored phone, both categories,
+Cash at Merchant +25,000, one fee transaction with its MoMo reference, the receipt and its two lines,
+the two income entries and the audit trail; that a retry registers nobody twice; the duplicate-phone,
+invalid-phone, missing-category, changed-total and missing-reference refusals, with nothing left
+half-made; pending until paid; a fee increase that leaves John's receipt at UGX 20,000; a merchant →
+bank transfer that leaves total funds unchanged; an admin phone change recorded field by field; roles
+and permissions; member sign-in, the old number failing and the lock-out; a self sign-up claiming
+`super_admin` getting nothing; John unable to change his record, post to the ledger or write the
+audit log by any route; and that nothing internal is executable from the REST API.
 
 `supabase/tests/treasury_test.sql` walks the Cash & Bank scenario end to end. It covers two member
 merchant payments, a merchant → bank transfer, a bank → cash withdrawal and a stationery expense.

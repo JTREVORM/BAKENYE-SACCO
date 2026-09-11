@@ -28,7 +28,7 @@ export default async function MembersPage({
 }) {
   const user = await requirePermission('members.view');
   const sp = await searchParams;
-  const canRegister = can(user.role, 'members.manage');
+  const canRegister = can(user, 'members.create');
 
   return (
     <div>

@@ -153,7 +153,7 @@ export async function saveLoanProduct(
   formData: FormData,
 ): Promise<ActionResult<{ id: string; name: string; created: boolean }>> {
   const user = await requireUser();
-  if (!can(user.role, 'settings.manage')) {
+  if (!can(user, 'settings.manage')) {
     return { ok: false, error: 'You do not have permission to manage loan products.' };
   }
 
@@ -201,7 +201,7 @@ export async function setLoanProductActive(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const user = await requireUser();
-  if (!can(user.role, 'settings.manage')) {
+  if (!can(user, 'settings.manage')) {
     return { ok: false, error: 'You do not have permission to manage loan products.' };
   }
 

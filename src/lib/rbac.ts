@@ -1,70 +1,45 @@
 /**
  * Role-based access control.
  *
- * The navigation is built from this table, so an unauthorised module is never
- * rendered as a link the user can click and bounce off. `requireAccess()` in
- * `auth.ts` re-checks the same table server-side, and Postgres RLS checks it a
- * third time - a user who hand-types a URL gets a redirect, and a user who
- * hand-crafts an API call gets nothing back.
+ * Roles and what they may do are data: rows in `roles`, `permissions` and
+ * `role_permissions` (0029), edited on the Roles & Permissions screen by a
+ * Super Admin. The signed-in person's permissions arrive with their session
+ * (`my_session()`), and everything here asks that list.
  *
- * The database expresses the same rules as capability predicates
- * (`can_view_operations()`, `can_record_savings()`, `can_manage_categories()`,
- * `can_view_finance()`, `can_view_audit()` in `0011_rbac_and_rls.sql` and
- * `0023_category_functions.sql`). The two
- * are meant to agree; where they cannot, the database wins, because it is the
- * one an attacker cannot skip.
+ * The same list is enforced three times: navigation hides what you cannot use,
+ * `requirePermission()` in `auth.ts` guards the route, and `has_permission()`
+ * in Postgres guards the data and every function that changes it. Where the
+ * app and the database could ever disagree, the database wins, because it is
+ * the one an attacker cannot skip.
+ *
+ * What stays in code is the permission *catalogue* - the keys below - because
+ * a permission is only real if a function enforces it. A role can be invented
+ * on a screen; a permission cannot.
  */
 
-export type Role =
-  | 'super_admin'
-  | 'manager'
-  | 'loan_officer'
-  | 'cashier'
-  | 'accountant'
-  | 'field_officer'
-  | 'viewer'
-  | 'member';
+/** A role key, e.g. `super_admin`. Roles are rows, so this is open-ended. */
+export type Role = string;
 
-export const ROLE_LABELS: Record<Role, string> = {
-  super_admin: 'Super Admin',
-  manager: 'SACCO Manager',
-  loan_officer: 'Loan Officer',
-  cashier: 'Cashier / Teller',
-  accountant: 'Accountant',
-  field_officer: 'Field Officer',
-  viewer: 'Viewer',
-  member: 'Member',
-};
+export type RoleKind = 'staff' | 'member';
 
-/** One line each, for the Users screen and the permission matrix. */
-export const ROLE_DESCRIPTIONS: Record<Role, string> = {
-  super_admin: 'Full access, including staff accounts and reversals.',
-  manager: 'Management and reporting across every module.',
-  loan_officer: 'Members, savings, loans and collections.',
-  cashier: 'Front-desk collections, deposits, shares and repayments.',
-  accountant: 'Transactions, income, expenses and the financial reports.',
-  field_officer: 'Collects savings from members in the field.',
-  viewer: 'Read-only. Cannot record or change anything.',
-  member: 'Their own savings, shares and loans.',
-};
-
-/** Every guardable capability in the system. */
+/** Every permission the system can check. Mirrors the `permissions` table. */
 export type Permission =
   | 'dashboard.staff'
   | 'members.view'
+  | 'members.create'
   | 'members.manage'
   | 'members.status'
-  /** See the share and savings categories, and which members are in them. */
+  | 'members.phone_override'
   | 'categories.view'
-  /** Create, edit, retire a category, and set a member's categories. */
   | 'categories.manage'
+  | 'fees.collect'
+  | 'fees.manage'
   | 'shares.view'
   | 'shares.sell'
   | 'savings.view'
   | 'savings.record'
   | 'savings.waive'
   | 'loans.view'
-  | 'loans.apply'
   | 'loans.assess'
   | 'loans.approve'
   | 'loans.disburse'
@@ -76,105 +51,70 @@ export type Permission =
   | 'finance.view'
   | 'finance.record'
   | 'finance.approve'
-  /** Record a reconciliation against a counted or bank-statement balance. */
   | 'finance.reconcile'
-  /** Set up the merchant, bank and cash accounts and the finance categories. */
   | 'finance.accounts'
   | 'reports.view'
   | 'reports.member'
   | 'users.manage'
+  | 'roles.manage'
   | 'audit.view'
   | 'settings.view'
-  /** Change how the SACCO is configured, loan products included. */
-  | 'settings.manage';
+  | 'settings.manage'
+  | 'portal.view'
+  | 'portal.loan_apply'
+  | 'portal.guarantee_respond';
 
-/** What every member of staff can see, whatever else their role allows. */
-const STAFF_BASE: Permission[] = [
-  'dashboard.staff',
-  'members.view',
-  'categories.view',
-  'savings.view',
-  'transactions.view',
-  'reports.view',
-];
-
-export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
-  super_admin: [
-    'dashboard.staff', 'members.view', 'members.manage', 'members.status',
-    'categories.view', 'categories.manage',
-    'shares.view', 'shares.sell', 'savings.view', 'savings.record', 'savings.waive',
-    'loans.view', 'loans.apply', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
-    'guarantors.manage', 'transactions.view', 'transactions.reverse', 'cash.movement',
-    'finance.view', 'finance.record', 'finance.approve', 'finance.reconcile', 'finance.accounts',
-    'reports.view', 'reports.member', 'users.manage', 'audit.view', 'settings.view',
-    'settings.manage',
-  ],
-  manager: [
-    ...STAFF_BASE, 'members.manage', 'members.status', 'categories.manage',
-    'shares.view', 'shares.sell', 'savings.record', 'savings.waive',
-    'loans.view', 'loans.assess', 'loans.approve', 'loans.disburse', 'loans.repay',
-    'guarantors.manage', 'transactions.reverse', 'cash.movement',
-    'finance.view', 'finance.record', 'finance.approve', 'finance.reconcile', 'finance.accounts',
-    'reports.member', 'audit.view',
-    // The manager configures the SACCO: organisation details, share price,
-    // savings defaults and the loan products members may borrow under. Every
-    // control still re-checks its own permission before it acts, and the
-    // database re-checks it again in `can_manage_settings()`.
-    'settings.view', 'settings.manage',
-  ],
-  loan_officer: [
-    ...STAFF_BASE,
-    'loans.view', 'loans.apply', 'loans.assess', 'loans.repay',
-    'guarantors.manage', 'reports.member',
-  ],
-  cashier: [
-    ...STAFF_BASE,
-    'shares.view', 'shares.sell', 'savings.record',
-    'loans.view', 'loans.repay', 'cash.movement', 'finance.record',
-    // The cashier holds the till and banks the merchant collections, so they
-    // see where the money is. The database already let them read the books
-    // (`can_view_finance()`); the screen now agrees. Approving what they
-    // record stays with a manager.
-    'finance.view',
-  ],
-  // The books, not the counter: an accountant reports on money that moved and
-  // records income and expenses, but does not collect from members.
-  accountant: [
-    ...STAFF_BASE, 'shares.view', 'loans.view',
-    'finance.view', 'finance.record', 'finance.reconcile', 'reports.member', 'audit.view',
-  ],
-  // The field role: collecting from members, and nothing that changes the
-  // register or the categories those members are held to.
-  field_officer: [...STAFF_BASE, 'savings.record', 'reports.member'],
-  viewer: [...STAFF_BASE, 'shares.view', 'loans.view'],
-  member: ['loans.apply'],
+/**
+ * Who is asking, as far as access is concerned: their role, whether that role
+ * is staff or member, and the permissions it holds. `SessionUser` satisfies
+ * this, and so does the small object a client component is handed.
+ */
+export type Access = {
+  role: Role;
+  roleKind: RoleKind;
+  permissions: readonly string[];
 };
 
-export function can(role: Role | null | undefined, permission: Permission): boolean {
-  if (!role) return false;
-  return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+export function can(who: Access | null | undefined, permission: Permission): boolean {
+  if (!who) return false;
+  return who.permissions.includes(permission);
 }
 
-export function canAny(role: Role | null | undefined, ...permissions: Permission[]): boolean {
-  return permissions.some((p) => can(role, p));
+export function canAny(who: Access | null | undefined, ...permissions: Permission[]): boolean {
+  return permissions.some((p) => can(who, p));
 }
 
-export function isStaff(role: Role | null | undefined): boolean {
-  return !!role && role !== 'member';
+export function isStaff(who: Access | null | undefined): boolean {
+  return who?.roleKind === 'staff';
 }
 
-/** Roles a super admin may assign to a staff account. */
-export const STAFF_ROLES: readonly Role[] = [
-  'super_admin', 'manager', 'loan_officer', 'cashier',
-  'accountant', 'field_officer', 'viewer',
-];
+/**
+ * Display names for the roles that ship with the system, used where a screen
+ * shows a role key recorded in the past (an audit entry) without the roles
+ * table to hand. Live screens read the name from `roles`.
+ */
+export const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Super Admin',
+  admin: 'Admin',
+  manager: 'SACCO Manager',
+  loan_officer: 'Loan Officer',
+  cashier: 'Cashier / Teller',
+  accountant: 'Accountant',
+  field_officer: 'Field Officer',
+  viewer: 'Viewer',
+  member: 'Member',
+};
+
+export function roleLabel(key: string | null | undefined): string {
+  if (!key) return '—';
+  return ROLE_LABELS[key] ?? key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 // ---------------------------------------------------------------------------
 // Navigation
 //
 // `icon` values are Material Symbols names, matching the icons Stitch used in
-// the exported sidebar and bottom bar. Keeping the same names means the same
-// glyphs render.
+// the exported sidebar and bottom bar.
 // ---------------------------------------------------------------------------
 export type NavItem = {
   label: string;
@@ -190,7 +130,17 @@ export type NavItem = {
 /** Staff sidebar - mirrors the order in `staff_dashboard_desktop/code.html`. */
 export const STAFF_NAV: readonly NavItem[] = [
   { label: 'Dashboard',    href: '/staff',              icon: 'dashboard',               permission: 'dashboard.staff', bottomBar: true },
-  { label: 'Members',      href: '/staff/members',      icon: 'group',                   permission: 'members.view',    bottomBar: true },
+  {
+    label: 'Members',
+    href: '/staff/members',
+    icon: 'group',
+    permission: 'members.view',
+    bottomBar: true,
+    children: [
+      { label: 'All Members',     href: '/staff/members',     icon: 'group',      permission: 'members.view' },
+      { label: 'Register Member', href: '/staff/members/new', icon: 'person_add', permission: 'members.create' },
+    ],
+  },
   {
     label: 'Savings',
     href: '/staff/savings',
@@ -242,6 +192,7 @@ export const STAFF_NAV: readonly NavItem[] = [
   },
   { label: 'Reports',      href: '/staff/reports',      icon: 'assessment',              permission: 'reports.view' },
   { label: 'Users',        href: '/staff/users',        icon: 'manage_accounts',         permission: 'users.manage' },
+  { label: 'Roles & Permissions', href: '/staff/roles', icon: 'shield_person',           permission: 'roles.manage' },
   { label: 'Audit Log',    href: '/staff/audit',        icon: 'policy',                  permission: 'audit.view' },
   { label: 'Settings',     href: '/staff/settings',     icon: 'settings',                permission: 'settings.view' },
 ];
@@ -265,15 +216,13 @@ export const MEMBER_MORE_NAV: readonly NavItem[] = [
   { label: 'My Profile',   href: '/profile',       icon: 'person' },
 ];
 
-export function visibleNav(role: Role | null | undefined, items: readonly NavItem[]): NavItem[] {
+export function visibleNav(who: Access | null | undefined, items: readonly NavItem[]): NavItem[] {
   return items
-    .filter((i) => !i.permission || can(role, i.permission))
-    .map((i) =>
-      i.children ? { ...i, children: visibleNav(role, i.children) } : i,
-    );
+    .filter((i) => !i.permission || can(who, i.permission))
+    .map((i) => (i.children ? { ...i, children: visibleNav(who, i.children) } : i));
 }
 
-/** Where a user lands after login, based on their role. */
-export function landingPath(role: Role | null | undefined): string {
-  return isStaff(role) ? '/staff' : '/';
+/** Where a user lands after login: the back office for staff, the portal for members. */
+export function landingPath(who: Pick<Access, 'roleKind'> | null | undefined): string {
+  return who?.roleKind === 'staff' ? '/staff' : '/';
 }

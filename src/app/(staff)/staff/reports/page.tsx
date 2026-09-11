@@ -264,7 +264,7 @@ export default async function StaffReportsPage() {
   const visible = groups
     .map((g) => ({
       ...g,
-      reports: g.reports.filter((r) => !r.permission || can(user.role, r.permission)),
+      reports: g.reports.filter((r) => !r.permission || can(user, r.permission)),
     }))
     .filter((g) => g.reports.length > 0);
 

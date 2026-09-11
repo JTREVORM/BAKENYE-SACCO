@@ -14,11 +14,11 @@ import { StaffShell } from '@/components/layout/StaffShell';
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const user = await requireStaff();
   const unread = await getUnreadCount();
-  const nav = visibleNav(user.role, STAFF_NAV);
+  const nav = visibleNav(user, STAFF_NAV);
 
   return (
     <StaffShell
-      user={{ fullName: user.fullName, role: user.role, photoUrl: user.photoUrl }}
+      user={{ fullName: user.fullName, roleName: user.roleName, photoUrl: user.photoUrl }}
       nav={nav}
       unreadCount={unread}
     >

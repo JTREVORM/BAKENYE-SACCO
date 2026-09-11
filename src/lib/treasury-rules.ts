@@ -1,5 +1,5 @@
 import { getSettingsMap, settingBool, settingNumber } from '@/lib/settings';
-import { can, type Role } from '@/lib/rbac';
+import { can, type Access } from '@/lib/rbac';
 import { formatUGX } from '@/lib/money';
 
 /**
@@ -8,7 +8,7 @@ import { formatUGX } from '@/lib/money';
  * rules in `treasury_requires_approval()`; this only says them out loud before
  * the form is submitted, so nobody is surprised by "submitted for approval".
  */
-export async function approvalNoteFor(role: Role): Promise<string> {
+export async function approvalNoteFor(role: Access): Promise<string> {
   const map = await getSettingsMap();
   const required = settingBool(map, 'treasury.require_approval', true);
   const threshold = settingNumber(map, 'treasury.approval_threshold');

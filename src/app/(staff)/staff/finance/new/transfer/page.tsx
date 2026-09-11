@@ -14,7 +14,7 @@ export default async function NewTransferPage({ searchParams }: { searchParams: 
   const sp = await searchParams;
   const kind = isTransferKind(sp.kind) ? sp.kind : 'merchant_to_bank';
   const meta = TRANSFER_KIND_META[kind];
-  const [accounts, approvalNote] = await Promise.all([getAccounts({ activeOnly: true }), approvalNoteFor(user.role)]);
+  const [accounts, approvalNote] = await Promise.all([getAccounts({ activeOnly: true }), approvalNoteFor(user)]);
 
   return (
     <div className="mx-auto max-w-2xl">

@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getSessionUser();
-  if (!user || !can(user.role, 'finance.view')) {
+  if (!user || !can(user, 'finance.view')) {
     return NextResponse.json({ error: 'Not permitted.' }, { status: 403 });
   }
   if (!/^[0-9a-f-]{36}$/i.test(id)) {

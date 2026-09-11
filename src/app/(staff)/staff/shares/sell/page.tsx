@@ -41,7 +41,7 @@ export default async function SellSharesPage({
           title="The share price is not set"
           description="Shares cannot be sold until the SACCO's share price is set under Settings."
           action={
-            can(user.role, 'settings.manage') ? (
+            can(user, 'settings.manage') ? (
               <Link
                 href="/staff/settings?section=financial"
                 className="bg-primary text-on-primary h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold"

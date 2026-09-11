@@ -24,7 +24,7 @@ export default async function StaffTransactionsPage({
         title="Transactions"
         subtitle="Every posting to the SACCO ledger, newest first."
         action={
-          can(user.role, 'cash.movement') ? (
+          can(user, 'cash.movement') ? (
             <div className="flex gap-2">
               <Link
                 href="/staff/transactions/cash?type=deposit"

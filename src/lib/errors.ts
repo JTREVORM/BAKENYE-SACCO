@@ -22,8 +22,12 @@ const CODE_MESSAGES: Record<string, string> = {
   PGRST301: 'Your session has expired. Please sign in again.',
 };
 
-/** Patterns that mean the message is safe to show verbatim - we wrote it. */
-const RAW_LEAK = /(relation |column |constraint |syntax error|pg_|SQLSTATE|duplicate key value)/i;
+/**
+ * Patterns that mean a message came from Postgres itself rather than from one
+ * of our functions, and would leak a table, a column or a type if shown.
+ */
+const RAW_LEAK =
+  /(relation |column |constraint |syntax|pg_|SQLSTATE|duplicate key value|invalid input|for type|overflow|permission denied|does not exist|operator |violates)/i;
 
 export function friendlyError(error: unknown): string {
   if (!error) return 'Something went wrong. Please try again.';
@@ -34,30 +38,39 @@ export function friendlyError(error: unknown): string {
 
   const e = error as { code?: string; message?: string; details?: string; hint?: string };
 
-  if (e.code && CODE_MESSAGES[e.code]) {
-    // A unique-violation on a known column is worth being specific about.
-    if (e.code === '23505' && e.details) {
-      if (/national_id/.test(e.details)) return 'A member with that National ID already exists.';
-      if (/member_no/.test(e.details)) return 'That member number is already in use.';
-      if (/idempotency_key/.test(e.details))
-        return 'This transaction was already recorded. No duplicate was created.';
-      if (/loans_one_active_per_member/.test(e.details))
-        return 'This member already has an active loan.';
-      if (/email/.test(e.details)) return 'That email address is already registered.';
-    }
-    return CODE_MESSAGES[e.code];
+  // Our functions raise whole sentences - "0772 123 456 is already the phone
+  // number of Jane Bakenye (BND-M-0000012)." - under standard codes such as
+  // check_violation. Those are the most useful thing we can show, so they win
+  // over the generic sentence for their code.
+  const message = (e.message ?? '').replace(/^ERROR:\s*/i, '').trim();
+  if (message && !RAW_LEAK.test(message)) return message;
+
+  // A unique-violation on a known column is worth being specific about.
+  if (e.code === '23505' && e.details) {
+    if (/national_id/.test(e.details)) return 'A member with that National ID already exists.';
+    if (/member_no/.test(e.details)) return 'That member number is already in use.';
+    if (/idempotency_key/.test(e.details))
+      return 'This transaction was already recorded. No duplicate was created.';
+    if (/loans_one_active_per_member/.test(e.details))
+      return 'This member already has an active loan.';
+    if (/email/.test(e.details)) return 'That email address is already registered.';
   }
+  if (e.code && CODE_MESSAGES[e.code]) return CODE_MESSAGES[e.code];
 
-  const message = e.message ?? '';
-  if (!message) return 'Something went wrong. Please try again.';
-  if (RAW_LEAK.test(message)) return 'Something went wrong. Please try again.';
+  return 'Something went wrong. Please try again.';
+}
 
-  // Supabase wraps PostgREST failures; strip the noise our RPCs never produce.
-  return message.replace(/^ERROR:\s*/i, '').trim();
+/**
+ * The form field an error belongs to. Our functions name it in the exception
+ * hint (`using hint = 'phone'`), so the message can sit under the right field.
+ */
+function fieldOf(error: unknown): string | undefined {
+  const hint = (error as { hint?: unknown } | null)?.hint;
+  return typeof hint === 'string' && /^[a-z_]{2,40}$/.test(hint) ? hint : undefined;
 }
 
 export function fail(error: unknown, field?: string): ActionResult<never> {
-  return { ok: false, error: friendlyError(error), field };
+  return { ok: false, error: friendlyError(error), field: fieldOf(error) ?? field };
 }
 
 export function succeed<T>(data: T, message?: string): ActionResult<T> {

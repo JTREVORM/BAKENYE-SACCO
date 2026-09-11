@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { getCategoryAnalytics, getCollectionsTrend, getDashboardMetrics } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
-import { can, type Role } from '@/lib/rbac';
+import { can, type Access } from '@/lib/rbac';
 import {
   Icon,
   Money,
@@ -63,7 +63,7 @@ export default async function StaffDashboard() {
         <Metrics />
       </Suspense>
 
-      {can(user.role, 'finance.view') ? (
+      {can(user, 'finance.view') ? (
         <Suspense fallback={<StatGridSkeleton />}>
           <FundsStrip />
         </Suspense>
@@ -85,7 +85,7 @@ export default async function StaffDashboard() {
         </div>
 
         <div className="space-y-gutter xl:col-span-1">
-          <QuickActions role={user.role} />
+          <QuickActions role={user} />
 
           <Suspense fallback={<PanelSkeleton height="h-56" />}>
             <UpcomingReminders />
@@ -267,7 +267,7 @@ async function Metrics() {
           label="Today's Collections"
           value={<Money value={m.todays_collections} />}
           tone={toNumber(m.todays_collections) > 0 ? 'text-tertiary' : 'text-on-surface'}
-          href="/staff/savings/today"
+          href="/staff/transactions"
         />
         <MiniStat
           icon="north_east"
@@ -373,9 +373,9 @@ function AttentionChip({
  * Only actions the signed-in role may actually perform are offered. A tile that
  * leads to a permission error is worse than no tile.
  */
-function QuickActions({ role }: { role: Role }) {
+function QuickActions({ role }: { role: Access }) {
   const actions = [
-    { href: '/staff/members/new', icon: 'person_add', label: 'Add Member', permission: 'members.manage', tone: 'primary' },
+    { href: '/staff/members/new', icon: 'person_add', label: 'Add Member', permission: 'members.create', tone: 'primary' },
     { href: '/staff/savings/collect', icon: 'point_of_sale', label: 'Collect Savings', permission: 'savings.record', tone: 'success' },
     { href: '/staff/loans/new', icon: 'request_quote', label: 'New Loan', permission: 'loans.assess', tone: 'accent' },
     { href: '/staff/transactions/cash', icon: 'swap_horiz', label: 'Cash Movement', permission: 'cash.movement', tone: 'neutral' },
@@ -773,7 +773,7 @@ async function PendingLoans() {
   };
 
   const rows = (data ?? []) as unknown as Row[];
-  const canReview = can(user.role, 'loans.assess');
+  const canReview = can(user, 'loans.assess');
 
   return (
     <Panel

@@ -76,7 +76,7 @@ export async function recordCollection(
   formData: FormData,
 ): Promise<ActionResult<CollectionResult>> {
   const user = await requireUser();
-  if (!can(user.role, 'savings.record')) {
+  if (!can(user, 'savings.record')) {
     return { ok: false, error: 'You do not have permission to record savings.' };
   }
 
@@ -144,7 +144,7 @@ export async function waiveSchedule(
   formData: FormData,
 ): Promise<ActionResult<{ status: SavingsStatus }>> {
   const user = await requireUser();
-  if (!can(user.role, 'savings.waive')) {
+  if (!can(user, 'savings.waive')) {
     return { ok: false, error: 'You do not have permission to waive a savings schedule.' };
   }
 

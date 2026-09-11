@@ -5,7 +5,7 @@ import { setMemberStatus } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
 import { Button, Field, Select, SubmitButton, Textarea } from '@/components/ui/form';
 import { Modal } from '@/components/ui/Modal';
-import { MEMBER_STATUS_LABELS } from '@/lib/format';
+import { MEMBER_STATUS_HINTS, MEMBER_STATUS_LABELS, SELECTABLE_MEMBER_STATUSES } from '@/lib/format';
 import type { ActionResult } from '@/lib/errors';
 import type { MemberStatus } from '@/types/db';
 
@@ -33,6 +33,8 @@ export function MemberStatusControl({
     null,
   );
   const err = state && !state.ok ? state : null;
+  const options = SELECTABLE_MEMBER_STATUSES.filter((s) => s !== status);
+  const [choice, setChoice] = useState<MemberStatus>(options[0]);
 
   return (
     <>
@@ -60,13 +62,20 @@ export function MemberStatusControl({
             {err && !err.field ? <Alert tone="error">{err.error}</Alert> : null}
 
             <Field label="New status" htmlFor="status" required>
-              <Select id="status" name="status" defaultValue={status} required>
-                {(Object.keys(MEMBER_STATUS_LABELS) as MemberStatus[]).map((s) => (
+              <Select
+                id="status"
+                name="status"
+                value={choice}
+                onChange={(e) => setChoice(e.target.value as MemberStatus)}
+                required
+              >
+                {options.map((s) => (
                   <option key={s} value={s}>
                     {MEMBER_STATUS_LABELS[s]}
                   </option>
                 ))}
               </Select>
+              <p className="text-label-md text-on-surface-variant font-normal">{MEMBER_STATUS_HINTS[choice]}</p>
             </Field>
 
             <Field

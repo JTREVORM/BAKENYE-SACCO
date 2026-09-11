@@ -91,7 +91,7 @@ export async function saveShareCategory(
   formData: FormData,
 ): Promise<ActionResult<{ id: string; name: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'categories.manage')) {
+  if (!can(user, 'categories.manage')) {
     return { ok: false, error: 'You do not have permission to change share categories.' };
   }
 
@@ -134,7 +134,7 @@ export async function setShareCategoryStatus(
   formData: FormData,
 ): Promise<ActionResult<{ status: CategoryStatus }>> {
   const user = await requireUser();
-  if (!can(user.role, 'categories.manage')) {
+  if (!can(user, 'categories.manage')) {
     return { ok: false, error: 'You do not have permission to change share categories.' };
   }
 
@@ -190,7 +190,7 @@ export async function saveSavingsCategory(
   formData: FormData,
 ): Promise<ActionResult<{ id: string; name: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'categories.manage')) {
+  if (!can(user, 'categories.manage')) {
     return { ok: false, error: 'You do not have permission to change savings categories.' };
   }
 
@@ -235,7 +235,7 @@ export async function setSavingsCategoryStatus(
   formData: FormData,
 ): Promise<ActionResult<{ status: CategoryStatus }>> {
   const user = await requireUser();
-  if (!can(user.role, 'categories.manage')) {
+  if (!can(user, 'categories.manage')) {
     return { ok: false, error: 'You do not have permission to change savings categories.' };
   }
 
@@ -289,7 +289,7 @@ export async function setMemberCategories(
   formData: FormData,
 ): Promise<ActionResult<{ schedules_repriced: number }>> {
   const user = await requireUser();
-  if (!can(user.role, 'categories.manage')) {
+  if (!can(user, 'categories.manage')) {
     return { ok: false, error: 'You do not have permission to set a member’s categories.' };
   }
 

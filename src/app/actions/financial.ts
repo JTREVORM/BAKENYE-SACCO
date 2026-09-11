@@ -76,7 +76,7 @@ export async function buyShares(
   formData: FormData,
 ): Promise<ActionResult<{ reference: string; total_value: number; transaction_id: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'shares.sell')) {
+  if (!can(user, 'shares.sell')) {
     return { ok: false, error: 'You do not have permission to record share purchases.' };
   }
 
@@ -121,7 +121,7 @@ export async function recordSavings(
   formData: FormData,
 ): Promise<ActionResult<Record<string, unknown>>> {
   const user = await requireUser();
-  if (!can(user.role, 'savings.record')) {
+  if (!can(user, 'savings.record')) {
     return { ok: false, error: 'You do not have permission to record savings.' };
   }
 
@@ -167,7 +167,7 @@ export async function recordCashMovement(
   formData: FormData,
 ): Promise<ActionResult<{ reference: string; transaction_id: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'cash.movement')) {
+  if (!can(user, 'cash.movement')) {
     return { ok: false, error: 'You do not have permission to record this.' };
   }
 
@@ -219,7 +219,7 @@ export async function recordRepayment(
   }>
 > {
   const user = await requireUser();
-  if (!can(user.role, 'loans.repay')) {
+  if (!can(user, 'loans.repay')) {
     return { ok: false, error: 'You do not have permission to record repayments.' };
   }
 
@@ -279,7 +279,7 @@ export async function setLoanStatus(
   if (!parsed.success) return firstIssue(parsed.error);
 
   const needed = parsed.data.status === 'approved' ? 'loans.approve' : 'loans.assess';
-  if (!can(user.role, needed)) {
+  if (!can(user, needed)) {
     return { ok: false, error: 'You do not have permission to make this decision.' };
   }
 
@@ -313,7 +313,7 @@ export async function disburseLoan(
   formData: FormData,
 ): Promise<ActionResult<{ loan_no: string; reference: string; transaction_id: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'loans.disburse')) {
+  if (!can(user, 'loans.disburse')) {
     return { ok: false, error: 'You do not have permission to disburse loans.' };
   }
 
@@ -378,7 +378,7 @@ export async function applyForLoan(
   if (!parsed.success) return firstIssue(parsed.error);
 
   // A member may only apply for themselves.
-  if (!can(user.role, 'loans.assess') && user.memberId !== parsed.data.member_id) {
+  if (!can(user, 'loans.assess') && user.memberId !== parsed.data.member_id) {
     return { ok: false, error: 'You may only apply for a loan on your own membership.' };
   }
 
@@ -458,7 +458,7 @@ export async function removeGuarantor(
   formData: FormData,
 ): Promise<ActionResult<{ removed: boolean }>> {
   const user = await requireUser();
-  if (!can(user.role, 'guarantors.manage')) {
+  if (!can(user, 'guarantors.manage')) {
     return { ok: false, error: 'You do not have permission to remove guarantors.' };
   }
 
@@ -492,7 +492,7 @@ export async function recordIncome(
   formData: FormData,
 ): Promise<ActionResult<{ reference: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to record income.' };
   }
 
@@ -534,7 +534,7 @@ export async function recordExpense(
   formData: FormData,
 ): Promise<ActionResult<{ expense_id: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.record')) {
+  if (!can(user, 'finance.record')) {
     return { ok: false, error: 'You do not have permission to record expenses.' };
   }
 
@@ -577,7 +577,7 @@ export async function approveExpense(
   formData: FormData,
 ): Promise<ActionResult<{ approval: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'finance.approve')) {
+  if (!can(user, 'finance.approve')) {
     return { ok: false, error: 'You do not have permission to approve expenses.' };
   }
 
@@ -620,7 +620,7 @@ export async function reverseTransaction(
   formData: FormData,
 ): Promise<ActionResult<{ reversal_reference: string; original_reference: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'transactions.reverse')) {
+  if (!can(user, 'transactions.reverse')) {
     return { ok: false, error: 'You do not have permission to reverse transactions.' };
   }
 

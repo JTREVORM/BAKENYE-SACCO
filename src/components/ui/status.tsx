@@ -38,9 +38,11 @@ export function LoanStatusBadge({ status }: { status: LoanStatus }) {
 }
 
 const MEMBER_TONES: Record<MemberStatus, BadgeTone> = {
+  pending: 'info',
   active: 'success',
   inactive: 'neutral',
   suspended: 'warning',
+  archived: 'neutral',
   exited: 'error',
 };
 

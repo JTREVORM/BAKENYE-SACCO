@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: 'Reconciliation' };
  */
 export default async function ReconciliationPage() {
   const user = await requirePermission('finance.view');
-  const reconcile = can(user.role, 'finance.reconcile');
+  const reconcile = can(user, 'finance.reconcile');
 
   return (
     <div className="space-y-gutter">
@@ -43,7 +43,7 @@ export default async function ReconciliationPage() {
         <Accounts reconcile={reconcile} />
       </Suspense>
       <Suspense fallback={<TableSkeleton rows={6} cols={6} />}>
-        <History canAttach={can(user.role, 'finance.record')} />
+        <History canAttach={can(user, 'finance.record')} />
       </Suspense>
     </div>
   );

@@ -34,7 +34,7 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: Pro
   const from = isIsoDate(sp.from) ? sp.from : monthStart();
   const to = isIsoDate(sp.to) ? sp.to : toISODate();
 
-  const collect = canAny(user.role, 'finance.record', 'savings.record');
+  const collect = canAny(user, 'finance.record', 'savings.record');
   return (
     <div className="space-y-gutter">
       <PageTitle
@@ -46,7 +46,7 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: Pro
           <>
             {collect ? <ActionLink href="/staff/finance/new/collection" icon="add" label="Record collection" primary /> : null}
             {collect ? <ActionLink href="/staff/finance/new/collection?preset=merchant" icon="smartphone" label="Merchant collection" /> : null}
-            {can(user.role, 'finance.record') ? <ActionLink href="/staff/finance/new/receipt" icon="call_received" label="Other receipt" /> : null}
+            {can(user, 'finance.record') ? <ActionLink href="/staff/finance/new/receipt" icon="call_received" label="Other receipt" /> : null}
           </>
         }
       />

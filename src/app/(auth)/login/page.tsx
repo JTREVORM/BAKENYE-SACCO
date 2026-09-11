@@ -21,9 +21,9 @@ export const metadata: Metadata = { title: 'Sign in' };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; reset?: string }>;
+  searchParams: Promise<{ next?: string; reset?: string; as?: string }>;
 }) {
-  const { next, reset } = await searchParams;
+  const { next, reset, as } = await searchParams;
 
   return (
     <AuthShell>
@@ -48,7 +48,11 @@ export default async function LoginPage({
           </p>
         </div>
 
-        <LoginForm next={next} resetDone={reset === 'done'} />
+        <LoginForm
+          next={next}
+          resetDone={reset === 'done'}
+          initial={as === 'staff' || reset === 'done' || next?.startsWith('/staff') ? 'staff' : 'member'}
+        />
 
         {/* The assurance, pressed into the sheet rather than laid on top of it,
             so it reads as a footnote to the form and not as a second card. */}

@@ -92,7 +92,7 @@ export function settingList(map: SettingsMap, key: string, fallback: string[] = 
 /* --------------------------------------------------------------------------
  * Named rules
  *
- * Callers ask `rules.registrationFee`, not `map['members.registration_fee']`.
+ * Callers ask `rules.minDeposit`, not `map['financial.min_deposit']`.
  * A mistyped key in a template string is a silent zero on a fee; a mistyped
  * property here does not compile.
  * ----------------------------------------------------------------------- */
@@ -113,9 +113,14 @@ function toRules(map: SettingsMap) {
     maxCashTransaction: settingNumber(map, 'financial.max_cash_transaction'),
     withdrawalFee: settingNumber(map, 'financial.withdrawal_fee'),
 
-    registrationFee: settingNumber(map, 'members.registration_fee'),
-    annualSubscription: settingNumber(map, 'members.annual_subscription'),
-    passbookFee: settingNumber(map, 'members.passbook_fee'),
+    // Fees are not settings: they are rows in `fees`, managed under
+    // Settings -> Fees, and read by registration itself.
+    activationRequiresFees: settingBool(map, 'members.activation_requires_fees', true),
+    registrationRequiresCategories: settingBool(map, 'members.registration_requires_categories', true),
+    requireNationalId: settingBool(map, 'members.require_national_id'),
+    requireDateOfBirth: settingBool(map, 'members.require_date_of_birth'),
+    requireGender: settingBool(map, 'members.require_gender'),
+    requireNextOfKin: settingBool(map, 'members.require_next_of_kin'),
     minSavingsBalance: settingNumber(map, 'members.min_savings_balance'),
     minAge: settingNumber(map, 'members.min_age', 18),
 
@@ -196,7 +201,7 @@ export const SETTING_CATEGORIES: {
     id: 'members',
     label: 'Members',
     icon: 'group',
-    description: 'What it costs to join, and what a member is expected to maintain.',
+    description: 'What registration asks for, when a new member becomes active, and what a member is expected to maintain. Fees are under Fees.',
   },
   {
     id: 'savings',

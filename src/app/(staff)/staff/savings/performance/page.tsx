@@ -59,7 +59,7 @@ export default async function SavingsPerformancePage({
               <span className="hidden sm:inline">Collect savings</span>
               <span className="sm:hidden">Collect</span>
             </Link>
-            {can(user.role, 'savings.record') ? (
+            {can(user, 'savings.record') ? (
               <>
                 <OpenPeriodsButton kind={kind} />
                 <Link
@@ -97,7 +97,7 @@ export default async function SavingsPerformancePage({
           from={from}
           to={to}
           category={category}
-          canRecord={can(user.role, 'savings.record')}
+          canRecord={can(user, 'savings.record')}
           generatedBy={user.fullName}
           categoryName={categories.find((c) => c.id === category)?.name}
         />

@@ -8,7 +8,7 @@ import { Sidebar } from './Sidebar';
 import { ScrollArea } from '@/components/ui/scroll';
 import { clsx } from '@/lib/clsx';
 import { Icon, Avatar } from '@/components/ui/primitives';
-import { ROLE_LABELS, type NavItem, type Role } from '@/lib/rbac';
+import type { NavItem } from '@/lib/rbac';
 import { signOut } from '@/app/(auth)/actions';
 
 /**
@@ -26,7 +26,7 @@ export function StaffShell({
   unreadCount = 0,
   children,
 }: {
-  user: { fullName: string; role: Role; photoUrl: string | null };
+  user: { fullName: string; roleName: string; photoUrl: string | null };
   nav: readonly NavItem[];
   unreadCount?: number;
   children: React.ReactNode;
@@ -117,7 +117,7 @@ export function StaffShell({
 function AccountMenu({
   user,
 }: {
-  user: { fullName: string; role: Role; photoUrl: string | null };
+  user: { fullName: string; roleName: string; photoUrl: string | null };
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -158,7 +158,7 @@ function AccountMenu({
             {user.fullName}
           </span>
           <span className="block text-label-md font-normal text-on-surface-variant">
-            {ROLE_LABELS[user.role]}
+            {user.roleName}
           </span>
         </span>
         <Icon
@@ -181,7 +181,7 @@ function AccountMenu({
             <div className="min-w-0">
               <p className="truncate text-button-text text-on-surface">{user.fullName}</p>
               <p className="text-label-md font-normal text-on-surface-variant">
-                {ROLE_LABELS[user.role]}
+                {user.roleName}
               </p>
             </div>
           </div>

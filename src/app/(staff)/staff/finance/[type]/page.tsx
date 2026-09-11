@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { can, canAny, type Role } from '@/lib/rbac';
+import { can, canAny, type Access } from '@/lib/rbac';
 import {
   getAccounts,
   getCashBankReport,
@@ -63,16 +63,16 @@ export default async function AccountTypePage({
         title={meta.label}
         subtitle={meta.subtitle}
         breadcrumb={[{ label: 'Finance', href: '/staff/finance' }, { label: meta.label }]}
-        action={<TypeActions type={type} role={user.role} />}
+        action={<TypeActions type={type} role={user} />}
       />
 
       <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
         <Suspense fallback={<PanelSkeleton height="h-64" />}>
-          <Balance type={type} role={user.role} />
+          <Balance type={type} role={user} />
         </Suspense>
         <div className="xl:col-span-2">
           <Suspense fallback={<PanelSkeleton height="h-64" />}>
-            <AccountList type={type} role={user.role} />
+            <AccountList type={type} role={user} />
           </Suspense>
         </div>
       </div>
@@ -100,7 +100,7 @@ export default async function AccountTypePage({
   );
 }
 
-function TypeActions({ type, role }: { type: FinanceAccountType; role: Role }) {
+function TypeActions({ type, role }: { type: FinanceAccountType; role: Access }) {
   const record = can(role, 'finance.record');
   const collect = canAny(role, 'finance.record', 'savings.record');
   const links: { href: string; label: string; icon: string; primary?: boolean; show: boolean }[] =
@@ -143,7 +143,7 @@ function TypeActions({ type, role }: { type: FinanceAccountType; role: Role }) {
   );
 }
 
-async function Balance({ type, role }: { type: FinanceAccountType; role: Role }) {
+async function Balance({ type, role }: { type: FinanceAccountType; role: Access }) {
   const s = await getTreasurySummary();
   if (!s) return <ErrorState title="Unable to load the balance" />;
   const f = dayFigures(s.movements);
@@ -179,7 +179,7 @@ async function Balance({ type, role }: { type: FinanceAccountType; role: Role })
   );
 }
 
-async function AccountList({ type, role }: { type: FinanceAccountType; role: Role }) {
+async function AccountList({ type, role }: { type: FinanceAccountType; role: Access }) {
   const accounts = await getAccounts({ type });
   const meta = ACCOUNT_TYPE_META[type];
   if (!accounts) return <ErrorState title="Unable to load the accounts" />;

@@ -51,7 +51,7 @@ export default async function IncomeExpensesPage({
         subtitle="What the SACCO earned and spent, and the surplus between them. Internal transfers are not income or expense."
         breadcrumb={[{ label: 'Finance', href: '/staff/finance' }, { label: 'Income & Expenses' }]}
         action={
-          can(user.role, 'finance.record') ? (
+          can(user, 'finance.record') ? (
             <div className="flex flex-wrap gap-2">
               <Link href="/staff/finance/new/receipt" className="inline-flex h-touch-target-min items-center gap-2 rounded-full bg-surface px-5 text-button-text font-semibold text-on-surface shadow-neu">
                 <Icon name="trending_up" size={18} />
@@ -81,7 +81,7 @@ export default async function IncomeExpensesPage({
             from={from}
             to={to}
             approvalFilter={sp.approval}
-            canApprove={can(user.role, 'finance.approve')}
+            canApprove={can(user, 'finance.approve')}
           />
         )}
       </Suspense>

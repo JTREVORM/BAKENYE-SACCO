@@ -10,7 +10,7 @@ import { FinanceNav } from '@/components/finance/FinanceNav';
  */
 export default async function FinanceLayout({ children }: { children: React.ReactNode }) {
   const user = await requirePermission('finance.view');
-  const finance = visibleNav(user.role, STAFF_NAV).find((i) => i.href === '/staff/finance');
+  const finance = visibleNav(user, STAFF_NAV).find((i) => i.href === '/staff/finance');
 
   return (
     <>

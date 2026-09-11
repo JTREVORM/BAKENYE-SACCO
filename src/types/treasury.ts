@@ -648,7 +648,6 @@ export type TreasuryFunctions = {
   cash_bank_report: { Args: { p_from: string; p_to: string }; Returns: CashBankReport };
   treasury_monthly_flow: { Args: { p_months?: number }; Returns: MonthlyFlowPoint[] };
   receipts_and_payments: { Args: { p_from: string; p_to: string }; Returns: ReceiptsAndPayments };
-  account_balance_at: { Args: { p_account_id: string; p_on?: string | null }; Returns: number };
   default_financial_account: { Args: { p_type: FinanceAccountType }; Returns: string | null };
   treasury_requires_approval: { Args: { p_amount: number }; Returns: boolean };
 };

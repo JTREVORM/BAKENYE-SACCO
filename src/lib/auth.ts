@@ -1,26 +1,32 @@
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { can, isStaff, landingPath, type Permission, type Role } from '@/lib/rbac';
+import { can, isStaff, landingPath, type Access, type Permission, type RoleKind } from '@/lib/rbac';
+import type { MemberStatus } from '@/types/db';
+import type { SessionPayload } from '@/types/access';
 
-export type SessionUser = {
+export type SessionUser = Access & {
   id: string;
   email: string | null;
   fullName: string;
   phone: string | null;
-  role: Role;
+  /** The role's display name, from `roles`. */
+  roleName: string;
   photoUrl: string | null;
   /** Present only when this user is linked to a member record. */
   memberId: string | null;
   memberNo: string | null;
+  memberStatus: MemberStatus | null;
 };
 
 /**
- * Resolve the signed-in user and their role.
+ * Resolve the signed-in user, their role and every permission it holds.
  *
- * Wrapped in React `cache` so that a page rendering a header, a sidebar and
- * three data sections issues one auth round trip, not five - which matters a
- * lot on a 3G connection.
+ * One call to `my_session()` answers all of it, and React `cache` makes that
+ * one call per request however many components ask - which matters on 3G.
+ *
+ * A deactivated account, or one whose role has been retired, is treated as
+ * signed out: it can reach nothing.
  */
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = await createClient();
@@ -30,29 +36,24 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from('app_users')
-    .select('id, full_name, email, phone, role, photo_url, is_active')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile || !profile.is_active) return null;
-
-  const { data: member } = await supabase
-    .from('members')
-    .select('id, member_no')
-    .eq('user_id', user.id)
-    .maybeSingle();
+  const { data } = await supabase.rpc('my_session');
+  const session = data as SessionPayload | null;
+  if (!session || !session.is_active || !session.role_active) return null;
 
   return {
-    id: profile.id,
-    email: profile.email ?? user.email ?? null,
-    fullName: profile.full_name,
-    phone: profile.phone,
-    role: profile.role as Role,
-    photoUrl: profile.photo_url,
-    memberId: member?.id ?? null,
-    memberNo: member?.member_no ?? null,
+    id: session.id,
+    // A member's sign-in address is an internal identifier, never shown.
+    email: session.email ?? (session.role_kind === 'staff' ? user.email ?? null : null),
+    fullName: session.full_name,
+    phone: session.phone,
+    role: session.role,
+    roleKind: session.role_kind as RoleKind,
+    roleName: session.role_name,
+    permissions: session.permissions,
+    photoUrl: session.photo_url,
+    memberId: session.member?.id ?? null,
+    memberNo: session.member?.member_no ?? null,
+    memberStatus: session.member?.status ?? null,
   };
 });
 
@@ -72,8 +73,8 @@ export async function requireUser(returnTo?: string): Promise<SessionUser> {
  */
 export async function requirePermission(permission: Permission): Promise<SessionUser> {
   const user = await requireUser();
-  if (!can(user.role, permission)) {
-    redirect(landingPath(user.role));
+  if (!can(user, permission)) {
+    redirect(landingPath(user));
   }
   return user;
 }
@@ -81,18 +82,18 @@ export async function requirePermission(permission: Permission): Promise<Session
 /** Staff-area guard. */
 export async function requireStaff(): Promise<SessionUser> {
   const user = await requireUser();
-  if (!isStaff(user.role)) redirect('/');
+  if (!isStaff(user)) redirect('/');
   return user;
 }
 
 /**
- * Member-area guard. Staff are allowed through (they may want to see the member
- * experience), but only a real member has a `memberId` to scope data with.
+ * Member-area guard. Only a member login has a member record to scope data
+ * with; staff are sent back to the back office.
  */
 export async function requireMember(): Promise<SessionUser & { memberId: string }> {
   const user = await requireUser();
   if (!user.memberId) {
-    redirect(isStaff(user.role) ? '/staff' : '/no-member-record');
+    redirect(isStaff(user) ? '/staff' : '/no-member-record');
   }
   return user as SessionUser & { memberId: string };
 }
@@ -103,7 +104,12 @@ export async function requireMember(): Promise<SessionUser & { memberId: string 
  */
 export async function assertCanViewMember(memberId: string): Promise<SessionUser> {
   const user = await requireUser();
-  if (can(user.role, 'members.view')) return user;
+  if (can(user, 'members.view')) return user;
   if (user.memberId === memberId) return user;
-  redirect(landingPath(user.role));
+  redirect(landingPath(user));
+}
+
+/** The minimal access object a client component needs, safe to serialise. */
+export function accessOf(user: SessionUser): Access {
+  return { role: user.role, roleKind: user.roleKind, permissions: user.permissions };
 }

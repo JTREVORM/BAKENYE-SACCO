@@ -61,7 +61,7 @@ export default async function StaffSavingsPage({
                 <span className="hidden sm:inline">Schedules</span>
                 <span className="sm:hidden">Sched.</span>
               </Link>
-              {can(user.role, 'savings.record') ? (
+              {can(user, 'savings.record') ? (
                 <Link
                   href="/staff/savings/collect"
                   className="bg-primary text-on-primary hover:bg-primary-container h-touch-target-min text-button-text font-button-text inline-flex items-center gap-2 rounded-lg px-4 font-semibold transition-colors"

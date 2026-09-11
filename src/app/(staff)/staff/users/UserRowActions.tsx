@@ -5,8 +5,9 @@ import { setUserActive, setUserRole } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Select, SubmitButton, Textarea } from '@/components/ui/form';
-import { ROLE_LABELS, type Role } from '@/lib/rbac';
 import type { ActionResult } from '@/lib/errors';
+
+type RoleOption = { key: string; name: string; description: string | null };
 
 /**
  * Change a user's role, or deactivate them.
@@ -19,11 +20,16 @@ export function UserRowActions({
   userId,
   name,
   role,
+  roleName,
+  roles,
   isActive,
 }: {
   userId: string;
   name: string;
-  role: Role;
+  role: string;
+  roleName: string;
+  /** The roles the signed-in person may assign. */
+  roles: RoleOption[];
   isActive: boolean;
 }) {
   const [dialog, setDialog] = useState<null | 'role' | 'active'>(null);
@@ -50,6 +56,8 @@ export function UserRowActions({
         userId={userId}
         name={name}
         role={role}
+        roleName={roleName}
+        roles={roles}
       />
 
       <ActiveDialog
@@ -69,12 +77,16 @@ function RoleDialog({
   userId,
   name,
   role,
+  roleName,
+  roles,
 }: {
   open: boolean;
   onClose: () => void;
   userId: string;
   name: string;
-  role: Role;
+  role: string;
+  roleName: string;
+  roles: RoleOption[];
 }) {
   const [state, action] = useActionState<ActionResult<{ role: string }> | null, FormData>(
     setUserRole,
@@ -87,7 +99,7 @@ function RoleDialog({
       open={open}
       onClose={onClose}
       title="Change role"
-      description={`${name} is currently a ${ROLE_LABELS[role]}.`}
+      description={`${name} currently has the ${roleName} role.`}
     >
       {state?.ok ? (
         <div className="flex flex-col gap-4">
@@ -104,9 +116,14 @@ function RoleDialog({
 
           <Field label="New role" htmlFor="user-role" required>
             <Select id="user-role" name="role" defaultValue={role} required>
-              {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
-                <option key={r} value={r}>
-                  {ROLE_LABELS[r]}
+              {roles.some((r) => r.key === role) ? null : (
+                <option value={role} disabled>
+                  {roleName}
+                </option>
+              )}
+              {roles.map((r) => (
+                <option key={r.key} value={r.key}>
+                  {r.name}
                 </option>
               ))}
             </Select>

@@ -38,8 +38,8 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
         breadcrumb={[{ label: 'Finance', href: '/staff/finance' }, { label: 'Expenses' }]}
         action={
           <>
-            {can(user.role, 'finance.record') ? <ActionLink href="/staff/finance/new/expense" icon="add" label="Record expense" primary /> : null}
-            {can(user.role, 'finance.accounts') ? <ActionLink href="/staff/finance/accounts#categories" icon="category" label="Categories" /> : null}
+            {can(user, 'finance.record') ? <ActionLink href="/staff/finance/new/expense" icon="add" label="Record expense" primary /> : null}
+            {can(user, 'finance.accounts') ? <ActionLink href="/staff/finance/accounts#categories" icon="category" label="Categories" /> : null}
           </>
         }
       />

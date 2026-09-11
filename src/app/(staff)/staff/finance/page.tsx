@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { requirePermission, type SessionUser } from '@/lib/auth';
-import { can, canAny, type Role } from '@/lib/rbac';
+import { can, canAny, type Access } from '@/lib/rbac';
 import { createClient } from '@/lib/supabase/server';
 import { getMonthlyFlow, getTreasurySummary, queryLedger } from '@/lib/treasury';
 import { Icon, PageTitle, Panel, QuickAction, ViewAllLink } from '@/components/ui/primitives';
@@ -61,10 +61,10 @@ export default async function FinanceOverview({
       />
 
       <Suspense fallback={<PositionSkeleton />}>
-        <Position role={user.role} />
+        <Position role={user} />
       </Suspense>
 
-      <QuickActions role={user.role} />
+      <QuickActions role={user} />
 
       <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
         <div className="min-w-0 space-y-gutter xl:col-span-2">
@@ -95,7 +95,7 @@ export default async function FinanceOverview({
  * Position: alerts, the three cards and the total
  * ------------------------------------------------------------------------ */
 
-async function Position({ role }: { role: Role }) {
+async function Position({ role }: { role: Access }) {
   const s = await getTreasurySummary();
   if (!s) {
     return (
@@ -187,7 +187,7 @@ function PositionSkeleton() {
 
 type AlertItem = { key: string; tone: 'error' | 'warning' | 'info'; icon: IconName; title: string; detail: string; href: string };
 
-function Alerts({ summary: s, role }: { summary: TreasurySummary; role: Role }) {
+function Alerts({ summary: s, role }: { summary: TreasurySummary; role: Access }) {
   const items: AlertItem[] = [];
   const t = s.thresholds;
 
@@ -308,7 +308,7 @@ function Alerts({ summary: s, role }: { summary: TreasurySummary; role: Role }) 
  * Quick actions
  * ------------------------------------------------------------------------ */
 
-function QuickActions({ role }: { role: Role }) {
+function QuickActions({ role }: { role: Access }) {
   const record = can(role, 'finance.record');
   const collect = canAny(role, 'finance.record', 'savings.record');
   const actions: { href: string; icon: IconName; label: string; tone: 'primary' | 'success' | 'accent' | 'danger' | 'neutral'; show: boolean }[] = [
@@ -494,7 +494,7 @@ async function PendingPanel({ user }: { user: SessionUser }) {
     })),
   ];
 
-  const canApprove = can(user.role, 'finance.approve');
+  const canApprove = can(user, 'finance.approve');
 
   return (
     <Panel

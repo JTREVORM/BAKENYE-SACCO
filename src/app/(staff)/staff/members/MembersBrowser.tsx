@@ -34,14 +34,16 @@ import { ScrollRow } from '@/components/ui/scroll';
 const STATUSES: { value: string; label: string }[] = [
   { value: '', label: 'All' },
   { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
+  { value: 'pending', label: 'Pending' },
   { value: 'suspended', label: 'Suspended' },
-  { value: 'exited', label: 'Exited' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'archived', label: 'Archived' },
 ];
 
 const SORTS: { value: string; label: string }[] = [
   { value: 'name', label: 'Name' },
   { value: 'recent', label: 'Newest' },
+  { value: 'number', label: 'Member no.' },
   { value: 'savings', label: 'Savings' },
   { value: 'shares', label: 'Shares' },
   { value: 'loan', label: 'Loan balance' },
@@ -92,7 +94,7 @@ export function MembersBrowser({
         <SearchInput
           defaultValue={q}
           onSearch={(v) => setParam('q', v)}
-          placeholder="Search by name or ID..."
+          placeholder="Search by name, member number or phone…"
         />
 
         <div className="flex flex-wrap items-center gap-3">

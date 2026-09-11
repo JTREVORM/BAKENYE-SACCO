@@ -7,7 +7,8 @@ import { Field, Input, SubmitButton } from '@/components/ui/form';
 import type { ActionResult } from '@/lib/errors';
 
 /**
- * Change password while signed in.
+ * Change a staff password while signed in. (Members have no password: they
+ * sign in with their member number and registered phone number.)
  *
  * Requires the current password, so an unattended unlocked phone cannot be used
  * to take over the account.

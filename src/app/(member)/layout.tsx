@@ -14,7 +14,7 @@ export default async function MemberLayout({ children }: { children: React.React
 
   // Staff have their own workspace. Sending them here would show an empty
   // dashboard, since they have no member record to scope to.
-  if (isStaff(user.role) && !user.memberId) redirect('/staff');
+  if (isStaff(user) && !user.memberId) redirect('/staff');
 
   return <>{children}</>;
 }

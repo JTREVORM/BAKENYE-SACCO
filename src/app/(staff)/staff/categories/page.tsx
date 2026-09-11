@@ -49,7 +49,7 @@ export const metadata: Metadata = { title: 'Categories' };
  */
 export default async function CategoriesPage() {
   const user = await requirePermission('categories.view');
-  const canManage = can(user.role, 'categories.manage');
+  const canManage = can(user, 'categories.manage');
 
   return (
     <div className="flex flex-col gap-8">
@@ -65,7 +65,7 @@ export default async function CategoriesPage() {
       <Suspense fallback={<TableSkeleton rows={3} cols={5} />}>
         <ShareCategories
           canManage={canManage}
-          canChangePrice={can(user.role, 'settings.manage')}
+          canChangePrice={can(user, 'settings.manage')}
         />
       </Suspense>
 

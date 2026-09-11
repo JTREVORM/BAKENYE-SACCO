@@ -18,7 +18,7 @@ export async function openSavingsPeriods(
   on: string,
 ): Promise<ActionResult<number>> {
   const user = await requireUser();
-  if (!can(user.role, 'savings.record')) {
+  if (!can(user, 'savings.record')) {
     return { ok: false, error: 'You do not have permission to open savings periods.' };
   }
 

@@ -20,7 +20,7 @@ export default async function NewCollectionPage({
   searchParams: Promise<{ preset?: string; member?: string; type?: string }>;
 }) {
   const user = await requireUser();
-  if (!canAny(user.role, 'finance.record', 'savings.record')) redirect('/staff/finance');
+  if (!canAny(user, 'finance.record', 'savings.record')) redirect('/staff/finance');
   const sp = await searchParams;
   const merchant = sp.preset === 'merchant';
 

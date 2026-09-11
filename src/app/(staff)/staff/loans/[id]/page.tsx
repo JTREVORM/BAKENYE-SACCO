@@ -40,10 +40,10 @@ export default async function StaffLoanPage({ params }: { params: Promise<{ id: 
             netDisbursed={netDisbursed}
             memberName={data.memberName}
             guarantorsPending={pendingGuarantors}
-            canAssess={can(user.role, 'loans.assess')}
-            canApprove={can(user.role, 'loans.approve')}
-            canDisburse={can(user.role, 'loans.disburse')}
-            canRepay={can(user.role, 'loans.repay')}
+            canAssess={can(user, 'loans.assess')}
+            canApprove={can(user, 'loans.approve')}
+            canDisburse={can(user, 'loans.disburse')}
+            canRepay={can(user, 'loans.repay')}
           />
         }
       />

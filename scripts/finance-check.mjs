@@ -30,7 +30,9 @@ for (const width of (process.argv[3] ? process.argv[3].split(',').map(Number) : 
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 
   await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-  await page.fill('input[name="identifier"], input[name="email"], input[type="email"]', EMAIL);
+  // Staff sign in on the Staff tab; the Member tab is the default.
+  await page.click('button[role="tab"]:has-text("Staff")');
+  await page.fill('input[name="email"]', EMAIL);
   await page.fill('input[type="password"]', PASSWORD);
   await page.click('button[type="submit"]');
   await page.waitForURL(/\/staff/, { timeout: 60_000 });

@@ -30,16 +30,23 @@ begin
                           created_at, updated_at)
   values
     (v_cashier, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-     'treasury.cashier@test.invalid', '', now(), '{}'::jsonb,
-     jsonb_build_object('full_name', 'Test Cashier', 'role', 'cashier'), now(), now()),
-    (v_member_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-     'treasury.member@test.invalid', '', now(), '{}'::jsonb,
-     jsonb_build_object('full_name', 'Treasury Test Member'), now(), now());
+     'treasury.cashier@test.invalid', '', now(), jsonb_build_object('role', 'cashier'),
+     jsonb_build_object('full_name', 'Test Cashier'), now(), now());
 
-  v_mid := (create_member('Treasury Test Member', '+256779100009',
-                          null, null, null, null, null, null, null, null,
-                          null, null, null) ->> 'member_id')::uuid;
-  update members set user_id = v_member_user where id = v_mid;
+  v_mid := (register_member(jsonb_build_object(
+              'full_name', 'Treasury Test Member', 'phone', '+256779100009',
+              'share_category_id', (select id from share_categories where status = 'active' order by sort_order limit 1),
+              'savings_category_id', (select id from savings_categories where status = 'active' order by sort_order limit 1)))
+            ->> 'member_id')::uuid;
+
+  -- The member's login names the member; the trigger links them.
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+                          email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+                          created_at, updated_at)
+  values
+    (v_member_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+     'treasury.member@test.invalid', '', now(), jsonb_build_object('member_id', v_mid),
+     '{}'::jsonb, now(), now());
 
   insert into t_ctx values ('cashier', v_cashier), ('member_user', v_member_user);
 end;
@@ -89,13 +96,23 @@ begin
 
   insert into t_result (step, ok, detail)
   values ('accounts start at their opening balance of zero',
-          account_balance_at(v_mer) = 0 and account_balance_at(v_bank) = 0 and account_balance_at(v_cash) = 0,
+          finance_account_balance_at(v_mer) = 0 and finance_account_balance_at(v_bank) = 0 and finance_account_balance_at(v_cash) = 0,
           null);
 
-  v_a := (create_member('Treasury Member A', '+256779100001', null, null, null, null, null, null,
-                        null, null, null, null, null) ->> 'member_id')::uuid;
-  v_b := (create_member('Treasury Member B', '+256779100002', null, null, null, null, null, null,
-                        null, null, null, null, null) ->> 'member_id')::uuid;
+  v_a := (register_member(jsonb_build_object(
+            'full_name', 'Treasury Member A', 'phone', '+256779100001',
+            'share_category_id', (select id from share_categories where status = 'active' order by sort_order limit 1),
+            'savings_category_id', (select id from savings_categories where status = 'active' and frequency = 'monthly' order by sort_order limit 1)))
+          ->> 'member_id')::uuid;
+  v_b := (register_member(jsonb_build_object(
+            'full_name', 'Treasury Member B', 'phone', '+256779100002',
+            'share_category_id', (select id from share_categories where status = 'active' order by sort_order limit 1),
+            'savings_category_id', (select id from savings_categories where status = 'active' and frequency = 'monthly' order by sort_order limit 1)))
+          ->> 'member_id')::uuid;
+  -- Registration fees, if this SACCO charges any, are waived so both members
+  -- are active; the fee path has its own suite.
+  perform waive_member_fee(mf.id, 'automated test fixture')
+     from member_fees mf where mf.member_id in (v_a, v_b) and mf.status = 'unpaid';
 
   -- ---- Step 1: Member A pays UGX 100,000 savings through the merchant code -
   v_res := record_member_collection(v_a, 'savings', 100000, v_mer, current_date, null,
@@ -104,8 +121,8 @@ begin
   select * into v_txn from transactions where id = (v_res ->> 'transaction_id')::uuid;
 
   insert into t_result (step, ok, detail)
-  values ('step 1: Cash at Merchant is UGX 100,000', account_balance_at(v_mer) = 100000,
-          account_balance_at(v_mer)::text);
+  values ('step 1: Cash at Merchant is UGX 100,000', finance_account_balance_at(v_mer) = 100000,
+          finance_account_balance_at(v_mer)::text);
   insert into t_result (step, ok, detail)
   values ('step 1: member A savings is UGX 100,000',
           (select savings_balance from member_financials where id = v_a) = 100000, null);
@@ -130,8 +147,8 @@ begin
                                    'MTN-TEST-0002', null, null, 'monthly', null, null,
                                    'test:treasury:2');
   insert into t_result (step, ok, detail)
-  values ('step 2: Cash at Merchant is UGX 150,000', account_balance_at(v_mer) = 150000,
-          account_balance_at(v_mer)::text);
+  values ('step 2: Cash at Merchant is UGX 150,000', finance_account_balance_at(v_mer) = 150000,
+          finance_account_balance_at(v_mer)::text);
 
   -- A double tap: same idempotency key, nothing new.
   select count(*) into v_n from account_ledger_entries;
@@ -140,7 +157,7 @@ begin
                                    'test:treasury:1');
   insert into t_result (step, ok, detail)
   values ('a replayed submission posts nothing new',
-          (select count(*) from account_ledger_entries) = v_n and account_balance_at(v_mer) = 150000,
+          (select count(*) from account_ledger_entries) = v_n and finance_account_balance_at(v_mer) = 150000,
           null);
 
   -- The same provider reference under a new key is a second banking of one payment.
@@ -190,8 +207,8 @@ begin
           v_res ->> 'status' = 'completed' and (v_res ->> 'transfer_no') like 'BND-TRF-%', v_res::text);
   insert into t_result (step, ok, detail)
   values ('step 3: Cash at Merchant UGX 30,000, Cash at Bank UGX 120,000',
-          account_balance_at(v_mer) = 30000 and account_balance_at(v_bank) = 120000,
-          account_balance_at(v_mer)::text || ' / ' || account_balance_at(v_bank)::text);
+          finance_account_balance_at(v_mer) = 30000 and finance_account_balance_at(v_bank) = 120000,
+          finance_account_balance_at(v_mer)::text || ' / ' || finance_account_balance_at(v_bank)::text);
   insert into t_result (step, ok, detail)
   values ('step 3: total SACCO funds unchanged',
           (treasury_summary() -> 'totals' ->> 'total')::numeric = v_total0, null);
@@ -232,7 +249,7 @@ begin
                                     null, 'Petty cash', 'Test Cashier', null, true, 'test:treasury:wd1');
   insert into t_result (step, ok, detail)
   values ('step 4: bank UGX 90,000, cash UGX 30,000, total unchanged',
-          account_balance_at(v_bank) = 90000 and account_balance_at(v_cash) = 30000
+          finance_account_balance_at(v_bank) = 90000 and finance_account_balance_at(v_cash) = 30000
           and (treasury_summary() -> 'totals' ->> 'total')::numeric = v_total0
           and (v_res ->> 'transfer_no') like 'BND-WD-%', v_res ->> 'transfer_no');
 
@@ -243,12 +260,12 @@ begin
   v_exp := (v_res ->> 'expense_id')::uuid;
   insert into t_result (step, ok, detail)
   values ('step 5: an expense request moves no money until approved',
-          account_balance_at(v_cash) = 30000 and (v_res ->> 'payment_no') like 'BND-PAY-%', null);
+          finance_account_balance_at(v_cash) = 30000 and (v_res ->> 'payment_no') like 'BND-PAY-%', null);
 
   perform approve_expense(v_exp, true, null);
   insert into t_result (step, ok, detail)
-  values ('step 5: approved, Cash at Hand falls to UGX 20,000', account_balance_at(v_cash) = 20000,
-          account_balance_at(v_cash)::text);
+  values ('step 5: approved, Cash at Hand falls to UGX 20,000', finance_account_balance_at(v_cash) = 20000,
+          finance_account_balance_at(v_cash)::text);
   insert into t_result (step, ok, detail)
   values ('step 5: total funds fall by UGX 10,000 and expenses rise by UGX 10,000',
           (treasury_summary() -> 'totals' ->> 'total')::numeric = v_total0 - 10000
@@ -271,7 +288,7 @@ begin
 
   insert into t_result (step, ok, detail)
   values ('a reversed transfer puts both accounts back',
-          account_balance_at(v_mer) = 30000 and account_balance_at(v_bank) = 90000, null);
+          finance_account_balance_at(v_mer) = 30000 and finance_account_balance_at(v_bank) = 90000, null);
   insert into t_result (step, ok, detail)
   values ('the transfer document is marked reversed and linked to the reversal',
           exists (select 1 from internal_transfers x
@@ -314,7 +331,7 @@ begin
   v_trf := (v_res ->> 'id')::uuid;
   insert into t_result (step, ok, detail)
   values ('a cashier''s transfer is submitted, and no money moves yet',
-          v_res ->> 'status' = 'submitted' and account_balance_at(v_mer) = 30000, v_res ->> 'status');
+          v_res ->> 'status' = 'submitted' and finance_account_balance_at(v_mer) = 30000, v_res ->> 'status');
 
   begin
     perform decide_internal_transfer(v_trf, true, null);
@@ -336,14 +353,14 @@ begin
   insert into t_result (step, ok, detail)
   values ('a manager approves it and the money moves',
           (select status = 'completed' and approved_by = v_admin from internal_transfers where id = v_trf)
-          and account_balance_at(v_mer) = 25000 and account_balance_at(v_bank) = 95000, null);
+          and finance_account_balance_at(v_mer) = 25000 and finance_account_balance_at(v_bank) = 95000, null);
 
   perform decide_payment((v_res ->> 'id')::uuid, true, null);
   insert into t_result (step, ok, detail)
   values ('an approved payment leaves the chosen account',
-          account_balance_at(v_cash) = 18000
+          finance_account_balance_at(v_cash) = 18000
           and exists (select 1 from payment_register where id = (v_res ->> 'id')::uuid and status = 'completed'),
-          account_balance_at(v_cash)::text);
+          finance_account_balance_at(v_cash)::text);
 
   -- ---- Four eyes --------------------------------------------------------------
   perform update_settings(jsonb_build_object('treasury.four_eyes', true), 'treasury test');
@@ -362,7 +379,7 @@ begin
   insert into t_result (step, ok, detail)
   values ('a waiting transfer can be cancelled, and no money moved',
           (select status from internal_transfers where id = (v_res ->> 'id')::uuid) = 'cancelled'
-          and account_balance_at(v_mer) = 25000, null);
+          and finance_account_balance_at(v_mer) = 25000, null);
   perform update_settings(jsonb_build_object('treasury.four_eyes', false), 'treasury test');
 
   -- ---- Reconciliation ------------------------------------------------------------
@@ -376,7 +393,7 @@ begin
   insert into t_result (step, ok, detail)
   values ('a variance is recorded, and the system balance is not adjusted',
           (v_res ->> 'variance')::numeric = -1000 and v_res ->> 'outcome' = 'variance'
-          and account_balance_at(v_cash) = 18000, v_res::text);
+          and finance_account_balance_at(v_cash) = 18000, v_res::text);
   insert into t_result (step, ok, detail)
   values ('the dashboard flags the variance',
           exists (select 1 from jsonb_array_elements(treasury_summary() -> 'variances') v
@@ -391,7 +408,7 @@ begin
   for r in select * from jsonb_to_recordset(v_report -> 'accounts')
              as x(id uuid, opening numeric, money_in numeric, money_out numeric, closing numeric)
   loop
-    if r.opening + r.money_in - r.money_out <> r.closing or r.closing <> account_balance_at(r.id) then
+    if r.opening + r.money_in - r.money_out <> r.closing or r.closing <> finance_account_balance_at(r.id) then
       v_ok := false;
     end if;
   end loop;
@@ -414,7 +431,7 @@ begin
   insert into t_result (step, ok, detail)
   values ('the account statement runs by date and ends at the balance',
           (select running_balance from account_movements where account_id = v_mer
-            order by entry_date desc, entry_id desc limit 1) = account_balance_at(v_mer), null);
+            order by entry_date desc, entry_id desc limit 1) = finance_account_balance_at(v_mer), null);
 
   -- ---- Paths written before this module land in the right account ----------
   v_res := record_savings_payment(v_a, 'monthly', 2000, current_date, 'cash', 'test:treasury:legacy');

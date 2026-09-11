@@ -23,7 +23,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
         subtitle="Money paid out - payments and approved expenses - with the account it left."
         breadcrumb={[{ label: 'Finance', href: '/staff/finance' }, { label: 'Payments' }]}
         action={
-          can(user.role, 'finance.record') ? (
+          can(user, 'finance.record') ? (
             <>
               <ActionLink href="/staff/finance/new/payment" icon="add" label="Record payment" primary />
               <ActionLink href="/staff/finance/new/expense" icon="trending_down" label="Record expense" />

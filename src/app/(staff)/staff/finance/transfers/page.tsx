@@ -32,7 +32,7 @@ type SP = { status?: string; kind?: string; from?: string; to?: string; q?: stri
 export default async function TransfersPage({ searchParams }: { searchParams: Promise<SP> }) {
   const user = await requirePermission('finance.view');
   const sp = await searchParams;
-  const record = can(user.role, 'finance.record');
+  const record = can(user, 'finance.record');
 
   return (
     <div className="space-y-gutter">
@@ -109,7 +109,7 @@ async function Rows({ sp, user }: { sp: SP; user: SessionUser }) {
     ? await supabase.from('finance_documents').select('id, owner_id, file_name, created_at').eq('owner_type', 'transfer').in('owner_id', ids)
     : { data: [] as { id: string; owner_id: string; file_name: string; created_at: string }[] };
 
-  const canApprove = can(user.role, 'finance.approve');
+  const canApprove = can(user, 'finance.approve');
 
   const csv: (string | number)[][] = [
     ['Transfer no', 'Date', 'Kind', 'From', 'To', 'Amount', 'Source ref', 'Destination ref', 'Handled by', 'Status', 'Recorded by', 'Approved by'],
@@ -191,7 +191,7 @@ async function Rows({ sp, user }: { sp: SP; user: SessionUser }) {
                     canSubmit={mine || canApprove}
                   />
                   <DocumentsButton ownerType="transfer" ownerId={r.id}
-                    documents={(docs ?? []).filter((d) => d.owner_id === r.id)} canAttach={can(user.role, 'finance.record')} />
+                    documents={(docs ?? []).filter((d) => d.owner_id === r.id)} canAttach={can(user, 'finance.record')} />
                 </div>
               </li>
             );

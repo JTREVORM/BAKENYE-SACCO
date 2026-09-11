@@ -28,7 +28,7 @@ export default async function StaffLoansPage({
         subtitle="Applications, active loans and the collections position."
       />
       <Suspense key={JSON.stringify(sp)} fallback={<TableSkeleton rows={8} cols={7} />}>
-        <Portfolio sp={sp} canReview={can(user.role, 'loans.assess')} />
+        <Portfolio sp={sp} canReview={can(user, 'loans.assess')} />
       </Suspense>
     </div>
   );

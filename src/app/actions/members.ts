@@ -1,289 +1,351 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireUser } from '@/lib/auth';
 import { can } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
-import { normalisePhone } from '@/lib/format';
+import { normalisePhone, normaliseUgandanMobile } from '@/lib/format';
+import { memberCredential, provisionMemberLogin } from '@/lib/member-auth';
+import type { RegistrationResult } from '@/types/access';
 
 /**
- * Member and user administration.
+ * Member and staff-account administration.
  *
- * Creating a member optionally creates the auth account that lets them sign in.
- * That needs the service-role key, so it is the one place in the app that
- * touches `createAdminClient()` — and it checks `members.manage` first, before
- * the key is ever used.
+ * Every write here goes through a database function that checks the caller's
+ * permission itself and records what it did. The checks in this file exist to
+ * give a clear sentence early; the database is what actually refuses.
  */
 
-const phone = z
-  .string()
-  .trim()
-  .min(9, 'Enter a phone number.')
-  .transform(normalisePhone)
-  .refine((v) => /^\+\d{9,15}$/.test(v), 'Enter a valid phone number, e.g. 0772 123 456.');
-
-const optionalText = (max: number) =>
+const text = (max: number) =>
   z
     .string()
     .trim()
     .max(max)
     .optional()
-    .transform((v) => (v === '' ? undefined : v));
+    .transform((v) => (v ? v : null));
 
-const memberSchema = z.object({
+const optionalUuid = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => (v ? v : null))
+  .refine((v) => v === null || z.string().uuid().safeParse(v).success, 'Choose an option from the list.');
+
+const optionalDate = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => (v ? v : null))
+  .refine((v) => v === null || /^\d{4}-\d{2}-\d{2}$/.test(v), 'Enter a valid date.');
+
+const ugPhone = z
+  .string()
+  .trim()
+  .min(1, 'Enter the member’s phone number. It is how they sign in.')
+  .transform((v, ctx) => {
+    const n = normaliseUgandanMobile(v);
+    if (!n) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Enter a valid Ugandan mobile number, e.g. 0772 123 456.' });
+      return z.NEVER;
+    }
+    return n;
+  });
+
+const optionalUgPhone = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v, ctx) => {
+    if (!v) return null;
+    const n = normaliseUgandanMobile(v);
+    if (!n) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Enter a valid Ugandan mobile number.' });
+      return z.NEVER;
+    }
+    return n;
+  });
+
+/** The official record, as the registration and edit forms post it. */
+const profileFields = {
   full_name: z
     .string()
     .trim()
     .min(3, 'Enter the member’s full name.')
     .max(120)
-    .refine((v) => v.split(/\s+/).length >= 2, 'Enter both a first and last name.'),
-  phone,
-  national_id: optionalText(30),
+    .refine((v) => v.split(/\s+/).length >= 2, 'Enter both a first and a last name.'),
+  phone: ugPhone,
   email: z
     .string()
     .trim()
-    .email('Enter a valid email address.')
     .optional()
-    .or(z.literal(''))
-    .transform((v) => (v ? v : undefined)),
-  date_of_birth: z
+    .transform((v) => (v ? v.toLowerCase() : null))
+    .refine((v) => v === null || z.string().email().safeParse(v).success, 'Enter a valid email address, or leave it blank.'),
+  national_id: text(30),
+  date_of_birth: optionalDate,
+  gender: z
+    .enum(['male', 'female', 'other', ''])
+    .optional()
+    .transform((v) => (v ? v : null)),
+  address: text(300),
+  occupation: text(120),
+  next_of_kin_name: text(120),
+  next_of_kin_phone: optionalUgPhone,
+  next_of_kin_relation: text(60),
+  joined_on: optionalDate,
+};
+
+function firstIssue(error: z.ZodError): ActionResult<never> {
+  const issue = error.issues[0];
+  return { ok: false, error: issue.message, field: String(issue.path[0]) };
+}
+
+/* ==========================================================================
+ * Registration
+ * ======================================================================== */
+
+const registrationSchema = z.object({
+  ...profileFields,
+  share_category_id: optionalUuid,
+  savings_category_id: optionalUuid,
+  optional_fee_ids: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional()
-    .or(z.literal(''))
-    .transform((v) => (v ? v : undefined)),
-  gender: z.enum(['male', 'female', 'other']).optional().or(z.literal('')),
-  address: optionalText(300),
-  occupation: optionalText(120),
-  next_of_kin_name: optionalText(120),
-  next_of_kin_phone: z
+    .transform((v) => (v ? v.split(',').filter(Boolean) : []))
+    .refine((ids) => ids.every((id) => z.string().uuid().safeParse(id).success), 'Choose fees from the list.'),
+  expected_total: z.coerce.number().min(0),
+  pay_now: z.enum(['yes', 'no']),
+  account_id: optionalUuid,
+  method: z
+    .enum(['cash', 'mobile_money', 'bank_transfer', 'cheque', ''])
+    .optional()
+    .transform((v) => (v ? v : null)),
+  reference: text(80),
+  paid_on: optionalDate,
+  amount_received: z
     .string()
-    .trim()
     .optional()
-    .or(z.literal(''))
-    .transform((v) => (v ? normalisePhone(v) : undefined)),
-  next_of_kin_relation: optionalText(60),
-  photo_url: optionalText(500),
-  share_category_id: z
-    .string()
-    .trim()
-    .optional()
-    .transform((v) => (v ? v : undefined))
-    .refine(
-      (v) => v === undefined || z.string().uuid().safeParse(v).success,
-      'Choose a share category from the list.',
-    ),
-  savings_category_id: z
-    .string()
-    .trim()
-    .optional()
-    .transform((v) => (v ? v : undefined))
-    .refine(
-      (v) => v === undefined || z.string().uuid().safeParse(v).success,
-      'Choose a savings category from the list.',
-    ),
-  create_login: z.enum(['on', 'off']).optional(),
+    .transform((v) => (v ? Number(v) : null)),
+  registration_key: z.string().min(8).max(100),
+  allow_shared_phone: z.enum(['on', 'off']).optional(),
+  override_reason: text(500),
 });
 
-export async function createMember(
-  _prev: ActionResult<unknown> | null,
+export type RegistrationOutcome = RegistrationResult & { login_note: string | null };
+
+/**
+ * Register a member: one call to `register_member()`, which creates the member,
+ * charges the fees, posts the payment into Cash at Merchant / Bank / Hand,
+ * issues the receipt and writes the audit trail in one database transaction.
+ *
+ * The member's sign-in is created after that transaction commits, because it
+ * lives in Supabase Auth rather than in the database. If it cannot be created
+ * the registration still stands - nothing financial depends on it - and the
+ * member's first sign-in creates it instead.
+ */
+export async function registerMember(
+  _prev: ActionResult<RegistrationOutcome> | null,
   formData: FormData,
-): Promise<ActionResult<{ member_id: string; member_no: string; temp_password?: string }>> {
+): Promise<ActionResult<RegistrationOutcome>> {
   const user = await requireUser();
-  if (!can(user.role, 'members.manage')) {
+  if (!can(user, 'members.create')) {
     return { ok: false, error: 'You do not have permission to register members.' };
   }
 
-  const parsed = memberSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
-
+  const parsed = registrationSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return firstIssue(parsed.error);
   const d = parsed.data;
-  const wantsLogin = d.create_login === 'on';
 
-  if (wantsLogin && !d.email) {
-    return {
-      ok: false,
-      error: 'An email address is required to create a login for this member.',
-      field: 'email',
-    };
+  const payNow = d.pay_now === 'yes' && d.expected_total > 0;
+  if (payNow && !d.account_id) {
+    return { ok: false, error: 'Choose where the money was received.', field: 'account_id' };
   }
 
   const supabase = await createClient();
-  let authUserId: string | null = null;
-  let tempPassword: string | undefined;
-
-  if (wantsLogin && d.email) {
-    // A random first password, shown once to the registering officer so they
-    // can hand it over. The member is expected to change it on first sign-in.
-    tempPassword = `BND-${Math.random().toString(36).slice(2, 8).toUpperCase()}${Math.floor(
-      Math.random() * 90 + 10,
-    )}`;
-
-    const admin = createAdminClient();
-    const { data: created, error: authError } = await admin.auth.admin.createUser({
+  const { data, error } = await supabase.rpc('register_member', {
+    p_member: {
+      full_name: d.full_name,
+      phone: d.phone,
       email: d.email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: { full_name: d.full_name, phone: d.phone, role: 'member' },
-    });
-
-    if (authError) return fail(authError, 'email');
-    authUserId = created.user?.id ?? null;
-  }
-
-  const { data, error } = await supabase.rpc('create_member', {
-    p_full_name: d.full_name,
-    p_phone: d.phone,
-    p_national_id: d.national_id ?? null,
-    p_email: d.email ?? null,
-    p_address: d.address ?? null,
-    p_date_of_birth: d.date_of_birth ?? null,
-    p_gender: d.gender || null,
-    p_occupation: d.occupation ?? null,
-    p_next_of_kin_name: d.next_of_kin_name ?? null,
-    p_next_of_kin_phone: d.next_of_kin_phone ?? null,
-    p_next_of_kin_relation: d.next_of_kin_relation ?? null,
-    p_photo_url: d.photo_url ?? null,
-    p_user_id: authUserId,
+      national_id: d.national_id,
+      date_of_birth: d.date_of_birth,
+      gender: d.gender,
+      address: d.address,
+      occupation: d.occupation,
+      next_of_kin_name: d.next_of_kin_name,
+      next_of_kin_phone: d.next_of_kin_phone,
+      next_of_kin_relation: d.next_of_kin_relation,
+      joined_on: d.joined_on,
+      share_category_id: d.share_category_id,
+      savings_category_id: d.savings_category_id,
+    },
+    p_optional_fee_ids: d.optional_fee_ids,
+    p_payment: payNow
+      ? {
+          pay_now: true,
+          account_id: d.account_id,
+          method: d.method,
+          reference: d.reference,
+          paid_on: d.paid_on,
+          amount_received: d.amount_received,
+          idempotency_key: `register-pay:${d.registration_key}`,
+        }
+      : { pay_now: false },
+    p_expected_total: d.expected_total,
+    p_registration_key: d.registration_key,
+    p_allow_shared_phone: d.allow_shared_phone === 'on',
+    p_override_reason: d.override_reason,
   });
+  if (error) return fail(error);
 
-  if (error) {
-    // Do not strand an orphaned auth account if the member insert failed.
-    if (authUserId) {
-      try {
-        await createAdminClient().auth.admin.deleteUser(authUserId);
-      } catch {
-        // Reported below; the account is inert without a member record.
+  const result = data as RegistrationResult;
+  const loginFailed =
+    'The member is registered, but their sign-in could not be set up just now. It will be set up the first time they sign in.';
+  let loginNote: string | null = null;
+
+  if (!result.has_login) {
+    try {
+      const created = await provisionMemberLogin({
+        id: result.member_id,
+        member_no: result.member_no,
+        phone: result.phone,
+      });
+      if ('error' in created) {
+        loginNote = loginFailed;
+      } else {
+        result.has_login = true;
+        await supabase.rpc('log_member_login_created', { p_member_id: result.member_id });
       }
-    }
-    return fail(error);
-  }
-
-  const result = data as { member_id: string; member_no: string };
-
-  // Categories are a separate, audited step — set_member_categories() records
-  // who put this member in which tier, and re-prices their unpaid schedules if
-  // they are ever moved again.
-  if (d.share_category_id || d.savings_category_id) {
-    const { error: categoryError } = await supabase.rpc('set_member_categories', {
-      p_member_id: result.member_id,
-      p_share_category_id: d.share_category_id ?? null,
-      p_savings_category_id: d.savings_category_id ?? null,
-      p_reason: 'Set at registration',
-    });
-    if (categoryError) {
-      // The member exists and is usable; only the categories failed.
-      revalidatePath('/staff/members');
-      return {
-        ok: false,
-        error: `${d.full_name} was registered as ${result.member_no}, but the categories could not be set. Set them from their profile.`,
-        field: 'savings_category_id',
-      };
+    } catch {
+      loginNote = loginFailed;
     }
   }
 
   revalidatePath('/staff/members');
   revalidatePath('/staff/categories');
+  revalidatePath('/staff/finance');
   revalidatePath('/staff');
 
   return succeed(
-    { ...result, temp_password: tempPassword },
-    `${d.full_name} registered as ${result.member_no}.`,
+    { ...result, login_note: loginNote },
+    result.duplicate
+      ? `${result.full_name} was already registered as ${result.member_no}. Nothing was recorded twice.`
+      : `${result.full_name} registered as ${result.member_no}.`,
   );
 }
 
-export async function updateMember(
+/* ==========================================================================
+ * Editing the official record
+ * ======================================================================== */
+
+const editSchema = z.object({
+  member_id: z.string().uuid(),
+  ...profileFields,
+  share_category_id: optionalUuid,
+  savings_category_id: optionalUuid,
+  reason: z.string().trim().min(5, 'Give a reason for this change - it is kept on the member’s record.').max(500),
+  allow_shared_phone: z.enum(['on', 'off']).optional(),
+});
+
+/**
+ * Change a member's official details. Staff with `members.manage` only; the
+ * database refuses anyone else, and records every changed field with its old
+ * value, new value, who and why.
+ */
+export async function updateMemberProfile(
   _prev: ActionResult<unknown> | null,
   formData: FormData,
-): Promise<ActionResult<{ member_id: string }>> {
+): Promise<ActionResult<{ member_id: string; changed: string[] }>> {
   const user = await requireUser();
-
-  const memberId = String(formData.get('member_id') ?? '');
-  if (!z.string().uuid().safeParse(memberId).success) {
-    return { ok: false, error: 'That member could not be found.' };
+  if (!can(user, 'members.manage')) {
+    return { ok: false, error: 'You do not have permission to edit member records.' };
   }
 
-  const isOwnProfile = user.memberId === memberId;
-  if (!can(user.role, 'members.manage') && !isOwnProfile) {
-    return { ok: false, error: 'You do not have permission to edit this member.' };
-  }
-
-  const parsed = memberSchema.omit({ create_login: true }).safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
-
+  const parsed = editSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return firstIssue(parsed.error);
   const d = parsed.data;
+
   const supabase = await createClient();
+  const { data: current } = await supabase
+    .from('members')
+    .select('share_category_id, savings_category_id')
+    .eq('id', d.member_id)
+    .maybeSingle();
+  if (!current) return { ok: false, error: 'That member could not be found.' };
 
-  // A member editing their own profile may change contact details only. RLS
-  // enforces this too; keeping the column list narrow here means the UI and the
-  // policy agree instead of the member seeing a silent no-op.
-  const patch = isOwnProfile && !can(user.role, 'members.manage')
-    ? {
-        phone: d.phone,
-        email: d.email ?? null,
-        address: d.address ?? null,
-        occupation: d.occupation ?? null,
-        next_of_kin_name: d.next_of_kin_name ?? null,
-        next_of_kin_phone: d.next_of_kin_phone ?? null,
-        next_of_kin_relation: d.next_of_kin_relation ?? null,
+  const changes: Record<string, string | null> = {
+    full_name: d.full_name,
+    phone: d.phone,
+    email: d.email,
+    national_id: d.national_id,
+    date_of_birth: d.date_of_birth,
+    gender: d.gender,
+    address: d.address,
+    occupation: d.occupation,
+    next_of_kin_name: d.next_of_kin_name,
+    next_of_kin_phone: d.next_of_kin_phone,
+    next_of_kin_relation: d.next_of_kin_relation,
+  };
+  if (d.joined_on) changes.joined_on = d.joined_on;
+
+  const categoriesChanged =
+    can(user, 'categories.manage') &&
+    ((current.share_category_id ?? null) !== d.share_category_id ||
+      (current.savings_category_id ?? null) !== d.savings_category_id);
+
+  let changed: string[] = [];
+  const { data, error } = await supabase.rpc('update_member_profile', {
+    p_member_id: d.member_id,
+    p_changes: changes,
+    p_reason: d.reason,
+    p_allow_shared_phone: d.allow_shared_phone === 'on',
+  });
+
+  if (error) {
+    // "Nothing changed" is only a failure if the categories did not change
+    // either.
+    if (!(categoriesChanged && /Nothing changed/.test(error.message ?? ''))) return fail(error);
+  } else {
+    const result = data as { changed: string[]; user_id: string | null; phone: string };
+    changed = result.changed;
+
+    // Keep the member's sign-in in step with their new number straight away.
+    // If this fails, their next sign-in re-derives it after the database has
+    // checked the new number.
+    if (changed.includes('phone') && result.user_id) {
+      try {
+        await createAdminClient().auth.admin.updateUserById(result.user_id, {
+          password: memberCredential(result.user_id, result.phone),
+        });
+      } catch {
+        // See above.
       }
-    : {
-        full_name: d.full_name,
-        phone: d.phone,
-        email: d.email ?? null,
-        national_id: d.national_id ?? null,
-        date_of_birth: d.date_of_birth ?? null,
-        gender: d.gender || null,
-        address: d.address ?? null,
-        occupation: d.occupation ?? null,
-        next_of_kin_name: d.next_of_kin_name ?? null,
-        next_of_kin_phone: d.next_of_kin_phone ?? null,
-        next_of_kin_relation: d.next_of_kin_relation ?? null,
-        photo_url: d.photo_url ?? null,
-      };
-
-  const { error } = await supabase.from('members').update(patch).eq('id', memberId);
-  if (error) return fail(error);
-
-  // Categories never ride along on a column update — they go through the
-  // audited RPC, which also decides which schedules get re-priced.
-  if (can(user.role, 'categories.manage')) {
-    const { data: current } = await supabase
-      .from('members')
-      .select('share_category_id, savings_category_id')
-      .eq('id', memberId)
-      .maybeSingle();
-
-    const changed =
-      (current?.share_category_id ?? null) !== (d.share_category_id ?? null) ||
-      (current?.savings_category_id ?? null) !== (d.savings_category_id ?? null);
-
-    if (changed) {
-      const { error: categoryError } = await supabase.rpc('set_member_categories', {
-        p_member_id: memberId,
-        p_share_category_id: d.share_category_id ?? null,
-        p_savings_category_id: d.savings_category_id ?? null,
-        p_reason: 'Changed while editing the member',
-      });
-      if (categoryError) return fail(categoryError, 'savings_category_id');
-      revalidatePath('/staff/categories');
     }
   }
 
+  if (categoriesChanged) {
+    const { error: categoryError } = await supabase.rpc('set_member_categories', {
+      p_member_id: d.member_id,
+      p_share_category_id: d.share_category_id,
+      p_savings_category_id: d.savings_category_id,
+      p_reason: d.reason,
+    });
+    if (categoryError) return fail(categoryError, 'savings_category_id');
+    changed.push('categories');
+    revalidatePath('/staff/categories');
+  }
+
   revalidatePath('/staff/members');
-  revalidatePath(`/staff/members/${memberId}`);
+  revalidatePath(`/staff/members/${d.member_id}`);
   revalidatePath('/profile');
 
-  return succeed({ member_id: memberId }, 'Details updated.');
+  return succeed(
+    { member_id: d.member_id, changed },
+    `Saved. ${changed.length} ${changed.length === 1 ? 'change' : 'changes'} recorded on the member’s history.`,
+  );
 }
 
 export async function setMemberStatus(
@@ -291,14 +353,14 @@ export async function setMemberStatus(
   formData: FormData,
 ): Promise<ActionResult<{ status: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'members.status')) {
+  if (!can(user, 'members.status')) {
     return { ok: false, error: 'You do not have permission to change a member’s status.' };
   }
 
   const parsed = z
     .object({
       member_id: z.string().uuid(),
-      status: z.enum(['active', 'inactive', 'suspended', 'exited']),
+      status: z.enum(['active', 'suspended', 'inactive', 'archived']),
       reason: z
         .string()
         .trim()
@@ -307,10 +369,7 @@ export async function setMemberStatus(
     })
     .safeParse(Object.fromEntries(formData));
 
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
+  if (!parsed.success) return firstIssue(parsed.error);
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('set_member_status', {
@@ -337,7 +396,7 @@ export async function setSavingsPlan(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const user = await requireUser();
-  if (!can(user.role, 'savings.record')) {
+  if (!can(user, 'savings.record')) {
     return { ok: false, error: 'You do not have permission to set savings targets.' };
   }
 
@@ -349,10 +408,7 @@ export async function setSavingsPlan(
     })
     .safeParse(Object.fromEntries(formData));
 
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
+  if (!parsed.success) return firstIssue(parsed.error);
 
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
@@ -385,48 +441,61 @@ export async function setSavingsPlan(
  * Staff accounts
  * ======================================================================== */
 
+const roleKey = z.string().regex(/^[a-z][a-z0-9_]{1,39}$/, 'Choose a role.');
+
+/** A first password with letters and digits, from a proper random source. */
+function temporaryPassword(): string {
+  return `BND-${randomBytes(9).toString('base64url')}-7a`;
+}
+
+/**
+ * Create a staff account. The role travels in the account's app metadata -
+ * which only the service role can write - and the database checks, before the
+ * account exists, that this person may hand out that role.
+ */
 export async function createStaffUser(
   _prev: ActionResult<unknown> | null,
   formData: FormData,
 ): Promise<ActionResult<{ user_id: string; temp_password: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'users.manage')) {
-    return { ok: false, error: 'Only a super admin can create staff accounts.' };
+  if (!can(user, 'users.manage')) {
+    return { ok: false, error: 'You do not have permission to create staff accounts.' };
   }
 
   const parsed = z
     .object({
       full_name: z.string().trim().min(3, 'Enter the full name.').max(120),
       email: z.string().trim().email('Enter a valid email address.'),
-      phone: phone.optional().or(z.literal('')),
-      role: z.enum([
-        'super_admin', 'manager', 'loan_officer', 'cashier',
-        'accountant', 'field_officer', 'viewer',
-      ]),
+      phone: z
+        .string()
+        .trim()
+        .optional()
+        .transform((v) => (v ? normalisePhone(v) : null)),
+      role: roleKey,
     })
     .safeParse(Object.fromEntries(formData));
 
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
+  if (!parsed.success) return firstIssue(parsed.error);
 
-  const tempPassword = `BND-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+  const supabase = await createClient();
+  const { error: roleError } = await supabase.rpc('assert_can_assign_role', { p_role: parsed.data.role });
+  if (roleError) return fail(roleError, 'role');
+
+  const tempPassword = temporaryPassword();
   const admin = createAdminClient();
 
   const { data: created, error } = await admin.auth.admin.createUser({
     email: parsed.data.email,
     password: tempPassword,
     email_confirm: true,
-    user_metadata: {
-      full_name: parsed.data.full_name,
-      phone: parsed.data.phone || null,
-      role: parsed.data.role,
-    },
+    user_metadata: { full_name: parsed.data.full_name, phone: parsed.data.phone },
+    app_metadata: { role: parsed.data.role },
   });
 
   if (error) return fail(error, 'email');
   if (!created.user) return { ok: false, error: 'The account could not be created.' };
+
+  await supabase.rpc('log_staff_account_created', { p_user_id: created.user.id });
 
   revalidatePath('/staff/users');
 
@@ -441,25 +510,19 @@ export async function setUserRole(
   formData: FormData,
 ): Promise<ActionResult<{ role: string }>> {
   const user = await requireUser();
-  if (!can(user.role, 'users.manage')) {
-    return { ok: false, error: 'Only a super admin can change roles.' };
+  if (!can(user, 'users.manage')) {
+    return { ok: false, error: 'You do not have permission to change roles.' };
   }
 
   const parsed = z
     .object({
       user_id: z.string().uuid(),
-      role: z.enum([
-        'super_admin', 'manager', 'loan_officer', 'cashier',
-        'accountant', 'field_officer', 'viewer', 'member',
-      ]),
+      role: roleKey,
       reason: z.string().trim().min(5, 'Give a reason for this change.').max(500),
     })
     .safeParse(Object.fromEntries(formData));
 
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
+  if (!parsed.success) return firstIssue(parsed.error);
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('set_user_role', {
@@ -471,6 +534,7 @@ export async function setUserRole(
   if (error) return fail(error, 'reason');
 
   revalidatePath('/staff/users');
+  revalidatePath('/staff/roles');
   return succeed(data as { role: string }, 'Role updated.');
 }
 
@@ -479,8 +543,8 @@ export async function setUserActive(
   formData: FormData,
 ): Promise<ActionResult<{ is_active: boolean }>> {
   const user = await requireUser();
-  if (!can(user.role, 'users.manage')) {
-    return { ok: false, error: 'Only a super admin can deactivate accounts.' };
+  if (!can(user, 'users.manage')) {
+    return { ok: false, error: 'You do not have permission to deactivate accounts.' };
   }
 
   const parsed = z
@@ -491,10 +555,7 @@ export async function setUserActive(
     })
     .safeParse(Object.fromEntries(formData));
 
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
+  if (!parsed.success) return firstIssue(parsed.error);
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('set_user_active', {

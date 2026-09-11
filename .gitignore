@@ -1,15 +1,66 @@
+# --- Dependencies -----------------------------------------------------------
 node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# --- Next.js build output and caches ---------------------------------------
+# `.next-*` also catches renamed or stale build folders (e.g. .next-stale-*),
+# which OneDrive can leave behind when it locks a build directory.
 .next/
+.next-*/
+.next-*
 out/
 build/
-.env
-.env.local
-.env*.local
+dist/
+
+# --- TypeScript -------------------------------------------------------------
 *.tsbuildinfo
 next-env.d.ts
-.DS_Store
+
+# --- Environment files ------------------------------------------------------
+# Secrets live here. The template `.env.example` is committed on purpose.
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env*.local
+!.env.example
+
+# --- Testing and coverage ---------------------------------------------------
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# --- Logs -------------------------------------------------------------------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+*.log
+
+# --- Deployment and tooling -------------------------------------------------
 .vercel
+.turbo/
 supabase/.temp/
+supabase/.branches/
+
+# --- OS and editor noise ----------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.pem
 
 # Responsive-audit output. Regenerate with scripts/responsive-check.mjs.
 screenshots/

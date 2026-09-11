@@ -32,7 +32,7 @@ export const metadata: Metadata = { title: 'Loan Products' };
  */
 export default async function LoanProductsPage() {
   const user = await requirePermission('loans.view');
-  const canManage = can(user.role, 'settings.manage');
+  const canManage = can(user, 'settings.manage');
 
   const [products, rules, counts] = await Promise.all([
     getAllLoanProducts(),

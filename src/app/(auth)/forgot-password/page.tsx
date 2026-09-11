@@ -13,9 +13,8 @@ export const metadata: Metadata = { title: 'Forgot password' };
  *
  *   - An account with an email address gets a reset link by email.
  *   - Anyone else asks the SACCO office. After checking who they are, staff
- *     issue a one-time reset code (never the password - nobody at the SACCO
- *     ever sees one), and the member chooses a new password on "Set up your
- *     account". The same code is what an SMS or OTP service will deliver later.
+ *     issue a new temporary password, which must be changed at the next
+ *     sign-in - so nobody at the SACCO ends up knowing the password in use.
  *
  * The form answers the same way whatever is typed, so it cannot be used to
  * find out which member numbers or phone numbers exist.
@@ -44,14 +43,8 @@ export default function ForgotPasswordPage() {
 
         <ul className="mt-7 flex flex-col gap-3">
           <Tip icon="storefront" title="No email? Visit the SACCO office">
-            Bring your National ID. After confirming who you are, staff give you a one-time reset
-            code - never your password.
-          </Tip>
-          <Tip icon="key" title="Have a setup or reset code?">
-            <Link href="/activate" className="text-primary font-semibold hover:underline">
-              Set up your account
-            </Link>{' '}
-            with it and choose a new password.
+            Bring your National ID. After confirming who you are, staff give you a new temporary
+            password. Sign in with it and you will be asked to choose your own straight away.
           </Tip>
         </ul>
       </div>

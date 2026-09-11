@@ -22,10 +22,12 @@
  *
  * PASSWORDS
  *
- * An account is created with a long random password that no person ever sees.
- * The account holder then chooses their own password with a one-time setup
- * code (`issue_account_setup_code()`), which only the officer who created the
- * account sees, once. Supabase keeps only a bcrypt hash of any password.
+ * An account is created ready to use, with a generated temporary password that
+ * the officer who created it is shown once and hands over. It is never stored
+ * in readable form - Supabase keeps only a bcrypt hash - and the account holder
+ * must replace it the first time they sign in: until they do, the database
+ * lets the account do nothing else (`must_change_password`, 0034). A password
+ * reset issues a new temporary password the same way.
  */
 import { randomBytes } from 'node:crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -47,31 +49,46 @@ export function isInternalEmail(email: string | null | undefined): boolean {
   return !!email && email.toLowerCase().endsWith('.invalid');
 }
 
-/** A password nobody knows, for an account whose holder has yet to choose one. */
-export function unusablePassword(): string {
-  return `Xx9!${randomBytes(32).toString('base64url')}`;
+/**
+ * A temporary password: four letters and four digits, e.g. `KQPM-4827`.
+ *
+ * Easy to read out across a counter and to type on a basic phone - no 0/O or
+ * 1/I/L to confuse. It only has to survive until the first sign-in, when the
+ * account holder must replace it, and sign-in attempts are rate-limited, so
+ * this is ample.
+ */
+export function temporaryPassword(): string {
+  const letters = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+  const digits = '23456789';
+  const bytes = randomBytes(8);
+  let out = '';
+  for (let i = 0; i < 4; i++) out += letters[bytes[i] % letters.length];
+  out += '-';
+  for (let i = 4; i < 8; i++) out += digits[bytes[i] % digits.length];
+  return out;
 }
 
 /**
- * Create the login for a member who has none. It names the member in its app
- * metadata - which only the service role can write - and the
- * `on_auth_user_created` trigger links the two in the same transaction.
+ * Create the login for a member who has none, with a temporary password. It
+ * names the member in its app metadata - which only the service role can
+ * write - and the database links the two as Supabase writes that metadata.
  */
 export async function provisionMemberLogin(member: {
   id: string;
   member_no: string;
-}): Promise<{ userId: string } | { error: string }> {
+}): Promise<{ userId: string; password: string } | { error: string }> {
   const admin = createAdminClient();
+  const password = temporaryPassword();
   const { data, error } = await admin.auth.admin.createUser({
     email: memberAuthEmail(member.member_no),
-    password: unusablePassword(),
+    password,
     email_confirm: true,
     app_metadata: { member_id: member.id },
   });
   if (error || !data.user) {
     return { error: error?.message ?? 'The login could not be created.' };
   }
-  return { userId: data.user.id };
+  return { userId: data.user.id, password };
 }
 
 /** Normalise what someone typed as a member number: "123", "bnd-m-123", "BND-M-0000123". */

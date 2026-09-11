@@ -322,25 +322,28 @@ declare
   v_rogue   uuid := gen_random_uuid();
   v_user    app_users;
   v_err     text;
-  v_code    text;
-  v_hash    text;
+  v_admin   text := current_setting('request.jwt.claims', true);
   i         integer;
 begin
-  -- John's login, created the way registration creates it: an internal
-  -- address, a password nobody knows, and a link to his member record.
+  -- John's login, created the way Supabase Auth's admin API really does it:
+  -- the row first, with only the provider in its app metadata, then the
+  -- member link written by a second statement. Provisioning must catch the
+  -- second step, not just the first.
   insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
                           email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
                           created_at, updated_at)
   values (v_uid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
           lower(v_no) || '@members.bnd-sacco.invalid', '', now(),
-          jsonb_build_object('member_id', v_john_id), '{}'::jsonb, now(), now());
+          jsonb_build_object('provider', 'email'), '{}'::jsonb, now(), now());
+  update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('member_id', v_john_id)
+   where id = v_uid;
   insert into t_ctx values ('john_user', v_uid, null);
 
   select * into v_user from app_users where id = v_uid;
   insert into t_result (step, ok, detail)
-  values ('9a the new login is a member login linked to exactly one member record, with no password chosen yet',
+  values ('9a a login created in two steps, as Supabase does it, is linked to exactly one member and on a temporary password',
           v_user.role = 'member' and v_user.is_active and v_user.email is null
-          and v_user.password_set_at is null
+          and v_user.password_set_at is null and v_user.must_change_password
           and (select user_id from members where id = v_john_id) = v_uid, null);
 
   -- A cashier with no email address, who signs in with a phone number.
@@ -349,8 +352,10 @@ begin
                           created_at, updated_at)
   values (v_staff, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
           'staff-test@staff.bnd-sacco.invalid', '', now(),
-          jsonb_build_object('role', 'cashier'),
+          jsonb_build_object('provider', 'email'),
           jsonb_build_object('full_name', 'Test Phone Cashier', 'phone', '0770 000 055'), now(), now());
+  update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('role', 'cashier')
+   where id = v_staff;
   select * into v_user from app_users where id = v_staff;
   insert into t_result (step, ok, detail)
   values ('9b a staff account needs no email: its internal address is not kept and its phone is normalised',
@@ -397,30 +402,40 @@ begin
   insert into t_result (step, ok, detail)
   values ('9j failures are in the audit log, without any password',
           exists (select 1 from audit_logs where action = 'auth.login_failed' and record_id = v_uid::text)
-          and not exists (select 1 from audit_logs where new_value::text ilike '%password"%'), null);
+          -- A field holding a password - "password", "new_password",
+          -- "temporary_password" - never "must_change_password", which is a flag.
+          and not exists (select 1 from audit_logs
+                           where coalesce(new_value::text, '') ~* '"(current_|new_|temp_|temporary_)?password"\s*:'
+                              or coalesce(old_value::text, '') ~* '"(current_|new_|temp_|temporary_)?password"\s*:'), null);
 
-  -- ---- Setup codes: the member chooses their own password -----------------
-  v_res := issue_account_setup_code(v_uid, 'setup');
-  v_code := v_res ->> 'code';
-  select code_hash into v_hash from account_setup_codes where user_id = v_uid and used_at is null;
+  -- ---- A temporary password can do nothing but be changed ----------------
+  perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
   insert into t_result (step, ok, detail)
-  values ('9k a setup code is issued once, and only its hash is stored',
-          v_code ~ '^[A-Z2-9]{5}-[A-Z2-9]{5}$' and v_hash like '$2%' and v_hash <> v_code, null);
+  values ('9k on a temporary password the member reads nothing and holds no permission',
+          current_member_id() is null and not has_permission('portal.view')
+          and (my_session() ->> 'must_change_password')::boolean, null);
 
-  v_res := setup_code_verify('0770000000', 'AAAAA-AAAAA', 'test-client-4');
+  perform log_password_changed();
   insert into t_result (step, ok, detail)
-  values ('9l a wrong code is refused', v_res ->> 'reason' = 'invalid', null);
+  values ('9l once they choose their own password, their records open up',
+          current_member_id() = v_john_id and has_permission('portal.view')
+          and not (my_session() ->> 'must_change_password')::boolean
+          and (select password_set_at is not null from app_users where id = v_uid), null);
+  perform set_config('request.jwt.claims', v_admin, true);
 
-  v_res := setup_code_verify('0770000000', lower(replace(v_code, '-', '')), 'test-client-4');
+  -- ---- Reset password: a new temporary password, and a forced change -----
+  perform issue_temporary_password(v_uid);
   insert into t_result (step, ok, detail)
-  values ('9m the right code, typed any way, identifies the account',
-          (v_res ->> 'ok')::boolean and (v_res ->> 'user_id')::uuid = v_uid, null);
+  values ('9m a staff reset puts the account back on a forced change, and is audited',
+          (select must_change_password from app_users where id = v_uid)
+          and exists (select 1 from audit_logs where action = 'account.password_reset' and record_id = v_uid::text), null);
 
-  perform setup_code_complete((v_res ->> 'code_id')::uuid);
+  perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
+  perform log_password_changed();
+  perform set_config('request.jwt.claims', v_admin, true);
   insert into t_result (step, ok, detail)
-  values ('9n once the password is set the code is spent and the account is marked set up',
-          (select password_set_at is not null from app_users where id = v_uid)
-          and (setup_code_verify(v_no, v_code, 'test-client-4') ->> 'ok')::boolean is false, null);
+  values ('9n there are no setup codes any more', to_regclass('public.account_setup_codes') is null
+          and to_regprocedure('public.setup_code_verify(text, text, text)') is null, null);
 
   -- Even the database owner, writing SQL by hand, cannot renumber a member or
   -- delete a fee: those rules are triggers, not just missing privileges.
@@ -545,11 +560,11 @@ begin
   insert into t_result (step, ok, detail) values ('10l he cannot read the audit log', v_n = 0, v_n || ' row(s)');
 
   begin
-    perform issue_account_setup_code(v_uid, 'reset');
-    insert into t_result (step, ok, detail) values ('10m he cannot issue himself a reset code', false, 'issued');
+    perform issue_temporary_password(v_uid);
+    insert into t_result (step, ok, detail) values ('10m he cannot issue himself a temporary password', false, 'issued');
   exception when others then
     get stacked diagnostics v_err = message_text;
-    insert into t_result (step, ok, detail) values ('10m he cannot issue himself a reset code', true, v_err);
+    insert into t_result (step, ok, detail) values ('10m he cannot issue himself a temporary password', true, v_err);
   end;
 
   -- Suspended: his existing session reads nothing.
@@ -580,7 +595,7 @@ select '11a no internal helper is executable by anon or authenticated',
    and p.proname in ('post_transaction', 'post_account_entry', 'write_audit', 'next_document_no',
                      'post_fee_payment', 'maybe_activate_member', 'ensure_savings_period',
                      'settle_manual_payment', 'define_setting', 'login_resolve', 'login_record',
-                     'setup_code_verify', 'setup_code_complete', 'login_candidates',
+                     'login_candidates', 'write_account_audit',
                      'resolve_posting_account', 'account_balance_at', 'run_daily_maintenance')
    and (has_function_privilege('anon', p.oid, 'execute')
         or has_function_privilege('authenticated', p.oid, 'execute'));

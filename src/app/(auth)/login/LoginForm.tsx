@@ -29,7 +29,7 @@ export function IconWell({ icon, children }: { icon: IconName; children: React.R
   );
 }
 
-/** The password field with its show/hide control, shared with account setup. */
+/** The password field with its show/hide control, shared with the password forms. */
 export function PasswordField({
   id,
   name,
@@ -88,7 +88,7 @@ export function PasswordField({
  * server works out whose account it is, checks the password, reads the role
  * from the database and opens that role's dashboard.
  */
-export function LoginForm({ next, notice }: { next?: string; notice?: 'reset' | 'setup' | null }) {
+export function LoginForm({ next, notice }: { next?: string; notice?: 'reset' | null }) {
   const [state, action] = useActionState<ActionResult<null> | null, FormData>(signIn, null);
   const error = state && !state.ok ? state : null;
 
@@ -97,10 +97,6 @@ export function LoginForm({ next, notice }: { next?: string; notice?: 'reset' | 
       {notice === 'reset' ? (
         <Alert tone="success" title="Password changed">
           Sign in with your new password.
-        </Alert>
-      ) : notice === 'setup' ? (
-        <Alert tone="success" title="Your password is set">
-          Sign in with your member number or phone number and your new password.
         </Alert>
       ) : null}
 
@@ -156,16 +152,6 @@ export function LoginForm({ next, notice }: { next?: string; notice?: 'reset' | 
       <SubmitButton size="lg" block pendingLabel="Signing in...">
         Sign In
       </SubmitButton>
-
-      <p className="text-on-surface-variant flex flex-wrap items-center justify-center gap-x-1 text-center text-[13px]">
-        <span>New, or given a setup code?</span>
-        <Link
-          href="/activate"
-          className="text-primary h-touch-target-min inline-flex items-center rounded-full px-2 font-semibold hover:bg-surface hover:shadow-neu-sm"
-        >
-          Set up your account
-        </Link>
-      </p>
     </form>
   );
 }

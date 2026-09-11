@@ -48,6 +48,10 @@ begin
      'treasury.member@test.invalid', '', now(), jsonb_build_object('member_id', v_mid),
      '{}'::jsonb, now(), now());
 
+  -- Both logins stand for people who have already changed their temporary
+  -- password; until then an account can do nothing.
+  update app_users set must_change_password = false where id in (v_cashier, v_member_user);
+
   insert into t_ctx values ('cashier', v_cashier), ('member_user', v_member_user);
 end;
 $fixture$;

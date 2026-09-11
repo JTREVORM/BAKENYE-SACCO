@@ -11,7 +11,7 @@ import { getRules } from '@/lib/settings';
 import { getSessionUser } from '@/lib/auth';
 import { landingPath, type Access, type Dashboard, type RoleKind } from '@/lib/rbac';
 import { isInternalEmail } from '@/lib/accounts';
-import type { LoginResolution, SessionPayload, SetupCodeVerdict } from '@/types/access';
+import type { LoginResolution, SessionPayload } from '@/types/access';
 
 /*
  * ONE SIGN-IN FOR EVERYONE
@@ -22,6 +22,7 @@ import type { LoginResolution, SessionPayload, SetupCodeVerdict } from '@/types/
  *        ▼  Supabase Auth            does the password match one of them?
  *        ▼  my_session()             the role, from the database - never the form
  *        ▼  account standing         suspended / inactive / switched off?
+ *        ▼  temporary password?      then "Choose your password" first
  *        ▼  landingPath()            that role's dashboard
  *
  * The person never says whether they are a member or staff; the account they
@@ -98,6 +99,11 @@ async function admitOrRefuse(
   };
 
   revalidatePath('/', 'layout');
+
+  // A new account, or one just reset, is on a password somebody else was
+  // shown. Nothing else opens until the owner replaces it.
+  if (s!.must_change_password) redirect('/change-password');
+
   // A remembered destination is honoured only if it belongs to this kind of
   // account: a member is never sent into /staff, nor staff into the portal.
   const staffPath = next?.startsWith('/staff') ?? false;
@@ -189,10 +195,6 @@ export async function signOut() {
   redirect('/login');
 }
 
-/* ==========================================================================
- * Setting up an account, or a new password, with a setup code
- * ======================================================================== */
-
 /**
  * The password rule, built from the SACCO's configured minimum length
  * (`security.password_min_length`). Supabase Auth enforces its own
@@ -207,87 +209,6 @@ async function passwordSchema() {
     .max(72, 'Use at most 72 characters.')
     .regex(/[a-zA-Z]/, 'Include at least one letter.')
     .regex(/[0-9]/, 'Include at least one number.');
-}
-
-const setupSchema = z.object({
-  identifier: z.string().trim().min(1, 'Enter your member number or phone number.').max(120),
-  code: z
-    .string()
-    .trim()
-    .transform((v) => v.replace(/[^A-Za-z0-9]/g, '').toUpperCase())
-    .refine((v) => v.length === 10, 'Enter the 10-character setup code, e.g. K7QMP-4X2RA.'),
-});
-
-/**
- * "Set up your account": identifier + one-time code + the password the person
- * chooses. Used for a first password and for a reset alike. On success the
- * person is signed straight in.
- */
-export async function activateAccount(
-  _prev: ActionResult<null> | null,
-  formData: FormData,
-): Promise<ActionResult<null>> {
-  const parsed = setupSchema.safeParse({
-    identifier: formData.get('identifier'),
-    code: formData.get('code'),
-  });
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
-
-  const password = String(formData.get('password') ?? '');
-  const confirm = String(formData.get('confirm') ?? '');
-  const pw = (await passwordSchema()).safeParse(password);
-  if (!pw.success) return { ok: false, error: pw.error.issues[0].message, field: 'password' };
-  if (password !== confirm) return { ok: false, error: 'The two passwords do not match.', field: 'confirm' };
-
-  const client = await clientAddress();
-  let admin: ReturnType<typeof createAdminClient>;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { ok: false, error: OFFLINE };
-  }
-
-  const { data, error } = await admin.rpc('setup_code_verify', {
-    p_identifier: parsed.data.identifier,
-    p_code: parsed.data.code,
-    p_client: client,
-  });
-  if (error || !data) return { ok: false, error: OFFLINE };
-
-  const verdict = data as SetupCodeVerdict;
-  if (!verdict.ok) {
-    return verdict.reason === 'locked'
-      ? { ok: false, error: pausedMessage(verdict.retry_at) }
-      : {
-          ok: false,
-          field: 'code',
-          error:
-            'That setup code does not match, has expired, or has already been used. Ask the SACCO office for a new one.',
-        };
-  }
-
-  const { data: authUser, error: updateError } = await admin.auth.admin.updateUserById(verdict.user_id, {
-    password,
-  });
-  if (updateError || !authUser.user?.email) return fail(updateError ?? OFFLINE, 'password');
-
-  const { error: spendError } = await admin.rpc('setup_code_complete', { p_code_id: verdict.code_id });
-  if (spendError) return { ok: false, error: OFFLINE };
-
-  const supabase = await createClient();
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: authUser.user.email,
-    password,
-  });
-  if (signInError) {
-    // The password is set; only the automatic sign-in failed.
-    redirect('/login?setup=done');
-  }
-
-  return admitOrRefuse(parsed.data.identifier, client, null);
 }
 
 /* ==========================================================================
@@ -315,7 +236,7 @@ export async function requestPasswordReset(
 
   const done = succeed(
     null,
-    'If this account has an email address, a reset link is on its way to it. If you do not use email, visit the SACCO office with your ID - staff will give you a reset code to use under "Set up your account".',
+    'If this account has an email address, a reset link is on its way to it. If you do not use email, visit the SACCO office with your National ID - staff will give you a new temporary password, and you will choose your own when you sign in.',
   );
 
   let admin: ReturnType<typeof createAdminClient>;
@@ -386,15 +307,8 @@ export async function resetPassword(
   return succeed(null, 'Your password has been changed.');
 }
 
-/**
- * Change your own password while signed in - members and staff alike. It
- * needs the current password, and it changes nothing on the SACCO record: a
- * password is the account holder's; their name and phone are the SACCO's.
- */
-export async function changePassword(
-  _prev: ActionResult<null> | null,
-  formData: FormData,
-): Promise<ActionResult<null>> {
+/** Replace the signed-in person's password. Shared by both change-password forms. */
+async function replacePassword(formData: FormData): Promise<ActionResult<null>> {
   const current = String(formData.get('current_password') ?? '');
   const password = String(formData.get('password') ?? '');
   const confirm = String(formData.get('confirm') ?? '');
@@ -435,6 +349,35 @@ export async function changePassword(
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return fail(error, 'password');
 
+  // Records the change and lifts the temporary-password lock.
   await supabase.rpc('log_password_changed');
   return succeed(null, 'Your password has been changed. Use the new one next time you sign in.');
+}
+
+/**
+ * Change your own password while signed in - members and staff alike. It
+ * changes nothing on the SACCO record: a password is the account holder's;
+ * their name and phone are the SACCO's.
+ */
+export async function changePassword(
+  _prev: ActionResult<null> | null,
+  formData: FormData,
+): Promise<ActionResult<null>> {
+  return replacePassword(formData);
+}
+
+/**
+ * The forced change after signing in with a temporary password. On success the
+ * account is unlocked and the person goes straight to their own dashboard.
+ */
+export async function chooseFirstPassword(
+  _prev: ActionResult<null> | null,
+  formData: FormData,
+): Promise<ActionResult<null>> {
+  const result = await replacePassword(formData);
+  if (!result.ok) return result;
+
+  const session = await getSessionUser();
+  revalidatePath('/', 'layout');
+  redirect(session ? landingPath(session) : '/login');
 }

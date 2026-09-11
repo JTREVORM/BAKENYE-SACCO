@@ -1,8 +1,8 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { issueResetCode, setUserActive, setUserPhone, setUserRole } from '@/app/actions/members';
-import { IssueCodeButton } from '@/components/accounts/SetupCode';
+import { resetUserPassword, setUserActive, setUserPhone, setUserRole } from '@/app/actions/members';
+import { IssuePasswordButton } from '@/components/accounts/TemporaryPassword';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, PhoneInput, Select, SubmitButton, Textarea } from '@/components/ui/form';
@@ -12,7 +12,7 @@ type RoleOption = { key: string; name: string; description: string | null };
 
 /**
  * Change a user's role or sign-in phone, reset their password, or deactivate
- * them. A reset issues a one-time code - nobody ever sees a password.
+ * them. A reset issues a temporary password they must change at next sign-in.
  *
  * Both require a reason and both are audited. The database also refuses to let
  * anyone change their own role or deactivate their own account, which is what
@@ -47,13 +47,13 @@ export function UserRowActions({
         <Button variant="outline" size="sm" icon="phone" onClick={() => setDialog('phone')}>
           Phone
         </Button>
-        <IssueCodeButton
-          action={issueResetCode}
-          fields={{ user_id: userId, purpose: 'reset' }}
+        <IssuePasswordButton
+          action={resetUserPassword}
+          fields={{ user_id: userId }}
           label="Reset password"
           title="Reset password"
-          description={`Issue ${name} a one-time code to choose a new password with.`}
-          confirmLabel="Issue reset code"
+          description={`Give ${name} a new temporary password. Their current password stops working at once.`}
+          confirmLabel="Reset password"
           who={name}
           size="sm"
         />

@@ -5,9 +5,9 @@ import { createStaffUser } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, PhoneInput, Select, SubmitButton } from '@/components/ui/form';
-import { SetupCodeCard } from '@/components/accounts/SetupCode';
+import { TemporaryPasswordCard } from '@/components/accounts/TemporaryPassword';
 import type { ActionResult } from '@/lib/errors';
-import type { SetupCodeIssued } from '@/types/access';
+import type { TemporaryPassword } from '@/types/access';
 
 type RoleOption = { key: string; name: string; description: string | null };
 
@@ -15,9 +15,9 @@ type RoleOption = { key: string; name: string; description: string | null };
  * Create a staff account.
  *
  * A colleague signs in with their phone number or, if they have one, their
- * email - one of the two is needed. Nobody sets their password for them: the
- * account is created with a one-time setup code, shown once, with which they
- * choose their own on "Set up your account".
+ * email - one of the two is needed. The account is ready at once, on a
+ * generated temporary password shown here once; they must change it the first
+ * time they sign in.
  */
 export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
   const [open, setOpen] = useState(false);
@@ -27,7 +27,7 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
     roles.find((r) => r.key === 'cashier')?.key ?? roles[0]?.key ?? '',
   );
   const [state, action] = useActionState<
-    ActionResult<{ user_id: string; setup: SetupCodeIssued | null }> | null,
+    ActionResult<{ user_id: string; temporary: TemporaryPassword }> | null,
     FormData
   >(createStaffUser, null);
 
@@ -52,13 +52,7 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
               {state.message}
             </Alert>
 
-            {state.data.setup ? (
-              <SetupCodeCard setup={state.data.setup} who="them" />
-            ) : (
-              <Alert tone="warning">
-                No setup code could be issued. Use &ldquo;Reset password&rdquo; on their row to issue one.
-              </Alert>
-            )}
+            <TemporaryPasswordCard temporary={state.data.temporary} who="them" />
 
             <Button size="lg" block onClick={() => setOpen(false)}>
               Done
@@ -132,7 +126,8 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
             </Field>
 
             <Alert tone="info">
-              You will see a one-time setup code to give them. You never see or set their password.
+              A temporary password is generated and shown to you once. They must change it the first
+              time they sign in.
             </Alert>
 
             <div className="flex gap-3">

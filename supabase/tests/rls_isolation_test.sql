@@ -35,7 +35,7 @@ begin
   if exists (
     select 1 from members m
       join app_users u on u.id = m.user_id
-     where u.role = 'member' and u.is_active
+     where u.role = 'member' and u.is_active and not u.must_change_password
   ) then
     return;
   end if;
@@ -55,6 +55,10 @@ begin
           'authenticated', 'authenticated', 'rls.fixture@test.invalid', '',
           now(), jsonb_build_object('member_id', v_mid),
           '{}'::jsonb, now(), now());
+
+  -- A new login starts on a temporary password and can read nothing until it
+  -- is changed; this fixture stands for a member who has already changed it.
+  update app_users set must_change_password = false where id = v_uid;
 end;
 $fixture$;
 
@@ -80,7 +84,7 @@ begin
   select u.id, m.id into v_member_user, v_self
     from app_users u
     join members m on m.user_id = u.id
-   where u.role = 'member' and u.is_active
+   where u.role = 'member' and u.is_active and not u.must_change_password
    limit 1;
   if v_self is null then
     insert into t_result (step, ok, detail)

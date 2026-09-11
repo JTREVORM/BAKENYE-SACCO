@@ -66,6 +66,8 @@ export type SessionPayload = {
   role_dashboard: RoleDashboard;
   /** Whether the account holder has chosen their own password yet. */
   password_set: boolean;
+  /** On a temporary password: the account can do nothing until it is changed. */
+  must_change_password: boolean;
   member: { id: string; member_no: string; status: MemberStatus } | null;
   permissions: string[];
 };
@@ -222,14 +224,8 @@ export type LoginResolution = {
   candidates: { user_id: string; auth_email: string }[];
 };
 
-/** `setup_code_verify()` - server only. */
-export type SetupCodeVerdict =
-  | { ok: true; code_id: string; user_id: string }
-  | { ok: false; reason: 'invalid' }
-  | { ok: false; reason: 'locked'; retry_at: string };
-
-/** A setup or reset code, returned once by `issue_account_setup_code()`. */
-export type SetupCodeIssued = { code: string; expires_at: string; purpose: 'setup' | 'reset' };
+/** A temporary password, returned once to the officer who created or reset the account. */
+export type TemporaryPassword = { password: string };
 
 /** `account_login_status()` - what staff may see about a login. Never the password. */
 export type AccountLoginStatus = {
@@ -239,8 +235,8 @@ export type AccountLoginStatus = {
   phone: string | null;
   email: string | null;
   password_set_at: string | null;
+  must_change_password: boolean;
   last_login_at: string | null;
-  pending_code: { purpose: 'setup' | 'reset'; issued_at: string; expires_at: string } | null;
   recent_failures: number;
   paused_until: string | null;
 };
@@ -248,8 +244,8 @@ export type AccountLoginStatus = {
 export type SecurityOverview = {
   staff_accounts: number;
   member_logins: number;
-  awaiting_setup: number;
-  codes_pending: number;
+  /** Active accounts still on a temporary password. */
+  must_change: number;
   signins_24h: number;
   failures_24h: number;
   paused_now: number;
@@ -269,7 +265,6 @@ export type AccessTables = {
   fee_payment_lines: Table<FeePaymentLineRow>;
   member_profile_changes: Table<MemberProfileChangeRow>;
   login_attempts: Table<LoginAttemptRow>;
-  account_setup_codes: Table<{ id: string; user_id: string; purpose: string; issued_at: string; expires_at: string; used_at: string | null; revoked_at: string | null }>;
 };
 
 type FeePayload = {
@@ -295,9 +290,7 @@ export type AccessFunctions = {
     Args: { p_identifier: string; p_client: string | null; p_user_id: string | null; p_succeeded: boolean; p_reason?: string | null };
     Returns: undefined;
   };
-  issue_account_setup_code: { Args: { p_user_id: string; p_purpose?: 'setup' | 'reset' }; Returns: SetupCodeIssued };
-  setup_code_verify: { Args: { p_identifier: string; p_code: string; p_client?: string | null }; Returns: SetupCodeVerdict };
-  setup_code_complete: { Args: { p_code_id: string }; Returns: undefined };
+  issue_temporary_password: { Args: { p_user_id: string }; Returns: undefined };
   account_login_status: { Args: { p_user_id: string }; Returns: AccountLoginStatus | null };
   security_overview: { Args: Record<PropertyKey, never>; Returns: SecurityOverview };
   assert_login_phone_available: { Args: { p_phone: string; p_except_user: string | null }; Returns: string | null };

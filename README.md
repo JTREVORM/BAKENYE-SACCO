@@ -102,8 +102,10 @@ supabase db push
 | `0029_roles_and_permissions.sql` | `roles`, `permissions`, `role_permissions`; `has_permission()`; every role list in a function rewritten as a permission; the sign-up, self-edit and guarantor-search fixes |
 | `0030_member_registration_and_fees.sql` | Fees, `register_member()`, audited profile edits, phone normalisation, member sign-in verification and lock-out, fee receipts, and the function-grant allowlist |
 | `0031_collection_accounts.sql` | The receiving accounts (names, no balances) for the people who take money at the counter |
-| `0032_unified_login.sql` | One sign-in for everyone: identifier resolution, failed-attempt pauses, one-time setup codes, a dashboard per role, sign-in audit, and suspended members locked out at the database |
+| `0032_unified_login.sql` | One sign-in for everyone: identifier resolution, failed-attempt pauses, a dashboard per role (its one-time setup codes were replaced by 0034), sign-in audit, and suspended members locked out at the database |
 | `0033_existing_passwords.sql` | Marks staff accounts that were already signing in as having chosen their password |
+| `0034_temporary_passwords.sql` | Replaces setup codes: every new or reset account gets a temporary password that must be changed at first sign-in, enforced in the database |
+| `0035_provision_on_app_metadata.sql` | Provisions a login when Supabase writes its role or member link (a moment after creating the user), and repairs accounts created before the fix |
 
 ### 4. Create the first administrator
 
@@ -115,8 +117,8 @@ update app_users set role = 'super_admin', is_active = true where email = 'you@e
 ```
 
 Sign in at `/login` with that email and password. From there, staff accounts are created in the app
-under **Users**, and members get their login when they are registered - each with a one-time setup
-code, never a password anyone else knows.
+under **Users**, and members get their login when they are registered - each ready at once, with a
+temporary password that must be changed at first sign-in.
 
 **Turn off public sign-up.** Supabase → Authentication → Sign In / Providers → *Allow new users to
 sign up* → off. Nobody should be able to create an account for themselves: staff accounts come from
@@ -147,7 +149,7 @@ npm start
 
 ## The sign-in screen
 
-`/login`, `/activate`, `/forgot-password` and `/reset-password` share
+`/login`, `/change-password`, `/forgot-password` and `/reset-password` share
 [`AuthShell`](src/components/auth/AuthShell.tsx): the brand panel on the left, the task on the
 right, one footer across the bottom.
 
@@ -431,17 +433,22 @@ identifier (member number, phone number, or a staff email) + password
   Officer *Collections*, a member their own dashboard. Which one a role opens is a setting on the role
   (Roles & Permissions), so custom roles choose too. `/admin` sends everyone to their own.
 
-**Nobody knows anybody else's password.** Registering a member, or creating a staff account, makes a
-login with a random password no person ever sees, and a **one-time setup code** shown once to the
-officer. The account holder enters it on **Set up your account** (`/activate`) with their member
-number or phone, and chooses their own password. Codes are stored only as bcrypt hashes, expire
-(Settings → Security) and work once. **Forgot password** sends a reset link where the account has an
-email; everyone else visits the office, where staff issue a reset code - the same mechanism - after
-checking who they are. An SMS or OTP service can later deliver the same code instead.
+**Accounts are ready the moment they are created.** Registering a member, or creating a staff
+account, makes the login at once with a generated **temporary password** (e.g. `KQPM-4827` - no
+0/O or 1/I to misread) that the officer is shown once and hands over. It is never stored in readable
+form. The first time the person signs in they land on **Choose your password** and must replace it.
+Until they do, the account can do nothing else - every page sends them back there, and the database
+agrees: `has_permission()`, `is_staff_user()` and `current_member_id()` give an account with
+`must_change_password` nothing, so the temporary password opens no data through the REST API either.
+
+**Forgot password** sends a reset link where the account has an email. Everyone else visits the office,
+where staff press **Reset password** (member page, or Users), after checking who they are: the old
+password stops working, a new temporary one is shown once, and the change is forced again. Nobody at the
+SACCO ends up knowing a password that is actually in use.
 
 A member can change their **password** from their profile; they cannot change their name, phone,
-member number or categories, which are the SACCO's record. Sign-in, failures, sign-out, resets,
-setup codes and password changes all go to the audit log (module *Security*); no password ever does.
+member number or categories, which are the SACCO's record. Sign-in, failures, sign-out, resets and
+password changes all go to the audit log (module *Security*); no password ever does.
 
 ---
 

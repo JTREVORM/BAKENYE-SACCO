@@ -19,6 +19,8 @@ export type SessionUser = Access & {
   memberStatus: MemberStatus | null;
   /** Whether the account holder has chosen their own password yet. */
   passwordSet: boolean;
+  /** On a temporary password: they must choose their own before anything else. */
+  mustChangePassword: boolean;
 };
 
 /** A membership in these states may not use the portal. */
@@ -59,6 +61,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     roleName: session.role_name,
     dashboard: session.role_dashboard as Dashboard,
     passwordSet: session.password_set,
+    mustChangePassword: session.must_change_password,
     permissions: session.permissions,
     photoUrl: session.photo_url,
     memberId: session.member?.id ?? null,
@@ -67,12 +70,19 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   };
 });
 
-/** Require a signed-in user, or bounce to login preserving the target URL. */
+/**
+ * Require a signed-in user, or bounce to login preserving the target URL.
+ *
+ * Someone still on a temporary password goes to "Choose your password" first,
+ * whatever page they asked for. The database agrees: until they change it,
+ * `has_permission()` and `current_member_id()` give their account nothing.
+ */
 export async function requireUser(returnTo?: string): Promise<SessionUser> {
   const user = await getSessionUser();
   if (!user) {
     redirect(returnTo ? `/login?next=${encodeURIComponent(returnTo)}` : '/login');
   }
+  if (user.mustChangePassword) redirect('/change-password');
   return user;
 }
 

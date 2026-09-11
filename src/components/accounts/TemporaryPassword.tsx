@@ -5,27 +5,25 @@ import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, SubmitButton } from '@/components/ui/form';
 import { Icon } from '@/components/ui/primitives';
-import { formatDateTime } from '@/lib/format';
 import type { ActionResult } from '@/lib/errors';
-import type { SetupCodeIssued } from '@/types/access';
+import type { TemporaryPassword } from '@/types/access';
 
 /**
- * A setup or reset code, displayed once.
+ * A temporary password, displayed once.
  *
- * Only a hash is stored, so this is the one time anybody can read it. The
- * officer hands it to the account holder, who enters it on "Set up your
- * account" with their member number or phone and chooses their own password.
- * The code is not a password: it works once, and it expires.
+ * It is never stored in readable form, so this is the only time anybody can
+ * read it. The officer hands it over; the account holder signs in with it and
+ * must choose their own password straight away.
  */
-export function SetupCodeCard({
-  setup,
+export function TemporaryPasswordCard({
+  temporary,
   who,
   identifier,
 }: {
-  setup: SetupCodeIssued;
+  temporary: TemporaryPassword;
   /** "the member", "Grace" */
   who: string;
-  /** What they will type to identify themselves, e.g. their member number. */
+  /** What they sign in with, e.g. their member number. */
   identifier?: string | null;
 }) {
   const [copied, setCopied] = useState(false);
@@ -37,52 +35,46 @@ export function SetupCodeCard({
           <Icon name="key" size={20} />
         </span>
         <div className="min-w-0">
-          <p className="text-on-surface text-button-text font-semibold">
-            {setup.purpose === 'setup' ? 'Setup code' : 'Password reset code'} - shown only now
-          </p>
+          <p className="text-on-surface text-button-text font-semibold">Temporary password - shown only now</p>
           <p className="text-on-surface-variant text-body-md">
-            Give it to {who} privately. Valid until {formatDateTime(setup.expires_at)}, and works once.
+            Give it to {who} privately. They must change it the first time they sign in.
           </p>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <p
-          className="bg-surface text-on-surface tabular select-all rounded-xl px-4 py-2 font-mono text-[24px] font-bold tracking-[0.18em] shadow-neu-sm"
-          aria-label={`Code ${setup.code.split('').join(' ')}`}
+          className="bg-surface text-on-surface tabular select-all rounded-xl px-4 py-2 font-mono text-[24px] font-bold tracking-[0.14em] shadow-neu-sm"
+          aria-label={`Temporary password ${temporary.password.split('').join(' ')}`}
         >
-          {setup.code}
+          {temporary.password}
         </p>
         <Button
           variant="outline"
           size="sm"
           icon={copied ? 'check' : 'content_copy'}
           onClick={() => {
-            void navigator.clipboard?.writeText(setup.code).then(() => setCopied(true));
+            void navigator.clipboard?.writeText(temporary.password).then(() => setCopied(true));
           }}
         >
           {copied ? 'Copied' : 'Copy'}
         </Button>
       </div>
 
-      <ol className="text-on-surface-variant text-body-md ml-5 list-decimal space-y-0.5">
-        <li>
-          Open the SACCO app and choose <strong className="text-on-surface">Set up your account</strong>.
-        </li>
-        <li>
-          Enter {identifier ? <strong className="text-on-surface tabular font-mono">{identifier}</strong> : 'their member number or phone number'} and this code.
-        </li>
-        <li>Choose a password. Nobody at the SACCO will ever see it.</li>
-      </ol>
+      <p className="text-on-surface-variant text-body-md">
+        They sign in with{' '}
+        {identifier ? <strong className="text-on-surface tabular font-mono">{identifier}</strong> : 'their member number or phone number'}{' '}
+        or their phone number and this password, then choose their own. Nobody at the SACCO will know it.
+      </p>
     </div>
   );
 }
 
 /**
- * A button that issues a code through a server action and shows it once in a
- * dialog. Used for "Reset password" and "Create login".
+ * A button that creates a login or resets a password through a server action,
+ * and shows the resulting temporary password once in a dialog.
  */
-export function IssueCodeButton({
+export function IssuePasswordButton({
   action,
   fields,
   label,
@@ -95,7 +87,7 @@ export function IssueCodeButton({
   variant = 'outline',
   size = 'md',
 }: {
-  action: (prev: ActionResult<SetupCodeIssued> | null, formData: FormData) => Promise<ActionResult<SetupCodeIssued>>;
+  action: (prev: ActionResult<TemporaryPassword> | null, formData: FormData) => Promise<ActionResult<TemporaryPassword>>;
   fields: Record<string, string>;
   label: string;
   icon?: 'key' | 'person_add' | 'lock_open';
@@ -108,7 +100,7 @@ export function IssueCodeButton({
   size?: 'sm' | 'md';
 }) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState<ActionResult<SetupCodeIssued> | null, FormData>(action, null);
+  const [state, formAction] = useActionState<ActionResult<TemporaryPassword> | null, FormData>(action, null);
   const err = state && !state.ok ? state : null;
 
   return (
@@ -119,7 +111,7 @@ export function IssueCodeButton({
       <Modal open={open} onClose={() => setOpen(false)} title={title} description={description}>
         {state?.ok ? (
           <div className="flex flex-col gap-4">
-            <SetupCodeCard setup={state.data} who={who} identifier={identifier} />
+            <TemporaryPasswordCard temporary={state.data} who={who} identifier={identifier} />
             <Button size="lg" block onClick={() => setOpen(false)}>
               Done - I have given it to them
             </Button>
@@ -131,13 +123,14 @@ export function IssueCodeButton({
             ))}
             {err ? <Alert tone="error">{err.error}</Alert> : null}
             <Alert tone="info">
-              You will see a one-time code, never a password. Any earlier code stops working.
+              A new temporary password will be generated and shown once. They must change it at their next
+              sign-in; until then their account can do nothing else.
             </Alert>
             <div className="flex gap-3">
               <Button variant="outline" size="lg" className="flex-1" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <SubmitButton size="lg" className="flex-1" pendingLabel="Issuing...">
+              <SubmitButton size="lg" className="flex-1" pendingLabel="Working...">
                 {confirmLabel}
               </SubmitButton>
             </div>

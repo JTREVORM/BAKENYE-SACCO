@@ -76,6 +76,8 @@ export type AppUserRow = {
   last_login_at: string | null;
   /** When the account holder last chose their own password; null until they have. */
   password_set_at: string | null;
+  /** On a temporary password that must be changed at next sign-in. */
+  must_change_password: boolean;
   created_at: string;
   updated_at: string;
 };

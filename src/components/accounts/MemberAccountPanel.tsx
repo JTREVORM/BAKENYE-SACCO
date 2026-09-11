@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { can, type Access } from '@/lib/rbac';
 import { Badge, Icon, type BadgeTone } from '@/components/ui/primitives';
-import { IssueCodeButton } from './SetupCode';
-import { createMemberLogin, issueResetCode } from '@/app/actions/members';
+import { IssuePasswordButton } from './TemporaryPassword';
+import { createMemberLogin, resetUserPassword } from '@/app/actions/members';
 import { formatAgo, formatDateTime, formatPhone } from '@/lib/format';
 import type { AccountLoginStatus } from '@/types/access';
 import type { MemberStatus } from '@/types/db';
@@ -13,8 +13,8 @@ import type { MemberStatus } from '@/types/db';
  *
  * Suspending or activating is the member status control beside the identity
  * card; a suspended member cannot sign in and an existing session reads
- * nothing. "Reset password" issues a one-time code for the member to choose a
- * new password with.
+ * nothing. "Reset password" gives the member a new temporary password, which
+ * they must change at their next sign-in.
  */
 export async function MemberAccountPanel({
   member,
@@ -37,9 +37,9 @@ export async function MemberAccountPanel({
       ? ['Suspended', 'error']
       : barred || (login && !login.is_active)
         ? ['Inactive', 'neutral']
-        : login?.password_set_at
-          ? ['Active', 'success']
-          : ['Awaiting password setup', 'warning'];
+        : login?.must_change_password
+          ? ['Temporary password', 'warning']
+          : ['Active', 'success'];
 
   const mayReset = can(viewer, 'members.manage');
   const mayCreate = can(viewer, 'members.manage') || can(viewer, 'members.create');
@@ -58,25 +58,25 @@ export async function MemberAccountPanel({
         </div>
         <div className="flex flex-wrap gap-2">
           {member.user_id && mayReset && !barred ? (
-            <IssueCodeButton
-              action={issueResetCode}
-              fields={{ user_id: member.user_id, purpose: login?.password_set_at ? 'reset' : 'setup' }}
-              label={login?.password_set_at ? 'Initiate password reset' : 'New setup code'}
-              title={login?.password_set_at ? 'Initiate password reset' : 'New setup code'}
-              description={`Issue ${member.full_name} a one-time code to choose ${login?.password_set_at ? 'a new' : 'their'} password with. Check who they are first.`}
-              confirmLabel="Issue code"
+            <IssuePasswordButton
+              action={resetUserPassword}
+              fields={{ user_id: member.user_id }}
+              label="Reset password"
+              title="Reset password"
+              description={`Give ${member.full_name} a new temporary password. Check who they are first - their current password stops working at once.`}
+              confirmLabel="Reset password"
               who={member.full_name}
               identifier={member.member_no}
             />
           ) : null}
           {!member.user_id && mayCreate && !barred ? (
-            <IssueCodeButton
+            <IssuePasswordButton
               action={createMemberLogin}
               fields={{ member_id: member.id }}
               label="Create login"
               icon="person_add"
               title="Create a login"
-              description={`Create ${member.full_name}'s login and a one-time setup code for them to choose their password with.`}
+              description={`Create ${member.full_name}'s login with a temporary password, which they change at first sign-in.`}
               confirmLabel="Create login"
               who={member.full_name}
               identifier={member.member_no}
@@ -94,17 +94,17 @@ export async function MemberAccountPanel({
         <Item label="Password">
           {!member.user_id
             ? '—'
-            : login?.password_set_at
-              ? `Chosen by the member ${formatAgo(login.password_set_at)}`
-              : 'Not chosen yet'}
+            : login?.must_change_password
+              ? 'Temporary - must be changed at next sign-in'
+              : login?.password_set_at
+                ? `Chosen by the member ${formatAgo(login.password_set_at)}`
+                : 'Chosen by the member'}
         </Item>
         <Item label="Last sign-in">
           {login?.last_login_at ? formatDateTime(login.last_login_at) : member.user_id ? 'Never' : '—'}
         </Item>
-        <Item label="Setup / reset code">
-          {login?.pending_code
-            ? `Issued, valid until ${formatDateTime(login.pending_code.expires_at)}`
-            : 'None outstanding'}
+        <Item label="Account">
+          {!member.user_id ? 'Not created' : login?.is_active ? 'Enabled' : 'Switched off'}
         </Item>
       </dl>
 

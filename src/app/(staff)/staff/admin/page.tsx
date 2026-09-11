@@ -100,10 +100,10 @@ async function SecurityFigures() {
       />
       <KpiCard
         icon="key"
-        label="Awaiting password setup"
-        value={s.awaiting_setup}
-        tone={s.awaiting_setup > 0 ? 'warning' : 'neutral'}
-        footnote={`${s.codes_pending} setup ${s.codes_pending === 1 ? 'code' : 'codes'} outstanding`}
+        label="On a temporary password"
+        value={s.must_change}
+        tone={s.must_change > 0 ? 'warning' : 'neutral'}
+        footnote="Must choose their own at next sign-in"
       />
       <KpiCard
         icon="login"

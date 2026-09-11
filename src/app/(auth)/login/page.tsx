@@ -21,11 +21,11 @@ export const metadata: Metadata = { title: 'Sign in' };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; reset?: string; setup?: string }>;
+  searchParams: Promise<{ next?: string; reset?: string }>;
 }) {
-  const { next, reset, setup } = await searchParams;
+  const { next, reset } = await searchParams;
   const current = await getSessionUser();
-  if (current) redirect(landingPath(current));
+  if (current) redirect(current.mustChangePassword ? '/change-password' : landingPath(current));
 
   return (
     <AuthShell>
@@ -52,7 +52,7 @@ export default async function LoginPage({
 
         <LoginForm
           next={next}
-          notice={reset === 'done' ? 'reset' : setup === 'done' ? 'setup' : null}
+          notice={reset === 'done' ? 'reset' : null}
         />
 
         {/* The assurance, pressed into the sheet rather than laid on top of it,

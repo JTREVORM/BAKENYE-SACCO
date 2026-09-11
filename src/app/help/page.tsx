@@ -46,12 +46,12 @@ export default function HelpPage() {
         <Item
           icon="lock"
           title="I have forgotten my password"
-          body="Use “Forgot Password?” on the sign-in screen. If you have no email, visit the office with your National ID: staff give you a one-time reset code - never your password - and you choose a new one under “Set up your account”."
+          body="Use “Forgot Password?” on the sign-in screen. If you have no email, visit the office with your National ID: staff give you a new temporary password, and you choose your own as soon as you sign in with it."
         />
         <Item
           icon="person"
           title="I have never signed in before"
-          body="When you registered, the office gave you a setup code. Choose “Set up your account” on the sign-in screen, enter your member number or phone and the code, and choose your password. Lost the code? Ask the office for a new one."
+          body="When you registered, the office gave you a temporary password. Sign in with your member number or phone and that password, and you will be asked to choose your own. Lost it? Ask the office for a new one."
         />
         <Item
           icon="block"

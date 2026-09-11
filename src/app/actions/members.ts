@@ -8,8 +8,8 @@ import { requireUser } from '@/lib/auth';
 import { can } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
 import { normalisePhone, normaliseUgandanMobile } from '@/lib/format';
-import { provisionMemberLogin, staffAuthEmail, unusablePassword } from '@/lib/accounts';
-import type { RegistrationResult, SetupCodeIssued } from '@/types/access';
+import { provisionMemberLogin, staffAuthEmail, temporaryPassword } from '@/lib/accounts';
+import type { RegistrationResult, TemporaryPassword } from '@/types/access';
 
 /**
  * Member and staff-account administration.
@@ -136,7 +136,7 @@ const registrationSchema = z.object({
 export type RegistrationOutcome = RegistrationResult & {
   login_note: string | null;
   /** Shown once, to the officer, to hand to the member. Never stored in plain text. */
-  setup: SetupCodeIssued | null;
+  temporary: TemporaryPassword | null;
 };
 
 /**
@@ -144,12 +144,12 @@ export type RegistrationOutcome = RegistrationResult & {
  * charges the fees, posts the payment into Cash at Merchant / Bank / Hand,
  * issues the receipt and writes the audit trail in one database transaction.
  *
- * The member's login is created after that transaction commits, because it
- * lives in Supabase Auth rather than in the database. It starts with a random
- * password nobody knows, plus a one-time setup code shown to the officer now,
- * once, to hand to the member, who then chooses their own password. If the
- * login cannot be created the registration still stands - nothing financial
- * depends on it - and "Create login" on the member's page tries again.
+ * The member's login is created straight after that transaction commits,
+ * because it lives in Supabase Auth rather than in the database. It gets a
+ * generated temporary password, shown to the officer now, once, to hand to the
+ * member, who must change it the first time they sign in. If the login cannot
+ * be created the registration still stands - nothing financial depends on it -
+ * and "Create login" on the member's page tries again.
  */
 export async function registerMember(
   _prev: ActionResult<RegistrationOutcome> | null,
@@ -207,7 +207,7 @@ export async function registerMember(
   if (error) return fail(error);
 
   const result = data as RegistrationResult;
-  const login = result.duplicate ? { setup: null, note: null } : await createLoginWithCode(result);
+  const login = result.duplicate ? { temporary: null, note: null } : await createLoginWithPassword(result);
 
   revalidatePath('/staff/members');
   revalidatePath('/staff/categories');
@@ -215,7 +215,7 @@ export async function registerMember(
   revalidatePath('/staff');
 
   return succeed(
-    { ...result, has_login: result.has_login || !!login.setup, login_note: login.note, setup: login.setup },
+    { ...result, has_login: result.has_login || !!login.temporary, login_note: login.note, temporary: login.temporary },
     result.duplicate
       ? `${result.full_name} was already registered as ${result.member_no}. Nothing was recorded twice.`
       : `${result.full_name} registered as ${result.member_no}.`,
@@ -223,52 +223,47 @@ export async function registerMember(
 }
 
 /**
- * Create a member's login and its first setup code. The code is returned to
- * the caller once and never kept in readable form.
+ * Create a member's login with a temporary password. The password is returned
+ * to the caller once and never kept in readable form.
  */
-async function createLoginWithCode(member: {
+async function createLoginWithPassword(member: {
   member_id: string;
   member_no: string;
-}): Promise<{ setup: SetupCodeIssued | null; note: string | null }> {
-  const failed = {
-    setup: null,
-    note: 'The member is registered, but their login could not be created just now. Use "Create login" on their page to try again.',
-  };
+}): Promise<{ temporary: TemporaryPassword | null; note: string | null }> {
   try {
     const created = await provisionMemberLogin({ id: member.member_id, member_no: member.member_no });
-    if ('error' in created) return failed;
-
-    const supabase = await createClient();
-    await supabase.rpc('log_member_login_created', { p_member_id: member.member_id });
-    const { data, error } = await supabase.rpc('issue_account_setup_code', {
-      p_user_id: created.userId,
-      p_purpose: 'setup',
-    });
-    if (error || !data) {
+    if ('error' in created) {
       return {
-        setup: null,
-        note: 'The login was created, but no setup code could be issued. Use "Reset password" on the member’s page to issue one.',
+        temporary: null,
+        note: 'The member is registered, but their login could not be created just now. Use "Create login" on their page to try again.',
       };
     }
-    return { setup: data as SetupCodeIssued, note: null };
+    const supabase = await createClient();
+    await supabase.rpc('log_member_login_created', { p_member_id: member.member_id });
+    return { temporary: { password: created.password }, note: null };
   } catch {
-    return failed;
+    return {
+      temporary: null,
+      note: 'The member is registered, but their login could not be created just now. Use "Create login" on their page to try again.',
+    };
   }
 }
 
 /* ==========================================================================
- * Sign-in accounts: creating a login, issuing setup and reset codes
+ * Sign-in accounts: creating a login, resetting a password
  *
- * Nobody - not a Super Admin - ever sees or sets another person's password.
- * Staff can only issue a one-time code, which the account holder uses on
- * "Set up your account" to choose their own.
+ * Every account the SACCO creates is ready to use at once, on a generated
+ * temporary password shown once to the officer. The account holder must
+ * replace it at their first sign-in, and the database gives the account
+ * nothing until they do - so nobody at the SACCO ends up knowing a password
+ * that is actually in use.
  * ======================================================================== */
 
 /** Create a login for a member who has none (registered before logins existed). */
 export async function createMemberLogin(
   _prev: ActionResult<unknown> | null,
   formData: FormData,
-): Promise<ActionResult<SetupCodeIssued>> {
+): Promise<ActionResult<TemporaryPassword>> {
   const user = await requireUser();
   if (!can(user, 'members.manage') && !can(user, 'members.create')) {
     return { ok: false, error: 'You do not have permission to create member logins.' };
@@ -285,39 +280,39 @@ export async function createMemberLogin(
   if (!member) return { ok: false, error: 'That member could not be found.' };
   if (member.user_id) return { ok: false, error: 'This member already has a login. Use "Reset password" instead.' };
 
-  const login = await createLoginWithCode({ member_id: member.id, member_no: member.member_no });
-  if (!login.setup) return { ok: false, error: login.note ?? 'The login could not be created.' };
+  const login = await createLoginWithPassword({ member_id: member.id, member_no: member.member_no });
+  if (!login.temporary) return { ok: false, error: login.note ?? 'The login could not be created.' };
 
   revalidatePath(`/staff/members/${member.id}`);
-  return succeed(login.setup, 'Login created. Give the member this setup code.');
+  return succeed(login.temporary, 'Login created. Give the member this temporary password.');
 }
 
 /**
- * "Initiate password reset": issue a new one-time code for a member's or a
- * staff member's login. Any earlier code stops working. The current password
- * keeps working until the account holder chooses a new one - suspend the
- * account if it must stop at once.
+ * Reset a member's or colleague's password: a new temporary password, shown
+ * once, which they must change at their next sign-in. The database checks the
+ * officer may do this (and records it) before anything changes.
  */
-export async function issueResetCode(
+export async function resetUserPassword(
   _prev: ActionResult<unknown> | null,
   formData: FormData,
-): Promise<ActionResult<SetupCodeIssued>> {
+): Promise<ActionResult<TemporaryPassword>> {
   await requireUser();
-  const parsed = z
-    .object({ user_id: z.string().uuid(), purpose: z.enum(['setup', 'reset']).default('reset') })
-    .safeParse({ user_id: formData.get('user_id'), purpose: formData.get('purpose') ?? undefined });
-  if (!parsed.success) return { ok: false, error: 'That account could not be found.' };
+  const userId = z.string().uuid().safeParse(formData.get('user_id'));
+  if (!userId.success) return { ok: false, error: 'That account could not be found.' };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc('issue_account_setup_code', {
-    p_user_id: parsed.data.user_id,
-    p_purpose: parsed.data.purpose,
-  });
+  const { error } = await supabase.rpc('issue_temporary_password', { p_user_id: userId.data });
   if (error) return fail(error);
+
+  const password = temporaryPassword();
+  const { error: authError } = await createAdminClient().auth.admin.updateUserById(userId.data, { password });
+  if (authError) {
+    return { ok: false, error: 'The password could not be reset just now. Please try again.' };
+  }
 
   revalidatePath('/staff/users');
   revalidatePath('/staff/members', 'layout');
-  return succeed(data as SetupCodeIssued, 'Code issued. It is shown only now.');
+  return succeed({ password }, 'Password reset. It is shown only now.');
 }
 
 /** Set a staff account's sign-in phone number. */
@@ -553,13 +548,13 @@ const roleKey = z.string().regex(/^[a-z][a-z0-9_]{1,39}$/, 'Choose a role.');
  * metadata - which only the service role can write - and the database checks,
  * before the account exists, that this person may hand out that role.
  *
- * No password is set by anyone here. The account starts with a random one and
- * a one-time setup code, shown once, with which the colleague chooses their own.
+ * The account is ready at once, on a generated temporary password shown here
+ * once. The colleague must replace it the first time they sign in.
  */
 export async function createStaffUser(
   _prev: ActionResult<unknown> | null,
   formData: FormData,
-): Promise<ActionResult<{ user_id: string; setup: SetupCodeIssued | null }>> {
+): Promise<ActionResult<{ user_id: string; temporary: TemporaryPassword }>> {
   const user = await requireUser();
   if (!can(user, 'users.manage')) {
     return { ok: false, error: 'You do not have permission to create staff accounts.' };
@@ -601,9 +596,10 @@ export async function createStaffUser(
   }
 
   const admin = createAdminClient();
+  const password = temporaryPassword();
   const { data: created, error } = await admin.auth.admin.createUser({
     email: d.email ?? staffAuthEmail(),
-    password: unusablePassword(),
+    password,
     email_confirm: true,
     user_metadata: { full_name: d.full_name, phone },
     app_metadata: { role: d.role },
@@ -613,16 +609,11 @@ export async function createStaffUser(
   if (!created.user) return { ok: false, error: 'The account could not be created.' };
 
   await supabase.rpc('log_staff_account_created', { p_user_id: created.user.id });
-  const { data: code } = await supabase.rpc('issue_account_setup_code', {
-    p_user_id: created.user.id,
-    p_purpose: 'setup',
-  });
-
   revalidatePath('/staff/users');
 
   return succeed(
-    { user_id: created.user.id, setup: (code as SetupCodeIssued | null) ?? null },
-    `${d.full_name}'s account is ready. Give them the setup code so they can choose their password.`,
+    { user_id: created.user.id, temporary: { password } },
+    `${d.full_name}'s account is ready. Give them this temporary password; they will choose their own at first sign-in.`,
   );
 }
 

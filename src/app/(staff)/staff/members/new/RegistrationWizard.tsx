@@ -4,7 +4,7 @@ import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { registerMember, type RegistrationOutcome } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
-import { SetupCodeCard } from '@/components/accounts/SetupCode';
+import { TemporaryPasswordCard } from '@/components/accounts/TemporaryPassword';
 import { Badge, Icon } from '@/components/ui/primitives';
 import {
   Button,
@@ -879,7 +879,7 @@ function Success({ result }: { result: RegistrationOutcome }) {
             <dt className="text-label-md text-on-surface-variant font-normal">Signs in with</dt>
             <dd className="text-body-md text-on-surface">
               Member number <span className="font-mono">{result.member_no}</span> or phone{' '}
-              <span className="tabular">{formatPhone(result.phone)}</span>, and a password they choose
+              <span className="tabular">{formatPhone(result.phone)}</span>, and the temporary password below
             </dd>
           </div>
         </dl>
@@ -894,9 +894,9 @@ function Success({ result }: { result: RegistrationOutcome }) {
           </Alert>
         </div>
       ) : null}
-      {result.setup ? (
+      {result.temporary ? (
         <div className="mt-4 w-full">
-          <SetupCodeCard setup={result.setup} who="the member" identifier={result.member_no} />
+          <TemporaryPasswordCard temporary={result.temporary} who="the member" identifier={result.member_no} />
         </div>
       ) : null}
       {result.login_note ? (

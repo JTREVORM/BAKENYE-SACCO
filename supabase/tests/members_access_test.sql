@@ -305,8 +305,10 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- Sign-in and self-service sign-up. These functions belong to the server and
--- to Supabase Auth, so this block runs without the `authenticated` role.
+-- Sign-in: one identifier field (member number, phone or email) and a password
+-- the account holder chose with a one-time setup code. These functions belong
+-- to the server and to Supabase Auth, so this block runs without the
+-- `authenticated` role.
 -- ---------------------------------------------------------------------------
 reset role;
 
@@ -316,52 +318,16 @@ declare
   v_no      text := (select txt from t_ctx where key = 'john');
   v_res     jsonb;
   v_uid     uuid := gen_random_uuid();
+  v_staff   uuid := gen_random_uuid();
   v_rogue   uuid := gen_random_uuid();
   v_user    app_users;
   v_err     text;
+  v_code    text;
+  v_hash    text;
   i         integer;
 begin
-  v_res := member_login_verify(v_no, '0770 000 000', 'test-client');
-  insert into t_result (step, ok, detail)
-  values ('9a member number + registered phone verifies',
-          (v_res ->> 'ok')::boolean and v_res ->> 'auth_email' = lower(v_no) || '@members.bnd-sacco.invalid',
-          v_res::text);
-
-  v_res := member_login_verify(replace(v_no, 'BND-M-', ''), '+256770000000', 'test-client');
-  insert into t_result (step, ok, detail)
-  values ('9b the bare number and the +256 form are accepted too', (v_res ->> 'ok')::boolean, null);
-
-  v_res := member_login_verify(v_no, '0700000000', 'test-client');
-  insert into t_result (step, ok, detail)
-  values ('9c the old phone number no longer signs in', v_res ->> 'reason' = 'invalid', v_res::text);
-
-  for i in 1..6 loop
-    v_res := member_login_verify(v_no, '0711111111', 'test-client-2');
-  end loop;
-  v_res := member_login_verify(v_no, '0770000000', 'test-client-2');
-  insert into t_result (step, ok, detail)
-  values ('9d repeated wrong numbers lock the member number, even against the right one',
-          v_res ->> 'reason' = 'locked', v_res::text);
-
-  -- Even the database owner, writing SQL by hand, cannot renumber a member or
-  -- delete a fee: those rules are triggers, not just missing privileges.
-  begin
-    update members set member_no = 'BND-M-9999999' where id = v_john_id;
-    insert into t_result (step, ok, detail) values ('9g a member number can never be changed', false, 'changed');
-  exception when others then
-    get stacked diagnostics v_err = message_text;
-    insert into t_result (step, ok, detail) values ('9g a member number can never be changed', true, v_err);
-  end;
-
-  begin
-    delete from fees where id = (select id from t_ctx where key = 'reg_fee');
-    insert into t_result (step, ok, detail) values ('9h a fee can never be deleted', false, 'deleted');
-  exception when others then
-    get stacked diagnostics v_err = message_text;
-    insert into t_result (step, ok, detail) values ('9h a fee can never be deleted', true, v_err);
-  end;
-
-  -- John's login, created the way the sign-in action creates it.
+  -- John's login, created the way registration creates it: an internal
+  -- address, a password nobody knows, and a link to his member record.
   insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
                           email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
                           created_at, updated_at)
@@ -372,9 +338,107 @@ begin
 
   select * into v_user from app_users where id = v_uid;
   insert into t_result (step, ok, detail)
-  values ('9e the new login is a member login linked to exactly one member record',
+  values ('9a the new login is a member login linked to exactly one member record, with no password chosen yet',
           v_user.role = 'member' and v_user.is_active and v_user.email is null
+          and v_user.password_set_at is null
           and (select user_id from members where id = v_john_id) = v_uid, null);
+
+  -- A cashier with no email address, who signs in with a phone number.
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+                          email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+                          created_at, updated_at)
+  values (v_staff, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+          'staff-test@staff.bnd-sacco.invalid', '', now(),
+          jsonb_build_object('role', 'cashier'),
+          jsonb_build_object('full_name', 'Test Phone Cashier', 'phone', '0770 000 055'), now(), now());
+  select * into v_user from app_users where id = v_staff;
+  insert into t_result (step, ok, detail)
+  values ('9b a staff account needs no email: its internal address is not kept and its phone is normalised',
+          v_user.role = 'cashier' and v_user.email is null and v_user.phone = '+256770000055', v_user.phone);
+
+  -- ---- One identifier field, the account worked out from it ---------------
+  v_res := login_resolve(v_no, 'test-client');
+  insert into t_result (step, ok, detail)
+  values ('9c a member number resolves to that member''s login',
+          not (v_res ->> 'locked')::boolean
+          and (v_res -> 'candidates' -> 0 ->> 'user_id')::uuid = v_uid
+          and jsonb_array_length(v_res -> 'candidates') = 1, v_res ->> 'key');
+
+  v_res := login_resolve(replace(v_no, 'BND-M-', ''), 'test-client');
+  insert into t_result (step, ok, detail)
+  values ('9d the bare number works too', (v_res -> 'candidates' -> 0 ->> 'user_id')::uuid = v_uid, v_res ->> 'key');
+
+  v_res := login_resolve('0770 000 000', 'test-client');
+  insert into t_result (step, ok, detail)
+  values ('9e a member''s phone, typed locally, resolves to the same login',
+          (v_res -> 'candidates' -> 0 ->> 'user_id')::uuid = v_uid and v_res ->> 'key' = '+256770000000', null);
+
+  v_res := login_resolve('+256770000055', 'test-client');
+  insert into t_result (step, ok, detail)
+  values ('9f a staff phone resolves to the staff account',
+          (v_res -> 'candidates' -> 0 ->> 'user_id')::uuid = v_staff, null);
+
+  v_res := login_resolve('BND-M-9999998', 'test-client');
+  insert into t_result (step, ok, detail)
+  values ('9g an unknown identifier looks just like a known one: not locked, nothing to try',
+          not (v_res ->> 'locked')::boolean and jsonb_array_length(v_res -> 'candidates') = 0, v_res::text);
+
+  -- ---- Wrong passwords pause the identifier, known or not -----------------
+  for i in 1..5 loop
+    perform login_record(v_no, 'test-client-2', v_uid, false, 'invalid');
+    perform login_record('BND-M-9999998', 'test-client-3', null, false, 'invalid');
+  end loop;
+  insert into t_result (step, ok, detail)
+  values ('9h five wrong passwords pause a real member number',
+          (login_resolve(v_no, 'test-client-2') ->> 'locked')::boolean, null);
+  insert into t_result (step, ok, detail)
+  values ('9i and an unknown one exactly the same way, so pausing reveals nothing',
+          (login_resolve('BND-M-9999998', 'test-client-3') ->> 'locked')::boolean, null);
+  insert into t_result (step, ok, detail)
+  values ('9j failures are in the audit log, without any password',
+          exists (select 1 from audit_logs where action = 'auth.login_failed' and record_id = v_uid::text)
+          and not exists (select 1 from audit_logs where new_value::text ilike '%password"%'), null);
+
+  -- ---- Setup codes: the member chooses their own password -----------------
+  v_res := issue_account_setup_code(v_uid, 'setup');
+  v_code := v_res ->> 'code';
+  select code_hash into v_hash from account_setup_codes where user_id = v_uid and used_at is null;
+  insert into t_result (step, ok, detail)
+  values ('9k a setup code is issued once, and only its hash is stored',
+          v_code ~ '^[A-Z2-9]{5}-[A-Z2-9]{5}$' and v_hash like '$2%' and v_hash <> v_code, null);
+
+  v_res := setup_code_verify('0770000000', 'AAAAA-AAAAA', 'test-client-4');
+  insert into t_result (step, ok, detail)
+  values ('9l a wrong code is refused', v_res ->> 'reason' = 'invalid', null);
+
+  v_res := setup_code_verify('0770000000', lower(replace(v_code, '-', '')), 'test-client-4');
+  insert into t_result (step, ok, detail)
+  values ('9m the right code, typed any way, identifies the account',
+          (v_res ->> 'ok')::boolean and (v_res ->> 'user_id')::uuid = v_uid, null);
+
+  perform setup_code_complete((v_res ->> 'code_id')::uuid);
+  insert into t_result (step, ok, detail)
+  values ('9n once the password is set the code is spent and the account is marked set up',
+          (select password_set_at is not null from app_users where id = v_uid)
+          and (setup_code_verify(v_no, v_code, 'test-client-4') ->> 'ok')::boolean is false, null);
+
+  -- Even the database owner, writing SQL by hand, cannot renumber a member or
+  -- delete a fee: those rules are triggers, not just missing privileges.
+  begin
+    update members set member_no = 'BND-M-9999999' where id = v_john_id;
+    insert into t_result (step, ok, detail) values ('9o a member number can never be changed', false, 'changed');
+  exception when others then
+    get stacked diagnostics v_err = message_text;
+    insert into t_result (step, ok, detail) values ('9o a member number can never be changed', true, v_err);
+  end;
+
+  begin
+    delete from fees where id = (select id from t_ctx where key = 'reg_fee');
+    insert into t_result (step, ok, detail) values ('9p a fee can never be deleted', false, 'deleted');
+  exception when others then
+    get stacked diagnostics v_err = message_text;
+    insert into t_result (step, ok, detail) values ('9p a fee can never be deleted', true, v_err);
+  end;
 
   -- Somebody signing themselves up through the public API, claiming a role.
   insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -385,7 +449,7 @@ begin
           jsonb_build_object('role', 'super_admin', 'full_name', 'Rogue'), now(), now());
   select * into v_user from app_users where id = v_rogue;
   insert into t_result (step, ok, detail)
-  values ('9f a self sign-up claiming super_admin gets nothing: a switched-off member row',
+  values ('9q a self sign-up claiming super_admin gets nothing: a switched-off member row',
           v_user.role = 'member' and not v_user.is_active, v_user.role || ' / active=' || v_user.is_active);
 end;
 $$;
@@ -480,6 +544,24 @@ begin
   select count(*) into v_n from audit_logs;
   insert into t_result (step, ok, detail) values ('10l he cannot read the audit log', v_n = 0, v_n || ' row(s)');
 
+  begin
+    perform issue_account_setup_code(v_uid, 'reset');
+    insert into t_result (step, ok, detail) values ('10m he cannot issue himself a reset code', false, 'issued');
+  exception when others then
+    get stacked diagnostics v_err = message_text;
+    insert into t_result (step, ok, detail) values ('10m he cannot issue himself a reset code', true, v_err);
+  end;
+
+  -- Suspended: his existing session reads nothing.
+  perform set_config('request.jwt.claims', v_admin, true);
+  perform set_member_status(v_john_id, 'suspended', 'members test: suspension');
+  perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
+
+  select count(*) into v_n from members;
+  insert into t_result (step, ok, detail)
+  values ('10n once suspended, even an existing session reads none of his records',
+          v_n = 0 and current_member_id() is null, v_n || ' row(s)');
+
   perform set_config('request.jwt.claims', v_admin, true);
 end;
 $$;
@@ -497,7 +579,8 @@ select '11a no internal helper is executable by anon or authenticated',
  where n.nspname = 'public'
    and p.proname in ('post_transaction', 'post_account_entry', 'write_audit', 'next_document_no',
                      'post_fee_payment', 'maybe_activate_member', 'ensure_savings_period',
-                     'settle_manual_payment', 'define_setting', 'member_login_verify',
+                     'settle_manual_payment', 'define_setting', 'login_resolve', 'login_record',
+                     'setup_code_verify', 'setup_code_complete', 'login_candidates',
                      'resolve_posting_account', 'account_balance_at', 'run_daily_maintenance')
    and (has_function_privilege('anon', p.oid, 'execute')
         or has_function_privilege('authenticated', p.oid, 'execute'));

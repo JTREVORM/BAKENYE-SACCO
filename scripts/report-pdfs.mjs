@@ -34,9 +34,8 @@ const page = await context.newPage();
 
 try {
   await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded', timeout: 120_000 });
-  // Staff sign in on the Staff tab; the Member tab is the default.
-  await page.click('button[role="tab"]:has-text("Staff")');
-  await page.fill('input[name="email"]', EMAIL);
+  // One sign-in form for everyone; an email works as the identifier for staff.
+  await page.fill('input[name="identifier"]', EMAIL);
   await page.fill('input[type="password"]', PASSWORD);
   await page.click('button[type="submit"]');
   await page.waitForURL(/\/staff/, { timeout: 120_000 }).catch(() => {});

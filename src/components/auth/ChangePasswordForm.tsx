@@ -7,8 +7,11 @@ import { Field, Input, SubmitButton } from '@/components/ui/form';
 import type { ActionResult } from '@/lib/errors';
 
 /**
- * Change a staff password while signed in. (Members have no password: they
- * sign in with their member number and registered phone number.)
+ * Change your own password while signed in - members and staff alike.
+ *
+ * This changes the password and nothing else. A member's name, phone and member
+ * number are the SACCO's official record and are changed only by staff; the
+ * password is the member's own.
  *
  * Requires the current password, so an unattended unlocked phone cannot be used
  * to take over the account.

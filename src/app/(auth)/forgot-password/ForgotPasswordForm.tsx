@@ -16,15 +16,12 @@ export function ForgotPasswordForm() {
   if (state?.ok) {
     return (
       <div className="mt-6 flex flex-col gap-4">
-        <Alert tone="success" title="Check your email">
+        <Alert tone="success" title="What happens next">
           {state.message}
         </Alert>
-        <p className="text-body-md font-body-md text-on-surface-variant">
-          The link is valid for one hour. If it does not arrive, check your spam folder.
-        </p>
         <Link
           href="/login"
-          className="bg-primary text-on-primary h-touch-target-primary text-button-text font-button-text mt-2 flex items-center justify-center rounded-lg font-semibold"
+          className="bg-ink text-white h-touch-target-primary text-button-text mt-2 flex items-center justify-center rounded-full font-semibold shadow-neu-dark"
         >
           Back to sign in
         </Link>
@@ -37,28 +34,29 @@ export function ForgotPasswordForm() {
   return (
     <form action={action} className="mt-6 flex flex-col gap-4" noValidate>
       <Field
-        label="Email address"
-        htmlFor="email"
+        label="Member Number or Phone Number"
+        htmlFor="identifier"
+        emphasis
         required
         error={error?.error ?? null}
+        hint="Staff may also use the email address on their account."
       >
         <Input
-          id="email"
-          name="email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          autoCapitalize="none"
+          id="identifier"
+          name="identifier"
+          type="text"
+          autoComplete="username"
+          autoCapitalize="characters"
           spellCheck={false}
           enterKeyHint="send"
           required
           invalid={!!error}
-          placeholder="you@example.com"
+          placeholder="Member Number or Phone Number"
         />
       </Field>
 
-      <SubmitButton size="lg" block pendingLabel="Sending…">
-        Send reset link
+      <SubmitButton size="lg" block pendingLabel="Sending...">
+        Continue
       </SubmitButton>
     </form>
   );

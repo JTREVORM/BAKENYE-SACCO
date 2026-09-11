@@ -12,6 +12,10 @@ import type { FinanceAccountType } from './treasury';
 
 export type RoleKind = 'staff' | 'member';
 
+/** Where a role lands after signing in. */
+export type RoleDashboard =
+  | 'administration' | 'overview' | 'cashier' | 'loans' | 'finance' | 'collections' | 'portal';
+
 export type RoleRow = {
   key: string;
   name: string;
@@ -19,6 +23,7 @@ export type RoleRow = {
   kind: RoleKind;
   is_system: boolean;
   status: 'active' | 'inactive';
+  dashboard: RoleDashboard;
   sort_order: number;
   created_by: string | null;
   updated_by: string | null;
@@ -58,6 +63,9 @@ export type SessionPayload = {
   role_name: string;
   role_kind: RoleKind;
   role_active: boolean;
+  role_dashboard: RoleDashboard;
+  /** Whether the account holder has chosen their own password yet. */
+  password_set: boolean;
   member: { id: string; member_no: string; status: MemberStatus } | null;
   permissions: string[];
 };
@@ -193,31 +201,60 @@ export type MemberProfileChangeRow = {
   changed_at: string;
 };
 
-export type MemberLoginAttemptRow = {
+export type LoginAttemptRow = {
   id: number;
-  member_no: string;
+  identifier: string;
+  kind: 'sign_in' | 'setup';
+  user_id: string | null;
   client: string | null;
   succeeded: boolean;
   reason: string | null;
   created_at: string;
 };
 
-/** `member_login_verify()` - server only, via the service role. */
-export type MemberLoginVerdict =
-  | {
-      ok: true;
-      member_id: string;
-      member_no: string;
-      full_name: string;
-      phone: string;
-      status: MemberStatus;
-      user_id: string | null;
-      auth_email: string;
-    }
-  | { ok: false; reason: 'invalid'; attempts_left: number }
-  | { ok: false; reason: 'locked'; retry_at: string }
-  | { ok: false; reason: 'inactive'; status: MemberStatus }
-  | { ok: false; reason: 'staff_account' | 'disabled' | 'conflict' };
+/* ------------------------------------------------------------- sign-in */
+
+/** `login_resolve()` - server only, via the service role. */
+export type LoginResolution = {
+  key: string;
+  locked: boolean;
+  retry_at?: string;
+  candidates: { user_id: string; auth_email: string }[];
+};
+
+/** `setup_code_verify()` - server only. */
+export type SetupCodeVerdict =
+  | { ok: true; code_id: string; user_id: string }
+  | { ok: false; reason: 'invalid' }
+  | { ok: false; reason: 'locked'; retry_at: string };
+
+/** A setup or reset code, returned once by `issue_account_setup_code()`. */
+export type SetupCodeIssued = { code: string; expires_at: string; purpose: 'setup' | 'reset' };
+
+/** `account_login_status()` - what staff may see about a login. Never the password. */
+export type AccountLoginStatus = {
+  user_id: string;
+  is_active: boolean;
+  role: string;
+  phone: string | null;
+  email: string | null;
+  password_set_at: string | null;
+  last_login_at: string | null;
+  pending_code: { purpose: 'setup' | 'reset'; issued_at: string; expires_at: string } | null;
+  recent_failures: number;
+  paused_until: string | null;
+};
+
+export type SecurityOverview = {
+  staff_accounts: number;
+  member_logins: number;
+  awaiting_setup: number;
+  codes_pending: number;
+  signins_24h: number;
+  failures_24h: number;
+  paused_now: number;
+  members_without_login: number;
+};
 
 /* ------------------------------------------------------------ DB wiring */
 
@@ -231,7 +268,8 @@ export type AccessTables = {
   member_fees: Table<MemberFeeRow>;
   fee_payment_lines: Table<FeePaymentLineRow>;
   member_profile_changes: Table<MemberProfileChangeRow>;
-  member_login_attempts: Table<MemberLoginAttemptRow>;
+  login_attempts: Table<LoginAttemptRow>;
+  account_setup_codes: Table<{ id: string; user_id: string; purpose: string; issued_at: string; expires_at: string; used_at: string | null; revoked_at: string | null }>;
 };
 
 type FeePayload = {
@@ -250,7 +288,21 @@ type FeePayload = {
 
 export type AccessFunctions = {
   my_session: { Args: Record<PropertyKey, never>; Returns: SessionPayload | null };
-  touch_last_login: { Args: Record<PropertyKey, never>; Returns: undefined };
+  log_logout: { Args: Record<PropertyKey, never>; Returns: undefined };
+  log_password_changed: { Args: Record<PropertyKey, never>; Returns: undefined };
+  login_resolve: { Args: { p_identifier: string; p_client?: string | null }; Returns: LoginResolution };
+  login_record: {
+    Args: { p_identifier: string; p_client: string | null; p_user_id: string | null; p_succeeded: boolean; p_reason?: string | null };
+    Returns: undefined;
+  };
+  issue_account_setup_code: { Args: { p_user_id: string; p_purpose?: 'setup' | 'reset' }; Returns: SetupCodeIssued };
+  setup_code_verify: { Args: { p_identifier: string; p_code: string; p_client?: string | null }; Returns: SetupCodeVerdict };
+  setup_code_complete: { Args: { p_code_id: string }; Returns: undefined };
+  account_login_status: { Args: { p_user_id: string }; Returns: AccountLoginStatus | null };
+  security_overview: { Args: Record<PropertyKey, never>; Returns: SecurityOverview };
+  assert_login_phone_available: { Args: { p_phone: string; p_except_user: string | null }; Returns: string | null };
+  set_user_phone: { Args: { p_user_id: string; p_phone: string | null; p_reason: string }; Returns: { user_id: string; phone: string | null } };
+  set_role_dashboard: { Args: { p_role_key: string; p_dashboard: string; p_reason?: string | null }; Returns: { role: string; dashboard: string } };
   has_permission: { Args: { p_key: string }; Returns: boolean };
 
   assert_can_assign_role: { Args: { p_role: string }; Returns: undefined };
@@ -319,10 +371,6 @@ export type AccessFunctions = {
       p_allow_shared_phone?: boolean;
     };
     Returns: { member_id: string; changed: string[]; user_id: string | null; phone: string };
-  };
-  member_login_verify: {
-    Args: { p_member_no: string; p_phone: string; p_client?: string | null };
-    Returns: MemberLoginVerdict;
   };
   collection_accounts: { Args: Record<PropertyKey, never>; Returns: CollectionAccount[] };
   finance_account_balance_at: {

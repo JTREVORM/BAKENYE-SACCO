@@ -15,7 +15,7 @@ the visual source of truth, and every screen below names the file it came from.
 | Area | Covered |
 | --- | --- |
 | **Members** | Five-step registration (member, categories, fees, payment, confirmation) in one database transaction; search by number, name or phone; Pending / Active / Suspended / Inactive / Archived; share and savings categories; fees; field-by-field change history; full financial history and ledger |
-| **Member sign-in** | Member number + the phone number on the member's official record. No email, no password |
+| **Sign-in** | One form for everyone: member number or phone number (or a staff email) + password. The account and its role are detected, and each role opens its own dashboard |
 | **Fees** | Membership, registration and any other fee the SACCO defines under Settings → Fees. Amounts are rows, never code; a change never touches a past receipt |
 | **Categories** | Diamond / Gold / Silver share tiers and Diamond / Gold / Silver Saver savings tiers — created, edited and retired by a manager, never hard-coded |
 | **Collections** | One centralised screen: search a member by number, name or phone, see what their category expects, and record cash, mobile money, bank or cheque against a reference |
@@ -67,7 +67,6 @@ cp .env.example .env.local
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API → `anon` `public` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → `service_role`. **Server-only.** Never prefix it with `NEXT_PUBLIC_`. |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` locally; your real URL in production |
-| `MEMBER_LOGIN_SECRET` | Optional. A long random string that keys member sign-in credentials (see [Member sign-in](#member-sign-in)). If unset, the service-role key is used. **Server-only.** |
 
 ### 3. Apply the migrations
 
@@ -103,6 +102,8 @@ supabase db push
 | `0029_roles_and_permissions.sql` | `roles`, `permissions`, `role_permissions`; `has_permission()`; every role list in a function rewritten as a permission; the sign-up, self-edit and guarantor-search fixes |
 | `0030_member_registration_and_fees.sql` | Fees, `register_member()`, audited profile edits, phone normalisation, member sign-in verification and lock-out, fee receipts, and the function-grant allowlist |
 | `0031_collection_accounts.sql` | The receiving accounts (names, no balances) for the people who take money at the counter |
+| `0032_unified_login.sql` | One sign-in for everyone: identifier resolution, failed-attempt pauses, one-time setup codes, a dashboard per role, sign-in audit, and suspended members locked out at the database |
+| `0033_existing_passwords.sql` | Marks staff accounts that were already signing in as having chosen their password |
 
 ### 4. Create the first administrator
 
@@ -113,8 +114,9 @@ made there was not provisioned by the application, so it arrives switched off. T
 update app_users set role = 'super_admin', is_active = true where email = 'you@example.com';
 ```
 
-Sign in at `/login` on the **Staff** tab. From there, staff accounts are created in the app under
-**Users**, and members get their sign-in when they are registered.
+Sign in at `/login` with that email and password. From there, staff accounts are created in the app
+under **Users**, and members get their login when they are registered - each with a one-time setup
+code, never a password anyone else knows.
 
 **Turn off public sign-up.** Supabase → Authentication → Sign In / Providers → *Allow new users to
 sign up* → off. Nobody should be able to create an account for themselves: staff accounts come from
@@ -145,7 +147,7 @@ npm start
 
 ## The sign-in screen
 
-`/login`, `/forgot-password` and `/reset-password` share
+`/login`, `/activate`, `/forgot-password` and `/reset-password` share
 [`AuthShell`](src/components/auth/AuthShell.tsx): the brand panel on the left, the task on the
 right, one footer across the bottom.
 
@@ -401,27 +403,45 @@ records*. Staff who hold it must give a reason, and every changed field is kept 
 `member_profile_changes` - field, old value, new value, who, when, why - and shown under **History**
 on the member's page. The member number cannot change at all: a trigger refuses it, even from SQL.
 
-### Member sign-in
+### Signing in
 
-Members sign in with their **member number** and the **phone number on their SACCO record**. Many
-have no email address, so none is needed.
+There is **one sign-in form for everyone**. Nobody chooses "member" or "staff".
 
-Supabase Auth still needs an email and password underneath, so each member login gets an internal
-address (`bnd-m-0000123@members.bnd-sacco.invalid` - `.invalid` can never receive mail) and a
-password nobody types: an HMAC of the login's id and the member's registered phone, keyed with a
-server-only secret (`MEMBER_LOGIN_SECRET`, or the service-role key). Signing in:
+```
+identifier (member number, phone number, or a staff email) + password
+      │  login_resolve()      which account(s) could this be? is it paused?
+      │  Supabase Auth        does the password match? (bcrypt - never stored anywhere else)
+      │  my_session()         the role, from the database - never from the form
+      │  account standing     suspended, inactive, archived or switched off?
+      ▼  landingPath()        that role's own dashboard
+```
 
-1. `member_login_verify()` checks the member number and phone against the register. It is callable
-   only with the service-role key, answers the same way whether or not the number exists, and locks
-   a member number for a while after too many wrong phones (Settings → Security).
-2. Only then does the server derive the password and sign in. If the password has fallen out of step
-   with the register - the phone was changed, the secret rotated - the register wins and it is reset.
+- **Identifiers.** `BND-M-0000123`, `123`, `0772 123 456` and `+256772123456` are all understood; a
+  phone is held in one form, `+2567XXXXXXXX`. Staff may sign in with their phone or, if they use one,
+  an email - email is never required. People with no email get an internal sign-in address ending in
+  `.invalid` (a domain that can never receive mail); nobody sees or types it.
+- **Errors say nothing useful to an attacker.** A wrong password and an unknown identifier get the same
+  sentence. After too many failures (Settings → Security) the *identifier* is paused for a while -
+  whether or not it exists - and so is a client that fails too often. Nothing is locked permanently.
+- **Standing is checked after the password.** A suspended member is told so; an inactive, archived or
+  switched-off account is told it is unavailable. The database agrees: `current_member_id()` returns
+  nothing for them, so even a session token issued earlier reads no records.
+- **Dashboards.** Super Admin and Admin open *Administration*, the Manager the *SACCO overview*, a
+  Cashier the *Cashier desk*, a Loan Officer the *Loans desk*, an Accountant *Finance*, a Field
+  Officer *Collections*, a member their own dashboard. Which one a role opens is a setting on the role
+  (Roles & Permissions), so custom roles choose too. `/admin` sends everyone to their own.
 
-So the register is the credential: changing a member's phone number changes how they sign in, at
-once, and nothing sensitive is stored. A member's first sign-in creates their login if registration
-could not. Members have no password to forget; the *Forgot password* page tells them to visit the
-office if their number has changed. Staff sign in with email and password on the **Staff** tab, and
-the Staff tab turns member logins away.
+**Nobody knows anybody else's password.** Registering a member, or creating a staff account, makes a
+login with a random password no person ever sees, and a **one-time setup code** shown once to the
+officer. The account holder enters it on **Set up your account** (`/activate`) with their member
+number or phone, and chooses their own password. Codes are stored only as bcrypt hashes, expire
+(Settings → Security) and work once. **Forgot password** sends a reset link where the account has an
+email; everyone else visits the office, where staff issue a reset code - the same mechanism - after
+checking who they are. An SMS or OTP service can later deliver the same code instead.
+
+A member can change their **password** from their profile; they cannot change their name, phone,
+member number or categories, which are the SACCO's record. Sign-in, failures, sign-out, resets,
+setup codes and password changes all go to the audit log (module *Security*); no password ever does.
 
 ---
 

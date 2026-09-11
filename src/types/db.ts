@@ -74,6 +74,8 @@ export type AppUserRow = {
   photo_url: string | null;
   is_active: boolean;
   last_login_at: string | null;
+  /** When the account holder last chose their own password; null until they have. */
+  password_set_at: string | null;
   created_at: string;
   updated_at: string;
 };

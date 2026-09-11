@@ -41,22 +41,22 @@ export default function HelpPage() {
         <Item
           icon="badge"
           title="What do I sign in with?"
-          body="Use the member number on your passbook — it looks like BND-M-0000123 — or the email address you gave the SACCO. Either one works with your password."
+          body="Your member number (on your passbook, like BND-M-0000123) or your phone number, and your password. Staff can also use their email. There is one sign-in for everyone."
         />
         <Item
           icon="lock"
           title="I have forgotten my password"
-          body="If the SACCO has your email address, use “Forgot your password?” on the sign-in screen. If you registered without an email, visit the office and a manager will reset it for you."
+          body="Use “Forgot Password?” on the sign-in screen. If you have no email, visit the office with your National ID: staff give you a one-time reset code - never your password - and you choose a new one under “Set up your account”."
         />
         <Item
           icon="person"
           title="I have never signed in before"
-          body="Ask at the SACCO office for a login to be created. They will give you a one-time password to change the first time you sign in."
+          body="When you registered, the office gave you a setup code. Choose “Set up your account” on the sign-in screen, enter your member number or phone and the code, and choose your password. Lost the code? Ask the office for a new one."
         />
         <Item
           icon="block"
-          title="It says my account is deactivated"
-          body="This happens when a membership is suspended or closed. Please speak to the SACCO manager — your savings and shares are unaffected."
+          title="It says my account is unavailable or suspended"
+          body="This happens when a membership is suspended or closed. Please speak to the SACCO administration — your savings and shares are unaffected."
         />
         <Item
           icon="phone"

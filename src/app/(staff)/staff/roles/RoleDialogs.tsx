@@ -6,7 +6,8 @@ import { createRole, setRoleStatus, updateRole } from '@/app/actions/roles';
 import { Modal } from '@/components/ui/Modal';
 import { Alert } from '@/components/ui/states';
 import { Badge } from '@/components/ui/primitives';
-import { Button, Field, Input, SubmitButton, Textarea } from '@/components/ui/form';
+import { Button, Field, Input, Select, SubmitButton, Textarea } from '@/components/ui/form';
+import { DASHBOARDS } from '@/lib/rbac';
 import type { ActionResult } from '@/lib/errors';
 import type { PermissionRow } from '@/types/access';
 
@@ -54,6 +55,19 @@ export function NewRoleButton({
           </Field>
           <Field label="Description" htmlFor="role-desc" hint="One line on what people with this role do.">
             <Textarea id="role-desc" name="description" maxLength={300} />
+          </Field>
+          <Field
+            label="Opens on sign-in"
+            htmlFor="role-dashboard"
+            hint="The dashboard people with this role land on after signing in."
+          >
+            <Select id="role-dashboard" name="dashboard" defaultValue={'overview'}>
+              {DASHBOARDS.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.label} - {d.description}
+                </option>
+              ))}
+            </Select>
           </Field>
 
           <div className="flex flex-col gap-3">
@@ -116,6 +130,8 @@ export function RoleSettingsButton({
     name: string;
     description: string | null;
     status: 'active' | 'inactive';
+    /** Null for the member role, which always opens the member dashboard. */
+    dashboard: string | null;
     fixedName: boolean;
     retirable: boolean;
   };
@@ -137,7 +153,7 @@ export function RoleSettingsButton({
   return (
     <div className="flex flex-wrap gap-2">
       <Button variant="outline" size="sm" icon="edit" onClick={() => setOpen('edit')}>
-        Rename
+        Edit
       </Button>
       {role.retirable ? (
         <Button variant="ghost" size="sm" icon={retiring ? 'block' : 'restart_alt'} onClick={() => setOpen('status')}>
@@ -161,6 +177,21 @@ export function RoleSettingsButton({
           <Field label="Description" htmlFor="edit-role-desc">
             <Textarea id="edit-role-desc" name="description" defaultValue={role.description ?? ''} maxLength={300} />
           </Field>
+          {role.dashboard ? (
+            <Field
+              label="Opens on sign-in"
+              htmlFor="edit-role-dashboard"
+              hint="The dashboard people with this role land on after signing in."
+            >
+              <Select id="edit-role-dashboard" name="dashboard" defaultValue={role.dashboard}>
+                {DASHBOARDS.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.label} - {d.description}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
           <div className="flex gap-3">
             <Button variant="outline" size="lg" className="flex-1" onClick={() => setOpen(null)}>
               Cancel

@@ -7,7 +7,6 @@ import { clsx } from '@/lib/clsx';
 import { Icon } from '@/components/ui/primitives';
 import { ScrollArea } from '@/components/ui/scroll';
 import { MEMBER_NAV, MEMBER_MORE_NAV } from '@/lib/rbac';
-import { signOut } from '@/app/(auth)/actions';
 import { useBrand } from '@/components/brand/BrandProvider';
 import { splitName } from '@/lib/sacco-brand';
 
@@ -93,7 +92,7 @@ export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number })
       <div className="shrink-0 border-t border-white/10 p-3">
         {/* A plain form posting to the server action, so this component never
             needs the Supabase browser SDK. */}
-        <form action={signOut}>
+        <form method="post" action="/auth/signout">
           <button
             type="submit"
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-button-text text-white/70 transition-colors hover:bg-white/10 hover:text-white"

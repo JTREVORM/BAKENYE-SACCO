@@ -73,7 +73,32 @@ export type Access = {
   role: Role;
   roleKind: RoleKind;
   permissions: readonly string[];
+  /** The dashboard this role lands on, from `roles.dashboard`. */
+  dashboard?: Dashboard;
 };
+
+/**
+ * The dashboards a role can land on. Which one each role uses is a setting on
+ * the role (Roles & Permissions), so a custom role picks one too.
+ */
+export type Dashboard =
+  | 'administration' | 'overview' | 'cashier' | 'loans' | 'finance' | 'collections' | 'portal';
+
+export const DASHBOARDS: {
+  id: Exclude<Dashboard, 'portal'>;
+  label: string;
+  href: string;
+  description: string;
+  /** Without this permission the role falls back to the overview. */
+  needs?: Permission;
+}[] = [
+  { id: 'administration', label: 'Administration', href: '/staff/admin', description: 'Accounts, sign-in security, configuration and the SACCO at a glance.' },
+  { id: 'overview', label: 'SACCO overview', href: '/staff', description: 'Members, savings, loans and finance across the whole SACCO.' },
+  { id: 'cashier', label: 'Cashier desk', href: '/staff/desk', description: "Today's collections, receipts and the counter's quick actions." },
+  { id: 'loans', label: 'Loans desk', href: '/staff/loans-desk', description: 'Applications to assess, repayments due and loans in arrears.', needs: 'loans.view' },
+  { id: 'finance', label: 'Finance', href: '/staff/finance', description: 'Cash at Merchant, Bank and Hand, and the books.', needs: 'finance.view' },
+  { id: 'collections', label: 'Collections', href: '/staff/savings/collect', description: 'Find a member and record what they bring.', needs: 'savings.view' },
+];
 
 export function can(who: Access | null | undefined, permission: Permission): boolean {
   if (!who) return false;
@@ -214,6 +239,7 @@ export const MEMBER_MORE_NAV: readonly NavItem[] = [
   { label: 'Guarantees',   href: '/guarantees',    icon: 'handshake' },
   { label: 'Notifications', href: '/notifications', icon: 'notifications_active' },
   { label: 'My Profile',   href: '/profile',       icon: 'person' },
+  { label: 'Password & Security', href: '/profile#password', icon: 'lock' },
 ];
 
 export function visibleNav(who: Access | null | undefined, items: readonly NavItem[]): NavItem[] {
@@ -222,7 +248,16 @@ export function visibleNav(who: Access | null | undefined, items: readonly NavIt
     .map((i) => (i.children ? { ...i, children: visibleNav(who, i.children) } : i));
 }
 
-/** Where a user lands after login: the back office for staff, the portal for members. */
-export function landingPath(who: Pick<Access, 'roleKind'> | null | undefined): string {
-  return who?.roleKind === 'staff' ? '/staff' : '/';
+/**
+ * Where a user lands after signing in: members on their own dashboard, staff
+ * on their role's dashboard. A role whose dashboard needs a permission it does
+ * not hold lands on the overview instead, so a misconfigured role can never
+ * bounce between redirects.
+ */
+export function landingPath(who: Access | null | undefined): string {
+  if (!who) return '/login';
+  if (who.roleKind !== 'staff') return '/';
+  const d = DASHBOARDS.find((x) => x.id === who.dashboard);
+  if (!d || (d.needs && !can(who, d.needs))) return '/staff';
+  return d.href;
 }

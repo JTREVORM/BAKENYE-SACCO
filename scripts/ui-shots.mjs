@@ -59,9 +59,8 @@ for (const vp of VIEWPORTS) {
   const page = await ctx.newPage();
 
   await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
-  // Staff sign in on the Staff tab; the Member tab is the default.
-  await page.click('button[role="tab"]:has-text("Staff")');
-  await page.fill('input[name="email"]', EMAIL);
+  // One sign-in form for everyone; an email works as the identifier for staff.
+  await page.fill('input[name="identifier"]', EMAIL);
   await page.fill('input[name="password"]', PASSWORD);
   await Promise.all([
     page.waitForURL(/\/staff/, { timeout: 30_000 }).catch(() => {}),

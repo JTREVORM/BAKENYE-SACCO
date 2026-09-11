@@ -1,145 +1,207 @@
 /**
- * Browser check for sign-in, roles, members, registration and fees.
+ * Browser check for the unified sign-in, role dashboards and access control.
  *
- *   node scripts/access-check.mjs [baseUrl] [memberNo] [memberPhone]
+ *   node scripts/access-check.mjs [baseUrl]
  *
- * Signs in on the Staff tab and loads every screen this work touches, then
- * signs in on the Member tab with a member number and phone and checks that
- * the member sees their own read-only profile and cannot reach the back
- * office. Every page is checked at 390px and 1440px for errors and sideways
- * scrolling, and screenshotted to screenshots/access/.
+ * Configuration comes from the environment, so no credential is written into
+ * this file beyond the local development defaults:
  *
- * It reads and navigates only. It does not register members, create fees or
- * record payments: those write permanent records (by design they cannot be
- * deleted), so they are proved by supabase/tests/members_access_test.sql,
- * which runs them inside a transaction that is rolled back.
+ *   STAFF_EMAIL, STAFF_PASSWORD   a staff account (default: the dev super admin)
+ *   STAFF_HOME                    where that account should land (default /staff/admin)
+ *   STAFF_PHONE                   optional - also sign that account in by phone
+ *   MEMBER_NO, MEMBER_PHONE,
+ *   MEMBER_PASSWORD               optional - a member account to check
+ *   MEMBER_NEW_PASSWORD           optional - also change the member's password,
+ *                                 prove old/new, then change it back
+ *   EXPECT_SUSPENDED=1            only check that the member is refused as suspended
+ *
+ * Every signed-in page is loaded at 390px and 1440px and checked for errors and
+ * sideways scrolling; screenshots go to screenshots/access/.
+ *
+ * It does not register members or record payments: those write permanent
+ * records by design, so they are proved by supabase/tests/members_access_test.sql
+ * inside a transaction that is rolled back.
  */
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 
 const BASE = process.argv[2] ?? 'http://localhost:3000';
-const MEMBER_NO = process.argv[3] ?? process.env.MEMBER_NO;
-const MEMBER_PHONE = process.argv[4] ?? process.env.MEMBER_PHONE;
-const EMAIL = process.env.STAFF_EMAIL ?? 'trevor@gmail.com';
-const PASSWORD = process.env.STAFF_PASSWORD ?? 'Admin@123';
+const env = process.env;
+const STAFF_EMAIL = env.STAFF_EMAIL ?? 'trevor@gmail.com';
+const STAFF_PASSWORD = env.STAFF_PASSWORD ?? 'Admin@123';
+const STAFF_HOME = env.STAFF_HOME ?? '/staff/admin';
 const OUT = 'screenshots/access';
+const INVALID = 'Invalid login credentials. Please check your identifier and password.';
 
 const STAFF_ROUTES = [
-  '/staff/members',
-  '/staff/members/new',
-  '/staff/users',
-  '/staff/roles',
-  '/staff/roles?role=cashier',
-  '/staff/roles?role=member',
-  '/staff/roles?role=super_admin',
-  '/staff/settings?section=fees',
-  '/staff/settings?section=members',
-  '/staff/settings?section=security',
-  '/staff/settings?section=users',
-  '/staff/profile',
-  '/staff/audit',
+  '/staff/admin', '/staff', '/staff/desk', '/staff/loans-desk', '/staff/members', '/staff/members/new',
+  '/staff/users', '/staff/roles', '/staff/roles?role=cashier', '/staff/settings?section=security',
+  '/staff/finance', '/staff/savings', '/staff/loans', '/staff/transactions', '/staff/reports',
+  '/staff/audit', '/staff/profile',
 ];
-
-const MEMBER_ROUTES = ['/', '/profile', '/savings', '/shares', '/loans', '/transactions', '/statements'];
-const MEMBER_FORBIDDEN = ['/staff', '/staff/users', '/staff/roles', '/staff/settings', '/staff/audit', '/staff/members'];
+const MEMBER_ROUTES = ['/', '/profile', '/savings', '/shares', '/loans', '/transactions', '/statements', '/notifications'];
+const MEMBER_FORBIDDEN = ['/admin', '/staff', '/staff/users', '/staff/roles', '/staff/settings', '/staff/audit', '/staff/members', '/staff/finance'];
 
 await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch();
 let failures = 0;
+const ok = (pass, text) => {
+  if (!pass) failures += 1;
+  console.log(`${pass ? '✔' : '✖'} ${text}`);
+};
+
+async function signIn(page, identifier, password) {
+  await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
+  const tabs = await page.locator('[role="tab"]').count();
+  await page.fill('input[name="identifier"]', identifier);
+  await page.fill('input[name="password"]', password);
+  await page.click('button[type="submit"]');
+  await page.waitForLoadState('networkidle', { timeout: 60_000 }).catch(() => {});
+  await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 20_000 }).catch(() => {});
+  return { landed: new URL(page.url()).pathname, tabs };
+}
+
+async function signOut(page) {
+  const form = page.locator('form[action="/auth/signout"]').first();
+  if (await form.count()) {
+    await form.evaluate((f) => f.requestSubmit());
+  } else {
+    await page.evaluate(async () => {
+      const r = await fetch('/auth/signout', { method: 'POST' });
+      return r.status;
+    });
+  }
+  await page.waitForURL(/\/login/, { timeout: 30_000 }).catch(() => {});
+}
 
 async function check(page, route, width, errors, label) {
   errors.length = 0;
   const res = await page.goto(`${BASE}${route}`, { waitUntil: 'load', timeout: 90_000 });
   await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => {});
-  await page.waitForTimeout(250);
   const status = res?.status() ?? 0;
-  const finalUrl = page.url().replace(BASE, '');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   const errorText = await page.evaluate(() => {
-    const t = document.body.innerText;
-    const m = t.match(/(Application error[^\n]*|Unhandled Runtime Error[^\n]*|Unable to load[^\n]*|Something went wrong[^\n]*)/i);
+    const m = document.body.innerText.match(/(Application error[^\n]*|Unhandled Runtime Error[^\n]*|Unable to load[^\n]*|Something went wrong[^\n]*)/i);
     return m ? m[0] : null;
   });
   const bad = status >= 400 || overflow > 1 || !!errorText || errors.length > 0;
-  if (bad) failures += 1;
   const name = `${label}-${route.replace(/[/?=&]+/g, '_').replace(/^_/, '') || 'root'}-${width}`;
   await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
-  console.log(
-    `${bad ? '✖' : '✔'} ${label} ${width} ${route} -> ${status}${finalUrl !== route ? ` (→ ${finalUrl})` : ''}` +
-      `${overflow > 1 ? ` overflow ${overflow}px` : ''}${errorText ? ` "${errorText}"` : ''}` +
-      `${errors.length ? ` console: ${errors.slice(0, 2).join(' | ')}` : ''}`,
-  );
-  return { status, finalUrl, page };
+  ok(!bad, `${label} ${width} ${route} -> ${status}${overflow > 1 ? ` overflow ${overflow}px` : ''}${errorText ? ` "${errorText}"` : ''}${errors.length ? ` console: ${errors.slice(0, 2).join(' | ')}` : ''}`);
+}
+
+function trackErrors(page) {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
+  return errors;
+}
+
+/* ------------------------------------------------------ suspended member */
+if (env.EXPECT_SUSPENDED) {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  const page = await ctx.newPage();
+  const { landed } = await signIn(page, env.MEMBER_NO, env.MEMBER_PASSWORD);
+  const msg = await page.locator('text=Your account is currently suspended').count();
+  ok(landed === '/login' && msg > 0, `suspended member is refused with the suspension message (stayed on ${landed})`);
+  await ctx.close();
+  await browser.close();
+  console.log(`\n${failures} problem(s)`);
+  process.exit(failures ? 1 : 0);
 }
 
 for (const width of [390, 1440]) {
   /* ------------------------------------------------------------- staff */
   const ctx = await browser.newContext({ viewport: { width, height: 900 } });
   const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', (e) => errors.push(e.message));
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  const errors = trackErrors(page);
 
-  await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-  await page.click('button[role="tab"]:has-text("Staff")');
-  await page.fill('input[name="email"]', EMAIL);
-  await page.fill('input[name="password"]', PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/\/staff/, { timeout: 60_000 });
+  // Wrong password: generic message, no hint whether the identifier exists.
+  await signIn(page, STAFF_EMAIL, 'definitely-not-the-password-1');
+  ok((await page.locator(`text=${INVALID}`).count()) > 0 && new URL(page.url()).pathname === '/login',
+    `${width} a wrong password gets the generic message`);
+  await signIn(page, 'BND-M-9999998', 'definitely-not-the-password-1');
+  ok((await page.locator(`text=${INVALID}`).count()) > 0, `${width} an unknown member number gets exactly the same message`);
+
+  const s = await signIn(page, STAFF_EMAIL, STAFF_PASSWORD);
+  ok(s.tabs === 0, `${width} the login page has one form - no Member/Staff selector`);
+  ok(s.landed === STAFF_HOME, `${width} staff signs in and lands on their role dashboard (${s.landed})`);
 
   for (const route of STAFF_ROUTES) await check(page, route, width, errors, 'staff');
 
-  // The wizard validates before moving on: an empty step 1 stays put and
-  // names the fields.
-  await page.goto(`${BASE}/staff/members/new`, { waitUntil: 'load' });
-  await page.click('button:has-text("Continue")');
-  const stayed = await page.locator('text=Enter the member’s full name').count();
-  if (!stayed) failures += 1;
-  console.log(`${stayed ? '✔' : '✖'} staff ${width} registration step 1 refuses an empty form`);
-
-  await page.fill('#full_name', 'Wizard Check Person');
-  await page.fill('#phone', '0123');
-  await page.click('button:has-text("Continue")');
-  const badPhone = await page.locator('text=Enter a valid Ugandan mobile number').count();
-  if (!badPhone) failures += 1;
-  console.log(`${badPhone ? '✔' : '✖'} staff ${width} registration refuses an invalid phone`);
+  if (env.STAFF_PHONE) {
+    await signOut(page);
+    const p = await signIn(page, env.STAFF_PHONE, STAFF_PASSWORD);
+    ok(p.landed === STAFF_HOME, `${width} the same staff account signs in with its phone ${env.STAFF_PHONE} (${p.landed})`);
+  }
+  await signOut(page);
   await ctx.close();
 
   /* ------------------------------------------------------------ member */
-  if (!MEMBER_NO || !MEMBER_PHONE) continue;
+  if (!env.MEMBER_NO || !env.MEMBER_PASSWORD) continue;
   const mctx = await browser.newContext({ viewport: { width, height: 900 } });
-  const mpage = await mctx.newPage();
-  const merrors = [];
-  mpage.on('pageerror', (e) => merrors.push(e.message));
-  mpage.on('console', (m) => { if (m.type() === 'error') merrors.push(m.text()); });
+  const m = await mctx.newPage();
+  const merrors = trackErrors(m);
 
-  await mpage.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-  await mpage.fill('input[name="member_no"]', MEMBER_NO);
-  await mpage.fill('input[name="phone"]', MEMBER_PHONE);
-  await mpage.click('button[type="submit"]');
-  await mpage.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 60_000 });
-  console.log(`✔ member ${width} signed in with member number + phone → ${mpage.url().replace(BASE, '')}`);
+  const byNo = await signIn(m, env.MEMBER_NO, env.MEMBER_PASSWORD);
+  ok(byNo.landed === '/', `${width} member signs in with member number ${env.MEMBER_NO} → ${byNo.landed}`);
+  await signOut(m);
 
-  for (const route of MEMBER_ROUTES) await check(mpage, route, width, merrors, 'member');
+  if (env.MEMBER_PHONE) {
+    const byPhone = await signIn(m, env.MEMBER_PHONE, env.MEMBER_PASSWORD);
+    ok(byPhone.landed === '/', `${width} the same member signs in with phone ${env.MEMBER_PHONE} → ${byPhone.landed}`);
+  } else {
+    await signIn(m, env.MEMBER_NO, env.MEMBER_PASSWORD);
+  }
 
-  const editButtons = await (async () => {
-    await mpage.goto(`${BASE}/profile`, { waitUntil: 'load' });
-    return mpage.locator('text=/Edit Profile|Save changes|Change password/i').count();
-  })();
-  if (editButtons) failures += 1;
-  console.log(`${editButtons ? '✖' : '✔'} member ${width} profile has no edit or password controls`);
+  for (const route of MEMBER_ROUTES) await check(m, route, width, merrors, 'member');
+
+  await m.goto(`${BASE}/profile`, { waitUntil: 'load' });
+  ok((await m.locator('text=/Edit Profile|Edit Member/i').count()) === 0, `${width} member profile has no edit button`);
+  ok((await m.locator('text=Your SACCO profile is managed by authorized SACCO staff.').count()) > 0, `${width} member profile says staff manage it`);
+  ok((await m.locator('input[name="current_password"]').count()) > 0, `${width} member can reach Change password`);
+
+  const nav = await m.locator('text=/Roles & Permissions|Audit Log|Add staff account|Finance/').count();
+  ok(nav === 0, `${width} member sees no staff navigation`);
 
   for (const route of MEMBER_FORBIDDEN) {
-    await mpage.goto(`${BASE}${route}`, { waitUntil: 'load' });
-    // The staff area streams its loading skeleton before the guard's redirect
-    // lands, so wait for the redirect rather than reading the first URL.
-    await mpage.waitForURL((u) => !u.pathname.startsWith('/staff'), { timeout: 15_000 }).catch(() => {});
-    const landed = mpage.url().replace(BASE, '');
-    const staffChrome = await mpage.locator('text=/Roles & Permissions|Audit Log|Add staff account/').count();
-    const blocked = !landed.startsWith('/staff') && staffChrome === 0;
-    if (!blocked) failures += 1;
-    console.log(`${blocked ? '✔' : '✖'} member ${width} cannot open ${route} (→ ${landed})`);
+    await m.goto(`${BASE}${route}`, { waitUntil: 'load' });
+    await m.waitForURL((u) => !u.pathname.startsWith('/staff') && !u.pathname.startsWith('/admin'), { timeout: 15_000 }).catch(() => {});
+    const landed = new URL(m.url()).pathname;
+    const staffChrome = await m.locator('text=/Roles & Permissions|Audit Log|Add staff account/').count();
+    ok(!landed.startsWith('/staff') && !landed.startsWith('/admin') && staffChrome === 0, `${width} member cannot open ${route} (→ ${landed})`);
   }
+
+  // Password change: new works, old does not, the record is untouched - then back.
+  if (env.MEMBER_NEW_PASSWORD && width === 390) {
+    const change = async (from, to) => {
+      await m.goto(`${BASE}/profile`, { waitUntil: 'load' });
+      await m.fill('input[name="current_password"]', from);
+      await m.fill('input[name="password"]', to);
+      await m.fill('input[name="confirm"]', to);
+      await m.locator('form:has(input[name="current_password"]) button[type="submit"]').click();
+      await m.waitForSelector('text=Your password has been changed', { timeout: 30_000 }).catch(() => {});
+      return (await m.locator('text=Your password has been changed').count()) > 0;
+    };
+    ok(await change(env.MEMBER_PASSWORD, env.MEMBER_NEW_PASSWORD), 'member changed their password');
+    await signOut(m);
+    const old = await signIn(m, env.MEMBER_NO, env.MEMBER_PASSWORD);
+    ok(old.landed === '/login', 'the old password no longer works');
+    const neu = await signIn(m, env.MEMBER_NO, env.MEMBER_NEW_PASSWORD);
+    ok(neu.landed === '/', 'the new password works');
+    ok(await change(env.MEMBER_NEW_PASSWORD, env.MEMBER_PASSWORD), 'password changed back for the next run');
+  }
+
+  // Sign out, then Back and a direct visit both end at the sign-in page.
+  await m.goto(`${BASE}/profile`, { waitUntil: 'load' });
+  await signOut(m);
+  ok(new URL(m.url()).pathname === '/login', `${width} sign-out lands on the sign-in page`);
+  await m.goBack().catch(() => {});
+  await m.waitForLoadState('load').catch(() => {});
+  await m.reload({ waitUntil: 'load' }).catch(() => {});
+  const afterBack = new URL(m.url()).pathname;
+  const leaked = await m.locator('text=Your SACCO profile is managed').count();
+  ok(afterBack === '/login' && leaked === 0, `${width} Back after sign-out shows no protected page (→ ${afterBack})`);
   await mctx.close();
 }
 

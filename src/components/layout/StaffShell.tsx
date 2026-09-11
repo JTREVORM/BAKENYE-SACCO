@@ -9,7 +9,6 @@ import { ScrollArea } from '@/components/ui/scroll';
 import { clsx } from '@/lib/clsx';
 import { Icon, Avatar } from '@/components/ui/primitives';
 import type { NavItem } from '@/lib/rbac';
-import { signOut } from '@/app/(auth)/actions';
 
 /**
  * The staff application chrome.
@@ -193,7 +192,7 @@ function AccountMenu({
           <div className="border-t border-outline-variant/70 p-1.5">
             {/* A form posting to the server action, so the shell never pulls
                 the Supabase browser SDK into its bundle. */}
-            <form action={signOut}>
+            <form method="post" action="/auth/signout">
               <button
                 type="submit"
                 role="menuitem"

@@ -57,7 +57,7 @@ export default async function StaffDashboard() {
 
   return (
     <div className="space-y-7">
-      <Hero name={user.fullName} saccoName={brand.legalName} />
+      <Hero name={user.fullName} saccoName={brand.legalName} roleName={user.roleName} />
 
       <Suspense fallback={<StatGridSkeleton />}>
         <Metrics />
@@ -112,7 +112,7 @@ export default async function StaffDashboard() {
  * every width and the image never has to be cropped to a shape it does not
  * suit. If the file is ever removed the gradient alone still reads correctly.
  */
-function Hero({ name, saccoName }: { name: string; saccoName: string }) {
+function Hero({ name, saccoName, roleName }: { name: string; saccoName: string; roleName: string }) {
   const firstName = name.trim().split(/\s+/)[0];
   const [heroNameTop, heroNameBottom] = splitName(saccoName);
 
@@ -134,7 +134,7 @@ function Hero({ name, saccoName }: { name: string; saccoName: string }) {
       <div className="relative z-10 flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
         <div className="max-w-xl">
           <p className="text-label-md font-semibold uppercase tracking-[0.14em] text-secondary-container">
-            Welcome back, {firstName}
+            {roleName} Dashboard · Welcome back, {firstName}
           </p>
           <h1 className="mt-2 text-[26px] font-bold uppercase leading-[1.15] tracking-tight text-white md:text-[34px]">
             {heroNameTop}

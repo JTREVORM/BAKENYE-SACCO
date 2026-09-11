@@ -4,6 +4,7 @@ import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { registerMember, type RegistrationOutcome } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
+import { SetupCodeCard } from '@/components/accounts/SetupCode';
 import { Badge, Icon } from '@/components/ui/primitives';
 import {
   Button,
@@ -281,7 +282,7 @@ export function RegistrationWizard({
               <Field label="Full name" htmlFor="full_name" required error={errors.full_name} hint="As written on the National ID.">
                 <Input id="full_name" value={v.full_name} onChange={(e) => set('full_name', e.target.value)} autoComplete="off" autoCapitalize="words" invalid={!!errors.full_name} placeholder="e.g. John Bakenye" />
               </Field>
-              <Field label="Phone number" htmlFor="phone" required error={errors.phone} hint="The member signs in with their member number and this number. 07XXXXXXXX or +2567XXXXXXXX.">
+              <Field label="Phone number" htmlFor="phone" required error={errors.phone} hint="The member can sign in with this number or their member number, and a password they choose. 07XXXXXXXX or +2567XXXXXXXX.">
                 <PhoneInput id="phone" value={v.phone} onChange={(e) => { set('phone', e.target.value); setPhoneClash(false); set('allow_shared_phone', false); }} invalid={!!errors.phone} />
               </Field>
 
@@ -877,8 +878,8 @@ function Success({ result }: { result: RegistrationOutcome }) {
           <div>
             <dt className="text-label-md text-on-surface-variant font-normal">Signs in with</dt>
             <dd className="text-body-md text-on-surface">
-              Member number <span className="font-mono">{result.member_no}</span> and phone{' '}
-              <span className="tabular">{formatPhone(result.phone)}</span>
+              Member number <span className="font-mono">{result.member_no}</span> or phone{' '}
+              <span className="tabular">{formatPhone(result.phone)}</span>, and a password they choose
             </dd>
           </div>
         </dl>
@@ -891,6 +892,11 @@ function Success({ result }: { result: RegistrationOutcome }) {
               ? 'The member becomes active once the mandatory fees are paid or waived. Record the payment from their profile.'
               : 'Record the payment from their profile when it comes in.'}
           </Alert>
+        </div>
+      ) : null}
+      {result.setup ? (
+        <div className="mt-4 w-full">
+          <SetupCodeCard setup={result.setup} who="the member" identifier={result.member_no} />
         </div>
       ) : null}
       {result.login_note ? (

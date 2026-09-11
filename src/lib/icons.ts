@@ -38,7 +38,7 @@ export const ICON_NAMES = [
   'workspace_premium', 'diamond', 'military_tech', 'point_of_sale',
   'person_search', 'search_off',
   // Sign-in and brand chrome
-  'login', 'verified_user',
+  'login', 'verified_user', 'key', 'password', 'admin_panel_settings',
   // Redesign: dashboard, reporting centre and settings chrome
   'trending_flat', 'bolt', 'insights', 'monitoring', 'leaderboard', 'summarize',
   'apartment', 'security', 'palette', 'toggle_on', 'paid', 'currency_exchange',

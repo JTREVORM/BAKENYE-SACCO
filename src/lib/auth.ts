@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { can, isStaff, landingPath, type Access, type Permission, type RoleKind } from '@/lib/rbac';
+import { can, isStaff, landingPath, type Access, type Dashboard, type Permission, type RoleKind } from '@/lib/rbac';
 import type { MemberStatus } from '@/types/db';
 import type { SessionPayload } from '@/types/access';
 
@@ -17,7 +17,12 @@ export type SessionUser = Access & {
   memberId: string | null;
   memberNo: string | null;
   memberStatus: MemberStatus | null;
+  /** Whether the account holder has chosen their own password yet. */
+  passwordSet: boolean;
 };
+
+/** A membership in these states may not use the portal. */
+const BARRED: readonly MemberStatus[] = ['suspended', 'inactive', 'archived', 'exited'];
 
 /**
  * Resolve the signed-in user, their role and every permission it holds.
@@ -25,8 +30,10 @@ export type SessionUser = Access & {
  * One call to `my_session()` answers all of it, and React `cache` makes that
  * one call per request however many components ask - which matters on 3G.
  *
- * A deactivated account, or one whose role has been retired, is treated as
- * signed out: it can reach nothing.
+ * A deactivated account, one whose role has been retired, or a member whose
+ * membership is suspended, inactive or archived is treated as signed out: it
+ * can reach nothing. The database agrees - `current_member_id()` returns
+ * nothing for them - so an old session token is no way round it.
  */
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = await createClient();
@@ -39,16 +46,19 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const { data } = await supabase.rpc('my_session');
   const session = data as SessionPayload | null;
   if (!session || !session.is_active || !session.role_active) return null;
+  if (session.member && BARRED.includes(session.member.status)) return null;
 
   return {
     id: session.id,
-    // A member's sign-in address is an internal identifier, never shown.
-    email: session.email ?? (session.role_kind === 'staff' ? user.email ?? null : null),
+    // An internal sign-in address (people with no email get one) is never shown.
+    email: session.email ?? (user.email && !user.email.endsWith('.invalid') ? user.email : null),
     fullName: session.full_name,
     phone: session.phone,
     role: session.role,
     roleKind: session.role_kind as RoleKind,
     roleName: session.role_name,
+    dashboard: session.role_dashboard as Dashboard,
+    passwordSet: session.password_set,
     permissions: session.permissions,
     photoUrl: session.photo_url,
     memberId: session.member?.id ?? null,
@@ -111,5 +121,5 @@ export async function assertCanViewMember(memberId: string): Promise<SessionUser
 
 /** The minimal access object a client component needs, safe to serialise. */
 export function accessOf(user: SessionUser): Access {
-  return { role: user.role, roleKind: user.roleKind, permissions: user.permissions };
+  return { role: user.role, roleKind: user.roleKind, permissions: user.permissions, dashboard: user.dashboard };
 }

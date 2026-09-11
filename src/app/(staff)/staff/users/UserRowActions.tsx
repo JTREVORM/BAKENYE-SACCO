@@ -1,16 +1,18 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { setUserActive, setUserRole } from '@/app/actions/members';
+import { issueResetCode, setUserActive, setUserPhone, setUserRole } from '@/app/actions/members';
+import { IssueCodeButton } from '@/components/accounts/SetupCode';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
-import { Button, Field, Select, SubmitButton, Textarea } from '@/components/ui/form';
+import { Button, Field, PhoneInput, Select, SubmitButton, Textarea } from '@/components/ui/form';
 import type { ActionResult } from '@/lib/errors';
 
 type RoleOption = { key: string; name: string; description: string | null };
 
 /**
- * Change a user's role, or deactivate them.
+ * Change a user's role or sign-in phone, reset their password, or deactivate
+ * them. A reset issues a one-time code - nobody ever sees a password.
  *
  * Both require a reason and both are audited. The database also refuses to let
  * anyone change their own role or deactivate their own account, which is what
@@ -23,7 +25,9 @@ export function UserRowActions({
   roleName,
   roles,
   isActive,
+  phone,
 }: {
+  phone: string | null;
   userId: string;
   name: string;
   role: string;
@@ -32,7 +36,7 @@ export function UserRowActions({
   roles: RoleOption[];
   isActive: boolean;
 }) {
-  const [dialog, setDialog] = useState<null | 'role' | 'active'>(null);
+  const [dialog, setDialog] = useState<null | 'role' | 'active' | 'phone'>(null);
 
   return (
     <>
@@ -40,6 +44,19 @@ export function UserRowActions({
         <Button variant="outline" size="sm" icon="manage_accounts" onClick={() => setDialog('role')}>
           Role
         </Button>
+        <Button variant="outline" size="sm" icon="phone" onClick={() => setDialog('phone')}>
+          Phone
+        </Button>
+        <IssueCodeButton
+          action={issueResetCode}
+          fields={{ user_id: userId, purpose: 'reset' }}
+          label="Reset password"
+          title="Reset password"
+          description={`Issue ${name} a one-time code to choose a new password with.`}
+          confirmLabel="Issue reset code"
+          who={name}
+          size="sm"
+        />
         <Button
           variant={isActive ? 'outline' : 'primary'}
           size="sm"
@@ -58,6 +75,14 @@ export function UserRowActions({
         role={role}
         roleName={roleName}
         roles={roles}
+      />
+
+      <PhoneDialog
+        open={dialog === 'phone'}
+        onClose={() => setDialog(null)}
+        userId={userId}
+        name={name}
+        phone={phone}
       />
 
       <ActiveDialog
@@ -241,6 +266,69 @@ function ActiveDialog({
               pendingLabel="Saving…"
             >
               {isActive ? 'Deactivate' : 'Activate'}
+            </SubmitButton>
+          </div>
+        </form>
+      )}
+    </Modal>
+  );
+}
+
+function PhoneDialog({
+  open,
+  onClose,
+  userId,
+  name,
+  phone,
+}: {
+  open: boolean;
+  onClose: () => void;
+  userId: string;
+  name: string;
+  phone: string | null;
+}) {
+  const [state, action] = useActionState<ActionResult<{ phone: string | null }> | null, FormData>(
+    setUserPhone,
+    null,
+  );
+  const err = state && !state.ok ? state : null;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Sign-in phone number"
+      description={`${name} can sign in with this number and their password. Leave it blank to sign in by email only.`}
+    >
+      {state?.ok ? (
+        <div className="flex flex-col gap-4">
+          <Alert tone="success">{state.message}</Alert>
+          <Button size="lg" block onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      ) : (
+        <form action={action} className="flex flex-col gap-5" noValidate>
+          <input type="hidden" name="user_id" value={userId} />
+          {err && !err.field ? <Alert tone="error">{err.error}</Alert> : null}
+          <Field label="Phone number" htmlFor="user-phone" error={err?.field === 'phone' ? err.error : null}>
+            <PhoneInput id="user-phone" name="phone" defaultValue={phone ?? ''} invalid={err?.field === 'phone'} />
+          </Field>
+          <Field
+            label="Reason"
+            htmlFor="phone-reason"
+            required
+            hint="Recorded permanently in the audit log."
+            error={err?.field === 'reason' ? err.error : null}
+          >
+            <Textarea id="phone-reason" name="reason" required maxLength={500} invalid={err?.field === 'reason'} />
+          </Field>
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" className="flex-1" onClick={onClose}>
+              Cancel
+            </Button>
+            <SubmitButton size="lg" className="flex-1" pendingLabel="Saving...">
+              Save
             </SubmitButton>
           </div>
         </form>

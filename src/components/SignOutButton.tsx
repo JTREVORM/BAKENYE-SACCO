@@ -1,7 +1,6 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { signOut } from '@/app/(auth)/actions';
 import { Button } from '@/components/ui/form';
 
 /**
@@ -14,7 +13,7 @@ import { Button } from '@/components/ui/form';
  */
 export function SignOutButton({ label = 'Log Out' }: { label?: string }) {
   return (
-    <form action={signOut}>
+    <form method="post" action="/auth/signout">
       <SignOutSubmit label={label} />
     </form>
   );

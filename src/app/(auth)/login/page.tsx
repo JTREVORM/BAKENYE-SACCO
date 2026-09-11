@@ -1,29 +1,31 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { redirect } from 'next/navigation';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { Icon } from '@/components/ui/primitives';
+import { getSessionUser } from '@/lib/auth';
+import { landingPath } from '@/lib/rbac';
 import { LoginForm } from './LoginForm';
 
 export const metadata: Metadata = { title: 'Sign in' };
 
 /**
- * Sign-in.
+ * Sign-in: one form for everyone - see `LoginForm`. The brand panel and the
+ * footer live in `AuthShell`, shared with the password screens.
  *
- * The brand panel and the footer live in `AuthShell`, shared with the password
- * screens. This route owns only the card.
- *
- * The card is the soft-UI composition from the reference: one sheet moulded out
- * of the page, the crest seated in a raised disc at the top of it, the fields
- * pressed into it as grooves, and a single dark pill to leave by. Nothing on it
- * is drawn with a border — the light comes from the top-left of the screen and
- * every edge here is a consequence of that.
+ * Someone already signed in, with an account in good standing, goes straight
+ * to their own dashboard. A session belonging to a suspended or switched-off
+ * account counts as signed out, so it sees the form rather than a redirect
+ * loop.
  */
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; reset?: string; as?: string }>;
+  searchParams: Promise<{ next?: string; reset?: string; setup?: string }>;
 }) {
-  const { next, reset, as } = await searchParams;
+  const { next, reset, setup } = await searchParams;
+  const current = await getSessionUser();
+  if (current) redirect(landingPath(current));
 
   return (
     <AuthShell>
@@ -44,14 +46,13 @@ export default async function LoginPage({
             Welcome Back
           </h1>
           <p className="text-on-surface-variant mt-1 text-[13px] leading-snug sm:text-[14px]">
-            Sign in to access your account and manage your SACCO services.
+            Sign in to access your SACCO account
           </p>
         </div>
 
         <LoginForm
           next={next}
-          resetDone={reset === 'done'}
-          initial={as === 'staff' || reset === 'done' || next?.startsWith('/staff') ? 'staff' : 'member'}
+          notice={reset === 'done' ? 'reset' : setup === 'done' ? 'setup' : null}
         />
 
         {/* The assurance, pressed into the sheet rather than laid on top of it,
@@ -65,7 +66,7 @@ export default async function LoginPage({
               Your information is safe with us.
             </p>
             <p className="text-on-surface-variant mt-0.5 text-[12.5px] leading-snug">
-              We use industry-standard security measures to protect your data.
+              Nobody at the SACCO can see your password, and never asks for it.
             </p>
           </div>
         </div>

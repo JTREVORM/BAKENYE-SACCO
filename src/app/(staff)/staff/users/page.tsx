@@ -9,7 +9,7 @@ import { PageTitle, Avatar, Badge, Icon } from '@/components/ui/primitives';
 import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
 import { CreateStaffButton } from './CreateStaffButton';
 import { UserRowActions } from './UserRowActions';
-import { formatAgo, formatDate } from '@/lib/format';
+import { formatAgo, formatDate, formatPhone } from '@/lib/format';
 import { clsx } from '@/lib/clsx';
 import type { AppUserRow } from '@/types/db';
 import type { RoleRow } from '@/types/access';
@@ -139,7 +139,7 @@ async function UserList({
                       {u.full_name}
                     </p>
                     <p className="text-label-md font-label-md text-on-surface-variant truncate normal-case">
-                      {u.email ?? '—'}
+                      {signInWith(u)}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <Badge tone={u.role === 'super_admin' ? 'info' : 'neutral'}>
@@ -148,6 +148,7 @@ async function UserList({
                       <Badge tone={u.is_active ? 'success' : 'error'}>
                         {u.is_active ? 'Active' : 'Deactivated'}
                       </Badge>
+                      {!u.password_set_at ? <Badge tone="warning">Setup pending</Badge> : null}
                     </div>
                     <p className="text-label-md font-label-md text-on-surface-variant/70 mt-2 normal-case">
                       {u.last_login_at ? `Last signed in ${formatAgo(u.last_login_at)}` : 'Never signed in'}
@@ -164,6 +165,7 @@ async function UserList({
                       roleName={nameOf.get(u.role) ?? u.role}
                       roles={assignable}
                       isActive={u.is_active}
+                      phone={u.phone}
                     />
                   </div>
                 ) : (
@@ -202,7 +204,7 @@ async function UserList({
                           <Avatar name={u.full_name} src={u.photo_url} size={36} />
                           <div className="min-w-0">
                             <div className="text-on-surface truncate font-semibold">{u.full_name}</div>
-                            <div className="text-on-surface-variant truncate text-xs">{u.email ?? '—'}</div>
+                            <div className="text-on-surface-variant truncate text-xs">{signInWith(u)}</div>
                           </div>
                         </div>
                       </td>
@@ -212,9 +214,12 @@ async function UserList({
                         </Badge>
                       </td>
                       <td className="p-4">
-                        <Badge tone={u.is_active ? 'success' : 'error'}>
-                          {u.is_active ? 'Active' : 'Deactivated'}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1.5">
+                          <Badge tone={u.is_active ? 'success' : 'error'}>
+                            {u.is_active ? 'Active' : 'Deactivated'}
+                          </Badge>
+                          {!u.password_set_at ? <Badge tone="warning">Setup pending</Badge> : null}
+                        </div>
                       </td>
                       <td className="text-on-surface-variant whitespace-nowrap p-4">
                         {u.last_login_at ? formatDate(u.last_login_at) : 'Never'}
@@ -228,6 +233,7 @@ async function UserList({
                             roleName={nameOf.get(u.role) ?? u.role}
                             roles={assignable}
                             isActive={u.is_active}
+                            phone={u.phone}
                           />
                         ) : (
                           <span className="text-on-surface-variant text-label-md font-label-md block text-center normal-case">
@@ -245,4 +251,10 @@ async function UserList({
       )}
     </>
   );
+}
+
+/** What a colleague types to sign in: their phone, their email, or both. */
+function signInWith(u: AppUserRow): string {
+  const ids = [u.phone ? formatPhone(u.phone) : null, u.email].filter(Boolean);
+  return ids.length ? `Signs in with ${ids.join(' or ')}` : 'No sign-in identifier - add a phone number';
 }

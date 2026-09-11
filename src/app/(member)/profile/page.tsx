@@ -6,6 +6,7 @@ import { MemberShell } from '@/components/layout/MemberShell';
 import { Icon, Avatar, Money } from '@/components/ui/primitives';
 import { MemberStatusBadge } from '@/components/ui/status';
 import { SignOutButton } from '@/components/SignOutButton';
+import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX } from '@/lib/money';
 import { SAVINGS_FREQUENCY_ADVERB } from '@/lib/categories';
@@ -20,6 +21,9 @@ export const metadata: Metadata = { title: 'My Profile' };
  * only authorised staff can change it, and the database refuses a change from
  * anyone else however it is sent. So there is no edit button and no form on
  * this page, only the record and how to get it corrected.
+ *
+ * The one thing a member does change here is their password. It is theirs,
+ * not part of the record, and changing it touches nothing else.
  */
 export default async function ProfilePage() {
   const user = await requireMember();
@@ -138,10 +142,18 @@ export default async function ProfilePage() {
           </div>
         </section>
 
-        <p className="text-label-md text-on-surface-variant text-center font-normal normal-case">
-          You sign in with your member number and your registered phone number. There is no password to
-          remember.
-        </p>
+        <section id="password" className="scroll-mt-20">
+          <h2 className="text-button-text text-on-surface mb-2 flex items-center gap-2 px-1">
+            <Icon name="lock" size={18} className="text-primary" />
+            Password &amp; security
+          </h2>
+          <p className="text-body-md text-on-surface-variant mb-3 px-1">
+            You sign in with your member number (<span className="font-mono">{m.member_no}</span>) or your
+            phone number, and your password. Changing your password does not change anything on your SACCO
+            record.
+          </p>
+          <ChangePasswordForm />
+        </section>
 
         <SignOutButton />
       </div>

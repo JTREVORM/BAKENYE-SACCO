@@ -21,6 +21,20 @@ function firstIssue(error: z.ZodError): ActionResult<never> {
 }
 
 const roleKey = z.string().regex(/^[a-z][a-z0-9_]{1,39}$/);
+
+const DASHBOARD_IDS = ['administration', 'overview', 'cashier', 'loans', 'finance', 'collections'] as const;
+
+/** Save the dashboard a role lands on, when the form carried one. */
+async function saveDashboard(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  roleKeyValue: string,
+  formData: FormData,
+) {
+  const d = z.enum(DASHBOARD_IDS).safeParse(formData.get('dashboard'));
+  if (!d.success) return null;
+  const { error } = await supabase.rpc('set_role_dashboard', { p_role_key: roleKeyValue, p_dashboard: d.data });
+  return error;
+}
 const reason = z.string().trim().min(5, 'Give a reason - it is kept in the audit log.').max(500);
 
 function permissionList(formData: FormData): string[] {
@@ -108,8 +122,10 @@ export async function createRole(
   });
   if (error) return fail(error, 'name');
 
-  revalidateRoles();
   const result = data as { role: string; name: string };
+  const dashError = await saveDashboard(supabase, result.role, formData);
+  revalidateRoles();
+  if (dashError) return fail(dashError, 'dashboard');
   return succeed(result, `${result.name} created.`);
 }
 
@@ -148,7 +164,9 @@ export async function updateRole(
   });
   if (error) return fail(error, 'name');
 
+  const dashError = await saveDashboard(supabase, parsed.data.role_key, formData);
   revalidateRoles();
+  if (dashError) return fail(dashError, 'dashboard');
   return succeed(data as { role: string }, 'Role updated.');
 }
 

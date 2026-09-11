@@ -5,17 +5,19 @@ import { createStaffUser } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, PhoneInput, Select, SubmitButton } from '@/components/ui/form';
+import { SetupCodeCard } from '@/components/accounts/SetupCode';
 import type { ActionResult } from '@/lib/errors';
+import type { SetupCodeIssued } from '@/types/access';
 
 type RoleOption = { key: string; name: string; description: string | null };
 
 /**
  * Create a staff account.
  *
- * The temporary password is generated server-side and shown exactly once. It is
- * never emailed from here and never stored in readable form — the person
- * creating the account hands it over directly and the new user changes it on
- * first sign-in.
+ * A colleague signs in with their phone number or, if they have one, their
+ * email - one of the two is needed. Nobody sets their password for them: the
+ * account is created with a one-time setup code, shown once, with which they
+ * choose their own on "Set up your account".
  */
 export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
   const [open, setOpen] = useState(false);
@@ -25,7 +27,7 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
     roles.find((r) => r.key === 'cashier')?.key ?? roles[0]?.key ?? '',
   );
   const [state, action] = useActionState<
-    ActionResult<{ user_id: string; temp_password: string }> | null,
+    ActionResult<{ user_id: string; setup: SetupCodeIssued | null }> | null,
     FormData
   >(createStaffUser, null);
 
@@ -50,14 +52,13 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
               {state.message}
             </Alert>
 
-            <Alert tone="warning" title="Temporary password — shown only now">
-              <p className="mt-1">
-                Give this to them in person. They should change it the first time they sign in.
-              </p>
-              <p className="text-button-text font-button-text mt-2 select-all font-mono">
-                {state.data.temp_password}
-              </p>
-            </Alert>
+            {state.data.setup ? (
+              <SetupCodeCard setup={state.data.setup} who="them" />
+            ) : (
+              <Alert tone="warning">
+                No setup code could be issued. Use &ldquo;Reset password&rdquo; on their row to issue one.
+              </Alert>
+            )}
 
             <Button size="lg" block onClick={() => setOpen(false)}>
               Done
@@ -83,10 +84,18 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
             </Field>
 
             <Field
-              label="Email address"
+              label="Phone number"
+              htmlFor="staff-phone"
+              hint="They can sign in with this number."
+              error={err?.field === 'phone' ? err.error : null}
+            >
+              <PhoneInput id="staff-phone" name="phone" invalid={err?.field === 'phone'} />
+            </Field>
+
+            <Field
+              label="Email address (optional)"
               htmlFor="staff-email"
-              required
-              hint="They sign in with this address."
+              hint="Only if they use email. Either the phone or the email is needed to sign in."
               error={err?.field === 'email' ? err.error : null}
             >
               <Input
@@ -96,17 +105,8 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
                 inputMode="email"
                 autoCapitalize="none"
                 spellCheck={false}
-                required
                 invalid={err?.field === 'email'}
               />
-            </Field>
-
-            <Field
-              label="Phone number"
-              htmlFor="staff-phone"
-              error={err?.field === 'phone' ? err.error : null}
-            >
-              <PhoneInput id="staff-phone" name="phone" invalid={err?.field === 'phone'} />
             </Field>
 
             <Field
@@ -132,15 +132,14 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
             </Field>
 
             <Alert tone="info">
-              A temporary password will be generated and shown to you once. Nothing is emailed
-              automatically.
+              You will see a one-time setup code to give them. You never see or set their password.
             </Alert>
 
             <div className="flex gap-3">
               <Button variant="outline" size="lg" className="flex-1" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <SubmitButton size="lg" className="flex-1" pendingLabel="Creating…">
+              <SubmitButton size="lg" className="flex-1" pendingLabel="Creating...">
                 Create account
               </SubmitButton>
             </div>

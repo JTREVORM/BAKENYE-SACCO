@@ -48,9 +48,8 @@ try {
 
     // Sign in once per context.
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded', timeout: 120_000 });
-    // Staff sign in on the Staff tab; the Member tab is the default.
-    await page.click('button[role="tab"]:has-text("Staff")');
-    await page.fill('input[name="email"]', EMAIL).catch(async () => {
+    // One sign-in form for everyone; an email works as the identifier for staff.
+    await page.fill('input[name="identifier"]', EMAIL).catch(async () => {
       await page.fill('input[type="email"]', EMAIL);
     });
     await page.fill('input[type="password"]', PASSWORD);

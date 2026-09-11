@@ -8,6 +8,7 @@ import { ScrollRow } from '@/components/ui/scroll';
 import { clsx } from '@/lib/clsx';
 import { RolePermissionEditor } from './RolePermissionEditor';
 import { NewRoleButton, RoleSettingsButton } from './RoleDialogs';
+import { DASHBOARDS } from '@/lib/rbac';
 import type { PermissionRow, RoleRow } from '@/types/access';
 
 export const metadata: Metadata = { title: 'Roles & Permissions' };
@@ -91,6 +92,14 @@ export default async function RolesPage({
               {selected.description ? (
                 <p className="text-body-md text-on-surface-variant mt-1 max-w-3xl">{selected.description}</p>
               ) : null}
+              <p className="text-label-md text-on-surface-variant mt-1 font-normal">
+                Opens on sign-in:{' '}
+                <strong className="text-on-surface">
+                  {selected.kind === 'member'
+                    ? 'Member dashboard'
+                    : DASHBOARDS.find((d) => d.id === selected.dashboard)?.label ?? 'SACCO overview'}
+                </strong>
+              </p>
             </div>
             {selected.key !== 'super_admin' ? (
               <RoleSettingsButton
@@ -99,6 +108,7 @@ export default async function RolesPage({
                   name: selected.name,
                   description: selected.description,
                   status: selected.status,
+                  dashboard: selected.kind === 'staff' ? selected.dashboard : null,
                   fixedName: selected.key === 'member',
                   retirable: selected.key !== 'member',
                 }}

@@ -15,6 +15,7 @@ import { LoanStatusBadge, MemberStatusBadge, SavingsStatusBadge } from '@/compon
 import { EmptyState } from '@/components/ui/states';
 import { TransactionRow } from '@/components/member/TransactionRow';
 import { MemberStatusControl } from './MemberStatusControl';
+import { MemberAccountPanel } from '@/components/accounts/MemberAccountPanel';
 import { SavingsPlanControl } from './SavingsPlanControl';
 import { MemberCategoryControl } from '@/components/categories/MemberCategoryControl';
 import { MemberFeeActions } from '@/components/fees/MemberFeeActions';
@@ -214,11 +215,6 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           </div>
           <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
             <Detail icon="badge" label="Member number" value={member.member_no} mono />
-            <Detail
-              icon="login"
-              label="Sign-in"
-              value={member.user_id ? 'Member number + registered phone' : 'Set up the first time they sign in'}
-            />
             <Detail icon="phone" label="Phone" value={formatPhone(member.phone)} />
             <Detail icon="mail" label="Email" value={member.email ?? '—'} />
             <Detail icon="assignment" label="National ID" value={member.national_id ?? '—'} />
@@ -254,6 +250,18 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           ) : null}
         </div>
       </section>
+
+      <MemberAccountPanel
+        member={{
+          id: member.id,
+          member_no: member.member_no,
+          phone: member.phone,
+          full_name: member.full_name,
+          status: member.status,
+          user_id: member.user_id,
+        }}
+        viewer={user}
+      />
 
       {/* Categories — what this member is expected to buy, and to save.
         Both are read from the member's own row, so a blank one says so rather

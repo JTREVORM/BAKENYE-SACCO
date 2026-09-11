@@ -1,6 +1,6 @@
 import { requireStaff } from '@/lib/auth';
 import { getUnreadCount } from '@/lib/queries';
-import { STAFF_NAV, visibleNav } from '@/lib/rbac';
+import { STAFF_NAV, landingPath, visibleNav } from '@/lib/rbac';
 import { StaffShell } from '@/components/layout/StaffShell';
 
 /**
@@ -14,7 +14,12 @@ import { StaffShell } from '@/components/layout/StaffShell';
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const user = await requireStaff();
   const unread = await getUnreadCount();
-  const nav = visibleNav(user, STAFF_NAV);
+  // "Dashboard" opens this person's own dashboard - the cashier desk, the
+  // loans desk, administration - rather than one page for everyone.
+  const home = landingPath(user);
+  const nav = visibleNav(user, STAFF_NAV).map((item) =>
+    item.href === '/staff' && item.label === 'Dashboard' ? { ...item, href: home } : item,
+  );
 
   return (
     <StaffShell

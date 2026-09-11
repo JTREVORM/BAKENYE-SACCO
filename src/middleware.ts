@@ -12,6 +12,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 const PUBLIC_PATHS = [
   '/login',
   '/forgot-password',
+  '/activate',
   '/reset-password',
   '/auth',
   '/help',
@@ -56,12 +57,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname === '/login') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    url.search = '';
-    return NextResponse.redirect(url);
-  }
+  // A signed-in visitor to /login is sent on by the page itself, which knows
+  // whether the account is still in good standing; redirecting here could
+  // bounce a suspended account between /login and the dashboard forever.
 
   return response;
 }

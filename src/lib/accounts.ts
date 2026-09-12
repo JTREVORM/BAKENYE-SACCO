@@ -91,9 +91,22 @@ export async function provisionMemberLogin(member: {
   return { userId: data.user.id, password };
 }
 
-/** Normalise what someone typed as a member number: "123", "bnd-m-123", "BND-M-0000123". */
+/**
+ * Normalise what someone typed as a member number: `bnd26001`, `BND-26001`
+ * and `BND26001` are all the same member.
+ *
+ * A member number is BND, the two-digit year of registration, and the
+ * registration sequence for that year - BND26001 is the first member of 2026.
+ * The BND is required: bare digits are far more often the start of a phone
+ * number, and guessing wrong on a sign-in screen is worse than asking again.
+ *
+ * Numbers issued under the pre-0038 scheme (BND-M-0000123) still normalise to
+ * themselves, so a passbook printed before the change is still readable.
+ * Mirrors `login_identifier_key()` in the database, which is the authority.
+ */
 export function normaliseMemberNo(raw: string): string | null {
-  const v = raw.replace(/\s/g, '').toUpperCase();
-  const m = v.match(/^(?:BND-?M-?)?(\d{1,7})$/);
-  return m ? `BND-M-${m[1].padStart(7, '0')}` : null;
+  const v = raw.replace(/[\s-]/g, '').toUpperCase();
+  const legacy = v.match(/^BNDM(\d{1,7})$/);
+  if (legacy) return `BND-M-${legacy[1].padStart(7, '0')}`;
+  return /^BND\d{5,}$/.test(v) ? v : null;
 }

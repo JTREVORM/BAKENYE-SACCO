@@ -23,7 +23,7 @@ the visual source of truth, and every screen below names the file it came from.
 | **Savings** | Per-member schedules driven by the savings category, with paid/partial/pending/missed/waived status, arrears and per-category analytics |
 | **Loans** | Applied → Under Review → Approved → Disbursed → Active → Completed, plus Rejected; amortisation schedule; guarantors |
 | **Repayments** | Interest-first allocation, automatic status transitions, guarantor release on completion |
-| **Transactions** | One immutable ledger, `BND-TX-2026-004582` references, reversal workflow |
+| **Transactions** | One immutable ledger, `SAV260912001` references, reversal workflow |
 | **Receipts** | Printable / PDF / shareable, with the SACCO crest and full transaction detail |
 | **Finance** | Income by category, expenses with a mandatory approval step, cashbook, profit & loss |
 | **Reports** | Member register, category performance, savings performance, schedules, statements, ledgers, cashbook — every one downloadable as a letterheaded PDF and as CSV |
@@ -191,6 +191,67 @@ signed-out screen, and the palette has no purple.
 
 ---
 
+## Numbering
+
+Everything a member, cashier or auditor reads aloud, writes on a passbook or types into a search
+box has one shape. Database keys are still UUIDs and still join the rows together; they are never
+shown to anyone.
+
+**Member numbers** — `BND` + the two-digit year of registration + the sequence for that year:
+
+```
+BND26001    the first member registered in 2026
+BND26002    the second
+BND27001    the first registered in 2027
+```
+
+The sequence starts again at `001` every 1 January, because the counter is scoped to the year. A
+member number is issued once by `next_member_no()`, is never reused, and can never be changed —
+a trigger refuses it, even from SQL.
+
+**Document references** — a three-letter prefix + `YYMMDD` + the sequence for that kind of document
+that day, issued by `next_document_no()`:
+
+| Prefix | Document | Example |
+| --- | --- | --- |
+| `SAV` | Savings | `SAV260912001` |
+| `SHR` | Shares | `SHR260912001` |
+| `LRP` | Loan repayment | `LRP260912001` |
+| `LDS` | Loan disbursement | `LDS260912001` |
+| `LN`  | Loan account | `LN260912001` |
+| `RCT` | Receipt | `RCT260912001` |
+| `PAY` | Payment | `PAY260912001` |
+| `EXP` | Expense | `EXP260912001` |
+| `INC` | Income | `INC260912001` |
+| `TRF` | Transfer | `TRF260912001` |
+| `DEP` | Bank deposit | `DEP260912001` |
+| `WDL` | Bank withdrawal | `WDL260912001` |
+| `FEE` | Fee | `FEE260912001` |
+| `PEN` | Penalty | `PEN260912001` |
+| `REV` | Reversal | `REV260912001` |
+| `REC` | Reconciliation | `REC260912001` |
+
+Each prefix counts separately, so `SAV260912001` and `RCT260912001` are both the first of their
+kind that day. The date is the day the document was issued, not the day it is accounted for: a
+payment recorded today for money received last Friday is numbered today and dated Friday on its
+face.
+
+**Two cashiers at once.** Both generators take their next value with one
+`insert … on conflict do update … returning` against `doc_counters`. That statement takes a row
+lock on the counter, so simultaneous callers are serialised by the database and get consecutive
+numbers; neither can read a stale value or be handed a number the other already has.
+[`scripts/numbering-check.mjs`](scripts/numbering-check.mjs) proves it by issuing 240 numbers from
+24 real connections at once and checking the run is contiguous.
+
+**Past 999.** Three digits is the width the sequence is padded to, not a ceiling. The 1000th member
+of a year is `BND261000` and the 1000th savings receipt of a day `SAV2609121000` — unique, in issue
+order, one digit longer. A SACCO that outgrows three digits keeps working rather than stopping at
+the counter.
+
+See [`0038`](supabase/migrations/0038_reference_numbering.sql).
+
+---
+
 ## How money is kept correct
 
 This is the part worth reading before changing anything.
@@ -255,9 +316,10 @@ Receipts & Payments report leave transfers out.
 - Transfers and payments recorded by someone who cannot approve them wait for a manager.
 - The approval threshold and a four-eyes rule are settings.
 
-**Numbering.** `BND-RCT-` receipts, `BND-TRF-` transfers, `BND-DEP-` cash deposits, `BND-WD-` bank
-withdrawals, `BND-PAY-` payments and expenses, `BND-REC-` reconciliations. Payment intents moved
-to `BND-PI-` so the payment register owns `PAY`.
+**Numbering.** `RCT` receipts, `TRF` transfers, `DEP` bank deposits, `WDL` bank withdrawals,
+`PAY` payments, `EXP` expenses, `REC` reconciliations - each followed by the date and the day's
+sequence, as described under [Numbering](#numbering). Payment intents take `PI` so the payment
+register owns `PAY`.
 
 **Nothing is invented.** Only a zero-balance *Cash at Hand* account is seeded. The merchant
 account (provider, merchant code) and bank accounts (bank, account number) are created by a
@@ -379,9 +441,9 @@ calls the same settlement function; the savings, ledger, audit and UI code does 
 **Registration is one transaction.** The five-step wizard at **Members → Register Member** collects
 everything and changes nothing until the last step. Then `register_member()`
 ([`0030`](supabase/migrations/0030_member_registration_and_fees.sql)) validates the member, issues the
-next `BND-M-0000123` number, sets both categories, charges every applicable fee at its current
+next `BND26001` number, sets both categories, charges every applicable fee at its current
 amount, posts the payment as one `fee` ledger row into Cash at Merchant, Cash at Bank or Cash at
-Hand, issues the `BND-RCT-` receipt, books each fee as income in the cashbook, and writes the audit
+Hand, issues the `RCT260912001` receipt, books each fee as income in the cashbook, and writes the audit
 trail. If any part fails - a duplicate phone, a missing mobile-money reference, a fee that changed
 while the form was open - none of it happened. A double-tapped submit returns the member already
 registered.
@@ -425,7 +487,7 @@ identifier (member number, phone number, or a staff email) + password
       ▼  landingPath()        that role's own dashboard
 ```
 
-- **Identifiers.** `BND-M-0000123`, `123`, `0772 123 456` and `+256772123456` are all understood; a
+- **Identifiers.** `BND26001`, `bnd26001`, `0772 123 456` and `+256772123456` are all understood; a
   phone is held in one form, `+2567XXXXXXXX`. Staff may sign in with their phone or, if they use one,
   an email - email is never required. People with no email get an internal sign-in address ending in
   `.invalid` (a domain that can never receive mail); nobody sees or types it.
@@ -582,7 +644,7 @@ src/
 
 supabase/migrations/    schema → functions → views → RLS → reference data → roles → categories
 supabase/tests/         SQL suites, run in a transaction that is always rolled back
-scripts/                responsive-check.mjs, db-exec.mjs, test-db.mjs
+scripts/                responsive-check.mjs, db-exec.mjs, test-db.mjs, numbering-check.mjs
 docs/                   setup, architecture, responsive results
 ```
 
@@ -616,6 +678,7 @@ npm run lint                           # ESLint (Next.js core-web-vitals + TypeS
 npm run typecheck                      # strict TypeScript over the whole app
 npm run build                          # production build
 npm run test:db                        # the SQL suites in supabase/tests/ (needs one active Super Admin)
+node scripts/numbering-check.mjs       # issues 240 numbers from 24 connections at once and checks every one is unique
 node scripts/access-check.mjs [url] [memberNo] [phone]  # sign-in, roles, registration, fees and the member portal at 390px and 1440px
 node scripts/responsive-check.mjs      # audits every page at every width
 node scripts/desktop-shots.mjs         # screenshots the signed-in back office at 1280/1440/1920
@@ -656,6 +719,15 @@ log and the statement of anyone else stay closed to them.
 `supabase/tests/audit_fixes_test.sql` guards the production-readiness fixes: Uganda time, the
 enforced settings, atomic savings plans, disbursement and repayment reversals, and the dashboard
 agreeing with the cashbook.
+
+`supabase/tests/numbering_test.sql` covers the scheme described under [Numbering](#numbering): the
+shape of a member number and of a document reference, each sequence starting again at `001` when
+its year or its day rolls over, a number a member already holds being skipped rather than
+reissued, the widening past 999, every kind of money movement carrying its agreed prefix, and a
+real registration, deposit, receipt and reversal coming out in the new form. Concurrency is the one
+thing a single-connection suite cannot prove, so it lives in `scripts/numbering-check.mjs`, which
+opens 24 connections, has them all ask for a number at the same moment, and checks the 240 numbers
+that come back are a contiguous run with nothing skipped and nothing repeated.
 
 The browser scripts need a staff account to sign in with: set `STAFF_EMAIL` (an email or phone)
 and `STAFF_PASSWORD`. No credential is written into them.

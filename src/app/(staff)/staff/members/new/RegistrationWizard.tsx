@@ -352,7 +352,7 @@ export function RegistrationWizard({
                 <Input id="joined_on" type="date" max={toISODate()} value={v.joined_on} onChange={(e) => set('joined_on', e.target.value)} invalid={!!errors.joined_on} />
               </Field>
               <p className="text-body-md text-on-surface-variant">
-                The member number is issued automatically when you finish, in the form BND-M-0000123.
+                The member number is issued automatically when you finish, in the form BND26001 — the SACCO, the year of registration, and the order of registration in that year.
               </p>
             </Section>
           </div>

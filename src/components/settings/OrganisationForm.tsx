@@ -15,10 +15,10 @@ import type { SaccoSettingsRow } from '@/types/db';
  * from the same row this form writes. Correcting it used to require a
  * migration; it is now an edit, audited like any other financial change.
  *
- * Document reference prefixes are deliberately absent. `BND-M-`, `BND-TX-` and
- * the rest are part of references already issued and printed, and making them
- * editable would let one keystroke change the meaning of every document in the
- * archive.
+ * Document reference prefixes are deliberately absent. The `BND` of a member
+ * number and the `SAV`, `RCT`, `LRP` and the rest of a document reference are
+ * part of numbers already issued and printed, and making them editable would
+ * let one keystroke change the meaning of every document in the archive.
  */
 export function OrganisationForm({
   settings,

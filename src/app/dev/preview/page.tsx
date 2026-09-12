@@ -417,7 +417,7 @@ export default function PreviewPage() {
         <Section id="alerts" title="Alerts and badges">
           <div className="flex flex-col gap-3">
             <Alert tone="success" title="Transaction successful">
-              Receipt BND-TX-2026-004582 has been issued.
+              Receipt RCT260912001 has been issued.
             </Alert>
             <Alert tone="warning" title="This loan is overdue">
               UGX 150,000 is past due by 16 days.

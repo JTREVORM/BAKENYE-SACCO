@@ -96,8 +96,8 @@ begin
   insert into t_ctx values ('john', v_john.id, v_john.member_no);
 
   insert into t_result (step, ok, detail)
-  values ('2a a unique BND-M- member number is generated',
-          v_john.member_no ~ '^BND-M-[0-9]{7}$'
+  values ('2a a unique BND + year + sequence member number is generated',
+          v_john.member_no ~ ('^BND' || to_char(current_date, 'YY') || '[0-9]{3,}$')
           and (select count(*) from members where member_no = v_john.member_no) = 1, v_john.member_no);
   insert into t_result (step, ok, detail)
   values ('2b the phone is stored in its one form', v_john.phone = '+256700000000', v_john.phone);
@@ -116,7 +116,7 @@ begin
           v_txn.type = 'fee' and v_txn.amount = 25000 and v_txn.destination_account_id = v_mer
           and v_txn.method = 'mobile_money' and v_txn.external_ref = 'MOMO-TEST-7001', v_txn.reference);
   insert into t_result (step, ok, detail)
-  values ('2g a receipt is issued', (v_res -> 'payment' ->> 'receipt_no') like 'BND-RCT-%',
+  values ('2g a receipt is issued', (v_res -> 'payment' ->> 'receipt_no') like 'RCT' || to_char(current_date, 'YYMMDD') || '%',
           v_res -> 'payment' ->> 'receipt_no');
   insert into t_result (step, ok, detail)
   values ('2h the receipt carries both fee lines and the membership title',
@@ -369,9 +369,10 @@ begin
           and (v_res -> 'candidates' -> 0 ->> 'user_id')::uuid = v_uid
           and jsonb_array_length(v_res -> 'candidates') = 1, v_res ->> 'key');
 
-  v_res := login_resolve(replace(v_no, 'BND-M-', ''), 'test-client');
+  v_res := login_resolve(lower(v_no), 'test-client');
   insert into t_result (step, ok, detail)
-  values ('9d the bare number works too', (v_res -> 'candidates' -> 0 ->> 'user_id')::uuid = v_uid, v_res ->> 'key');
+  values ('9d typed in lower case it resolves to the same login',
+          (v_res -> 'candidates' -> 0 ->> 'user_id')::uuid = v_uid, v_res ->> 'key');
 
   v_res := login_resolve('0770 000 000', 'test-client');
   insert into t_result (step, ok, detail)
@@ -383,7 +384,7 @@ begin
   values ('9f a staff phone resolves to the staff account',
           (v_res -> 'candidates' -> 0 ->> 'user_id')::uuid = v_staff, null);
 
-  v_res := login_resolve('BND-M-9999998', 'test-client');
+  v_res := login_resolve('BND99998', 'test-client');
   insert into t_result (step, ok, detail)
   values ('9g an unknown identifier looks just like a known one: not locked, nothing to try',
           not (v_res ->> 'locked')::boolean and jsonb_array_length(v_res -> 'candidates') = 0, v_res::text);
@@ -391,14 +392,14 @@ begin
   -- ---- Wrong passwords pause the identifier, known or not -----------------
   for i in 1..5 loop
     perform login_record(v_no, 'test-client-2', v_uid, false, 'invalid');
-    perform login_record('BND-M-9999998', 'test-client-3', null, false, 'invalid');
+    perform login_record('BND99998', 'test-client-3', null, false, 'invalid');
   end loop;
   insert into t_result (step, ok, detail)
   values ('9h five wrong passwords pause a real member number',
           (login_resolve(v_no, 'test-client-2') ->> 'locked')::boolean, null);
   insert into t_result (step, ok, detail)
   values ('9i and an unknown one exactly the same way, so pausing reveals nothing',
-          (login_resolve('BND-M-9999998', 'test-client-3') ->> 'locked')::boolean, null);
+          (login_resolve('BND99998', 'test-client-3') ->> 'locked')::boolean, null);
   insert into t_result (step, ok, detail)
   values ('9j failures are in the audit log, without any password',
           exists (select 1 from audit_logs where action = 'auth.login_failed' and record_id = v_uid::text)
@@ -440,7 +441,7 @@ begin
   -- Even the database owner, writing SQL by hand, cannot renumber a member or
   -- delete a fee: those rules are triggers, not just missing privileges.
   begin
-    update members set member_no = 'BND-M-9999999' where id = v_john_id;
+    update members set member_no = 'BND99999' where id = v_john_id;
     insert into t_result (step, ok, detail) values ('9o a member number can never be changed', false, 'changed');
   exception when others then
     get stacked diagnostics v_err = message_text;

@@ -241,7 +241,7 @@ export type PaymentRow = {
   updated_at: string;
 };
 
-/** Payments and expenses side by side, each with its BND-PAY- number. */
+/** Payments and expenses side by side, each with its own document number. */
 export type PaymentRegisterRow = {
   source: 'payment' | 'expense';
   id: string;

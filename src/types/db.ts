@@ -476,7 +476,7 @@ export type ExpenseEntryRow = {
   created_at: string;
   /** The account the money leaves when the expense is approved. */
   payment_account_id: string | null;
-  /** BND-PAY-2026-000001 - expenses share the payment register's numbering. */
+  /** EXP260912001 - an expense is numbered in the expense register's own series. */
   payment_no: string | null;
   payee: string | null;
   reference: string | null;

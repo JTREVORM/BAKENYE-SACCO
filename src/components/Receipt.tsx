@@ -110,7 +110,7 @@ export function Receipt({
           <Line label="Receipt number" value={payload.receipt_no} mono />
           <Line label="Transaction reference" value={t.reference} mono />
           <Line label="Member" value={t.member_name ?? '—'} />
-          <Line label="Member ID" value={t.member_no ?? '—'} mono />
+          <Line label="Member number" value={t.member_no ?? '—'} mono />
           <Line label="Transaction type" value={TXN_LABELS[t.type]} />
           <Line label="Amount" value={formatUGX(t.amount)} emphasis />
           <Line label="Payment method" value={PAYMENT_METHOD_LABELS[t.method]} />

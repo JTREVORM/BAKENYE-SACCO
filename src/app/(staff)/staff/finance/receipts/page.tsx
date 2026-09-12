@@ -24,7 +24,7 @@ const PAGE_SIZE = 25;
 type SP = { from?: string; to?: string; q?: string; page?: string };
 
 /**
- * Every sum of money received, with its BND-RCT receipt number: member
+ * Every sum of money received, with its RCT receipt number: member
  * savings, shares, repayments, fees and other income, and the account it
  * landed in. Receipts are issued by the database the moment money is posted.
  */
@@ -124,7 +124,7 @@ async function Register({ sp, from, to, generatedBy }: { sp: SP; from: string; t
       {rows.length === 0 ? (
         <div className="rounded-2xl bg-surface shadow-neu">
           <EmptyState icon="receipt_long" title={sp.q ? 'No receipts match your search' : 'No receipts in this period'}
-            description="Every collection and other receipt gets a BND-RCT receipt number the moment it is recorded." />
+            description="Every collection and other receipt gets an RCT receipt number the moment it is recorded." />
         </div>
       ) : (
         <>

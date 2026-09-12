@@ -28,7 +28,7 @@ export type PaymentRegisterParams = {
 };
 
 /**
- * Payments and expenses side by side, each with its BND-PAY number, the
+ * Payments and expenses side by side, each with its own document number, the
  * account it left and who approved it. Waiting entries are decided in place.
  */
 export function PaymentRegister({

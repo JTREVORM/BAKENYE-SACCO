@@ -41,7 +41,7 @@ export default function HelpPage() {
         <Item
           icon="badge"
           title="What do I sign in with?"
-          body="Your member number (on your passbook, like BND-M-0000123) or your phone number, and your password. Staff can also use their email. There is one sign-in for everyone."
+          body="Your member number (on your passbook, like BND26001) or your phone number, and your password. Staff can also use their email. There is one sign-in for everyone."
         />
         <Item
           icon="lock"

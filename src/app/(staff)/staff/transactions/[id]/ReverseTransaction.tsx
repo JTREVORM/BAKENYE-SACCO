@@ -95,7 +95,7 @@ export function ReverseTransaction({
                 minLength={10}
                 maxLength={1000}
                 invalid={err?.field === 'reason'}
-                placeholder="e.g. Recorded against the wrong member; the payment belonged to BND-M-0000482."
+                placeholder="e.g. Recorded against the wrong member; the payment belonged to BND26048."
               />
             </Field>
 

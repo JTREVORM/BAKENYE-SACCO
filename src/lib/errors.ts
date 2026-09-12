@@ -39,7 +39,7 @@ export function friendlyError(error: unknown): string {
   const e = error as { code?: string; message?: string; details?: string; hint?: string };
 
   // Our functions raise whole sentences - "0772 123 456 is already the phone
-  // number of Jane Bakenye (BND-M-0000012)." - under standard codes such as
+  // number of Jane Bakenye (BND26012)." - under standard codes such as
   // check_violation. Those are the most useful thing we can show, so they win
   // over the generic sentence for their code.
   const message = (e.message ?? '').replace(/^ERROR:\s*/i, '').trim();

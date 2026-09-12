@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Payments' };
 
 /**
  * Everything the SACCO paid out as a document - payments and expenses side by
- * side, each with its BND-PAY number, the account it left and who approved it.
+ * side, each with its PAY number, the account it left and who approved it.
  */
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<PaymentRegisterParams> }) {
   const user = await requirePermission('finance.view');

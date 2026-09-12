@@ -121,7 +121,7 @@ for (const width of [390, 1440]) {
   await signIn(page, STAFF_EMAIL, 'definitely-not-the-password-1');
   ok((await page.locator(`text=${INVALID}`).count()) > 0 && new URL(page.url()).pathname === '/login',
     `${width} a wrong password gets the generic message`);
-  await signIn(page, 'BND-M-9999998', 'definitely-not-the-password-1');
+  await signIn(page, 'BND99998', 'definitely-not-the-password-1');
   ok((await page.locator(`text=${INVALID}`).count()) > 0, `${width} an unknown member number gets exactly the same message`);
 
   const s = await signIn(page, STAFF_EMAIL, STAFF_PASSWORD);

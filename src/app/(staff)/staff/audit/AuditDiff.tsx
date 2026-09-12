@@ -21,6 +21,7 @@ export function AuditDiff({ oldValue, newValue }: { oldValue: unknown; newValue:
 
   const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])]
     .filter((k) => !IGNORED.has(k))
+    .filter((k) => !isInternalId(before[k]) && !isInternalId(after[k]))
     .filter((k) => JSON.stringify(before[k]) !== JSON.stringify(after[k]));
 
   if (keys.length === 0) return null;
@@ -56,6 +57,19 @@ export function AuditDiff({ oldValue, newValue }: { oldValue: unknown; newValue:
 
 /** Noise that changes on every write and tells a reader nothing. */
 const IGNORED = new Set(['updated_at', 'created_at', 'id']);
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * A database key, which joins two rows together and means nothing to the
+ * person reading the audit trail. The entry's own summary already names what
+ * moved, in words and with the document numbers - "Loan LN260214001 moved to
+ * approved" - so a pair of thirty-six character keys underneath it is thirty-six
+ * characters of noise twice over.
+ */
+function isInternalId(value: unknown): boolean {
+  return typeof value === 'string' && UUID.test(value);
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {

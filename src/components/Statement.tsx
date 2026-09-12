@@ -65,7 +65,7 @@ export function Statement({
 
         <dl className="border-outline-variant mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4">
           <Meta label="Member" value={statement.member.full_name} />
-          <Meta label="Member ID" value={statement.member.member_no} mono />
+          <Meta label="Member number" value={statement.member.member_no} mono />
           <Meta label="Period" value={`${formatDate(statement.from)} – ${formatDate(statement.to)}`} />
           <Meta label="Generated" value={formatDateTime(statement.generated_at)} />
         </dl>

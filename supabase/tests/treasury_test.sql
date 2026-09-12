@@ -139,8 +139,9 @@ begin
           (select count(*) = 1 and sum(debit) = 100000 and sum(credit) = 0
              from account_ledger_entries where transaction_id = v_txn.id), null);
   insert into t_result (step, ok, detail)
-  values ('step 1: a BND-RCT receipt number is issued',
-          (v_res ->> 'receipt_no') like 'BND-RCT-%', v_res ->> 'receipt_no');
+  values ('step 1: an RCT receipt number is issued',
+          (v_res ->> 'receipt_no') like 'RCT' || to_char(current_date, 'YYMMDD') || '%',
+          v_res ->> 'receipt_no');
   insert into t_result (step, ok, detail)
   values ('step 1: the collection is in the audit log',
           exists (select 1 from audit_logs where action = 'treasury.collection'
@@ -208,7 +209,7 @@ begin
 
   insert into t_result (step, ok, detail)
   values ('step 3: a manager''s transfer completes without waiting',
-          v_res ->> 'status' = 'completed' and (v_res ->> 'transfer_no') like 'BND-TRF-%', v_res::text);
+          v_res ->> 'status' = 'completed' and (v_res ->> 'transfer_no') like 'TRF%', v_res::text);
   insert into t_result (step, ok, detail)
   values ('step 3: Cash at Merchant UGX 30,000, Cash at Bank UGX 120,000',
           finance_account_balance_at(v_mer) = 30000 and finance_account_balance_at(v_bank) = 120000,
@@ -255,7 +256,7 @@ begin
   values ('step 4: bank UGX 90,000, cash UGX 30,000, total unchanged',
           finance_account_balance_at(v_bank) = 90000 and finance_account_balance_at(v_cash) = 30000
           and (treasury_summary() -> 'totals' ->> 'total')::numeric = v_total0
-          and (v_res ->> 'transfer_no') like 'BND-WD-%', v_res ->> 'transfer_no');
+          and (v_res ->> 'transfer_no') like 'WDL%', v_res ->> 'transfer_no');
 
   -- ---- Step 5: UGX 10,000 spent on stationery ------------------------------
   select id into v_cat from expense_categories where name = 'Office supplies';
@@ -263,8 +264,10 @@ begin
                           v_cash, 'Stationery shop', null, null);
   v_exp := (v_res ->> 'expense_id')::uuid;
   insert into t_result (step, ok, detail)
-  values ('step 5: an expense request moves no money until approved',
-          finance_account_balance_at(v_cash) = 30000 and (v_res ->> 'payment_no') like 'BND-PAY-%', null);
+  values ('step 5: an expense request moves no money until approved, and is numbered EXP',
+          finance_account_balance_at(v_cash) = 30000
+          and (v_res ->> 'payment_no') like 'EXP' || to_char(current_date, 'YYMMDD') || '%',
+          v_res ->> 'payment_no');
 
   perform approve_expense(v_exp, true, null);
   insert into t_result (step, ok, detail)
@@ -348,8 +351,8 @@ begin
   v_res := create_payment('Treasury Member A', v_pcat, 2000, v_cash, current_date, v_a, null, null,
                           'Refund of an overpayment', null, true, 'test:treasury:pay1');
   insert into t_result (step, ok, detail)
-  values ('a cashier''s payment is submitted with a BND-PAY number',
-          v_res ->> 'status' = 'submitted' and (v_res ->> 'payment_no') like 'BND-PAY-%', null);
+  values ('a cashier''s payment is submitted with a PAY number',
+          v_res ->> 'status' = 'submitted' and (v_res ->> 'payment_no') like 'PAY%', null);
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
 

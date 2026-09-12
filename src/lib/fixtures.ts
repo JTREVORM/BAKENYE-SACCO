@@ -29,7 +29,7 @@ import type {
 export const FIXTURE_MEMBERS: MemberFinancialsRow[] = [
   {
     id: '11111111-1111-4111-8111-111111111111',
-    member_no: 'BND-M-0000124',
+    member_no: 'BND23124',
     user_id: null,
     full_name: 'Nakabugo Christine Ssemakula',
     phone: '+256772123456',
@@ -85,7 +85,7 @@ export const FIXTURE_MEMBERS: MemberFinancialsRow[] = [
   },
   {
     id: '22222222-2222-4222-8222-222222222222',
-    member_no: 'BND-M-0000891',
+    member_no: 'BND24089',
     user_id: null,
     full_name: 'Wanyama Peter',
     phone: '+256701445566',
@@ -141,7 +141,7 @@ export const FIXTURE_MEMBERS: MemberFinancialsRow[] = [
   },
   {
     id: '33333333-3333-4333-8333-333333333333',
-    member_no: 'BND-M-0001102',
+    member_no: 'BND22110',
     user_id: null,
     full_name: 'Namutebi Sarah Kizza-Mugalu',
     phone: '+256753887766',
@@ -200,7 +200,7 @@ export const FIXTURE_MEMBERS: MemberFinancialsRow[] = [
 export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
   {
     id: 'aaaa1111-1111-4111-8111-111111111111',
-    reference: 'BND-TX-2026-004582',
+    reference: 'SAV260830004',
     member_id: FIXTURE_MEMBERS[0].id,
     member_no: FIXTURE_MEMBERS[0].member_no,
     member_name: FIXTURE_MEMBERS[0].full_name,
@@ -222,7 +222,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
   },
   {
     id: 'bbbb2222-2222-4222-8222-222222222222',
-    reference: 'BND-TX-2026-004581',
+    reference: 'LRP260829002',
     member_id: FIXTURE_MEMBERS[0].id,
     member_no: FIXTURE_MEMBERS[0].member_no,
     member_name: FIXTURE_MEMBERS[0].full_name,
@@ -232,7 +232,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
     amount: 150000,
     method: 'mobile_money',
     occurred_on: '2026-08-29',
-    description: 'Repayment on loan BND-LN-2026-00042',
+    description: 'Repayment on loan LN260214001',
     loan_id: 'cccc3333-3333-4333-8333-333333333333',
     reverses_id: null,
     reversed_by_id: null,
@@ -244,7 +244,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
   },
   {
     id: 'cccc3333-3333-4333-8333-333333333333',
-    reference: 'BND-TX-2026-004480',
+    reference: 'SHR260812001',
     member_id: FIXTURE_MEMBERS[2].id,
     member_no: FIXTURE_MEMBERS[2].member_no,
     member_name: FIXTURE_MEMBERS[2].full_name,
@@ -258,7 +258,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
     loan_id: null,
     reverses_id: null,
     reversed_by_id: 'dddd4444-4444-4444-8444-444444444444',
-    reversal_reason: 'Recorded against the wrong member; the payment belonged to BND-M-0000482.',
+    reversal_reason: 'Recorded against the wrong member; the payment belonged to BND24048.',
     created_at: new Date(Date.now() - 18 * 86_400_000).toISOString(),
     recorded_by: null,
     recorded_by_name: 'Aisha Namatovu',
@@ -266,7 +266,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
   },
   {
     id: 'dddd4444-4444-4444-8444-444444444444',
-    reference: 'BND-TX-2026-004590',
+    reference: 'LDS260820001',
     member_id: FIXTURE_MEMBERS[1].id,
     member_no: FIXTURE_MEMBERS[1].member_no,
     member_name: FIXTURE_MEMBERS[1].full_name,
@@ -276,7 +276,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
     amount: 5000000,
     method: 'cash',
     occurred_on: '2026-08-20',
-    description: 'Disbursement of loan BND-LN-2026-00051',
+    description: 'Disbursement of loan LN260801002',
     loan_id: null,
     reverses_id: null,
     reversed_by_id: null,
@@ -290,7 +290,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
 
 export const FIXTURE_LOAN_BALANCE: LoanBalanceRow = {
   loan_id: 'cccc3333-3333-4333-8333-333333333333',
-  loan_no: 'BND-LN-2026-00042',
+  loan_no: 'LN260214001',
   member_id: FIXTURE_MEMBERS[0].id,
   status: 'active',
   principal: 2000000,
@@ -335,7 +335,7 @@ export const FIXTURE_PORTFOLIO: LoanPortfolioRow[] = [
   },
   {
     id: '55555555-5555-4555-8555-555555555555',
-    loan_no: 'BND-LN-2026-00051',
+    loan_no: 'LN260801002',
     status: 'under_review',
     principal: 800000,
     total_payable: 920000,
@@ -361,9 +361,9 @@ export const FIXTURE_PORTFOLIO: LoanPortfolioRow[] = [
 export const FIXTURE_RECEIPT: ReceiptPayload = {
   transaction: FIXTURE_TRANSACTIONS[1],
   sacco_name: 'BAKENYE UNITY AND DEVELOPMENT SACCO',
-  receipt_no: 'BND-RCP-2026-004581',
+  receipt_no: 'RCT260829002',
   loan: {
-    loan_no: 'BND-LN-2026-00042',
+    loan_no: 'LN260214001',
     outstanding: 1200000,
     total_payable: 2360000,
     next_due_on: '2026-09-15',
@@ -621,7 +621,7 @@ export const FIXTURE_SAVINGS_TRANSACTIONS: SavingsTransactionRow[] = [
     cycle: 'Sep 2026',
     amount: 40000,
     payment_method: 'mobile_money',
-    reference: 'BND-TX-2026-004582',
+    reference: 'SAV260830004',
     external_ref: 'MP2609.4471',
     transaction_date: '2026-09-06',
     note: null,
@@ -641,7 +641,7 @@ export const FIXTURE_SAVINGS_TRANSACTIONS: SavingsTransactionRow[] = [
     cycle: 'Aug 2026',
     amount: 100000,
     payment_method: 'cash',
-    reference: 'BND-TX-2026-004301',
+    reference: 'LRP260829003',
     external_ref: null,
     transaction_date: '2026-08-29',
     note: null,

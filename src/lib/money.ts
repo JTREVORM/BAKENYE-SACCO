@@ -77,11 +77,41 @@ export function parseMoneyInput(raw: string): number | null {
   return Math.round(n * 100) / 100;
 }
 
-/** Digit grouping while the user types, preserving caret-friendly plain text. */
+/**
+ * Digit grouping while the user types, preserving caret-friendly plain text.
+ *
+ * Shillings are whole numbers to the people typing them, but the amounts the
+ * system hands back are not always: an installment on an amortised loan is
+ * UGX 196,666.67, and a loan's outstanding balance carries the cents with it.
+ * So a decimal point survives, along with up to two digits after it.
+ *
+ * Dropping them used to turn 196666.67 into 19,666,667 - a hundred times the
+ * amount - both on screen and in the value the form posted.
+ */
 export function groupDigits(raw: string): string {
-  const digits = raw.replace(/[^\d]/g, '');
-  if (!digits) return '';
-  return groupFormatter.format(Number(digits));
+  const cleaned = raw.replace(/[^\d.]/g, '');
+  if (!cleaned) return '';
+
+  // Only the first dot is a decimal point; anything after it is a typo.
+  const dot = cleaned.indexOf('.');
+  const whole = (dot === -1 ? cleaned : cleaned.slice(0, dot)).replace(/\D/g, '');
+  const fraction = dot === -1 ? null : cleaned.slice(dot + 1).replace(/\D/g, '').slice(0, 2);
+
+  if (!whole && fraction === null) return '';
+  const grouped = whole ? groupFormatter.format(Number(whole)) : '0';
+
+  // A trailing dot is kept so somebody typing "1200." can go on to the cents.
+  return fraction === null ? grouped : `${grouped}.${fraction}`;
+}
+
+/**
+ * The plain number behind a grouped display string, for the value a form posts.
+ * Returns '' when there is nothing usable yet, so an empty field stays empty.
+ */
+export function ungroupDigits(display: string): string {
+  const cleaned = display.replace(/,/g, '');
+  if (!cleaned || cleaned === '.') return '';
+  return cleaned.endsWith('.') ? cleaned.slice(0, -1) : cleaned;
 }
 
 export function percent(part: unknown, whole: unknown): number {

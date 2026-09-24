@@ -25,6 +25,10 @@ for (const file of ['.env.local', '.env']) {
   }
 }
 
+// Supabase requires TLS; a local Postgres for development or a clean-install
+// test does not offer it. PGSSLMODE=disable is the standard way to say so.
+const SSL = process.env.PGSSLMODE === 'disable' ? false : { rejectUnauthorized: false };
+
 const argv = process.argv.slice(2);
 let actAs = null;
 const asIndex = argv.indexOf('--as');
@@ -48,7 +52,7 @@ const sql = isFile ? fs.readFileSync(arg, 'utf8') : arg;
 
 const client = new pg.Client({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: SSL,
   statement_timeout: 300_000,
 });
 

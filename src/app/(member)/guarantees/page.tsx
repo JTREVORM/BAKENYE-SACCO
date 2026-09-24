@@ -38,6 +38,13 @@ type GuaranteeRow = {
 };
 
 /**
+ * The loan statuses for which an amount "still owed" is a true statement: the
+ * money has been handed over and has not yet been fully repaid. An application
+ * still being considered, or one that was refused, owes nothing.
+ */
+const RUNNING = new Set<LoanStatus>(['disbursed', 'active', 'defaulted', 'written_off']);
+
+/**
  * Loans this member is guaranteeing.
  *
  * Being a guarantor is a real financial obligation, so it gets a real screen:
@@ -54,7 +61,9 @@ type GuaranteeRow = {
  * authorisation — a member can only ever be handed their own guarantees.
  */
 export default async function GuaranteesPage() {
-  const user = await requireMember();
+  // Still required: it redirects anyone who is not a member of this SACCO.
+  // The rows themselves are scoped by my_guarantees(), not by a filter here.
+  await requireMember();
   const unread = await getUnreadCount();
 
   const supabase = await createClient();
@@ -133,11 +142,19 @@ export default async function GuaranteesPage() {
                       {g.purpose}
                     </p>
                     {/* How the loan is actually going — a guarantor's exposure
-                        falls as the borrower repays, so say so. */}
-                    {g.outstanding != null ? (
+                        falls as the borrower repays, so say so. Only a loan
+                        that has actually been paid out has an amount still
+                        owed: before that the schedule is what was asked for,
+                        not a debt, and saying "still owed" of a rejected
+                        application would be untrue. */}
+                    {RUNNING.has(g.loan_status) && g.outstanding != null ? (
                       <p className="text-label-md font-label-md text-on-surface-variant mt-1 normal-case">
                         {formatUGX(g.outstanding)} still owed of {formatUGX(g.total_payable)}
                         {g.next_due_on ? ` · next due ${formatDate(g.next_due_on)}` : ''}
+                      </p>
+                    ) : g.loan_status === 'completed' ? (
+                      <p className="text-label-md font-label-md text-on-surface-variant mt-1 normal-case">
+                        Repaid in full — you are no longer standing for this loan.
                       </p>
                     ) : null}
                     <div className="mt-2 flex flex-wrap items-center gap-2">

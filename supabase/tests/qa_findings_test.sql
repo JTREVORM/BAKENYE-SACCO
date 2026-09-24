@@ -185,6 +185,87 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- V-5 — a guarantor sees the borrower, and nobody else does.
+--
+-- Member B guarantees member A's loan. Member C guarantees nothing.
+-- ---------------------------------------------------------------------------
+reset role;
+
+do $$
+declare
+  v_a uuid := (select id from t_ctx where key = 'a');
+  v_b uuid := (select id from t_ctx where key = 'b');
+  v_prod uuid;
+  v_loan uuid;
+begin
+  -- Its own product, so the fixture does not depend on how many guarantors the
+  -- SACCO's real products happen to require.
+  if not exists (select 1 from loan_products where code = 'QAT') then
+    perform save_loan_product(null, jsonb_build_object(
+      'name', 'QA Test Product', 'code', 'QAT', 'interest_rate', 12.0,
+      'interest_method', 'flat', 'min_amount', 50000, 'max_amount', 5000000,
+      'min_period_months', 1, 'max_period_months', 12, 'processing_fee_pct', 0,
+      'min_guarantors', 1), 'automated test fixture');
+  end if;
+  select id into v_prod from loan_products where code = 'QAT';
+
+  v_loan := (apply_for_loan(v_a, v_prod, 300000, 6, 'Automated test loan', null,
+               jsonb_build_array(jsonb_build_object('member_id', v_b, 'amount', 300000)),
+               'test:qa:loan') ->> 'loan_id')::uuid;
+  insert into t_ctx values ('loan', v_loan);
+end;
+$$;
+
+set role authenticated;
+
+do $$
+declare
+  v_a uuid := (select id from t_ctx where key = 'a');
+  v_b_user uuid := (select id from t_ctx where key = 'b_user');
+  v_c_user uuid := (select id from t_ctx where key = 'c_user');
+  v_n integer;
+  v_name text;
+begin
+  ------------------------------------------------------- A: the guarantor sees
+  perform set_config('request.jwt.claims',
+                     json_build_object('sub', v_b_user, 'role', 'authenticated')::text, false);
+  select count(*), max(borrower_name) into v_n, v_name from my_guarantees();
+  insert into t_result (step, ok, detail)
+  values ('V-5a a guarantor sees the borrower they guarantee',
+          v_n = 1 and v_name = 'QA Borrower Test', format('%s row(s), borrower %s', v_n, v_name));
+
+  ------------------------------- B: the parameter cannot be used to look wider
+  select count(*) into v_n from my_guarantees(v_a);
+  insert into t_result (step, ok, detail)
+  values ('V-5b a member cannot ask about another member''s guarantees',
+          v_n = 1, format('%s row(s) — still their own', v_n));
+
+  ------------------------------------- C: a non-guarantor enumerates nothing
+  perform set_config('request.jwt.claims',
+                     json_build_object('sub', v_c_user, 'role', 'authenticated')::text, false);
+  select count(*) into v_n from my_guarantees();
+  insert into t_result (step, ok, detail)
+  values ('V-5c a member who guarantees nothing sees nothing', v_n = 0, v_n || ' row(s)');
+
+  select count(*) into v_n from my_guarantees(v_a);
+  insert into t_result (step, ok, detail)
+  values ('V-5d and cannot enumerate through the parameter', v_n = 0, v_n || ' row(s)');
+
+  ------------------------------------------- E: RLS on members is unchanged
+  select count(*) into v_n from members;
+  insert into t_result (step, ok, detail)
+  values ('V-5e row-level security on members is unchanged', v_n = 1,
+          v_n || ' member row(s) visible');
+
+  ------------------------------------- H: no member record, nothing returned
+  perform set_config('request.jwt.claims', '{}', false);
+  select count(*) into v_n from my_guarantees();
+  insert into t_result (step, ok, detail)
+  values ('V-5f a caller with no member record sees nothing', v_n = 0, v_n || ' row(s)');
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Run as the owner, the way the nightly job and the money functions do, to
 -- check the one rule that only the helper itself can enforce.
 -- ---------------------------------------------------------------------------
@@ -195,6 +276,14 @@ declare
   v_a uuid := (select id from t_ctx where key = 'a');
   v_sched uuid;
 begin
+  -- The V-5 checks above left the session claiming to be somebody else, or
+  -- nobody. Put the administrator back, so the waiver is attributed properly.
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', (select id from app_users
+                               where role = 'super_admin' and is_active
+                               order by created_at limit 1),
+                      'role', 'authenticated')::text, false);
+
   select id into v_sched from savings_periods
    where member_id = v_a and status <> 'waived' and paid_amount = 0 limit 1;
 

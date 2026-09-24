@@ -14,49 +14,58 @@ import type { GuarantorStatus, LoanStatus } from '@/types/db';
 
 export const metadata: Metadata = { title: 'My Guarantees' };
 
+/** One row of `my_guarantees()` — see migration 0042. */
 type GuaranteeRow = {
-  id: string;
-  loan_id: string;
+  guarantee_id: string;
   guaranteed_amount: number;
-  status: GuarantorStatus;
+  guarantee_status: GuarantorStatus;
   responded_on: string | null;
-  created_at: string;
-  loans: {
-    loan_no: string;
-    principal: number;
-    status: LoanStatus;
-    applied_on: string;
-    purpose: string;
-    members: { full_name: string; member_no: string; photo_url: string | null } | null;
-  } | null;
+  requested_on: string;
+  loan_id: string;
+  loan_no: string;
+  loan_status: LoanStatus;
+  principal: number;
+  total_payable: number | null;
+  outstanding: number | null;
+  percent_repaid: number | null;
+  applied_on: string;
+  disbursed_on: string | null;
+  next_due_on: string | null;
+  purpose: string | null;
+  borrower_name: string;
+  borrower_no: string;
+  borrower_photo: string | null;
 };
 
 /**
  * Loans this member is guaranteeing.
  *
  * Being a guarantor is a real financial obligation, so it gets a real screen:
- * who is borrowing, how much this member is on the hook for, and — where the
- * request is still pending — the accept/decline decision.
+ * who is borrowing, how much this member is on the hook for, how far the loan
+ * has been repaid, and — where the request is still pending — the
+ * accept/decline decision.
+ *
+ * The rows come from `my_guarantees()` (0042) rather than from a table read.
+ * A member may read only their own row of `members`, which is right, so asking
+ * PostgREST to embed the borrower returned nothing and this screen used to
+ * print "Unknown member" against every loan. The function reads past that
+ * policy but decides for itself what to disclose: the borrower's name, member
+ * number and photograph, and nothing else about them. Its WHERE clause is the
+ * authorisation — a member can only ever be handed their own guarantees.
  */
 export default async function GuaranteesPage() {
   const user = await requireMember();
   const unread = await getUnreadCount();
 
   const supabase = await createClient();
-  const { data } = await supabase
-    .from('loan_guarantors')
-    .select(
-      'id, loan_id, guaranteed_amount, status, responded_on, created_at, ' +
-        'loans!loan_guarantors_loan_id_fkey(loan_no, principal, status, applied_on, purpose, ' +
-        'members!loans_member_id_fkey(full_name, member_no, photo_url))',
-    )
-    .eq('member_id', user.memberId)
-    .order('created_at', { ascending: false });
+  const { data } = await supabase.rpc('my_guarantees');
 
   const rows = (data ?? []) as unknown as GuaranteeRow[];
-  const pending = rows.filter((r) => r.status === 'pending');
+  const pending = rows.filter((r) => r.guarantee_status === 'pending');
   const live = rows.filter(
-    (r) => r.status === 'accepted' && ['active', 'disbursed', 'defaulted'].includes(r.loans?.status ?? ''),
+    (r) =>
+      r.guarantee_status === 'accepted' &&
+      ['active', 'disbursed', 'defaulted'].includes(r.loan_status),
   );
   const exposure = live.reduce((sum, r) => sum + Number(r.guaranteed_amount), 0);
 
@@ -105,31 +114,35 @@ export default async function GuaranteesPage() {
           <ul className="flex flex-col gap-3">
             {rows.map((g) => (
               <li
-                key={g.id}
+                key={g.guarantee_id}
                 className="bg-surface shadow-card overflow-hidden rounded-xl"
               >
                 <Link
                   href={`/loans/${g.loan_id}`}
                   className="hover:bg-surface-container-low flex items-start gap-3 p-4 transition-colors"
                 >
-                  <Avatar
-                    name={g.loans?.members?.full_name}
-                    src={g.loans?.members?.photo_url}
-                    size={44}
-                  />
+                  <Avatar name={g.borrower_name} src={g.borrower_photo} size={44} />
                   <div className="min-w-0 flex-1">
                     <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
-                      {g.loans?.members?.full_name ?? 'Unknown member'}
+                      {g.borrower_name}
                     </p>
                     <p className="text-label-md font-label-md text-on-surface-variant tabular truncate normal-case">
-                      {g.loans?.loan_no} · applied {formatDate(g.loans?.applied_on)}
+                      {g.borrower_no} · {g.loan_no} · applied {formatDate(g.applied_on)}
                     </p>
                     <p className="text-body-md font-body-md text-on-surface-variant mt-1 truncate">
-                      {g.loans?.purpose}
+                      {g.purpose}
                     </p>
+                    {/* How the loan is actually going — a guarantor's exposure
+                        falls as the borrower repays, so say so. */}
+                    {g.outstanding != null ? (
+                      <p className="text-label-md font-label-md text-on-surface-variant mt-1 normal-case">
+                        {formatUGX(g.outstanding)} still owed of {formatUGX(g.total_payable)}
+                        {g.next_due_on ? ` · next due ${formatDate(g.next_due_on)}` : ''}
+                      </p>
+                    ) : null}
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <GuarantorStatusBadge status={g.status} />
-                      {g.loans ? <LoanStatusBadge status={g.loans.status} /> : null}
+                      <GuarantorStatusBadge status={g.guarantee_status} />
+                      <LoanStatusBadge status={g.loan_status} />
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
@@ -141,16 +154,16 @@ export default async function GuaranteesPage() {
                       className="text-body-lg font-body-lg text-on-surface font-bold"
                     />
                     <p className="text-label-md font-label-md text-on-surface-variant/70 mt-1 normal-case">
-                      of {formatUGX(g.loans?.principal)}
+                      of {formatUGX(g.principal)}
                     </p>
                   </div>
                 </Link>
 
-                {g.status === 'pending' ? (
+                {g.guarantee_status === 'pending' ? (
                   <div className="border-outline-variant bg-surface-container-low border-t p-4">
                     <GuaranteeResponse
-                      guarantorId={g.id}
-                      borrowerName={g.loans?.members?.full_name ?? 'this member'}
+                      guarantorId={g.guarantee_id}
+                      borrowerName={g.borrower_name}
                       amount={Number(g.guaranteed_amount)}
                     />
                   </div>

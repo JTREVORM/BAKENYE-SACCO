@@ -53,9 +53,15 @@ export default async function SavingsPage() {
 
   // The cycle the member is currently being judged against: the earliest that
   // is still open, falling back to the most recent one if everything is settled.
+  //
+  // Only cycles that actually expect something count. A cadence the member's
+  // category does not collect on still raises rows, with an expectation of
+  // zero, and one of those used to be picked as "the cycle you are being judged
+  // against" - showing a week from last month with "Expected: UGX 0".
+  const obligations = schedules.filter((s) => toNumber(s.expected_amount) > 0);
   const current =
-    schedules.find((s) => s.status === 'pending' || s.status === 'partial') ??
-    schedules[0] ??
+    obligations.find((s) => s.status === 'pending' || s.status === 'partial') ??
+    obligations[0] ??
     null;
 
   return (
@@ -113,7 +119,7 @@ export default async function SavingsPage() {
           <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-4">
             Recent Cycles
           </h3>
-          {schedules.length === 0 ? (
+          {obligations.length === 0 ? (
             <div className="bg-surface-container-lowest border-surface-container-high rounded-xl border">
               <EmptyState
                 icon="calendar_month"
@@ -127,7 +133,7 @@ export default async function SavingsPage() {
             </div>
           ) : (
             <ul className="flex flex-col gap-2">
-              {schedules.map((sch) => (
+              {obligations.map((sch) => (
                 <li
                   key={sch.schedule_id}
                   className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"

@@ -1,0 +1,22 @@
+/** Capture loan disbursement and the repayment form. */
+import { openBrowser, newPage, signIn, settle, shot, BASE } from './lib.mjs';
+const LOAN = process.env.LOAN;
+const browser = await openBrowser();
+const { page } = await newPage(browser);
+await signIn(page, process.env.MGR_ID, process.env.PW);
+await page.goto(`${BASE}/staff/loans/${LOAN}`, { waitUntil: 'domcontentloaded' });
+await settle(page);
+await shot(page, 'staff', 'loan-05-approved');
+await page.click('text=Disburse funds');
+await settle(page, 900);
+await shot(page, 'staff', 'loan-06-disburse-dialog');
+const dfields = await page.evaluate(() => Array.from(document.querySelectorAll('[role="dialog"] input,[role="dialog"] select,[role="dialog"] textarea,dialog input,dialog select,dialog textarea')).map(e => [e.tagName, e.type||'', e.name||'', e.id||''].join('|')));
+console.log('disburse dialog:', dfields.join(' ; '));
+await page.locator('[role="dialog"] button, dialog button').filter({ hasText: /Disburse|Confirm/ }).last().click();
+await settle(page, 2500);
+await shot(page, 'staff', 'loan-07-disbursed');
+console.log('after disburse:', (await page.locator('main').innerText()).slice(0, 220).replace(/\n+/g, ' / '));
+await page.goto(`${BASE}/staff/loans/${LOAN}/repay`, { waitUntil: 'domcontentloaded' });
+await settle(page);
+await shot(page, 'staff', 'loan-08-repay-form');
+await browser.close();

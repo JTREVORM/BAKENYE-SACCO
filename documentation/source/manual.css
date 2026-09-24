@@ -1,0 +1,228 @@
+/* ==========================================================================
+   BAKENYE UNITY AND DEVELOPMENT SACCO — user manual stylesheet
+   A4, printed through the browser's own print engine.
+   Colours are taken from the application's own interface.
+   ========================================================================== */
+
+@page {
+  size: A4;
+  margin: 20mm 16mm 18mm 16mm;
+}
+@page :first { margin: 0; }
+
+:root {
+  --navy:      #0d2357;   /* the application's primary */
+  --navy-deep: #081736;
+  --gold:      #f5b911;
+  --ink:       #16202f;
+  --muted:     #5b6775;
+  --line:      #d7dde6;
+  --tint:      #eef2f8;
+  --green:     #0f7a3d;
+  --red:       #b3261e;
+  --amber:     #8a5a00;
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 10.5pt; }
+
+body {
+  margin: 0;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  line-height: 1.55;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ------------------------------------------------------------------ cover */
+.cover {
+  page-break-after: always;
+  height: 297mm;
+  width: 210mm;
+  position: relative;
+  overflow: hidden;
+  background: var(--navy);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.cover__top { padding: 26mm 20mm 0 20mm; flex: 1; }
+.cover h1, .cover h2, .cover h3 { color: #fff; border: none; padding: 0; }
+.cover__logo { width: 28mm; height: auto; background: #fff; border-radius: 50%; padding: 3mm; }
+.cover__org {
+  margin: 10mm 0 0 0;
+  font-size: 20pt;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.cover__motto { margin: 3mm 0 0 0; font-size: 11pt; color: var(--gold); font-style: italic; }
+.cover__rule { width: 34mm; height: 1.6mm; background: var(--gold); margin: 9mm 0; border-radius: 1mm; }
+.cover__title { font-size: 30pt; line-height: 1.1; font-weight: 800; margin: 0; }
+.cover__subtitle { font-size: 13pt; margin: 5mm 0 0 0; color: #c9d6ef; }
+.cover__meta { margin-top: 14mm; font-size: 10.5pt; color: #dbe4f5; }
+.cover__meta div { margin-bottom: 2.2mm; }
+.cover__meta strong { color: #fff; font-weight: 600; }
+.cover__photo { height: 78mm; width: 100%; object-fit: cover; display: block; opacity: 0.92; }
+.cover__foot {
+  background: var(--navy-deep);
+  padding: 6mm 20mm;
+  font-size: 9pt;
+  color: #b9c6e0;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* --------------------------------------------------------------- headings */
+h1, h2, h3, h4 { color: var(--navy); line-height: 1.25; }
+h1 {
+  font-size: 19pt;
+  margin: 0 0 4mm 0;
+  padding-bottom: 2.5mm;
+  border-bottom: 0.8mm solid var(--gold);
+  page-break-after: avoid;
+}
+h2 { font-size: 14pt; margin: 8mm 0 3mm 0; page-break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 6mm 0 2mm 0; page-break-after: avoid; }
+h4 { font-size: 10.5pt; margin: 4mm 0 1.5mm 0; page-break-after: avoid; }
+
+.section { page-break-before: always; }
+
+p { margin: 0 0 3mm 0; }
+ul, ol { margin: 0 0 3mm 0; padding-left: 6mm; }
+li { margin-bottom: 1.4mm; }
+
+a { color: var(--navy); }
+
+strong { font-weight: 600; }
+
+/* ------------------------------------------------------------------ tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 3mm 0 5mm 0;
+  font-size: 9pt;
+  page-break-inside: auto;
+}
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; }
+th, td {
+  border: 0.2mm solid var(--line);
+  padding: 1.8mm 2.2mm;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: var(--navy); color: #fff; font-weight: 600; }
+tbody tr:nth-child(even) td { background: var(--tint); }
+td.c, th.c { text-align: center; }
+
+/* ------------------------------------------------------------------- steps */
+.step {
+  page-break-inside: auto;
+  margin: 0 0 6mm 0;
+}
+.step__head {
+  display: flex;
+  gap: 3mm;
+  align-items: baseline;
+  margin-bottom: 2mm;
+}
+.step__no {
+  flex: none;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 700;
+  font-size: 9pt;
+  border-radius: 50%;
+  width: 7mm;
+  height: 7mm;
+  line-height: 7mm;
+  text-align: center;
+}
+.step__title { font-size: 11.5pt; font-weight: 700; color: var(--navy); margin: 0; }
+.step__body { padding-left: 10mm; }
+.step__body > figure, .step__body > .pair { margin-left: -10mm; }
+
+/* ------------------------------------------------------------------ figure */
+figure {
+  margin: 3mm 0 4mm 0;
+  page-break-inside: avoid;
+}
+figure img {
+  border: 0.25mm solid var(--line);
+  border-radius: 1.5mm;
+  display: block;
+}
+figure.phone img { width: 62mm; margin: 0 auto; }
+figure.phone-tall img { width: 54mm; margin: 0 auto; }
+figcaption {
+  font-size: 8.5pt;
+  color: var(--muted);
+  margin-top: 1.5mm;
+  text-align: center;
+}
+figcaption b { color: var(--navy); }
+
+.pair { display: flex; gap: 4mm; page-break-inside: avoid; margin: 3mm 0 4mm 0;
+         align-items: flex-start; justify-content: center; }
+.pair figure { flex: 1; margin: 0; }
+
+/* ------------------------------------------------------------------- notes */
+.note, .warn, .tip {
+  border-left: 1.2mm solid var(--navy);
+  background: var(--tint);
+  padding: 2.5mm 3mm;
+  margin: 3mm 0;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+  border-radius: 0 1.5mm 1.5mm 0;
+}
+.warn { border-left-color: var(--red); background: #fdf0ef; }
+.tip  { border-left-color: var(--green); background: #eef7f1; }
+.note b, .warn b, .tip b { display: block; margin-bottom: 1mm; }
+.warn b { color: var(--red); }
+.tip b { color: var(--green); }
+.note b { color: var(--navy); }
+
+/* --------------------------------------------------------------------- toc */
+.toc ol { list-style: none; padding-left: 0; counter-reset: toc; }
+.toc li { margin-bottom: 1.6mm; font-size: 10pt; }
+.toc .toc__sec { font-weight: 600; color: var(--navy); }
+.toc .toc__sub { padding-left: 7mm; font-size: 9.5pt; color: var(--muted); }
+
+/* ------------------------------------------------------------------ inline */
+.kbd {
+  background: var(--navy);
+  color: #fff;
+  border-radius: 1mm;
+  padding: 0.3mm 1.4mm;
+  font-size: 9pt;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.role {
+  display: inline-block;
+  background: var(--tint);
+  border: 0.2mm solid var(--line);
+  border-radius: 8mm;
+  padding: 0.4mm 2.2mm;
+  font-size: 8.5pt;
+  color: var(--navy);
+  font-weight: 600;
+}
+.who {
+  font-size: 9.5pt;
+  color: var(--muted);
+  margin: 0 0 3mm 0;
+}
+.who strong { color: var(--navy); }
+
+.lead { font-size: 11pt; color: var(--muted); margin-bottom: 5mm; }
+
+dl.fields { margin: 2mm 0 4mm 0; font-size: 9.5pt; }
+dl.fields dt { font-weight: 600; color: var(--navy); margin-top: 2mm; }
+dl.fields dd { margin: 0 0 0 5mm; }
+
+.docctl td:first-child { width: 38mm; font-weight: 600; color: var(--navy); background: var(--tint); }

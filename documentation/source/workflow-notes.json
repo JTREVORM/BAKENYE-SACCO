@@ -1,0 +1,499 @@
+{
+ "admin/settings-fees-create-dialog.png": {
+  "description": "The Create Fee form: name, amount, type, when it is charged and whether it is mandatory.",
+  "module": "Settings \u2014 Fees",
+  "role": "Admin / Manager",
+  "step": "Step 2 \u2014 describe the fee",
+  "verified": "Workflow performed in the running application"
+ },
+ "admin/settings-fees-list.png": {
+  "description": "Settings \u2192 Fees after the Membership and Registration fees were created.",
+  "module": "Settings \u2014 Fees",
+  "role": "Admin / Manager",
+  "step": "Result",
+  "verified": "Workflow performed in the running application"
+ },
+ "admin/users-add-staff-dialog.png": {
+  "description": "The \"Add staff account\" form: full name, phone number, optional email and role.",
+  "module": "User management",
+  "role": "Admin / Super Admin",
+  "step": "Step 2 \u2014 add a staff account",
+  "verified": "Workflow performed in the running application"
+ },
+ "admin/users-list.png": {
+  "description": "The Users screen listing every staff account, its role, status and last sign-in.",
+  "module": "User management",
+  "role": "Admin / Super Admin",
+  "step": "Result",
+  "verified": "Workflow performed in the running application"
+ },
+ "admin/users-temporary-password.png": {
+  "description": "The generated temporary password, shown once, to be given to the new member of staff.",
+  "module": "User management",
+  "role": "Admin / Super Admin",
+  "step": "Step 3 \u2014 hand over the password",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/check-after-change.png": {
+  "description": "The Administration dashboard, reached once the password has been replaced.",
+  "module": "Dashboard",
+  "role": "Super Admin",
+  "step": "Step 7 \u2014 after the change",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/check-after-login.png": {
+  "description": "What a brand-new account sees straight after signing in: \"Choose your password\".",
+  "module": "Sign in",
+  "role": "Super Admin",
+  "step": "Step 5 \u2014 first sign-in",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/check-change-password.png": {
+  "description": "The \"Choose your password\" form with the three fields filled in.",
+  "module": "Sign in",
+  "role": "Super Admin",
+  "step": "Step 6 \u2014 choose a password",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/check-login.png": {
+  "description": "The sign-in screen as first seen.",
+  "module": "Sign in",
+  "role": "Everyone",
+  "step": "Step 1 \u2014 open the system",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/forgot-password-desktop.png": {
+  "description": "The \"Forgot password\" request screen at desktop size.",
+  "module": "Sign in",
+  "role": "Everyone",
+  "step": "Forgotten password",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/forgot-password-phone.png": {
+  "description": "The \"Forgot password\" request screen at phone size.",
+  "module": "Sign in",
+  "role": "Everyone",
+  "step": "Forgotten password",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/help-desktop.png": {
+  "description": "The help page reachable without signing in, at desktop size.",
+  "module": "Sign in",
+  "role": "Everyone",
+  "step": "Help signing in",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/help-phone.png": {
+  "description": "The help page reachable without signing in, at phone size.",
+  "module": "Sign in",
+  "role": "Everyone",
+  "step": "Help signing in",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/login-desktop.png": {
+  "description": "The sign-in screen at desktop size: one form for members and staff alike.",
+  "module": "Sign in",
+  "role": "Everyone",
+  "step": "Step 1 \u2014 open the system",
+  "verified": "Workflow performed in the running application"
+ },
+ "shared/login-phone.png": {
+  "description": "The sign-in screen at phone size: one form for members and staff alike.",
+  "module": "Sign in",
+  "role": "Everyone",
+  "step": "Step 1 \u2014 open the system",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/collect-01-open.png": {
+  "description": "The collection screen, waiting for a member to be found.",
+  "module": "Savings collection",
+  "role": "Cashier / Teller",
+  "step": "Step 1 \u2014 open Collect Savings",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/collect-02-search.png": {
+  "description": "Searching by member number; the result shows what the member owes.",
+  "module": "Savings collection",
+  "role": "Cashier / Teller",
+  "step": "Step 2 \u2014 find the member",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/collect-03-member.png": {
+  "description": "The member panel: category, current cycle, expected, paid and outstanding.",
+  "module": "Savings collection",
+  "role": "Cashier / Teller",
+  "step": "Step 3 \u2014 check the member",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/collect-04-record-dialog.png": {
+  "description": "The Record payment form before anything is typed.",
+  "module": "Savings collection",
+  "role": "Cashier / Teller",
+  "step": "Step 4 \u2014 open Record payment",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/collect-05-filled.png": {
+  "description": "Amount, payment method and the provider reference from the confirmation message.",
+  "module": "Savings collection",
+  "role": "Cashier / Teller",
+  "step": "Step 5 \u2014 enter what was received",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/collect-06-confirm.png": {
+  "description": "The confirmation summary shown before anything is saved.",
+  "module": "Savings collection",
+  "role": "Cashier / Teller",
+  "step": "Step 6 \u2014 review",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/collect-07-result.png": {
+  "description": "The member panel after the payment: the outstanding figure has fallen.",
+  "module": "Savings collection",
+  "role": "Cashier / Teller",
+  "step": "Step 7 \u2014 result",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/collect-08-receipt.png": {
+  "description": "The receipt produced by the collection, with its receipt number and transaction reference.",
+  "module": "Savings collection",
+  "role": "Cashier / Teller",
+  "step": "Step 8 \u2014 the receipt",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-01-form.png": {
+  "description": "The expense form before anything is typed.",
+  "module": "Finance \u2014 expenses",
+  "role": "Accountant",
+  "step": "Step 1 \u2014 open Record Expense",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-02-filled.png": {
+  "description": "Category, amount, description, payee and the supplier reference.",
+  "module": "Finance \u2014 expenses",
+  "role": "Accountant",
+  "step": "Step 2 \u2014 describe the spending",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-03-confirm.png": {
+  "description": "The confirmation summary before the expense is filed.",
+  "module": "Finance \u2014 expenses",
+  "role": "Accountant",
+  "step": "Step 3 \u2014 review",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-04-result.png": {
+  "description": "The expense filed for approval; no money has moved.",
+  "module": "Finance \u2014 expenses",
+  "role": "Accountant",
+  "step": "Step 4 \u2014 filed",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-05-awaiting-approval.png": {
+  "description": "Expenses waiting for a manager.",
+  "module": "Finance \u2014 expenses",
+  "role": "SACCO Manager",
+  "step": "Step 5 \u2014 the approval queue",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-06-approve-confirm.png": {
+  "description": "The warning that approving posts the entry and changes the balances.",
+  "module": "Finance \u2014 expenses",
+  "role": "SACCO Manager",
+  "step": "Step 6 \u2014 confirm the approval",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-06-approve-dialog.png": {
+  "description": "Each pending expense with its Approve and Reject controls.",
+  "module": "Finance \u2014 expenses",
+  "role": "SACCO Manager",
+  "step": "Step 6 \u2014 the approval queue in detail",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-06-pending-list.png": {
+  "description": "Expenses awaiting approval, with the month to date by category above.",
+  "module": "Finance \u2014 expenses",
+  "role": "SACCO Manager",
+  "step": "Step 5 \u2014 the approval queue",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-07-approved.png": {
+  "description": "The expenses screen after the approval.",
+  "module": "Finance \u2014 expenses",
+  "role": "SACCO Manager",
+  "step": "Step 7 \u2014 approved",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/expense-08-reject-confirm.png": {
+  "description": "What is shown when an expense is rejected rather than approved.",
+  "module": "Finance \u2014 expenses",
+  "role": "SACCO Manager",
+  "step": "Rejecting instead",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/loan-01-officer-desk.png": {
+  "description": "Applications waiting to be assessed, repayments due and loans in arrears.",
+  "module": "Loans",
+  "role": "Loan Officer",
+  "step": "Step 1 \u2014 the loans desk",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/loan-02-application.png": {
+  "description": "A loan application with its amount, purpose, guarantors and history.",
+  "module": "Loans",
+  "role": "Loan Officer",
+  "step": "Step 2 \u2014 open the application",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/loan-03-under-review.png": {
+  "description": "The loan after the review has been started.",
+  "module": "Loans",
+  "role": "Loan Officer",
+  "step": "Step 3 \u2014 start the review",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/loan-04-approve-dialog.png": {
+  "description": "The approval form, which requires a reason.",
+  "module": "Loans",
+  "role": "SACCO Manager",
+  "step": "Step 4 \u2014 approve",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/loan-05-approved.png": {
+  "description": "The approved loan, now offering \"Disburse funds\".",
+  "module": "Loans",
+  "role": "SACCO Manager",
+  "step": "Step 5 \u2014 approved",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/loan-06-disburse-dialog.png": {
+  "description": "The disbursement form: how the money is being handed over and on what date.",
+  "module": "Loans",
+  "role": "SACCO Manager",
+  "step": "Step 6 \u2014 disburse",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/loan-07-disbursed.png": {
+  "description": "The loan is Active, with its outstanding balance and repayment schedule.",
+  "module": "Loans",
+  "role": "SACCO Manager",
+  "step": "Step 7 \u2014 active",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/loan-08-repay-form.png": {
+  "description": "Where a repayment against this loan is recorded.",
+  "module": "Loans",
+  "role": "SACCO Manager",
+  "step": "The repayment screen",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/member-create-login-dialog.png": {
+  "description": "The confirmation shown before a member portal login is created.",
+  "module": "Member management",
+  "role": "Admin / Manager",
+  "step": "Step 2 \u2014 create the login",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/member-login-created.png": {
+  "description": "The member's page showing the new Account & sign-in panel, marked Temporary password.",
+  "module": "Member management",
+  "role": "Admin / Manager",
+  "step": "Result",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/member-reset-password-dialog.png": {
+  "description": "The confirmation shown before a password is reset at the office.",
+  "module": "Member management",
+  "role": "Admin / Manager",
+  "step": "Step 2 \u2014 confirm the reset",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/member-reset-password-result.png": {
+  "description": "The new temporary password, shown once.",
+  "module": "Member management",
+  "role": "Admin / Manager",
+  "step": "Step 3 \u2014 hand it over",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/print-01-member-statement.png": {
+  "description": "A member's savings statement as it prints: SACCO letterhead, the period, the totals and every line.",
+  "module": "Reports",
+  "role": "Any staff member with report access",
+  "step": "Printing / saving as PDF",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/print-02-member-register.png": {
+  "description": "The member register as it prints, with its letterhead and totals.",
+  "module": "Reports",
+  "role": "Any staff member with report access",
+  "step": "Printing / saving as PDF",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/recon-01-form.png": {
+  "description": "The reconciliation form before anything is entered.",
+  "module": "Finance \u2014 reconciliation",
+  "role": "Accountant",
+  "step": "Step 1 \u2014 open Reconcile an account",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/recon-02-filled.png": {
+  "description": "A cash count entered, with the reason for the difference.",
+  "module": "Finance \u2014 reconciliation",
+  "role": "Accountant",
+  "step": "Step 2 \u2014 enter what is really there",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/recon-03-confirm.png": {
+  "description": "The variance shown before the record is saved.",
+  "module": "Finance \u2014 reconciliation",
+  "role": "Accountant",
+  "step": "Step 3 \u2014 review",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/recon-04-result.png": {
+  "description": "The reconciliation record and its REC reference.",
+  "module": "Finance \u2014 reconciliation",
+  "role": "Accountant",
+  "step": "Step 4 \u2014 recorded",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/recon-05-history.png": {
+  "description": "The reconciliation history for each account.",
+  "module": "Finance \u2014 reconciliation",
+  "role": "Accountant",
+  "step": "Result",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-01-step1-empty.png": {
+  "description": "The first step of the wizard, before anything is typed.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 1 \u2014 open Register Member",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-02-step1-filled.png": {
+  "description": "Name, phone, National ID, address, occupation and next of kin.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 2 \u2014 member details",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-03-step2-categories.png": {
+  "description": "The share and savings categories on offer, with what each costs.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 3 \u2014 categories",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-04-step2-chosen.png": {
+  "description": "Gold shares and Gold Saver selected.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 4 \u2014 categories chosen",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-05-step3-fees.png": {
+  "description": "The fees that apply at registration and what they come to.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 5 \u2014 fees",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-06-step4-payment.png": {
+  "description": "Paying now or later, and how the money was received.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 6 \u2014 payment",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-07-step4-filled.png": {
+  "description": "Cash chosen, the amount received typed in.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 7 \u2014 payment entered",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-08-step5-confirm.png": {
+  "description": "The full summary shown before the member is created.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 8 \u2014 confirm",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-09-result.png": {
+  "description": "The new member number, the amount paid, the status and the receipt.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "Step 9 \u2014 result",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/register-validation-error.png": {
+  "description": "The wizard refuses to advance and names the field that still needs an answer.",
+  "module": "Member registration",
+  "role": "SACCO Manager",
+  "step": "What happens if something is missing",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/repay-01-form.png": {
+  "description": "The repayment form with the outstanding balance and the schedule.",
+  "module": "Loan repayments",
+  "role": "Cashier / Teller",
+  "step": "Step 1 \u2014 open Record Repayment",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/repay-02-filled.png": {
+  "description": "The amount typed in and the payment method chosen.",
+  "module": "Loan repayments",
+  "role": "Cashier / Teller",
+  "step": "Step 2 \u2014 enter the amount",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/repay-03-confirm.png": {
+  "description": "The confirmation summary before the repayment is saved.",
+  "module": "Loan repayments",
+  "role": "Cashier / Teller",
+  "step": "Step 3 \u2014 review",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/repay-04-result.png": {
+  "description": "The repayment receipt reference after a successful save.",
+  "module": "Loan repayments",
+  "role": "Cashier / Teller",
+  "step": "Step 4 \u2014 result",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/shares-01-sell-form.png": {
+  "description": "The share sale screen before a member is chosen.",
+  "module": "Shares",
+  "role": "Cashier / Teller",
+  "step": "Step 1 \u2014 open Record Share Purchase",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/shares-02-member-found.png": {
+  "description": "Searching for the member who is buying.",
+  "module": "Shares",
+  "role": "Cashier / Teller",
+  "step": "Step 2 \u2014 find the member",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/shares-03-filled.png": {
+  "description": "The number of shares, the price and the payment method.",
+  "module": "Shares",
+  "role": "Cashier / Teller",
+  "step": "Step 3 \u2014 how many shares",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/shares-04-confirm.png": {
+  "description": "The confirmation summary before the sale is recorded.",
+  "module": "Shares",
+  "role": "Cashier / Teller",
+  "step": "Step 4 \u2014 review",
+  "verified": "Workflow performed in the running application"
+ },
+ "staff/shares-05-result.png": {
+  "description": "The share purchase receipt reference.",
+  "module": "Shares",
+  "role": "Cashier / Teller",
+  "step": "Step 5 \u2014 result",
+  "verified": "Workflow performed in the running application"
+ }
+}

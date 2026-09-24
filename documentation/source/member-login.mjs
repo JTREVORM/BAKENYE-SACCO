@@ -1,0 +1,20 @@
+/** Create the member portal login for the demo member, through the app. */
+import { writeFileSync } from 'node:fs';
+import { openBrowser, newPage, signIn, settle, shot, BASE } from './lib.mjs';
+const browser = await openBrowser();
+const { page } = await newPage(browser);
+await signIn(page, process.env.ID, process.env.PW);
+await page.goto(`${BASE}/staff/members/${process.env.MEMBER}`, { waitUntil: 'domcontentloaded' });
+await settle(page);
+await page.click('text=Create login');
+await settle(page, 800);
+await shot(page, 'staff', 'member-create-login-dialog');
+const submit = page.locator('dialog button[type="submit"], [role="dialog"] button[type="submit"]').last();
+await submit.click();
+await settle(page, 1500);
+const body = await page.locator('body').innerText();
+const m = body.match(/[A-Z]{4}-\d{4}/);
+console.log('temporary password:', m ? m[0] : 'NOT FOUND');
+await shot(page, 'staff', 'member-login-created');
+writeFileSync('/var/tmp/bud-docs-stack/member-login.json', JSON.stringify({ memberNo: process.env.MEMBER_NO, password: m?.[0] ?? null }, null, 2));
+await browser.close();

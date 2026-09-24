@@ -1,0 +1,20 @@
+/** Reset the demo member's password through the app and read the new one. */
+import { writeFileSync } from 'node:fs';
+import { openBrowser, newPage, signIn, settle, shot, BASE } from './lib.mjs';
+const browser = await openBrowser();
+const { page } = await newPage(browser);
+await signIn(page, process.env.ID, process.env.PW);
+await page.goto(`${BASE}/staff/members/${process.env.MEMBER}`, { waitUntil: 'domcontentloaded' });
+await settle(page);
+await page.click('text=Reset password');
+await settle(page, 800);
+await shot(page, 'staff', 'member-reset-password-dialog');
+const submit = page.locator('[role="dialog"] button[type="submit"], dialog button[type="submit"]').last();
+await submit.click();
+await settle(page, 1500);
+const text = await page.locator('body').innerText();
+const m = text.match(/[A-Z]{4}-\d{4}/);
+console.log('temporary password:', m ? m[0] : 'NOT FOUND');
+await shot(page, 'staff', 'member-reset-password-result');
+writeFileSync('/var/tmp/bud-docs-stack/member-login.json', JSON.stringify({ memberNo: 'BND26001', password: m?.[0] ?? null }, null, 2));
+await browser.close();

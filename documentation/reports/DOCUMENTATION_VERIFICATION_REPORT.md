@@ -5,6 +5,12 @@
 **Scope:** What was actually run, what was confirmed working, and what was not — so that every
 statement in the two manuals can be traced back to an observation.
 
+> **Status note, added 24 September 2026.** This report is the record of the verification as it was
+> carried out, and its findings are left exactly as they were written. All seven findings have since
+> been remediated in the application, and an eighth defect (V‑8) was discovered during that work and
+> also fixed. See **`BAKENYE_SYSTEM_REMEDIATION_REPORT.md`** for the root cause, the fix and the
+> tests for each one, and the table under *Findings* below for the current status of each.
+
 ---
 
 ## 1. The environment used
@@ -127,6 +133,20 @@ approvals and 61 sign-ins, each with its actor and reason.
 
 ## 3. Findings
 
+**Current status.** Every finding below has been fixed and covered by an automated test. The
+descriptions are preserved as originally written; they describe the system *before* remediation.
+
+| Finding | Status | Fixed by |
+| --- | --- | --- |
+| V‑1 Savings reversal fails | **Fixed** | `0039_savings_period_recompute.sql` |
+| V‑2 Fractional quick-fill enters 100× | **Fixed** | `src/lib/money.ts`, `src/components/ui/form.tsx` |
+| V‑3 Demo seed no longer matches schema | **Fixed** | `supabase/seed.sql` |
+| V‑4 Confusing zero-expectation target line | **Fixed** | member savings screens |
+| V‑5 Guarantor cannot see the borrower | **Fixed** | `0042_guarantor_sees_borrower.sql` |
+| V‑6 A repayment may be dated in the future | **Fixed** | `0041_no_future_value_dates.sql` |
+| V‑7 Supporting documents could not be tested | **Resolved** | Storage added to the local stack; upload and signed download exercised |
+| V‑8 Member statement double-counted reversals *(found during remediation)* | **Fixed** | `0040_member_statement_reversals.sql` |
+
 ### V‑1 — Reversing a savings collection fails *(defect, blocking a documented feature)*
 
 **What happens.** Calling the reversal that the Transactions screen uses, on any savings
@@ -236,14 +256,18 @@ variance when it is not one.
 out **as at the date you give it**, and that a difference must be investigated rather than assumed
 to be an error in the count.
 
-**Suggested fix (not applied).** Refuse a future `paid_on` in `record_loan_repayment()`, as
-`record_scheduled_savings()` already does.
+**Suggested fix.** Refuse a future `paid_on` in `record_loan_repayment()`, as
+`record_scheduled_savings()` already does. *(Applied during remediation, and extended: the check was
+missing from six money functions, not one. See `0041_no_future_value_dates.sql`.)*
 
 ### V‑7 — Supporting documents on finance entries could not be tested *(environment)*
 
 The expense form has an **Attach** control for a supporting document. It needs Supabase Storage,
-which the documentation environment does not provide, so the upload path was not exercised and is
+which the documentation environment did not provide, so the upload path was not exercised and is
 not documented as a working step.
+
+*Resolved during remediation.* Storage was added to the local stack, and the upload and signed
+download were exercised end to end. See `BAKENYE_SYSTEM_REMEDIATION_REPORT.md`.
 
 ---
 
@@ -254,8 +278,8 @@ not documented as a working step.
 | "Members can see their savings, shares, loans and statements" | ✅ Verified |
 | "Members cannot record their own payments" | ✅ Verified, by design |
 | "Paying by mobile money updates my balance automatically" | ❌ **False.** There is no payment integration. A staff member records it. |
-| "A cashier can reverse a mistake themselves" | ❌ Only a Manager, Admin or Super Admin may reverse, and savings reversals currently fail (**V‑1**) |
-| "A guarantor can see whose loan they are backing" | ❌ The name shows as *Unknown member* (**V‑5**) |
+| "A cashier can reverse a mistake themselves" | ❌ Only a Manager, Admin or Super Admin may reverse. *(At the time of this report savings reversals also failed — **V‑1**, since fixed.)* |
+| "A guarantor can see whose loan they are backing" | ✅ Verified since remediation. The screen names the borrower and their member number, and nothing else about them (**V‑5**, fixed) |
 | "The system prevents all duplicate entries" | ⚠️ Partly. Repeat submissions of the same form are prevented (idempotency keys), and a payment reference cannot be used twice on the same account. Two genuinely different entries for the same money are not prevented. |
 | "An expense leaves the account as soon as it is recorded" | ❌ It waits for approval |
 | "Each role sees only what it should" | ✅ Verified by the redirect tests above |

@@ -14,6 +14,7 @@ documentation/
 │   ├── admin/     administrator screens
 │   └── shared/    the signed-out screens, at both sizes
 ├── reports/
+│   ├── BAKENYE_SYSTEM_REMEDIATION_REPORT.md      the defects found, and how each was fixed
 │   ├── DOCUMENTATION_DISCOVERY_REPORT.md         what the application actually contains
 │   ├── DOCUMENTATION_VERIFICATION_REPORT.md      what was run, what passed, what failed
 │   ├── SCREENSHOT_INVENTORY.md                   every screenshot, catalogued
@@ -23,11 +24,13 @@ documentation/
 
 ## Read these first
 
-* **`reports/DOCUMENTATION_VERIFICATION_REPORT.md`** — records seven findings, two of which are
-  defects the manuals warn about. Read it before relying on the manuals for reversals or loan
-  repayments.
-* **`reports/PDF_MANUAL_QA_REPORT.md`** — what was checked in the finished PDFs, and the two
-  decisions SACCO management needs to make before circulating them.
+* **`reports/BAKENYE_SYSTEM_REMEDIATION_REPORT.md`** — the eight defects that were found and fixed
+  in the application, with the root cause, the fix and the test for each. Read this first: it is why
+  the manuals are at version 1.1.
+* **`reports/DOCUMENTATION_VERIFICATION_REPORT.md`** — records the seven findings as they were first
+  observed, kept unaltered as the record of that verification. All of them have since been fixed.
+* **`reports/PDF_MANUAL_QA_REPORT.md`** — what was checked in the finished PDFs, and the decision
+  SACCO management still needs to make before circulating them.
 
 ## Regenerating the PDFs
 

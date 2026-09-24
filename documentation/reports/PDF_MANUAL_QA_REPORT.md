@@ -44,15 +44,20 @@ had their footers and bookmarks applied with PyMuPDF.
 
 ### Known defects carried into the manuals
 
-Rather than describing broken features as working, both manuals state plainly what does not work.
+In version 1.0, rather than describing broken features as working, both manuals stated plainly what
+did not work. Every one of those defects has since been fixed in the application, and the manuals
+were reissued as **version 1.1** with the warnings and workarounds removed.
 
-| Finding | Where it is stated |
-| --- | --- |
-| **V‑1** savings reversal fails | Staff manual §7 and §10 (warning boxes), §17 (known defects table); front matter warning |
-| **V‑2** repayment quick-fill enters 100× | Staff manual §8 (warning), §17; front matter warning |
-| **V‑5** guarantor sees "Unknown member" | Member manual §11 (warning) |
-| **V‑6** a repayment may be dated in the future | Staff manual §11, as the reason a reconciliation can look wrong |
-| **V‑7** document uploads untested | Staff manual §11, marked as not verified |
+| Finding | Where version 1.0 stated it | Version 1.1 |
+| --- | --- | --- |
+| **V‑1** savings reversal fails | Staff manual §7 and §10 (warning boxes), §17 (known defects table); front matter warning | Replaced by a description of how a savings reversal behaves; §17 records it as corrected |
+| **V‑2** repayment quick-fill enters 100× | Staff manual §8 (warning), §17; front matter warning | Replaced by ordinary "read the figure in the box" guidance; §17 records it as corrected |
+| **V‑5** guarantor sees "Unknown member" | Member manual §11 (warning) | Replaced by what a guarantor is now shown, and what is still withheld |
+| **V‑6** a repayment may be dated in the future | Staff manual §11, as the reason a reconciliation can look wrong | Left in place: a reconciliation is still worked out as at the date given, which remains true |
+| **V‑7** document uploads untested | Staff manual §11, marked as not verified | Exercised end to end during remediation |
+
+The front-matter warning box in the staff manual was replaced by a "What changed in version 1.1"
+note, so a reader holding the earlier edition knows its workarounds are obsolete.
 
 ---
 
@@ -83,7 +88,7 @@ Every page of both documents was rendered and reviewed.
 | 1 | The first draft placed a tall phone screenshot next to a wide desktop screenshot; the block would not fit and left a page two-thirds empty. | Figures are now sized from their own aspect ratio — wide images fill the column, phone images are given a fixed printed height — and the layout was rebuilt. |
 | 2 | The Next.js development badge appeared in the corner of early captures. | Hidden at capture time. It belongs to `npm run dev`, not to the application, and appears in no screenshot in either manual. |
 | 3 | The member loan-application screenshot showed the "you already have a loan" message rather than the application form, because the demonstration member had a live loan. | Recaptured from a member with no loan; the manual now shows step 1 of the six-step application. |
-| 4 | The Guarantees screenshot showed an empty list. | Recaptured from a member who guarantees two live loans — which is also what exposed finding **V‑5**. |
+| 4 | The Guarantees screenshot showed an empty list. | Recaptured from a member who guarantees live loans — which is also what exposed finding **V‑5**. Recaptured again for version 1.1, after V‑5 was fixed, so the borrower is named. |
 | 5 | The reconciliation screenshot showed an account that had never been reconciled, and a first attempt produced a variance that did not match its own written reason. | A reconciliation of Cash at Hand was carried out properly, with a UGX 4,999.67 shortfall and a reason that matches it. |
 | 6 | An expense was first recorded under the wrong category (Bank charges for stationery). | Re-recorded under Office supplies and approved; that is the one shown. |
 | 7 | The first PDFs were 6.6 MB and 21.4 MB. | Screenshots are now downsampled to the resolution their printed size needs (185 dpi). The manuals are 2.6 MB and 15.4 MB, with no visible loss. |
@@ -137,14 +142,16 @@ Every page of both documents was rendered and reviewed.
 Both manuals are complete, accurate against the version of the system verified on 24 September 2026,
 and free of sensitive information.
 
-**Two things SACCO management should decide before the manuals are circulated:**
+**One thing SACCO management should decide before the manuals are circulated:**
 
-1. **Fix, or accept, the two defects the staff manual warns about** (V‑1 savings reversal, V‑2
-   repayment quick-fill). The manuals describe safe ways to work around both, but the workarounds
-   should not become permanent. When they are fixed, the warning boxes in staff §7, §8, §10 and §17
-   and the front-matter warning should be removed and the manual reissued as version 1.1.
-2. **Add the SACCO's own contact details** — office telephone, email and opening hours — to member
+1. **Add the SACCO's own contact details** — office telephone, email and opening hours — to member
    manual §15 and to the staff manual's escalation table, if management wants them printed.
+
+*Resolved since version 1.0:* the first item on this list used to be "fix, or accept, the two
+defects the staff manual warns about" (V‑1 savings reversal, V‑2 repayment quick-fill). Both were
+fixed in the application, the warning boxes in staff §7, §8, §10 and §17 and the front-matter
+warning were removed, and both manuals were reissued as version 1.1. See
+`BAKENYE_SYSTEM_REMEDIATION_REPORT.md`.
 
 **How to review the PDFs**
 

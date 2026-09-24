@@ -1,7 +1,8 @@
 # Screenshot Inventory
 
 **Prepared:** 24 September 2026  
-**Total screenshots:** 210
+**Revised:** 24 September 2026, for the version 1.1 reissue  
+**Total screenshots:** 212
 
 Every image below was captured from the running application in the isolated
 documentation environment described in `DOCUMENTATION_VERIFICATION_REPORT.md`.
@@ -13,11 +14,23 @@ application. Every member name, phone number, national ID and amount shown is fi
 
 | Area | Screenshots |
 | --- | --: |
-| `shared/` | 10 |
+| `shared/` | 12 |
 | `member/` | 34 |
 | `staff/` | 110 |
 | `admin/` | 56 |
-| **Total** | **210** |
+| **Total** | **212** |
+
+### Recaptured for version 1.1
+
+These were retaken against the corrected system, from the demonstration database rebuilt with the
+fixed seed:
+
+| File | Why |
+| --- | --- |
+| `member/m-14-guarantees.png`, `member/mf-14-guarantees.png` | V‑5. Every guarantee now names its borrower and member number instead of &ldquo;Unknown member&rdquo;. Taken from the example account of Nakabugo Christine, the member who guarantees other members' loans. |
+| `staff/repay-01-form.png` … `repay-04-result.png` | V‑2. The capture now presses the **One installment** shortcut rather than avoiding it: the box reads UGX 76,666.67, the figure that used to come out as 7,666,667. |
+| `admin/users-*.png`, `staff/member-*-login-*.png`, `staff/member-reset-password-*.png` | The demonstration database was rebuilt, so the staff roster and the account screens were retaken against it. |
+| `shared/v4-savings.png`, `shared/v4-savings-deposit.png` *(new)* | V‑4 evidence. A monthly-only saver's screens, showing that a cycle their category does not collect is no longer listed as a target. |
 
 ## Every screenshot
 

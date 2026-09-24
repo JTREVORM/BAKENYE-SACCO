@@ -1,12 +1,21 @@
 # PDF Manual QA Report
 
 **Prepared:** 24 September 2026
+**Revised:** 24 September 2026, for the version 1.1 reissue
 **Documents reviewed:**
 
-| File | Pages | Screenshots embedded | Size | PDF bookmarks |
-| --- | --: | --: | --: | --: |
-| `BAKENYE_SACCO_MEMBER_USER_MANUAL.pdf` | 36 | 25 | 2.6 MB | 18 |
-| `BAKENYE_SACCO_STAFF_ADMIN_MANUAL.pdf` | 91 | 95 | 15.4 MB | 23 |
+| File | Version | Pages | Screenshots embedded | Size | PDF bookmarks |
+| --- | --- | --: | --: | --: | --: |
+| `BAKENYE_SACCO_MEMBER_USER_MANUAL.pdf` | 1.1 | 37 | 25 | 2.6 MB | 18 |
+| `BAKENYE_SACCO_STAFF_ADMIN_MANUAL.pdf` | 1.1 | 92 | 95 | 15.4 MB | 23 |
+
+Each grew by one page against version 1.0 (36 and 91): the warning boxes that were removed were
+shorter than the explanations that replaced them.
+
+Both were re-rendered and re-checked after the fixes. `qa.py` reports, for both: no blank pages
+after the cover, no content outside the margins, no unresolved placeholders, and no text below
+5.5pt. The sparse pages it lists (member 35 and 37; staff 6, 30, 53, 70 and 89) are section-end
+pages, accepted as before.
 
 Both documents were produced from the HTML sources in `documentation/source/` through Chromium's own
 print engine — the same mechanism the application itself uses for statements and receipts — and then

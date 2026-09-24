@@ -183,7 +183,30 @@ signatures, `SECURITY DEFINER` settings and ACLs are byte-identical to before.
 
 The same check is repeatable: `documentation/source/permission-matrix.mjs` signs in as every
 demonstration account and asks for every staff and member route, recording whether the application
-served it or turned the account away, so the access matrix can be diffed between two builds.
+served it or turned the account away, so the access matrix can be diffed between two builds. Run
+against the corrected build, over 28 routes:
+
+| Account | Lands on | Routes served |
+| --- | --- | --: |
+| Super Admin | `/staff/admin` | 19 of 28 |
+| SACCO Manager | `/staff` | 17 of 28 |
+| Cashier / Teller | `/staff/desk` | 15 of 28 |
+| Accountant | `/staff/finance` | 16 of 28 |
+| Loan Officer | `/staff/loans-desk` | 13 of 28 |
+| Field Officer | `/staff/savings/collect` | 11 of 28 |
+| Member | `/` | 9 of 28 |
+
+The result that matters for V‑5: **the member was turned away from all nineteen staff routes**, and
+every staff account was turned away from all nine member routes. The guarantor fix widened nothing.
+`/staff/users`, `/staff/roles` and `/staff/settings` are served only to the roles that may manage
+them, and `/staff/audit` only to those with `audit.view`.
+
+One result deserves stating plainly rather than being left to look like a finding. `/staff/admin` is
+served to every staff role, because it asks only for `dashboard.staff` and then gates each block on
+its own permission — a field officer who opens it sees the header and nothing else. That is the
+application's existing design, not a consequence of this work: `dashboard.staff` is granted to
+exactly the same roles before and after, as the grant diff above shows. Route reachability is not
+data exposure, and the matrix measures the former; the latter is covered by the RLS suites.
 
 ### Secret exposure (§17)
 
@@ -298,7 +321,27 @@ reader is not left to wonder why one screen shows a different person.
 The repayment capture was changed to press the **One installment** shortcut rather than avoid it.
 Version 1.0's capture script typed the amount by hand precisely because the shortcut was broken;
 pressing it and reading the box back is now what demonstrates the fix, and the figure it produces is
-recorded in the capture log.
+recorded in the capture log. On the rebuilt demonstration database it printed
+`one-installment quick-fill -> 76,666.67` — the amount that used to come out as 7,666,667 — and the
+repayment it then posted is in the ledger as `LRP260924015`, exactly `76666.67`, taking the loan from
+UGX 536,666.65 to UGX 459,999.98.
+
+Two new figures were added under `shared/` as evidence for V‑4: the savings and Save Money screens of
+a monthly-only saver, whose four zero-expectation weekly cycles are no longer listed as targets.
+
+### The rebuilt documents
+
+| | Version 1.0 | Version 1.1 |
+| --- | --- | --- |
+| Member User Guide | 36 pages, 25 figures, 2.6 MB | **37 pages**, 25 figures, 2.6 MB |
+| Staff & Administrator Manual | 91 pages, 95 figures, 15.4 MB | **92 pages**, 95 figures, 15.4 MB |
+| Screenshots in the repository | 210 | **212** |
+
+Each manual grew by a page because the explanations that replaced the warning boxes are longer than
+the warnings were. `qa.py` reports for both: no blank pages after the cover, nothing outside the
+margins, no unresolved placeholders, no text below 5.5pt. The rendered PDFs were then read back and
+checked for the text that had to go and the text that had to appear — fourteen assertions, all
+passing, including that the string "Unknown member" no longer occurs anywhere in the member guide.
 
 ### Reports
 
@@ -330,3 +373,9 @@ Commits, in order:
 7. `fix(ui): a money field keeps the cents it is given (V-2)`
 8. `fix(member): a cycle that expects nothing is not shown as a target (V-4)`
 9. `test: a local stack that can run the suites, a clean install and Storage (V-7)`
+10. `fix(member): only a disbursed loan has an amount still owed (V-5 follow-up)`
+11. `docs: reissue both manuals as version 1.1, without the obsolete warnings`
+12. `docs: the remediation report, and the QA reports reconciled with it`
+13. `test: a repeatable nine-role access matrix, and capture scripts that prove the fixes`
+14. `docs: recapture the account screenshots from the rebuilt demonstration database`
+15. `docs: rebuild both manuals at version 1.1 from the corrected system`

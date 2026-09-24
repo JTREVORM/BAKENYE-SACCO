@@ -35,6 +35,10 @@ FRONT = f'''
 {table(['Version', 'Date', 'Change', 'By'], [
     ['1.0', DATE, 'First issue. Every screen and step in this guide was checked against the working '
                   'system before publication.', 'Documentation review'],
+    ['1.1', DATE, 'Reissued after corrections to the system. My Guarantees now names the borrower, '
+                  'so the warning that it could not has been removed and the screen '
+                  're-photographed; the savings screens now list only the cycles your category '
+                  'collects.', 'Documentation review'],
 ])}
 
 <h2>About this guide</h2>
@@ -42,7 +46,10 @@ FRONT = f'''
 photograph of a real screen from the system, taken on a test copy that holds made-up members and
 made-up money, so that no real member's private information appears anywhere in this book.</p>
 <p>The names, telephone numbers and amounts you will see in the pictures — Musoke John, BND26006,
-UGX 600,000 and so on — are examples only. Your own screen will show your own details.</p>
+UGX 600,000 and so on — are examples only. Your own screen will show your own details. Most of the
+pictures are taken from one example account, Musoke John's; the pictures of the Guarantees screen
+are taken from a second example account, Nakabugo Christine's, because she is the one who has
+agreed to back other members' loans.</p>
 
 {note('If something in this guide does not match your screen',
       'The SACCO may have updated the system since this guide was printed. Where the guide and the '
@@ -322,9 +329,10 @@ every payment the SACCO has recorded.</p>
      'pending or missed.'],
 ])}
 
-{note('If a cycle shows UGX 0 expected',
-      'That simply means your category does not collect on that cycle. A monthly saver has no '
-      'weekly expectation, so their weekly line will read zero.')}
+{note('You only see the cycles your category actually collects',
+      'A monthly saver has no weekly expectation, so no weekly cycle is listed for them, and a '
+      'weekly saver sees no monthly one. If your savings category collects on both, you will see '
+      'both. Nothing is hidden from you: a cycle that is not listed is one you owe nothing on.')}
 
 <h2>How to pay</h2>
 <p>Press <strong>Save Money</strong>. This screen does <strong>not</strong> take a payment. It tells
@@ -530,21 +538,21 @@ sec('Guarantees and notifications', f'''
 <p>If you have agreed to stand as a guarantor for another member's loan, that obligation is yours,
 so the system shows it to you under <strong>More &rarr; Guarantees</strong>.</p>
 
-{pair(shot('member/mf-14-guarantees.png', 'My Guarantees: total exposure, then each loan you are backing.', in_pair=True),
+{pair(shot('member/mf-14-guarantees.png', 'My Guarantees, from the example account of Nakabugo Christine: total exposure, then each loan she is backing, each naming its borrower.', in_pair=True),
       shot('member/mf-15-notifications.png', 'Notifications.', in_pair=True))}
 
 <p>The screen shows your <strong>total exposure</strong> — everything you have agreed to back — and
-then each loan: its loan number, the purpose, the amount you have guaranteed out of the total, and
-where the loan has got to.</p>
+then each loan: the borrower's name and member number, the loan number, the purpose, the amount you
+have guaranteed out of the total, and where the loan has got to. For a loan that has been paid out
+and is still being repaid, it also shows how much is still owed and when the next repayment falls
+due, so you can see your exposure falling as the borrower pays.</p>
 
-{note('The borrower is shown as &ldquo;Unknown member&rdquo;',
-      'At the time this guide was written, the portal cannot show you the name of the member whose '
-      'loan you are guaranteeing: members are only allowed to read their own record, and the screen '
-      'has nothing to fall back on. Use the <strong>loan number</strong> (for example LN260924002) '
-      'and the purpose to tell one guarantee from another, and ask at the office if you need to be '
-      'sure. This has been reported to SACCO management.', kind='warn')}
-
-<p>You cannot see that member's savings, shares or any other business of theirs.</p>
+{note('What you are shown about the borrower, and what you are not',
+      'Because you have agreed to back this loan, the screen names the borrower and gives their '
+      'member number, together with how much of the loan is still owed and when the next repayment '
+      'falls due. That is the whole of it. You cannot see their savings, their shares, their '
+      'transactions, their telephone number or any other loan of theirs, and you can see nothing at '
+      'all about a member whose loan you are not guaranteeing.')}
 
 {note('Standing as a guarantor is a real commitment',
       'If the borrower does not repay, the SACCO may look to the guarantors. Be sure you understand '
@@ -660,7 +668,9 @@ two, bring your confirmation message to the office.</p>
 
 <h3>Can I see another member's account?</h3>
 <p>No. You can see only your own records, plus the loans you have agreed to guarantee — and for
-those, only the member's name, the amount and the loan's status.</p>
+those, only the borrower's name and member number, the amount, how much is still owed and the
+loan's status. Not their savings, not their shares, not their other loans, and nothing at all about
+a member whose loan you are not guaranteeing.</p>
 
 <h3>Can I get a statement for my bank?</h3>
 <p>Yes — <strong>More &rarr; Statements</strong>. Choose the period and save it as a PDF or print it.

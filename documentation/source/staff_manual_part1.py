@@ -26,6 +26,11 @@ FRONT = f'''
 <h2>Revision history</h2>
 {table(['Version', 'Date', 'Change', 'By'], [
     ['1.0', DATE, 'First issue, following a full review of the working system.', 'Documentation review'],
+    ['1.1', DATE, 'Reissued after the defects found by that review were corrected in the system. '
+                  'The savings-reversal and repayment-shortcut warnings and their workarounds were '
+                  'removed, the guarantor and savings screens were re-photographed, and the '
+                  'troubleshooting section now records the two defects as fixed.',
+     'Documentation review'],
 ])}
 
 <h2>How this manual was prepared</h2>
@@ -34,12 +39,12 @@ carried out from beginning to end before it was written down, using a separate t
 system containing invented members and invented money. No member's real information appears
 anywhere in this manual.</p>
 
-{note('Two things in the system need fixing before you rely on this manual for them',
-      'A review of the working system found two defects. They are described where they arise, and '
-      'summarised again in Section 17 (Troubleshooting). In short: <strong>reversing a savings '
-      'payment currently fails</strong>, and <strong>the &ldquo;one installment&rdquo; shortcut on '
-      'the repayment screen can enter an amount a hundred times too large</strong>. Both have been '
-      'reported to SACCO management.', kind='warn')}
+{note('What changed in version 1.1',
+      'The review that produced version 1.0 of this manual found two defects in the working system: '
+      'reversing a savings payment failed, and the amount shortcuts on the repayment screen could '
+      'enter a figure a hundred times too large. <strong>Both have since been corrected and '
+      're-tested</strong>, and the instructions in this edition describe the corrected system. The '
+      'workarounds printed in version 1.0 are no longer needed.')}
 
 <h2>Your responsibility</h2>
 <p>The system records what you tell it. It checks what it can — that an amount is a number, that a
@@ -567,11 +572,11 @@ correcting.</p>
       and then the payment is recorded against the right member.</li>
 </ol>
 
-{note('A savings reversal currently fails',
-      'At the time this manual was written, reversing a <em>savings</em> transaction fails with a '
-      'system error. Other kinds reverse normally. Report the error to SACCO management and to '
-      'whoever supports the system — and keep your written note of the transaction until it is '
-      'corrected.', kind='warn')}
+{note('A savings payment is corrected by reversal, like any other',
+      'Reversing a savings transaction returns the money to the ledger as a reversal entry and puts '
+      'the savings cycle back to what it was worth before the payment — paid, part paid or pending, '
+      'worked out again from the payments that remain. Only a Manager, Admin or Super Admin can do '
+      'it, and the original entry stays on the record.')}
 ''')
 
 sec('Loans', f'''
@@ -668,12 +673,11 @@ commitments engaged.</p>
 """)}
 {step(2, 'Type the amount received', f"""
 {shot('staff/repay-02-filled.png', 'The amount typed in and the method chosen.')}
-{note('Type the amount — do not trust the shortcut buttons',
-      'The <em>One installment</em> and <em>Full balance</em> shortcuts fill the amount for you. '
-      'Where an installment is not a whole number of shillings, the shortcut currently enters an '
-      'amount <strong>one hundred times too large</strong> (for example UGX 196,666.67 becomes '
-      '19,666,667). Always read the figure in the box before you go on. This has been reported for '
-      'correction.', kind='warn')}
+{note('Read the figure in the box before you go on',
+      'The <em>One installment</em> and <em>Full balance</em> shortcuts fill the amount for you, '
+      'including the cents where an installment is not a whole number of shillings (for example '
+      'UGX 196,666.67). Read what is in the box against the money in front of you before you '
+      'continue: the shortcut knows what is owed, not what was handed over.')}
 """)}
 {step(3, 'Review and confirm', f"""
 {pair(shot('staff/repay-03-confirm.png', 'The confirmation summary.', in_pair=True),
@@ -799,12 +803,11 @@ the money went into, the date and time, who recorded it, and the status.</p>
   <li>If the money now needs to go somewhere else, record that as a new transaction, correctly.</li>
 </ol>
 
-{note('Reversing a savings payment currently fails',
-      'At the time of writing, reversing a transaction of type <em>savings</em> stops with a system '
-      'error and nothing is changed. Reversing other kinds works normally. If you hit this: do not '
-      'try to correct it with an opposite entry of your own. Record the transaction reference, the '
-      'member, the amount and what should have happened, tell SACCO management, and have the defect '
-      'reported to whoever supports the system.', kind='warn')}
+{note('What a reversal puts back',
+      'A reversal does not only undo the money. A reversed savings payment also returns the savings '
+      'cycle to its earlier state — paid, part paid or pending, recalculated from the payments that '
+      'are left. A reversed loan repayment puts the schedule and the outstanding balance back. You '
+      'do not need to adjust any of that by hand.')}
 
 {note('Never correct an error with an opposite entry',
       'Recording a matching withdrawal to cancel a wrong deposit leaves both on the member&rsquo;s '
@@ -1290,19 +1293,25 @@ sec('Troubleshooting', f'''
      'Sign in again. Nothing you had already confirmed is lost; anything you had only typed is.'],
 ])}
 
-<h2>Known defects at the time of writing</h2>
-{table(['#', 'What happens', 'What to do instead'], [
-    ['<strong>1</strong>', 'Reversing a <em>savings</em> transaction fails with a system error. '
-     'Nothing is changed. Other kinds of transaction reverse normally.',
-     'Report it. Do not attempt a correcting entry by hand. Keep a written note of the transaction '
-     'until it is put right.'],
-    ['<strong>2</strong>', 'On the repayment screen, the <em>One installment</em> shortcut enters an '
-     'amount one hundred times too large when the installment is not a whole number of shillings.',
-     'Type the amount yourself and read the figure in the box before you continue.'],
+<h2>Defects reported in version 1.0, and now corrected</h2>
+<p>The review that produced version 1.0 of this manual found two defects in the working system.
+Both have since been corrected and re-tested. They are listed here so that anyone still working
+from the earlier edition knows the workarounds it printed are no longer needed.</p>
+{table(['#', 'What used to happen', 'What happens now'], [
+    ['<strong>1</strong>', 'Reversing a <em>savings</em> transaction failed with a system error and '
+     'nothing was changed.',
+     'A savings transaction reverses like any other. The savings cycle is put back to paid, part '
+     'paid or pending, worked out again from the payments that remain.'],
+    ['<strong>2</strong>', 'On the repayment screen, the <em>One installment</em> and <em>Full '
+     'balance</em> shortcuts entered an amount one hundred times too large whenever the installment '
+     'was not a whole number of shillings.',
+     'The shortcuts fill in the correct amount, cents included. Read the figure against the money '
+     'in front of you, as you would with any amount.'],
 ])}
-{note('Both defects have been reported to SACCO management',
-      'Until they are fixed, the instructions above are the safe way to work. Neither can cause a '
-      'wrong amount to be posted if the confirmation summary is read before confirming.')}
+{note('Still check the confirmation summary',
+      'These corrections change what the system fills in for you. They do not change your own '
+      'responsibility to read the confirmation summary — the member, the amount and the date — '
+      'before you confirm anything.')}
 ''')
 
 sec('Security and responsible administration', f'''
@@ -1467,5 +1476,6 @@ each January. A member number is issued once and can never be changed.</p>
 <h2>Revision history</h2>
 {table(['Version', 'Date', 'Change'], [
     ['1.0', DATE, 'First issue, following a full review of the working system.'],
+    ['1.1', DATE, 'Reissued after the defects found by that review were corrected in the system.'],
 ])}
 ''')

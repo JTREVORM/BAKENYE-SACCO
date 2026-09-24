@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { clsx } from '@/lib/clsx';
-import { groupDigits } from '@/lib/money';
+import { groupDigits, ungroupDigits } from '@/lib/money';
 import { Icon } from './primitives';
 import type { IconName } from '@/lib/icons';
 
@@ -367,7 +367,10 @@ export function MoneyInput({
     }
   }, [controlledValue]);
 
-  const raw = display.replace(/[^\d]/g, '');
+  // What the form actually posts: the grouped display without its separators.
+  // It keeps the cents, because a loan installment or an outstanding balance
+  // is not always a whole number of shillings.
+  const raw = ungroupDigits(display);
 
   return (
     <div className="relative">
@@ -376,14 +379,18 @@ export function MoneyInput({
       </span>
       <input
         type="text"
-        inputMode="numeric"
+        // `decimal` rather than `numeric`: the phone keypad then offers a
+        // decimal separator, which a member of staff needs when an amount the
+        // system suggested carries cents.
+        inputMode="decimal"
         autoComplete="off"
         aria-invalid={invalid || undefined}
         value={display}
         onChange={(e) => {
           const next = groupDigits(e.target.value);
           setDisplay(next);
-          onValueChange?.(next ? Number(next.replace(/,/g, '')) : null);
+          const value = ungroupDigits(next);
+          onValueChange?.(value ? Number(value) : null);
         }}
         className={clsx(
           CONTROL_BASE,

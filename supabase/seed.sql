@@ -127,6 +127,16 @@ begin
        from member_fees mf where mf.member_id = v_id and mf.status = 'unpaid';
 
     -- Savings plans: a weekly target for everyone, monthly for most.
+    -- Savings targets, backdated to the day the member joined so their older
+    -- cycles carry a real expectation.
+    --
+    -- The application sets a target with set_savings_plan(), which stamps it
+    -- active from today - right for a change made at the counter, wrong for
+    -- seed data that is meant to have existed all along. 0036 withdrew the
+    -- direct INSERT from `authenticated`, so the seed borrows the owner role
+    -- for these two statements and hands it straight back. Nothing else in
+    -- this file writes to a table directly.
+    set local role postgres;
     insert into savings_plans (member_id, kind, target_amount, active_from)
     values (v_id, 'weekly', 20000, current_date - (v_i * 47));
 
@@ -134,6 +144,7 @@ begin
       insert into savings_plans (member_id, kind, target_amount, active_from)
       values (v_id, 'monthly', 100000, current_date - (v_i * 47));
     end if;
+    set local role authenticated;
   end loop;
 end;
 $$;
@@ -202,7 +213,11 @@ begin
         );
       else
         -- Open the period anyway so the shortfall is measurable.
+        -- ensure_savings_period() is internal: 0030 §14 revoked it from
+        -- `authenticated`, so this one call runs as the owner.
+        set local role postgres;
         perform ensure_savings_period(m.id, 'weekly', v_paid_on);
+        set local role authenticated;
       end if;
     end loop;
   end loop;
@@ -263,14 +278,30 @@ declare
 begin
   -- Demo products. A real SACCO defines its own under Loans -> Products; the
   -- migrations ship none (0037).
-  insert into loan_products
-    (name, code, interest_rate, interest_method, min_amount, max_amount,
-     min_period_months, max_period_months, processing_fee_pct, min_guarantors, description)
-  values
-    ('Business Loan',    'BIZ', 18.0, 'flat', 200000, 20000000, 3, 24, 1.0, 2, 'Demo product.'),
-    ('Emergency Loan',   'EMG', 12.0, 'flat',  50000,  3000000, 1,  6, 0.5, 1, 'Demo product.'),
-    ('School Fees Loan', 'SCH', 15.0, 'flat', 100000,  5000000, 3, 12, 1.0, 2, 'Demo product.')
-  on conflict (code) do nothing;
+  -- Created through save_loan_product(), the function the Loans -> Products
+  -- screen calls. 0037 stopped shipping invented products in the migrations,
+  -- so a demo database defines its own here, the same way a SACCO would.
+  if not exists (select 1 from loan_products where code = 'BIZ') then
+    perform save_loan_product(null, jsonb_build_object(
+      'name', 'Business Loan', 'code', 'BIZ', 'interest_rate', 18.0,
+      'interest_method', 'flat', 'min_amount', 200000, 'max_amount', 20000000,
+      'min_period_months', 3, 'max_period_months', 24, 'processing_fee_pct', 1.0,
+      'min_guarantors', 2, 'description', 'Demo product.'), 'Demo data');
+  end if;
+  if not exists (select 1 from loan_products where code = 'EMG') then
+    perform save_loan_product(null, jsonb_build_object(
+      'name', 'Emergency Loan', 'code', 'EMG', 'interest_rate', 12.0,
+      'interest_method', 'flat', 'min_amount', 50000, 'max_amount', 3000000,
+      'min_period_months', 1, 'max_period_months', 6, 'processing_fee_pct', 0.5,
+      'min_guarantors', 1, 'description', 'Demo product.'), 'Demo data');
+  end if;
+  if not exists (select 1 from loan_products where code = 'SCH') then
+    perform save_loan_product(null, jsonb_build_object(
+      'name', 'School Fees Loan', 'code', 'SCH', 'interest_rate', 15.0,
+      'interest_method', 'flat', 'min_amount', 100000, 'max_amount', 5000000,
+      'min_period_months', 3, 'max_period_months', 12, 'processing_fee_pct', 1.0,
+      'min_guarantors', 2, 'description', 'Demo product.'), 'Demo data');
+  end if;
 
   select id into v_biz from loan_products where code = 'BIZ';
   select id into v_emg from loan_products where code = 'EMG';
@@ -321,8 +352,12 @@ begin
     continue when v_loan is null;
 
     -- Guarantors accept.
+    -- The guarantors accept. RLS gives `authenticated` no write here, so this
+    -- seed-only shortcut runs as the owner.
+    set local role postgres;
     update loan_guarantors set status = 'accepted', responded_on = current_date
      where loan_id = v_loan;
+    set local role authenticated;
 
     -- Walk each loan a different distance along its lifecycle.
     if v_i <= 2 then
@@ -350,16 +385,21 @@ begin
       perform disburse_loan(
         p_loan_id      => v_loan,
         p_method       => 'cash',
-        p_disbursed_on => current_date - interval '5 months',
+        p_disbursed_on => (current_date - interval '5 months')::date,
         p_idempotency_key => 'seed:disb:' || m.member_no
       );
 
-      -- Backdate the schedule so some installments are genuinely due.
-      update loans set disbursed_on = current_date - interval '5 months' where id = v_loan;
+      -- Backdate the schedule so some installments are genuinely due. There is
+      -- no application operation for this - a real loan's dates are whatever
+      -- actually happened - so the seed borrows the owner role for it.
+      set local role postgres;
+      update loans set disbursed_on = (current_date - interval '5 months')::date
+       where id = v_loan;
       update loan_schedule s
          set due_on = (select l.disbursed_on from loans l where l.id = v_loan)
                       + (s.installment_no || ' months')::interval
        where s.loan_id = v_loan;
+      set local role authenticated;
 
       -- Repay a different number of installments per member: member 6 is up to
       -- date, 7 is behind (so it shows as overdue), 8 clears the loan.
@@ -368,6 +408,7 @@ begin
         v_n integer;
         v_amt numeric;
         v_out numeric;
+        v_on  date;
       begin
         for v_n in 1 .. v_installments loop
           select outstanding into v_out from loan_balances where loan_id = v_loan;
@@ -376,10 +417,19 @@ begin
           select installment_amount into v_amt from loans where id = v_loan;
           v_amt := least(v_amt, v_out);
 
+          -- One installment a month from disbursement, but never later than
+          -- today: money is recorded when it has actually been received, and
+          -- 0041 refuses a value date in the future. The old seed walked past
+          -- today and left two repayments dated a month and two months ahead,
+          -- which made every report drawn up "as at" a date disagree with the
+          -- account's live balance.
+          v_on := least((current_date - interval '5 months'
+                          + (v_n || ' months')::interval)::date, current_date);
+
           perform record_loan_repayment(
             p_loan_id => v_loan,
             p_amount  => v_amt,
-            p_paid_on => (current_date - interval '5 months' + (v_n || ' months')::interval)::date,
+            p_paid_on => v_on,
             p_method  => case when v_n % 2 = 0 then 'mobile_money'::payment_method else 'cash'::payment_method end,
             p_idempotency_key => 'seed:rep:' || m.member_no || ':' || v_n
           );
@@ -515,8 +565,15 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- Bring the derived savings statuses up to date.
+--
+-- run_daily_maintenance() is the nightly job. It is owned by the database and
+-- is not granted to `authenticated`, because no person runs it: pg_cron or an
+-- external scheduler does, as the owner. The seed does the same, keeping the
+-- administrator's claim so the audit entries name a real person.
 -- ---------------------------------------------------------------------------
+reset role;
 select run_daily_maintenance();
+set role authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Summary

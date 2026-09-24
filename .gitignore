@@ -64,3 +64,6 @@ desktop.ini
 
 # Responsive-audit output. Regenerate with scripts/responsive-check.mjs.
 screenshots/
+# ...but the manual screenshots are a deliverable, not audit output.
+!documentation/screenshots/
+!documentation/screenshots/**

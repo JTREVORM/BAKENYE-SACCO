@@ -1416,6 +1416,31 @@ export type Database = {
         };
         Returns: { rows: MemberFinancialsRow[]; total: number; limit: number; offset: number };
       };
+      /** The loans the caller guarantees, with the borrower named (0042). */
+      my_guarantees: {
+        Args: { p_member_id?: string | null };
+        Returns: {
+          guarantee_id: string;
+          guaranteed_amount: number;
+          guarantee_status: GuarantorStatus;
+          responded_on: string | null;
+          requested_on: string;
+          loan_id: string;
+          loan_no: string;
+          loan_status: LoanStatus;
+          principal: number;
+          total_payable: number | null;
+          outstanding: number | null;
+          percent_repaid: number | null;
+          applied_on: string;
+          disbursed_on: string | null;
+          next_due_on: string | null;
+          purpose: string | null;
+          borrower_name: string;
+          borrower_no: string;
+          borrower_photo: string | null;
+        }[];
+      };
       search_guarantor_candidates: {
         Args: { p_query: string; p_exclude_member: string; p_loan_id?: string | null };
         Returns: {

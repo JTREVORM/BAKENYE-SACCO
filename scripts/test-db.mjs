@@ -27,6 +27,10 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+// Supabase requires TLS; a local Postgres for development or a clean-install
+// test does not offer it. PGSSLMODE=disable is the standard way to say so.
+const SSL = process.env.PGSSLMODE === 'disable' ? false : { rejectUnauthorized: false };
+
 const dir = 'supabase/tests';
 const suites = fs.existsSync(dir)
   ? fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()
@@ -39,7 +43,7 @@ if (suites.length === 0) {
 
 const client = new pg.Client({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: SSL,
   statement_timeout: 300_000,
 });
 await client.connect();

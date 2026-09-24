@@ -74,16 +74,36 @@ $$;
 -- The counter is scoped to the year, so 1 January meets a year that has never
 -- issued a number. Clearing this year's counter puts the database in exactly
 -- that state.
+--
+-- What "starting again" means depends on who is already on the register. On an
+-- empty database the next number is 001. Where members are already registered
+-- for this year, the generator skips the numbers they hold rather than
+-- reissuing one - which is the behaviour 1g below checks directly. So the
+-- expectation here is the first number this year that nobody holds, which is
+-- 001 on a fresh install and the next free one otherwise.
 do $$
 declare
-  v_yy text := to_char(current_date, 'YY');
-  v_a  text;
+  v_yy   text := to_char(current_date, 'YY');
+  v_a    text;
+  v_next integer;
+  v_saved bigint;
 begin
+  select last_value into v_saved from doc_counters where scope = 'MEMBER-' || v_yy;
   delete from doc_counters where scope = 'MEMBER-' || v_yy;
+
+  select coalesce(min(n), 1) into v_next
+    from generate_series(1, (select count(*) + 1 from members
+                              where member_no like 'BND' || v_yy || '%')) n
+   where not exists (select 1 from members m
+                      where m.member_no = 'BND' || v_yy || lpad(n::text, 3, '0'));
+
   v_a := next_member_no();
 
   insert into t_result (step, ok, detail) values
-    ('1e the sequence starts again at 001 in a new year', v_a = 'BND' || v_yy || '001', v_a);
+    ('1e the sequence starts again at the first free number of the year',
+     v_a = 'BND' || v_yy || lpad(v_next::text, 3, '0'),
+     format('%s (expected the first free: %s)', v_a,
+            'BND' || v_yy || lpad(v_next::text, 3, '0')));
 
   insert into t_result (step, ok, detail) values
     ('1f every year keeps a counter of its own, so 2027 cannot continue 2026',
@@ -91,6 +111,12 @@ begin
      and (select scope from doc_counters where scope like 'MEMBER-%') = 'MEMBER-' || v_yy,
      (select string_agg(scope || '=' || last_value, ', ')
         from doc_counters where scope like 'MEMBER-%'));
+
+  -- Put the counter back where the register had left it.
+  if v_saved is not null then
+    update doc_counters set last_value = greatest(last_value, v_saved)
+     where scope = 'MEMBER-' || v_yy;
+  end if;
 end;
 $$;
 
@@ -145,9 +171,20 @@ declare
   v_day text := to_char(current_date, 'YYMMDD');
   v_a   text;
   v_b   text;
+  v_saved jsonb;
 begin
   -- Start from a day that has issued nothing, whatever the live counters hold,
   -- so the expected numbers below are the ones a fresh morning would produce.
+  --
+  -- The counters are put back at the end of this block. Documents issued
+  -- earlier today are still there, so leaving the counters wound back to zero
+  -- would make the next real receipt collide with one that already exists -
+  -- which is exactly what happened when this suite was first run against a
+  -- database that had seen a day's work.
+  select coalesce(jsonb_object_agg(scope, last_value), '{}'::jsonb) into v_saved
+    from doc_counters
+   where scope in ('SAV-' || v_day, 'RCT-' || v_day, 'LRP-' || v_day, 'SHR-' || v_day);
+
   delete from doc_counters where scope in ('SAV-' || v_day, 'RCT-' || v_day,
                                            'LRP-' || v_day, 'SHR-' || v_day);
 
@@ -189,6 +226,12 @@ begin
   insert into t_result (step, ok, detail) values
     ('2h a member number asked for by its old prefix is a member number',
      next_document_no('M', 7) ~ ('^BND' || to_char(current_date, 'YY') || '[0-9]{3,}$'), null);
+
+  -- Put the counters back where the day's real work had left them, so nothing
+  -- issued after this block can collide with a document already on file.
+  update doc_counters c
+     set last_value = greatest(c.last_value, (v_saved ->> c.scope)::bigint)
+   where v_saved ? c.scope;
 end;
 $$;
 

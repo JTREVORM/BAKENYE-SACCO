@@ -38,7 +38,12 @@ export default async function DepositPage() {
         reference={`SAV-${user.memberNo ?? ''}`}
         details={[
           { label: 'Current savings balance', value: formatUGX(m?.savings_balance) },
-          ...(week
+          // A cycle the member's category does not collect on carries an
+          // expectation of zero. Showing it as a "target" read "UGX 20,000 of
+          // UGX 0", which is not a target at all - so only a cycle that
+          // actually expects something is listed. Money paid into any cycle is
+          // still in the balance above and in the transaction history.
+          ...(week && toNumber(week.expected_amount) > 0
             ? [
                 {
                   label: `Weekly target (${week.period_label})`,
@@ -46,7 +51,7 @@ export default async function DepositPage() {
                 },
               ]
             : []),
-          ...(month
+          ...(month && toNumber(month.expected_amount) > 0
             ? [
                 {
                   label: `Monthly target (${month.period_label})`,

@@ -18,6 +18,7 @@ const PEOPLE = [
 
 const browser = await openBrowser();
 const { page } = await newPage(browser);
+page.setDefaultTimeout(90_000);
 await signIn(page, process.env.ID, process.env.PW);
 
 const made = [];

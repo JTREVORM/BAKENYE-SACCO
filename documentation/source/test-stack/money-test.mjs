@@ -1,5 +1,4 @@
 // Unit checks for the money helpers, on the exact source the app uses.
-import { readFileSync } from 'node:fs';
 
 
 const mod = await import('/var/tmp/bud-docs-stack/money-extract.mjs');
@@ -30,7 +29,7 @@ for (const [input, wantDisplay, wantValue] of cases) {
   const ok = display === wantDisplay && value === wantValue;
   console.log(`${ok ? '  ✔' : '  ✖'} ${JSON.stringify(input).padEnd(12)} -> display ${JSON.stringify(display).padEnd(14)} value ${JSON.stringify(value)}`
     + (ok ? '' : `   EXPECTED display ${JSON.stringify(wantDisplay)} value ${JSON.stringify(wantValue)}`));
-  ok ? pass++ : fail++;
+  if (ok) pass++; else fail++;
 }
 
 // Round-trip: a value the system supplies must survive display and come back equal.
@@ -39,7 +38,7 @@ for (const n of [196666.67, 536666.65, 88333.33, 2360000, 0.02, 76666.67, 1, 999
   const back = Number(ungroupDigits(groupDigits(String(n))));
   const ok = back === n;
   console.log(`${ok ? '  ✔' : '  ✖'} ${String(n).padEnd(14)} -> ${back}`);
-  ok ? pass++ : fail++;
+  if (ok) pass++; else fail++;
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

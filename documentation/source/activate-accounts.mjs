@@ -7,6 +7,7 @@ const NEW = process.env.NEWPW;
 const browser = await openBrowser();
 for (const a of accounts) {
   const { context, page } = await newPage(browser);
+  page.setDefaultTimeout(90_000);
   await signIn(page, a.phone, a.password);
   await settle(page);
   if (page.url().includes('change-password')) {

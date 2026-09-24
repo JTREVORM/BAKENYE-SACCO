@@ -1,5 +1,5 @@
 /** Documentation capture: first sign-in and the forced password change. */
-import { openBrowser, newPage, signIn, settle, shot, BASE } from './lib.mjs';
+import { openBrowser, newPage, signIn, settle, shot } from './lib.mjs';
 const { ID, PW, NEWPW } = process.env;
 const browser = await openBrowser();
 const { page } = await newPage(browser);

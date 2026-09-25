@@ -5,7 +5,13 @@
  * Kept apart from `db.ts` in the same way `treasury.ts` is, and merged into
  * `Database` there.
  */
-import type { MemberStatus, PaymentMethod } from './db';
+import type {
+  MemberMembershipFee,
+  MemberStatus,
+  MembershipFeeDashboard,
+  MembershipFeeRow,
+  PaymentMethod,
+} from './db';
 import type { FinanceAccountType } from './treasury';
 
 /* ------------------------------------------------------------------ roles */
@@ -102,7 +108,13 @@ export type FeeRow = {
   updated_at: string;
 };
 
-export type MemberFeeStatus = 'unpaid' | 'paid' | 'waived';
+/**
+ * Since 0045 a charge can be settled in instalments, so `partial` sits between
+ * the two ends: money has been received against it and it is not yet settled.
+ * It is derived by `recompute_member_fee()` from the posted payment lines,
+ * never typed in.
+ */
+export type MemberFeeStatus = 'unpaid' | 'partial' | 'paid' | 'waived';
 
 export type MemberFeeRow = {
   id: string;
@@ -333,6 +345,45 @@ export type AccessFunctions = {
       p_paid_on?: string | null;
       p_reference?: string | null;
       p_amount_received?: number | null;
+      p_idempotency_key?: string | null;
+    };
+    Returns: FeePaymentResult;
+  };
+
+  /* --- The Membership Fees module (0045) ---------------------------------
+   * Reading needs `can_view_operations()`; collecting needs `fees.collect`.
+   * Both are re-checked in the database, so the checks in the server actions
+   * are a courtesy to the UI, not the thing that holds. */
+  membership_fee_dashboard: {
+    Args: Record<string, never>;
+    Returns: MembershipFeeDashboard;
+  };
+  search_membership_fees: {
+    Args: {
+      p_query?: string | null;
+      p_status?: string | null;
+      p_limit?: number;
+      p_offset?: number;
+    };
+    Returns: MembershipFeeRow[];
+  };
+  member_membership_fee_detail: {
+    Args: { p_member_id: string };
+    Returns: MemberMembershipFee;
+  };
+  registration_fee_amount: {
+    Args: Record<string, never>;
+    Returns: number;
+  };
+  collect_membership_fee: {
+    Args: {
+      p_member_id: string;
+      p_amount: number;
+      p_account_id: string;
+      p_method?: PaymentMethod | null;
+      p_paid_on?: string | null;
+      p_reference?: string | null;
+      p_note?: string | null;
       p_idempotency_key?: string | null;
     };
     Returns: FeePaymentResult;

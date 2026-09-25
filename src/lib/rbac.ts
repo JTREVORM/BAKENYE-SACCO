@@ -175,6 +175,12 @@ export const STAFF_NAV: readonly NavItem[] = [
     ],
   },
   {
+    label: 'Membership Fees',
+    href: '/staff/membership-fees',
+    icon: 'badge',
+    permission: 'members.view',
+  },
+  {
     label: 'Savings',
     href: '/staff/savings',
     icon: 'account_balance_wallet',

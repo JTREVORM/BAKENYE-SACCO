@@ -121,6 +121,7 @@ function revalidateMember(memberId: string) {
   revalidatePath(`/staff/members/${memberId}`);
   revalidatePath('/staff/members');
   revalidatePath('/staff/finance');
+  revalidatePath('/staff/membership-fees');
 }
 
 export async function payMemberFees(
@@ -180,6 +181,78 @@ export async function payMemberFees(
   return succeed(
     result,
     result.duplicate ? 'This payment was already recorded. Nothing was recorded twice.' : 'Payment recorded.',
+  );
+}
+
+/**
+ * Take a membership fee payment, in full or in part.
+ *
+ * The amount is the only figure the form supplies, and the database refuses
+ * anything above the member's outstanding balance. Which charges it settles,
+ * what the ledger entry says, the receipt, the income entry and whether the
+ * member becomes active are all decided by `collect_membership_fee()`, which
+ * posts through the same path the general fee screen uses.
+ */
+export async function collectMembershipFee(
+  _prev: ActionResult<FeePaymentResult> | null,
+  formData: FormData,
+): Promise<ActionResult<FeePaymentResult>> {
+  const user = await requireUser();
+  if (!can(user, 'fees.collect')) {
+    return { ok: false, error: 'You do not have permission to record fee payments.' };
+  }
+
+  const parsed = z
+    .object({
+      member_id: z.string().uuid(),
+      amount: z.coerce.number().positive('Enter the amount received.'),
+      account_id: z.string().uuid({ message: 'Choose where the money was received.' }),
+      method: z
+        .enum(['cash', 'mobile_money', 'bank_transfer', 'cheque', ''])
+        .optional()
+        .transform((v) => (v ? v : null)),
+      reference: z
+        .string()
+        .trim()
+        .max(80)
+        .optional()
+        .transform((v) => (v ? v : null)),
+      paid_on: z
+        .string()
+        .optional()
+        .transform((v) => (v ? v : null)),
+      note: z
+        .string()
+        .trim()
+        .max(300)
+        .optional()
+        .transform((v) => (v ? v : null)),
+      idempotency_key: z.string().min(8).max(100),
+    })
+    .safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return firstIssue(parsed.error);
+  const d = parsed.data;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('collect_membership_fee', {
+    p_member_id: d.member_id,
+    p_amount: d.amount,
+    p_account_id: d.account_id,
+    p_method: d.method,
+    p_paid_on: d.paid_on,
+    p_reference: d.reference,
+    p_note: d.note,
+    p_idempotency_key: d.idempotency_key,
+  });
+  if (error) return fail(error);
+
+  revalidateMember(d.member_id);
+  const result = data as FeePaymentResult;
+  return succeed(
+    result,
+    result.duplicate
+      ? 'This payment was already recorded. Nothing was recorded twice.'
+      : 'Membership fee payment recorded.',
   );
 }
 

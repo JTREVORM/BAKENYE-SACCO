@@ -91,10 +91,30 @@ declare
     ['Mugisha Alex',        '+256772100011', 'Welder',          'male'],
     ['Nassuna Betty',       '+256772100012', 'Hairdresser',     'female']
   ];
-  v_row  text[];
-  v_id   uuid;
-  v_i    integer := 0;
+  v_row     text[];
+  v_id      uuid;
+  v_i       integer := 0;
+  v_charges uuid[];
+  v_cash    uuid;
+  v_fee     fees;
 begin
+  -- The registration fee is only charged to a member whose join date falls on
+  -- or after the fee takes effect. The demo register is backdated by design,
+  -- so the fee is backdated with it; otherwise no demo member is ever charged
+  -- and the Membership Fees module has nothing to show.
+  for v_fee in
+    select * from fees
+     where charged_when = 'registration' and status = 'active'
+       and effective_from > current_date - 700
+  loop
+    perform update_fee(v_fee.id,
+      to_jsonb(v_fee) || jsonb_build_object('effective_from', (current_date - 700)::text),
+      'Demo data: the register is backdated, so the fee is backdated with it.');
+  end loop;
+
+  select id into v_cash from financial_accounts
+   where account_type = 'cash' and status = 'active' order by created_at limit 1;
+
   foreach v_row slice 1 in array v_names loop
     v_i := v_i + 1;
 
@@ -121,8 +141,28 @@ begin
       'joined_on',            current_date - (v_i * 47)
     )) ->> 'member_id')::uuid;
 
-    perform waive_member_fee(mf.id, 'Demo data: fee not collected')
-       from member_fees mf where mf.member_id = v_id and mf.status = 'unpaid';
+    -- The membership fee, collected the way the counter collects it. The demo
+    -- register deliberately shows all three states the module has to display:
+    -- most members have settled, one has part paid, one has not paid at all.
+    -- A member who has not settled stays Pending, which is the rule working.
+    select array_agg(mf.id) into v_charges
+      from member_fees mf
+     where mf.member_id = v_id and mf.status in ('unpaid', 'partial');
+
+    if v_charges is not null then
+      if v_i <= 9 then
+        perform pay_member_fees(v_id, v_charges, v_cash, 'cash',
+                                (current_date - (v_i * 47) + 1)::date, null, null, null);
+      elsif v_i = 10 then
+        -- Part paid: the balance is what is left of what they were charged.
+        perform pay_member_fees(v_id, v_charges, v_cash, 'cash',
+                                (current_date - (v_i * 47) + 1)::date, null, 5000, null);
+      elsif v_i = 11 then
+        perform pay_member_fees(v_id, v_charges, v_cash, 'cash',
+                                (current_date - (v_i * 47) + 1)::date, null, 12000, null);
+      end if;
+      -- v_i = 12 pays nothing, and stays Pending owing the whole fee.
+    end if;
   end loop;
 end;
 $$;

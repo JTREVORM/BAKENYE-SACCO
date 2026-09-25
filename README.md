@@ -114,6 +114,7 @@ supabase db push
 | `0042_guarantor_sees_borrower.sql` | A guarantor can see the borrower they guarantee, and nobody else |
 | `0043_flexible_savings_and_flat_shares.sql` | The 2026 business rules: registration UGX 20,000, open monthly savings with no target and no arrears, one share price of UGX 10,000 and any number of shares. Retires the category registers without deleting a row, and restates every view, report and function that depended on them |
 | `0044_retire_savings_waivers.sql` | Removes the one function that could waive a savings month. With no required amount there is nothing to forgive. Every month already waived keeps its status, its reason and its place in the member's history |
+| `0045_membership_fees_module.sql` | The Membership Fees module: a charge can be settled in instalments, its paid amount and status derived by `recompute_member_fee()` from the posted allocation lines. Adds the module's read models, a collection entry point that never takes more than is owed, and — where the fee has risen — a separate, audited adjustment charge for the difference, leaving every earlier charge, payment and receipt untouched |
 
 ### 4. Create the first administrator
 

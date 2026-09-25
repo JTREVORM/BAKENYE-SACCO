@@ -50,6 +50,20 @@ export default async function StaffReportsPage() {
           href: '/staff/reports/statement',
           permission: 'reports.member',
         },
+        {
+          icon: 'badge',
+          title: 'Membership fees',
+          description: 'Who has settled the joining fee, who is part way, and who has not started.',
+          href: '/staff/membership-fees',
+          permission: 'members.view',
+        },
+        {
+          icon: 'pending',
+          title: 'Membership fees outstanding',
+          description: 'Only the members who still owe part or all of the membership fee.',
+          href: '/staff/membership-fees?status=unpaid',
+          permission: 'members.view',
+        },
       ],
     },
     {

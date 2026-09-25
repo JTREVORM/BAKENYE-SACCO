@@ -1,8 +1,10 @@
 # Business-rule change, September 2026
 
 **Prepared:** 25 September 2026
+**Revised:** 25 September 2026, after your decisions of the same day (section 10).
 **Status:** Complete on the branch `claude/quirky-babbage-i3cjwz`. **Not applied to production.**
-**Approval required before:** running migration `0043` against the live database, and before merge.
+**Approval required before:** running migrations `0043` and `0044` against the live database, and
+before merge.
 
 The SACCO has replaced the rules the system was built around. This report records what the old
 rules were, everything that was changed to carry out the new ones, what was done to protect the
@@ -63,8 +65,9 @@ the member ledger and profile.
 
 ## 2. Files and functions affected
 
-**One new migration** — `supabase/migrations/0043_flexible_savings_and_flat_shares.sql`.
-Migrations `0001`–`0042` are untouched.
+**Two new migrations** — `supabase/migrations/0043_flexible_savings_and_flat_shares.sql` and
+`supabase/migrations/0044_retire_savings_waivers.sql`, the second added to carry out your decision
+to remove the waiver. Migrations `0001`–`0042` are untouched.
 
 **Database objects restated by `0043`:**
 
@@ -84,12 +87,22 @@ Migrations `0001`–`0042` are untouched.
   `create_savings_category`, `update_savings_category`, `set_savings_category_status`,
   `set_member_categories`
 
+**Database objects changed by `0044`:**
+
+- Function dropped: `waive_savings_schedule`
+- Comments restated on the `savings_status` type and `savings_periods.status`, recording that
+  `partial`, `missed` and `waived` now describe history only
+- One audit entry, `savings.waivers_retired`. It counts the waived months and writes nothing to
+  any financial table.
+
 **Application:** 6 files added, 12 removed, 1 renamed and 60 modified. The whole list is in the
 branch's diff; the substantive ones are the member savings, shares, profile and dashboard screens;
 the collection panel and its dialogs; the registration wizard; the share purchase form; the savings
 dashboard, records and activity screens; the members browser and member page; the reports index;
 `src/lib/savings.ts` (which replaces `src/lib/categories.ts`); `src/lib/queries.ts`;
-`src/lib/settings.ts`; `src/lib/rbac.ts`; and `src/types/db.ts`.
+`src/lib/settings.ts`; `src/lib/rbac.ts`; and `src/types/db.ts`. The waiver removal takes out
+`src/components/collections/WaiveScheduleDialog.tsx` and the `waiveSchedule` action in
+`src/app/actions/collections.ts`.
 
 **Routes:** `/staff/categories` is removed. `/staff/savings/schedules` becomes
 `/staff/savings/records`. Every link, navigation entry and capture script that pointed at either was
@@ -147,7 +160,7 @@ was deleted, restated or repriced (checks 8a–8d).
 
 ## 5. Tests
 
-**New suite:** `supabase/tests/business_rules_2026_test.sql` — 57 checks, covering all seventeen
+**New suite:** `supabase/tests/business_rules_2026_test.sql` — 63 checks, covering all seventeen
 points the client asked for and several more:
 
 | Asked for | Check |
@@ -165,6 +178,7 @@ points the client asked for and several more:
 | Reports no longer depend on the tiers | 4e, 4f |
 | Dashboards contain no obsolete category information | 4c, 4d |
 | RLS and role permissions intact | 9a–9h |
+| No new waiver can be created, and no historical one was disturbed | 8e, 8f, 8g, 8h, 8i |
 
 It also proves the worked example from the brief (25 shares = UGX 250,000, computed by the
 database, 3k) and that a client-supplied total which is not quantity × price is refused (3j).
@@ -181,8 +195,9 @@ order, the first administrator, then the seed.
 
 | Check | Result |
 | --- | --- |
-| Clean install, `0001` → `0043` | **43 migrations applied**, no error |
-| `npm run test:db` (6 SQL suites) | **267 passed, 0 failed** (baseline before this work: 210 passed, 0 failed) |
+| Clean install, `0001` → `0044` | **44 migrations applied**, no error |
+| `npm run test:db` (7 SQL suites) on the clean install | **274 passed, 0 failed** (baseline before this work: 210 passed, 0 failed) |
+| `npm run test:db` on a database **upgraded** from `0001`–`0042` with the old seed, then `0043` and `0044` | **274 passed, 0 failed**. Check `2j` reads "23 missed month(s) before, 23 after — all of them historical" |
 | `node scripts/numbering-check.mjs` | **7/7 passed** — 240 numbers from 24 concurrent connections, all unique and contiguous |
 | `node scripts/access-check.mjs` | **0 problems** — staff and member sign-in, every role route, and every forbidden route |
 | `node scripts/finance-check.mjs` | Every Finance screen returns 200. The 54 reported "problems" are all `ERR_CERT_AUTHORITY_INVALID` on Google Fonts, an artefact of this container's outbound proxy, not the application |
@@ -190,13 +205,14 @@ order, the first administrator, then the seed.
 | `npm run typecheck` | Clean |
 | `npm run build` | Compiled successfully |
 | Browser smoke test, 19 routes as staff and as a member | Every page renders. `/staff/categories` returns 404, which is the intended outcome |
+| Browser rule check, staff and member, 14 assertions | **14/14 passed** — no Waive control anywhere, nothing labelled outstanding, owed, overdue, a target or a collection rate on any screen, UGX 10,000 a share, 100 shares priced at UGX 1,000,000, no Categories step in registration |
 
 ---
 
 ## 7. RLS and permission comparison
 
 Compared object by object between a database built from `0001`–`0042` and one built from
-`0001`–`0043`:
+`0001`–`0044`:
 
 | | Before | After | Difference |
 | --- | --- | --- | --- |
@@ -205,13 +221,18 @@ Compared object by object between a database built from `0001`–`0042` and one 
 | Permission keys | 39 | 39 | **None** |
 | Role → permission grants | 83 | 83 | **None** |
 | Table grants to `anon` / `authenticated` | 61 | 58 | Only the three dropped views (`share_categories_priced`, `share_category_summary`, `savings_category_summary`) |
-| Function grants | — | — | Only the intended removals and the two changed signatures. Every new signature carries exactly the grants its predecessor carried: `postgres`, `service_role`, `authenticated` |
+| Function grants | — | — | Only the intended removals (the nine category functions and `waive_savings_schedule`) and the three changed signatures. Every new signature carries exactly the grants its predecessor carried: `postgres`, `service_role`, `authenticated` |
 
 Nothing was widened. The suites' own guards confirm it independently:
 `members_access_test.sql` check **11a** ("no internal helper is executable by `anon` or
 `authenticated`") and **11b** ("a signed-out caller can execute nothing but the public brand") both
 pass — 11b caught the two new function signatures before they shipped, because a newly created
 function is granted to `PUBLIC` by default; `0043` revokes both explicitly.
+
+**Ledger reconciliation, run after `0044`:** 0 members whose savings balance disagrees with the
+ledger, 0 whose share value disagrees with their share lots, 0 savings periods whose paid amount
+disagrees with the payments posted into it, and 0 share lots where `total_value` is not
+`quantity × unit_price`.
 
 The `categories.view` and `categories.manage` permissions were **deliberately left in place**. See
 section 10.
@@ -230,7 +251,7 @@ section 10.
 | Staff → Savings | Expected, outstanding, collection rate, schedule status counts and the tier tiles are gone. Shows total held, saved this period, average and largest deposit, members who saved, deposits, and today's takings |
 | Staff → Savings records (was Schedules) | Expected / outstanding / status columns replaced by month, deposits, saved, last deposit. The status chips are replaced by one filter: months with savings, months without |
 | Staff → Savings activity (was Performance) | Compliance scoring and the per-category filter are gone. Shows deposits, total saved, first and last deposit, and the member's balance |
-| Staff → Collect savings | Tier badges and the outstanding figure are gone. The search result shows the balance and what was saved this month; the panel shows total savings, saved this month, shares, month-by-month history and deposits. The amount field starts empty, deliberately |
+| Staff → Collect savings | The **Waive** control is removed, along with its dialog and server action. Tier badges and the outstanding figure are gone. The search result shows the balance and what was saved this month; the panel shows total savings, saved this month, shares, month-by-month history and deposits. The amount field starts empty, deliberately |
 | Staff → Record savings | The weekly/monthly choice and the target prefill are gone. One empty amount field, any positive amount |
 | Staff → Record share purchase | Category quick-pick and "N to reach Gold" are gone. Quick picks are 1/5/10/20/50/100, any whole number is allowed, and the total travels to the database to be checked against its own arithmetic |
 | Staff → Register member | Five steps become four; the categories step is removed |
@@ -270,50 +291,90 @@ unaltered: they are the dated record of a different piece of work.
 
 ---
 
-## 10. Decisions taken, and what needs your approval
+## 10. Your decisions, and how each was carried out
 
-These are judgement calls made in the absence of a specific instruction. Each one is reversible.
+You reviewed the first version of this report and settled the six open points. Each is now
+implemented; nothing in this section is still waiting on you.
 
-1. **The category rows were retired, not deleted.** Every row in `share_categories` and
-   `savings_categories` is kept and marked inactive, and members keep the tier column they joined
-   under. This loses nothing and can be undone; deleting them could not be. **If you would rather
-   the columns were cleared from `members`, say so — it is a one-line change to the migration.**
+1. **Keep the historical category data.** Done, and unchanged from the first version.
+   `members.savings_category_id` and `members.share_category_id` are **not** cleared. Every row in
+   `savings_categories` and `share_categories` is kept and marked `inactive`. Nothing reads them:
+   no function, view, report, form or screen consults a category when savings or shares are
+   recorded. Proven on the upgrade database below — 12 members still carry both tier columns, and
+   3 savings plus 3 share category rows survive, inactive.
 
-2. **Old unpaid expectations are no longer presented as arrears.** `savings_periods` rows raised
-   before today keep whatever `expected_amount` they were raised with, because that is the record
-   of what was asked at the time. What changed is that no screen, report or dashboard presents them
-   as money owed, because under the new rules nothing is owed. **The alternative — zeroing those
-   historical expectations — would have rewritten the record, so it was not done. Please confirm
-   this is what you intend.**
+2. **Keep historical savings expectations unchanged.** Done. No `savings_periods` row was zeroed
+   or rewritten; the 23 months recorded as `missed` and the 1 recorded as `waived` on the upgrade
+   database are exactly as they were. What changed is only the presentation: no screen, report,
+   dashboard, statement or receipt shows them as arrears, outstanding savings or money owed. The
+   nightly job no longer marks any month missed (checks `2i`, `2j`), and a month raised under the
+   new rules carries `expected_amount = 0` and can never be `missed` or `partial` (check `2k`).
 
-3. **The `categories.view` and `categories.manage` permissions were left in the database.**
-   Removing them would narrow every role's permission set, which you asked not to do.
-   `categories.manage` is still what `savings.waive` checks behind `can_manage_categories()`. No
-   screen is reachable through either any more. **They can be renamed or removed on your word.**
+3. **Remove the savings waiver.** Done, in `0044_retire_savings_waivers.sql`.
+   - `waive_savings_schedule()` is **dropped**, so no new waiver can be created by anyone through
+     any route (check `8e`).
+   - The **Waive** button, its confirmation dialog (`WaiveScheduleDialog.tsx`) and the
+     `waiveSchedule` server action are removed; the `waive_savings_schedule` RPC is gone from the
+     TypeScript types.
+   - Nothing historical was rewritten. Existing `waived` rows keep that status for ever:
+     `recompute_savings_period()` still leaves a waived month waived (check `8i`), and
+     `record_scheduled_savings()` still refuses to post into one (check `8h`). The `waived` value
+     stays in the `savings_status` enum, and the audit entries that recorded each waiver stay
+     (checks `8f`, `8g`).
+   - The migration writes one audit entry, `savings.waivers_retired`, naming how many waived months
+     were found and left untouched.
 
-4. **Waiving a month is kept, with a changed meaning.** It used to write off an expectation. It now
-   simply closes a month to further deposits, with a written reason, for a manager who needs to
-   settle one. Nothing is written off, because nothing was owed. **If waivers have no place under
-   the new rules, the control can be removed.**
+4. **Leave `categories.view` and `categories.manage` alone.** Done. Both permission rows and every
+   role grant of them are untouched; no permission was widened anywhere (section 7). Note that
+   `savings.waive` is likewise still a permission row — the function it guarded is gone, so it
+   grants access to nothing, and removing it would have narrowed roles, which you asked not to do.
+   It can be cleaned up with the two category permissions whenever you choose.
 
-5. **"Allow part payments" was deleted as a setting.** With no target, a part payment is not a
-   concept; the setting could no longer do anything. This follows the rule migration `0037`
-   established for this system: a setting is enforced or it is removed.
+5. **Keep registration fee enforcement as implemented.** Done, unchanged. UGX 20,000, mandatory,
+   charged by `register_member()`, and the member stays **Pending** until it is paid, because
+   `members.activation_requires_fees` is on.
 
-6. **`savings_kind` still carries `weekly`.** No new weekly period is raised and the cadence is no
+6. **"Allow part payments" was deleted as a setting.** With no target, a part payment is not a
+   concept and the setting could no longer do anything. This follows the rule migration `0037`
+   established here: a setting is enforced or it is removed.
+
+7. **`savings_kind` still carries `weekly`.** No new weekly period is raised and the cadence is no
    longer a choice at the counter, but the enum value stays because periods raised before the
    change use it. Removing an enum value in place is not possible in PostgreSQL without rewriting
    history.
 
-7. **The seed data was rewritten** to demonstrate open savings — uneven amounts (UGX 5,000 to
+8. **The seed data was rewritten** to demonstrate open savings — uneven amounts (UGX 5,000 to
    100,000), some months with two deposits, some with none, and share purchases from 1 to 100
    shares. It is demonstration data only and is never run against production.
 
+### Proof on a database upgraded from production's shape
+
+To show the migrations do to real data exactly what this report says, a second database was built
+from the bootstrap, migrations `0001`–`0042` and the **pre-change** seed (the tiers, the savings
+plans, the weekly schedules, plus a planted waived month), snapshotted table by table, and then
+upgraded with `0043` and `0044`:
+
+| | Result |
+| --- | --- |
+| Transactions changed, deleted or repriced | **0** |
+| Share lots changed | **0** |
+| Savings periods changed | **0** |
+| Member fee charges changed | **0** |
+| `members` tier columns changed | **0** — 12 members still carry both |
+| Category rows | 3 savings + 3 share, all kept, all now `inactive` |
+| Savings plans | 21 kept |
+| Historical months | 23 `missed` and 1 `waived`, all kept |
+| Share price | 20,000 → **10,000** |
+| Registration fee | **20,000**, mandatory, active |
+| Audit entries written by the migrations | 4 |
+| Full SQL suite on this database | **274 passed, 0 failed** |
+
 ### Risks
 
-- **Migration `0043` is not reversible in one step.** It drops three views and nine functions. It
-  deletes no data, so a rollback is a matter of replaying `0021`–`0025`'s definitions, but it is
-  not a single `DOWN`. **Take a database backup before applying it.**
+- **Migrations `0043` and `0044` are not reversible in one step.** Between them they drop three
+  views and ten functions. They delete no member, savings, share, fee, transaction or audit row, so
+  a rollback is a matter of replaying the earlier definitions, but it is not a single `DOWN`.
+  **Take a database backup before applying them.**
 - **A member registered from now on is Pending until the UGX 20,000 is paid**, because
   `members.activation_requires_fees` is on and the fee is mandatory. If your counter registers
   members who pay later, that is the correct behaviour; if not, either the setting or the fee's
@@ -327,5 +388,10 @@ These are judgement calls made in the absence of a specific instruction. Each on
 
 Nothing has been deployed. The work is on `claude/quirky-babbage-i3cjwz` and was developed and
 tested against a throwaway local PostgreSQL 16 with a Supabase-compatible gateway, never against
-the SACCO's live system. Migration `0043` has **not** been applied to production and will not be
-until you approve this report.
+the SACCO's live system. Migrations `0043` and `0044` have **not** been applied to production and
+will not be until you say so.
+
+**Order on the day:** back up the database, apply `0043`, then `0044`, then deploy the application
+build. The two migrations are forward-only and independent of the deployment order in only one
+direction: the new application will not work against a database still at `0042`, so the migrations
+go first.

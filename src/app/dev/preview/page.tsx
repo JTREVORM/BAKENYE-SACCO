@@ -181,7 +181,7 @@ export default function PreviewPage() {
           title="Staff · savings collection"
           note="One member at the counter: this month, shares, savings history"
         >
-          <MemberCollectionPanel view={FIXTURE_COLLECTION_VIEW} canRecord canWaive />
+          <MemberCollectionPanel view={FIXTURE_COLLECTION_VIEW} canRecord />
         </Section>
 
         {/* ---------------------------------------------------- staff loans */}

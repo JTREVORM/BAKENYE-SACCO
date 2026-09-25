@@ -54,7 +54,6 @@ export default async function CollectSavingsPage({
               <Selected
                 memberId={memberId}
                 canRecord={can(user, 'savings.record')}
-                canWaive={can(user, 'savings.waive')}
               />
             </Suspense>
           ) : (
@@ -98,11 +97,9 @@ async function Results({ query, selectedId }: { query: string; selectedId: strin
 async function Selected({
   memberId,
   canRecord,
-  canWaive,
 }: {
   memberId: string;
   canRecord: boolean;
-  canWaive: boolean;
 }) {
   // This raises the current cycle's schedule if it does not exist yet, so a
   // member standing at the counter never produces an empty screen.
@@ -117,5 +114,5 @@ async function Selected({
     );
   }
 
-  return <MemberCollectionPanel view={view} canRecord={canRecord} canWaive={canWaive} />;
+  return <MemberCollectionPanel view={view} canRecord={canRecord} />;
 }

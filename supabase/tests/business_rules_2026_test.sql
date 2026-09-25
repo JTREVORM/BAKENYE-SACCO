@@ -181,18 +181,18 @@ begin
 
   begin
     perform record_savings_payment(v_a, 'monthly', 0, current_date, 'cash', 'test:rules:zero');
-    insert into t_result (step, ok, detail) values ('2k a zero saving is refused', false, 'accepted');
+    insert into t_result (step, ok, detail) values ('2n a zero saving is refused', false, 'accepted');
   exception when others then
     get stacked diagnostics v_err = message_text;
-    insert into t_result (step, ok, detail) values ('2k a zero saving is refused', true, v_err);
+    insert into t_result (step, ok, detail) values ('2n a zero saving is refused', true, v_err);
   end;
 
   begin
     perform record_savings_payment(v_a, 'monthly', -5000, current_date, 'cash', 'test:rules:neg');
-    insert into t_result (step, ok, detail) values ('2l a negative saving is refused', false, 'accepted');
+    insert into t_result (step, ok, detail) values ('2o a negative saving is refused', false, 'accepted');
   exception when others then
     get stacked diagnostics v_err = message_text;
-    insert into t_result (step, ok, detail) values ('2l a negative saving is refused', true, v_err);
+    insert into t_result (step, ok, detail) values ('2o a negative saving is refused', true, v_err);
   end;
 
   -- =====================================================================
@@ -446,6 +446,26 @@ begin
                 or p.status is distinct from b.status),
           (select count(*)::text || ' period(s) checked' from t_periods_before));
 
+  -- --- waivers, retired by 0044 ------------------------------------------
+  insert into t_result (step, ok, detail)
+  values ('8e a savings waiver can no longer be created',
+          not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                       where n.nspname = 'public' and p.proname = 'waive_savings_schedule'),
+          'waive_savings_schedule() no longer exists');
+
+  insert into t_result (step, ok, detail)
+  values ('8f the waived status survives, for the months already waived',
+          exists (select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+                   where t.typname = 'savings_status' and e.enumlabel = 'waived'),
+          'savings_status still carries waived');
+
+  insert into t_result (step, ok, detail)
+  values ('8g no month waived before the change was reopened',
+          (select count(*) from savings_periods where status = 'waived')
+            = (select count(*) from t_periods_before where status = 'waived'),
+          (select count(*)::text || ' waived month(s), unchanged' from t_periods_before
+            where status = 'waived'));
+
   insert into t_result (step, ok, detail)
   values ('8d the retired category rows are kept, not deleted',
           (select count(*) from savings_categories) = 3
@@ -512,6 +532,63 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- A month waived before 0044 stays closed.
+--
+-- Nothing can create a waiver any more, so the historical one is stood up the
+-- only way left - by writing the status as the owner does - and then the rule
+-- that matters is proved: a waived month refuses further deposits, exactly as
+-- it did before waivers were retired.
+-- ---------------------------------------------------------------------------
+reset role;
+
+do $waived$
+declare
+  v_b      uuid := (select id from t_ctx where key = 'b');
+  v_period uuid;
+  v_err    text;
+begin
+  -- Section 9 left the session claiming to be the member. Put the
+  -- administrator back, so the refusal below is the waiver's and not a
+  -- permission check standing in front of it.
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', (select id from app_users
+                               where role = 'super_admin' and is_active
+                               order by created_at limit 1),
+                      'role', 'authenticated')::text, true);
+
+  select id into v_period from savings_periods
+   where member_id = v_b and status <> 'waived' limit 1;
+
+  if v_period is null then
+    v_period := (ensure_savings_period(v_b, 'monthly'::savings_kind,
+                                       (current_date - 40)::date)).id;
+  end if;
+
+  update savings_periods set status = 'waived' where id = v_period;
+
+  begin
+    perform record_scheduled_savings(v_period, 1000, current_date, 'cash', null, null,
+                                     'test:rules:intowaived');
+    insert into t_result (step, ok, detail)
+    values ('8h a month waived before the change stays closed', false, 'accepted');
+  exception when others then
+    get stacked diagnostics v_err = message_text;
+    insert into t_result (step, ok, detail)
+    values ('8h a month waived before the change stays closed',
+            v_err ilike '%waived%', v_err);
+  end;
+
+  perform recompute_savings_period(v_period);
+  insert into t_result (step, ok, detail)
+  values ('8i and a recompute leaves it waived',
+          (select status from savings_periods where id = v_period) = 'waived',
+          (select status::text from savings_periods where id = v_period));
+end;
+$waived$;
+
+set role authenticated;
+
+-- ---------------------------------------------------------------------------
 -- The nightly job, as the scheduler runs it.
 --
 -- It used to sweep unpaid periods into 'missed' and open a schedule for every
@@ -522,9 +599,16 @@ reset role;
 
 do $maint$
 declare
-  v_res jsonb;
-  v_missed integer;
+  v_res     jsonb;
+  v_before  integer;
+  v_after   integer;
 begin
+  -- On a database upgraded from the old rules, months raised under the old
+  -- savings targets are still marked `missed`, and stay that way: they are the
+  -- record of what was asked at the time. What must be true is that the job
+  -- creates no new one.
+  select count(*) into v_before from savings_periods where status = 'missed';
+
   v_res := run_daily_maintenance();
   insert into t_result (step, ok, detail)
   values ('2i the nightly job marks no period missed and opens no schedule',
@@ -532,10 +616,17 @@ begin
           and (v_res ->> 'schedules_opened')::integer = 0,
           v_res::text);
 
-  select count(*) into v_missed from savings_periods where status = 'missed';
+  select count(*) into v_after from savings_periods where status = 'missed';
   insert into t_result (step, ok, detail)
-  values ('2j no savings period anywhere is in arrears after the nightly job',
-          v_missed = 0, v_missed || ' missed period(s)');
+  values ('2j the nightly job puts no member into arrears',
+          v_after = v_before,
+          format('%s missed month(s) before, %s after — all of them historical', v_before, v_after));
+
+  insert into t_result (step, ok, detail)
+  values ('2k no month raised under the new rules can be missed or partial',
+          not exists (select 1 from savings_periods
+                       where expected_amount = 0 and status in ('missed', 'partial')),
+          'a month expecting nothing is never a shortfall');
 end;
 $maint$;
 

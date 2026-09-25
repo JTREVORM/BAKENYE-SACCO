@@ -39,7 +39,8 @@ FRONT = f'''
                   'rewritten and re-photographed. One share costs UGX 10,000 and a member may buy '
                   'any number of them: the share categories and their deadlines are gone. The '
                   'Categories screen has been removed from the system, and with it this '
-                  'manual&rsquo;s section on it.',
+                  'manual&rsquo;s section on it. Savings waivers were retired: there is no '
+                  'required amount to forgive, and the months already waived are kept in full.',
      'Documentation review'],
 ])}
 
@@ -148,7 +149,6 @@ live position is always on <strong>Roles &amp; Permissions</strong>.</p>
     ['Collect fees', '●', '●', '●', '—', '●', '—', '—', '—'],
     ['Create and edit fees', '●', '●', '●', '—', '—', '—', '—', '—'],
     ['Record savings', '●', '●', '●', '—', '●', '—', '●', '—'],
-    ['Waive a savings month', '●', '●', '●', '—', '—', '—', '—', '—'],
     ['View shares', '●', '●', '●', '—', '●', '●', '—', '●'],
     ['Sell shares', '●', '●', '●', '—', '●', '—', '—', '—'],
     ['View loans', '●', '●', '●', '●', '●', '●', '—', '●'],
@@ -540,11 +540,12 @@ month a member did not save in is simply a month with nothing in it.</p>
       'Savings are open, so a member can never be behind on them. Nothing on this screen, on the '
       'dashboard or in any report presents a month without a deposit as a debt, and the nightly '
       'job no longer marks anything missed.')}
-{note('Waiving a month',
-      'Only <span class="role">Manager</span> <span class="role">Admin</span> '
-      '<span class="role">Super Admin</span> may waive a month, and a written reason is required. '
-      'It closes that month to further deposits; it does not write anything off, because nothing '
-      'was owed. A month that already has money in it cannot be waived.')}
+{note('There are no savings waivers any more',
+      'A waiver forgave an amount the SACCO had asked for. Nothing is asked for, so there is '
+      'nothing to forgive, and the control has been removed. Months waived before the rules '
+      'changed keep that status for ever, stay closed to further deposits, and keep the manager '
+      'and the written reason recorded against them. Waiving an unpaid <em>fee</em> is a different '
+      'thing and is unaffected &mdash; see Section 5.')}
 
 <h2>Savings activity</h2>
 {shot('admin/walk-savings-performance.png', 'Savings activity: who saved over the period, how often and how much.')}
@@ -1453,7 +1454,8 @@ sec('Appendix', f'''
      'holder must replace at their first sign-in.'],
     ['<strong>Transfer</strong>', 'Money moved between the SACCO&rsquo;s own accounts. Neither '
      'income nor expense.'],
-    ['<strong>Waiver</strong>', 'A manager excusing a savings cycle, with a written reason.'],
+    ['<strong>Waiver</strong>', 'A manager excusing an unpaid fee, with a written reason. Savings '
+     'waivers were retired with the savings targets; the months already waived are kept.'],
 ])}
 
 <h2>Reference prefixes</h2>

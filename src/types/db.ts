@@ -31,6 +31,14 @@ export type UserRole = string;
  */
 export type MemberStatus = 'pending' | 'active' | 'inactive' | 'suspended' | 'archived' | 'exited';
 export type SavingsKind = 'weekly' | 'monthly';
+/**
+ * The state of one member's savings month.
+ *
+ * Only `paid` (money went in) and `pending` (none did) are ever set on a new
+ * row. `partial` and `missed` survive on rows raised under the old savings
+ * targets, and `waived` on months a manager closed before 0044 retired
+ * waivers. None of the three is raised again.
+ */
 export type SavingsStatus = 'paid' | 'partial' | 'pending' | 'missed' | 'waived';
 
 /**
@@ -1360,10 +1368,6 @@ export type Database = {
           period_total: number;
           status: SavingsStatus;
         };
-      };
-      waive_savings_schedule: {
-        Args: { p_schedule_id: string; p_reason: string };
-        Returns: { schedule_id: string; status: SavingsStatus };
       };
       /**
        * Everything the counter needs for one member. Opens this month's savings

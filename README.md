@@ -113,6 +113,7 @@ supabase db push
 | `0041_no_future_value_dates.sql` | No money-posting function accepts a value date in the future |
 | `0042_guarantor_sees_borrower.sql` | A guarantor can see the borrower they guarantee, and nobody else |
 | `0043_flexible_savings_and_flat_shares.sql` | The 2026 business rules: registration UGX 20,000, open monthly savings with no target and no arrears, one share price of UGX 10,000 and any number of shares. Retires the category registers without deleting a row, and restates every view, report and function that depended on them |
+| `0044_retire_savings_waivers.sql` | Removes the one function that could waive a savings month. With no required amount there is nothing to forgive. Every month already waived keeps its status, its reason and its place in the member's history |
 
 ### 4. Create the first administrator
 
@@ -354,6 +355,12 @@ sweeps anything into `missed`.
 actually paid into it, recomputed from the posted payment rows by `recompute_savings_period()` —
 the one function that owns that arithmetic, called by both collection and reversal. Periods are
 never deleted, so every month a member saved in stays readable for ever.
+
+**There are no savings waivers.** A waiver forgave an amount the SACCO had asked for; nothing is
+asked for, so `0044` removed the function that could make one. The months waived before it keep
+their status, their reason and their audit entry, stay closed to further deposits, and survive a
+recompute exactly as they always did. Waiving an unpaid *fee* is a different thing and is
+unaffected.
 
 **Every deposit is recorded in full.** Member, date, amount, method, external reference, who
 recorded it and the ledger reference it posted under. `savings_transactions` is a view over the
@@ -628,7 +635,7 @@ src/
 ├── components/
 │   ├── ui/             primitives carrying the Stitch design tokens
 │   ├── layout/         TopAppBar, BottomNav, Sidebar, shells
-│   ├── collections/    the member collection panel and its record/waive dialogs
+│   ├── collections/    the member collection panel and its record dialog
 │   └── forms/          financial forms, all wrapped in FinancialForm
 ├── lib/
 │   ├── rbac.ts         roles, permissions, navigation — one source of truth

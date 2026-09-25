@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { RecordCollectionDialog } from './RecordCollectionDialog';
-import { WaiveScheduleDialog } from './WaiveScheduleDialog';
 import { Avatar, Badge, Money } from '@/components/ui/primitives';
 import { SavingsStatusBadge, MemberStatusBadge } from '@/components/ui/status';
 import { EmptyState } from '@/components/ui/states';
@@ -31,14 +30,11 @@ import { ScrollRow } from '@/components/ui/scroll';
 export function MemberCollectionPanel({
   view,
   canRecord,
-  canWaive,
 }: {
   view: MemberCollectionView;
   canRecord: boolean;
-  canWaive: boolean;
 }) {
   const [recording, setRecording] = useState<SavingsScheduleRow | null>(null);
-  const [waiving, setWaiving] = useState<SavingsScheduleRow | null>(null);
 
   const { member, current, share_progress: shares, share_price: sharePrice, history, schedules } = view;
   const active = member.status === 'active';
@@ -134,16 +130,6 @@ export function MemberCollectionPanel({
             >
               Record savings
             </Button>
-            {canWaive && toNumber(current.paid_amount) === 0 && current.status !== 'waived' ? (
-              <Button
-                variant="outline"
-                size="lg"
-                icon="block"
-                onClick={() => setWaiving(current)}
-              >
-                Waive
-              </Button>
-            ) : null}
           </div>
 
           {!active ? (
@@ -289,12 +275,6 @@ export function MemberCollectionPanel({
         memberId={member.id}
         open={!!recording}
         onClose={() => setRecording(null)}
-      />
-      <WaiveScheduleDialog
-        row={waiving}
-        memberId={member.id}
-        open={!!waiving}
-        onClose={() => setWaiving(null)}
       />
     </div>
   );

@@ -3,14 +3,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getCategoryAnalytics, getCollectionsTrend, getDashboardMetrics } from '@/lib/queries';
+import { getCollectionsTrend, getDashboardMetrics, getSavingsDashboard } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { can, type Access } from '@/lib/rbac';
 import {
   Icon,
   Money,
   Avatar,
-  ProgressBar,
   Panel,
   KpiCard,
   KpiCardFeature,
@@ -31,7 +30,7 @@ import { TrendChart } from '@/components/staff/TrendChart';
 import { FundsStrip } from '@/components/finance/FundsStrip';
 import { ScrollArea } from '@/components/ui/scroll';
 import { daysUntil, formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/format';
-import { formatUGX, percent, toNumber } from '@/lib/money';
+import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import type { AuditLogRow } from '@/types/db';
 import { getBrand } from '@/lib/brand';
@@ -72,7 +71,7 @@ export default async function StaffDashboard() {
       <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
         <div className="space-y-gutter xl:col-span-2">
           <Suspense fallback={<PanelSkeleton height="h-40" />}>
-            <CategoryPerformance />
+            <SavingsThisMonth />
           </Suspense>
 
           <Suspense fallback={<PanelSkeleton height="h-56" />}>
@@ -233,11 +232,7 @@ async function Metrics() {
           tone="success"
           label="Total Savings"
           value={<Money value={m.total_savings} compact />}
-          footnote={
-            m.savings_arrears > 0
-              ? `${formatUGX(m.savings_arrears)} in arrears`
-              : 'No savings arrears'
-          }
+          footnote={`${formatUGX(m.savings_this_month)} saved this month`}
           href="/staff/savings"
         />
 
@@ -287,10 +282,7 @@ async function Metrics() {
 
       {/* Things that need someone's attention. Shown only when non-zero — an
           alert strip that is always present stops being an alert. */}
-      {m.overdue_count > 0 ||
-      m.pending_loans > 0 ||
-      m.pending_expenses > 0 ||
-      m.savings_arrears > 0 ? (
+      {m.overdue_count > 0 || m.pending_loans > 0 || m.pending_expenses > 0 ? (
         <section className="flex flex-wrap gap-3">
           {m.overdue_count > 0 ? (
             <AttentionChip
@@ -308,15 +300,6 @@ async function Metrics() {
               tone="warning"
               label={`${m.pending_loans} loan ${m.pending_loans === 1 ? 'application' : 'applications'}`}
               detail="awaiting review"
-            />
-          ) : null}
-          {m.savings_arrears > 0 ? (
-            <AttentionChip
-              href="/staff/savings/schedules?status=missed"
-              icon="savings"
-              tone="error"
-              label="Savings arrears"
-              detail={formatUGX(m.savings_arrears)}
             />
           ) : null}
           {m.pending_expenses > 0 ? (
@@ -379,7 +362,7 @@ function QuickActions({ role }: { role: Access }) {
     { href: '/staff/savings/collect', icon: 'point_of_sale', label: 'Collect Savings', permission: 'savings.record', tone: 'success' },
     { href: '/staff/loans/new', icon: 'request_quote', label: 'New Loan', permission: 'loans.assess', tone: 'accent' },
     { href: '/staff/transactions/cash', icon: 'swap_horiz', label: 'Cash Movement', permission: 'cash.movement', tone: 'neutral' },
-    { href: '/staff/categories', icon: 'workspace_premium', label: 'Categories', permission: 'categories.manage', tone: 'primary' },
+    { href: '/staff/shares/sell', icon: 'pie_chart', label: 'Sell Shares', permission: 'shares.sell', tone: 'primary' },
     { href: '/staff/reports', icon: 'summarize', label: 'View Reports', permission: 'reports.view', tone: 'neutral' },
   ] as const;
 
@@ -402,38 +385,30 @@ function QuickActions({ role }: { role: Access }) {
  * ------------------------------------------------------------------------ */
 
 /**
- * What is due next, derived from the member schedules and the loan schedule.
+ * What falls due next, from the loan schedule.
  *
- * These are real rows: a savings reminder is a schedule that is genuinely open
- * and falls due, and a repayment reminder comes from `loan_schedule`. Nothing
- * here is a placeholder for a reminder system that does not exist yet — when
- * email reminders are added in a later phase they will send exactly these.
+ * These are real rows, not placeholders for a reminder system that does not
+ * exist yet: when email reminders are added in a later phase they will send
+ * exactly these. Savings are absent by design — they are open, so nothing
+ * about a member's savings has a due date to remind anyone of.
  */
 async function UpcomingReminders() {
   const supabase = await createClient();
   const today = toISODate();
 
-  const [{ data: schedules }, { data: due }] = await Promise.all([
-    supabase
-      .from('savings_schedules')
-      .select(
-        'schedule_id, member_id, member_name, savings_category_name, due_on, expected_amount, outstanding, status',
-      )
-      .in('status', ['pending', 'partial'])
-      .gte('due_on', today)
-      .order('due_on', { ascending: true })
-      .limit(4),
-    // `loan_schedule` has no status of its own — an installment is outstanding
-    // when it falls in the future and its loan is still running, so the filter
-    // belongs on the loan.
-    supabase
-      .from('loan_schedule')
-      .select('id, due_on, total_due, loans!inner(id, loan_no, status, members!inner(full_name))')
-      .in('loans.status', ['disbursed', 'active'])
-      .gte('due_on', today)
-      .order('due_on', { ascending: true })
-      .limit(4),
-  ]);
+  // Savings no longer appear here. Nothing about a member's savings falls due,
+  // so there is no savings reminder to raise; what is left that genuinely has a
+  // date is the loan schedule.
+  // `loan_schedule` has no status of its own — an installment is outstanding
+  // when it falls in the future and its loan is still running, so the filter
+  // belongs on the loan.
+  const { data: due } = await supabase
+    .from('loan_schedule')
+    .select('id, due_on, total_due, loans!inner(id, loan_no, status, members!inner(full_name))')
+    .in('loans.status', ['disbursed', 'active'])
+    .gte('due_on', today)
+    .order('due_on', { ascending: true })
+    .limit(5);
 
   type Reminder = {
     key: string;
@@ -446,25 +421,6 @@ async function UpcomingReminders() {
   };
 
   const items: Reminder[] = [
-    ...((schedules ?? []) as {
-      schedule_id: string;
-      member_id: string;
-      member_name: string;
-      savings_category_name: string | null;
-      due_on: string;
-      expected_amount: number;
-      outstanding: number;
-    }[]).map((c) => ({
-      key: `schedule-${c.schedule_id}`,
-      icon: 'event_available',
-      tone: 'success' as const,
-      title: `Savings due · ${c.member_name}`,
-      detail: `${formatUGX(c.outstanding)} outstanding${
-        c.savings_category_name ? ` · ${c.savings_category_name}` : ''
-      }`,
-      on: c.due_on,
-      href: `/staff/savings/collect?q=${encodeURIComponent(c.member_name)}&member=${c.member_id}`,
-    })),
     ...((due ?? []) as unknown as {
       id: string;
       due_on: string;
@@ -487,7 +443,7 @@ async function UpcomingReminders() {
     <Panel
       title="Upcoming Reminders"
       icon="notifications_active"
-      action={<ViewAllLink href="/staff/savings/schedules" />}
+      action={<ViewAllLink href="/staff/loans" />}
       padded={false}
     >
       {items.length === 0 ? (
@@ -495,7 +451,7 @@ async function UpcomingReminders() {
           compact
           icon="event_busy"
           title="Nothing scheduled"
-          description="Savings due dates and loan repayment dates appear here as they fall."
+          description="Loan repayment dates appear here as they fall."
         />
       ) : (
         <ul className="divide-y divide-outline-variant/70">
@@ -555,44 +511,37 @@ function relativeDay(iso: string): string {
  * ------------------------------------------------------------------------ */
 
 /**
- * How each savings category is performing this month.
+ * What the membership has saved this month.
  *
- * Replaces the collection-day board the group model needed: members save on
- * their own category's cadence now, so the question a manager arrives with is
- * "are the Silver Savers keeping up?", not "who meets on a Wednesday?".
+ * This panel used to rank the savings tiers by collection rate. There are no
+ * tiers and no rate to collect at: savings are open, so the useful question is
+ * simply how much came in, from how many members, across how many deposits.
  *
- * Every figure comes from `savings_category_analytics()`, which aggregates the
- * schedules actually raised. A category with no members shows zero and says so.
+ * Every figure comes from `savings_dashboard()`, which reads the ledger.
  */
-async function CategoryPerformance() {
-  const analytics = await getCategoryAnalytics();
+async function SavingsThisMonth() {
+  const dash = await getSavingsDashboard();
 
-  if (!analytics || analytics.rows.length === 0) {
+  if (!dash) {
     return (
-      <Panel
-        title="Category performance"
-        icon="workspace_premium"
-        action={<ViewAllLink href="/staff/categories">Manage categories</ViewAllLink>}
-        padded={false}
-      >
+      <Panel title="Savings this month" icon="savings" padded={false}>
         <EmptyState
           compact
-          icon="workspace_premium"
-          title="No savings categories yet"
-          description="Create the categories members save under, and their performance will be tracked here."
+          icon="savings"
+          title="Savings could not be loaded"
+          description="Please check your connection and try again."
         />
       </Panel>
     );
   }
 
-  const { totals } = analytics;
-  const rate = percent(totals.collected, totals.expected);
-
   return (
     <Panel
-      title="Category performance"
-      subtitle={`${formatUGX(totals.collected)} of ${formatUGX(totals.expected)} expected this month`}
-      icon="workspace_premium"
+      title="Savings this month"
+      subtitle={`${formatUGX(dash.collected_savings)} from ${dash.saving_members} ${
+        dash.saving_members === 1 ? 'member' : 'members'
+      }`}
+      icon="savings"
       action={
         <Link
           href="/staff/savings"
@@ -602,58 +551,29 @@ async function CategoryPerformance() {
           Savings dashboard
         </Link>
       }
-      padded={false}
     >
-      <div className="border-outline-variant border-b px-5 py-3.5">
-        <div className="text-label-md text-on-surface-variant mb-2 flex items-center justify-between font-semibold">
-          <span>Overall collection rate</span>
-          <span className="tabular text-on-surface">{rate.toFixed(0)}%</span>
-        </div>
-        <ProgressBar
-          value={rate}
-          tone={rate >= 80 ? 'tertiary' : rate >= 40 ? 'secondary' : 'error'}
-          label="Overall collection rate this month"
-        />
-      </div>
-
-      <ul className="divide-outline-variant/70 divide-y">
-        {analytics.rows.map((c) => {
-          const r = toNumber(c.collection_rate);
-          return (
-            <li key={c.savings_category_id}>
-              <Link
-                href={`/staff/savings/performance?category=${c.savings_category_id}`}
-                className="min-h-touch-target-min hover:bg-surface-container-low flex items-center gap-4 px-5 py-3.5 transition-colors"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="text-body-md text-on-surface block truncate font-semibold">
-                    {c.name}
-                  </span>
-                  <span className="text-label-md text-on-surface-variant block truncate font-normal">
-                    {c.members} {c.members === 1 ? 'member' : 'members'} ·{' '}
-                    {formatUGX(c.collected)} collected
-                    {toNumber(c.outstanding) > 0
-                      ? ` · ${formatUGX(c.outstanding)} outstanding`
-                      : ''}
-                  </span>
-                </span>
-                <span className="hidden w-28 shrink-0 sm:block">
-                  <ProgressBar
-                    value={r}
-                    tone={r >= 80 ? 'tertiary' : r >= 40 ? 'secondary' : 'error'}
-                    label={`${c.name} collection rate`}
-                  />
-                </span>
-                <span className="tabular text-body-md text-on-surface w-12 shrink-0 text-right font-bold">
-                  {r.toFixed(0)}%
-                </span>
-                <Icon name="chevron_right" size={19} className="text-on-surface-variant shrink-0" />
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
+        <PanelFigure label="Saved this month" value={<Money value={dash.collected_savings} />} />
+        <PanelFigure label="Deposits" value={String(dash.deposit_count)} />
+        <PanelFigure label="Members who saved" value={String(dash.saving_members)} />
+        <PanelFigure label="Average deposit" value={<Money value={dash.average_deposit} />} />
+      </dl>
+      <p className="text-label-md font-label-md text-on-surface-variant mt-5 normal-case">
+        Savings are open: a member saves any amount they choose, whenever they choose. A month
+        without a deposit raises no arrears and no penalty.
+      </p>
     </Panel>
+  );
+}
+
+function PanelFigure({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-label-md font-label-md text-on-surface-variant truncate">{label}</dt>
+      <dd className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface tabular mt-0.5 truncate">
+        {value}
+      </dd>
+    </div>
   );
 }
 

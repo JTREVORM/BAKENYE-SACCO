@@ -4,29 +4,25 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { RecordCollectionDialog } from './RecordCollectionDialog';
 import { WaiveScheduleDialog } from './WaiveScheduleDialog';
-import { Avatar, Badge, Icon, Money, ProgressBar } from '@/components/ui/primitives';
+import { Avatar, Badge, Money } from '@/components/ui/primitives';
 import { SavingsStatusBadge, MemberStatusBadge } from '@/components/ui/status';
 import { EmptyState } from '@/components/ui/states';
 import { Button } from '@/components/ui/form';
 import { formatDate, formatPhone, PAYMENT_METHOD_LABELS } from '@/lib/format';
-import { formatUGX, percent, toNumber } from '@/lib/money';
-import {
-  SAVINGS_FREQUENCY_ADVERB,
-  SCHEDULE_HINTS,
-  categoryTier,
-} from '@/lib/categories';
+import { formatUGX, toNumber } from '@/lib/money';
+import { SAVINGS_STATUS_HINTS, depositCount, shareCount } from '@/lib/savings';
 import { clsx } from '@/lib/clsx';
 import type { MemberCollectionView, SavingsScheduleRow } from '@/types/db';
 import { ScrollRow } from '@/components/ui/scroll';
 
 /**
- * One member, ready to be collected from — section 8 of the brief.
+ * One member, ready to be collected from.
  *
- * There is no group sheet to work down any more, so the unit of work is the
- * person at the counter. Everything the cashier has to know before taking their
- * money is on this one panel: their categories, what this cycle expects, what
- * they have already paid, what is outstanding, their balance, when they are
- * next due, and what they have paid before.
+ * Savings are open: the member says what they want to save and the cashier
+ * records it. So this panel no longer asks what is expected, what is
+ * outstanding or when they are next due — none of those exist. It shows what
+ * they hold, what they have saved this month, what they hold in shares, and
+ * what they have saved before.
  *
  * The figures come from `member_collection_view()` in one round trip and are
  * all derived — nothing here adds anything up in the browser, so what the
@@ -44,8 +40,7 @@ export function MemberCollectionPanel({
   const [recording, setRecording] = useState<SavingsScheduleRow | null>(null);
   const [waiving, setWaiving] = useState<SavingsScheduleRow | null>(null);
 
-  const { member, current, share_progress: shares, history, schedules } = view;
-  const tier = categoryTier(member.savings_category_code);
+  const { member, current, share_progress: shares, share_price: sharePrice, history, schedules } = view;
   const active = member.status === 'active';
 
   return (
@@ -69,64 +64,35 @@ export function MemberCollectionPanel({
           </p>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            {member.savings_category_name && member.savings_frequency ? (
-              <Badge tone={tier.tone}>
-                {member.savings_category_name} · {formatUGX(member.savings_expected_amount)}{' '}
-                {SAVINGS_FREQUENCY_ADVERB[member.savings_frequency]}
-              </Badge>
-            ) : (
-              <Badge tone="warning">No savings category</Badge>
-            )}
-            {member.share_category_name ? (
-              <Badge tone="neutral">{member.share_category_name} shares</Badge>
-            ) : (
-              <Badge tone="neutral">No share category</Badge>
-            )}
+            <Badge tone="info">Savings open · any amount</Badge>
+            <Badge tone="neutral">
+              {shareCount(toNumber(member.shares_owned))}
+              {sharePrice ? ` at ${formatUGX(sharePrice)} each` : ''}
+            </Badge>
           </div>
         </div>
 
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <Stat label="Savings balance" value={member.savings_balance} />
+          <Stat label="Total savings" value={member.savings_balance} />
           <Stat
-            label="Outstanding"
-            value={member.savings_outstanding}
-            tone={toNumber(member.savings_outstanding) > 0 ? 'text-error' : undefined}
+            label="Saved this month"
+            value={member.savings_this_month}
+            tone="text-tertiary"
           />
           <Stat label="Share value" value={member.share_value} />
         </dl>
       </section>
 
-      {/* ------------------------------------------------- the current cycle */}
-      {!member.savings_category_id ? (
-        <section className="bg-secondary-fixed text-on-secondary-fixed flex flex-wrap items-center justify-between gap-4 rounded-xl p-5">
-          <div className="flex min-w-0 items-center gap-3">
-            <Icon name="info" size={24} className="shrink-0" />
-            <div className="min-w-0">
-              <p className="text-button-text font-button-text">
-                No savings category has been set for this member
-              </p>
-              <p className="text-body-md font-body-md mt-0.5">
-                Nothing is expected of them and no schedule is raised until one is chosen.
-              </p>
-            </div>
-          </div>
-          <Link
-            href={`/staff/members/${member.id}`}
-            className="bg-white/90 text-on-secondary-fixed h-touch-target-min text-button-text font-button-text inline-flex shrink-0 items-center gap-2 rounded-lg px-4 font-semibold"
-          >
-            <Icon name="workspace_premium" size={20} />
-            Set categories
-          </Link>
-        </section>
-      ) : !current ? (
+      {/* --------------------------------------------------- this month */}
+      {!current ? (
         <section className="bg-surface rounded-xl shadow-neu-sm">
           <EmptyState
-            icon="event_busy"
-            title="No open cycle for this member"
+            icon="savings"
+            title="Nothing saved this month yet"
             description={
               active
-                ? 'Their next cycle will be raised automatically when it opens.'
-                : `Cycles are not raised for a ${member.status} member.`
+                ? 'Record any amount the member wants to save. There is no target and nothing is owed.'
+                : `Savings cannot be recorded for a ${member.status} member.`
             }
           />
         </section>
@@ -134,34 +100,29 @@ export function MemberCollectionPanel({
         <section className="bg-surface shadow-card flex flex-col gap-4 rounded-xl p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-label-md font-label-md text-on-surface-variant">
-                Current cycle
-              </p>
+              <p className="text-label-md font-label-md text-on-surface-variant">This month</p>
               <p className="text-body-lg font-body-lg text-on-surface font-semibold">
                 {current.cycle}
               </p>
               <p className="text-label-md font-label-md text-on-surface-variant normal-case">
-                Due {formatDate(current.due_on)} · {SCHEDULE_HINTS[current.status]}
+                {SAVINGS_STATUS_HINTS[current.status]}
               </p>
             </div>
             <SavingsStatusBadge status={current.status} />
           </div>
 
-          <dl className="border-outline-variant grid grid-cols-3 gap-3 border-y py-4">
-            <Stat label="Expected" value={current.expected_amount} />
-            <Stat label="Paid" value={current.paid_amount} tone="text-tertiary" />
-            <Stat
-              label="Outstanding"
-              value={current.outstanding}
-              tone={toNumber(current.outstanding) > 0 ? 'text-error' : undefined}
-            />
+          <dl className="border-outline-variant grid grid-cols-2 gap-3 border-y py-4 sm:grid-cols-3">
+            <Stat label="Saved this month" value={current.saved_amount} tone="text-tertiary" />
+            <Stat label="Total savings" value={member.savings_balance} />
+            <div className="min-w-0">
+              <dt className="text-label-md font-label-md text-on-surface-variant truncate">
+                Deposits
+              </dt>
+              <dd className="text-body-lg font-body-lg tabular text-on-surface truncate font-bold">
+                {depositCount(toNumber(current.deposits))}
+              </dd>
+            </div>
           </dl>
-
-          <ProgressBar
-            value={percent(current.paid_amount, current.expected_amount)}
-            tone={current.status === 'paid' ? 'tertiary' : 'primary'}
-            label="Cycle progress"
-          />
 
           <div className="flex flex-wrap gap-2">
             <Button
@@ -171,7 +132,7 @@ export function MemberCollectionPanel({
               disabled={!canRecord || !active || current.status === 'waived'}
               onClick={() => setRecording(current)}
             >
-              Record payment
+              Record savings
             </Button>
             {canWaive && toNumber(current.paid_amount) === 0 && current.status !== 'waived' ? (
               <Button
@@ -193,62 +154,51 @@ export function MemberCollectionPanel({
         </section>
       )}
 
-      {/* --------------------------------------------------- share progress */}
-      {shares?.share_category_id && shares.target_shares ? (
+      {/* -------------------------------------------------------- shares */}
+      {shares ? (
         <section className="bg-surface shadow-card flex flex-col gap-3 rounded-xl p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-button-text font-button-text text-on-surface">
-              {shares.share_category_name} share progress
-            </p>
-            {shares.qualified ? (
-              <Badge tone="success" dot>
-                Qualified
-              </Badge>
-            ) : shares.qualification_lapsed ? (
-              <Badge tone="error" dot>
-                Deadline passed
-              </Badge>
-            ) : shares.qualifies_by ? (
-              <Badge tone="neutral">By {formatDate(shares.qualifies_by)}</Badge>
-            ) : null}
-          </div>
-          <ProgressBar
-            value={toNumber(shares.progress_percent)}
-            tone={
-              shares.qualified ? 'tertiary' : shares.qualification_lapsed ? 'error' : 'primary'
-            }
-            label="Share category progress"
-          />
+          <p className="text-button-text font-button-text text-on-surface">Shares</p>
+          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className="min-w-0">
+              <dt className="text-label-md font-label-md text-on-surface-variant truncate">
+                Shares owned
+              </dt>
+              <dd className="text-body-lg font-body-lg tabular text-on-surface truncate font-bold">
+                {toNumber(shares.shares_owned)}
+              </dd>
+            </div>
+            <Stat label="Price per share" value={shares.share_price} />
+            <Stat label="Total share value" value={shares.share_value} tone="text-tertiary" />
+          </dl>
           <p className="text-label-md font-label-md text-on-surface-variant normal-case">
-            {shares.shares_owned} of {shares.target_shares} shares ·{' '}
-            {shares.shares_remaining ?? 0} to go ·{' '}
-            {formatUGX(shares.amount_remaining)} remaining
+            {shares.last_purchase_on
+              ? `Last bought ${formatDate(shares.last_purchase_on)}.`
+              : 'No shares bought yet.'}{' '}
+            A member may buy any number of shares.
           </p>
         </section>
       ) : null}
 
-      {/* -------------------------------------------------------- schedules */}
+      {/* ------------------------------------------------- month by month */}
       <section className="bg-surface shadow-card overflow-hidden rounded-xl">
         <h2 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
-          Savings schedule
+          Savings by month
         </h2>
         {schedules.length === 0 ? (
           <EmptyState
             icon="calendar_month"
-            title="No schedules yet"
-            description="Nothing has been raised for this member."
+            title="No savings yet"
+            description="Months appear here as savings are recorded."
           />
         ) : (
-          <ScrollRow arrows="overlay" label="Schedule, scrolls sideways">
+          <ScrollRow arrows="overlay" label="Savings by month, scrolls sideways">
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
-                  <th className="p-4 font-semibold">Cycle</th>
-                  <th className="p-4 font-semibold">Due</th>
-                  <th className="p-4 text-right font-semibold">Expected</th>
-                  <th className="p-4 text-right font-semibold">Paid</th>
-                  <th className="p-4 text-right font-semibold">Outstanding</th>
-                  <th className="p-4 font-semibold">Status</th>
+                  <th className="p-4 font-semibold">Month</th>
+                  <th className="p-4 text-right font-semibold">Deposits</th>
+                  <th className="p-4 text-right font-semibold">Saved</th>
+                  <th className="p-4 font-semibold">Last deposit</th>
                   {canRecord ? <th className="p-4 text-center font-semibold">Action</th> : null}
                 </tr>
               </thead>
@@ -264,23 +214,14 @@ export function MemberCollectionPanel({
                     )}
                   >
                     <td className="p-4 font-semibold">{s.cycle}</td>
-                    <td className="text-on-surface-variant p-4 whitespace-nowrap">
-                      {formatDate(s.due_on)}
+                    <td className="tabular text-on-surface-variant p-4 text-right">
+                      {toNumber(s.deposits)}
                     </td>
-                    <td className="tabular p-4 text-right">{formatUGX(s.expected_amount)}</td>
                     <td className="tabular text-tertiary p-4 text-right font-semibold">
-                      {formatUGX(s.paid_amount)}
+                      {formatUGX(s.saved_amount)}
                     </td>
-                    <td
-                      className={clsx(
-                        'tabular p-4 text-right',
-                        toNumber(s.outstanding) > 0 && 'text-error font-semibold',
-                      )}
-                    >
-                      {formatUGX(s.outstanding)}
-                    </td>
-                    <td className="p-4">
-                      <SavingsStatusBadge status={s.status} />
+                    <td className="text-on-surface-variant p-4 whitespace-nowrap">
+                      {s.last_paid_on ? formatDate(s.last_paid_on) : '—'}
                     </td>
                     {canRecord ? (
                       <td className="p-4 text-center">
@@ -323,7 +264,7 @@ export function MemberCollectionPanel({
                 >
                   <div className="min-w-0">
                     <p className="text-body-md font-body-md text-on-surface truncate font-semibold">
-                      {t.cycle ?? t.savings_category_name ?? 'Savings'}
+                      {t.cycle ?? 'Savings'}
                     </p>
                     <p className="text-label-md font-label-md text-on-surface-variant truncate normal-case">
                       {formatDate(t.transaction_date)} ·{' '}

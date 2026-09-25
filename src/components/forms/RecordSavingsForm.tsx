@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { recordSavings } from '@/app/actions/financial';
 import { FinancialForm, type FinancialSummaryLine } from './FinancialForm';
 import { MemberPicker, type PickedMember } from './MemberPicker';
-import { Field, MoneyInput, Select, Input, RadioCard } from '@/components/ui/form';
+import { Field, MoneyInput, Select, Input } from '@/components/ui/form';
 import { formatUGX } from '@/lib/money';
 import { formatDate, PAYMENT_METHOD_LABELS, toISODate } from '@/lib/format';
 import type { PaymentMethod } from '@/types/db';
@@ -12,45 +12,35 @@ import type { PaymentMethod } from '@/types/db';
 const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheque'];
 
 /**
- * Record a weekly or monthly savings contribution.
+ * Record a monthly savings contribution.
  *
- * The period is derived from the payment date on the server
- * (`savings_period_bounds`), so a cashier catching up on Monday for last week's
- * collection books it against the right week rather than the current one.
+ * Savings are open: the member says what they want to save and this records it.
+ * There is no target, so the amount field starts empty and nothing here
+ * suggests a figure — a prefilled amount would be the system telling a member
+ * what to save.
+ *
+ * The month is derived from the payment date on the server
+ * (`savings_period_bounds`), so a cashier catching up on the 2nd for last
+ * month's collection books it against the right month rather than this one.
  */
 export function RecordSavingsForm({
   member,
   lockMember = false,
-  defaultKind = 'weekly',
-  weeklyTarget,
-  monthlyTarget,
   doneHref,
 }: {
   member?: PickedMember | null;
   lockMember?: boolean;
-  defaultKind?: 'weekly' | 'monthly';
-  weeklyTarget?: number | null;
-  monthlyTarget?: number | null;
   doneHref?: string;
 }) {
   const [picked, setPicked] = useState<PickedMember | null>(member ?? null);
-  const [kind, setKind] = useState<'weekly' | 'monthly'>(defaultKind);
-  const [amount, setAmount] = useState<number | null>(
-    defaultKind === 'weekly' ? weeklyTarget ?? null : monthlyTarget ?? null,
-  );
+  const [amount, setAmount] = useState<number | null>(null);
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [paidOn, setPaidOn] = useState(toISODate());
-
-  const target = kind === 'weekly' ? weeklyTarget : monthlyTarget;
 
   function summary(): FinancialSummaryLine[] {
     return [
       { label: 'Member', value: picked ? `${picked.full_name} (${picked.member_no})` : '—' },
-      { label: 'Savings type', value: kind === 'weekly' ? 'Weekly savings' : 'Monthly savings' },
       { label: 'Amount', value: formatUGX(amount), emphasis: true },
-      ...(target
-        ? [{ label: 'Period target', value: formatUGX(target) }]
-        : []),
       { label: 'Payment method', value: PAYMENT_METHOD_LABELS[method] },
       { label: 'Payment date', value: formatDate(paidOn) },
     ];
@@ -86,49 +76,16 @@ export function RecordSavingsForm({
           <MemberPicker name="member_id" initial={picked} onSelect={setPicked} />
         )}
 
-        <fieldset>
-          <legend className="text-label-md font-label-md text-on-surface-variant mb-2">
-            Savings type
-          </legend>
-          <div className="flex flex-col gap-2">
-            <RadioCard
-              name="kind"
-              value="weekly"
-              checked={kind === 'weekly'}
-              onChange={() => {
-                setKind('weekly');
-                if (weeklyTarget) setAmount(weeklyTarget);
-              }}
-              title="Weekly savings"
-              description={
-                weeklyTarget ? `Target ${formatUGX(weeklyTarget)} per week` : 'No weekly target set'
-              }
-              icon="savings"
-            />
-            <RadioCard
-              name="kind"
-              value="monthly"
-              checked={kind === 'monthly'}
-              onChange={() => {
-                setKind('monthly');
-                if (monthlyTarget) setAmount(monthlyTarget);
-              }}
-              title="Monthly savings"
-              description={
-                monthlyTarget
-                  ? `Target ${formatUGX(monthlyTarget)} per month`
-                  : 'No monthly target set'
-              }
-              icon="calendar_month"
-            />
-          </div>
-        </fieldset>
+        {/* Savings are monthly. The cadence is no longer a choice at the
+            counter: `weekly` survives only on records raised before the rules
+            changed. */}
+        <input type="hidden" name="kind" value="monthly" />
 
         <Field
           label="Amount received"
           htmlFor="amount"
           required
-          hint={target ? `Period target is ${formatUGX(target)}.` : undefined}
+          hint="Any amount the member chooses. There is no monthly target."
         >
           <MoneyInput
             id="amount"
@@ -159,7 +116,7 @@ export function RecordSavingsForm({
           label="Payment date"
           htmlFor="paid_on"
           required
-          hint="The savings period is worked out from this date."
+          hint="The month these savings are filed under is worked out from this date."
         >
           <Input
             id="paid_on"

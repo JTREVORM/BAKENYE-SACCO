@@ -44,7 +44,9 @@ const MEMBER_ROUTES = ['/', '/profile', '/savings', '/shares', '/loans', '/trans
 const MEMBER_FORBIDDEN = ['/admin', '/staff', '/staff/users', '/staff/roles', '/staff/settings', '/staff/audit', '/staff/members', '/staff/finance'];
 
 await mkdir(OUT, { recursive: true });
-const browser = await chromium.launch();
+const browser = await chromium.launch(
+  process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {},
+);
 let failures = 0;
 const ok = (pass, text) => {
   if (!pass) failures += 1;

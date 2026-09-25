@@ -18,10 +18,8 @@ import {
 } from '@/components/ui/form';
 import { formatDate, formatPhone, normaliseUgandanMobile, toISODate } from '@/lib/format';
 import { formatUGX } from '@/lib/money';
-import { SAVINGS_FREQUENCY_ADVERB, categoryTier, qualificationWindow } from '@/lib/categories';
 import { clsx } from '@/lib/clsx';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
-import type { SavingsCategoryRow, ShareCategoryRow } from '@/types/db';
 import type { CollectionAccount, RegistrationFee } from '@/types/access';
 
 export type RegistrationRules = {
@@ -29,7 +27,6 @@ export type RegistrationRules = {
   requireDateOfBirth: boolean;
   requireGender: boolean;
   requireNextOfKin: boolean;
-  requireCategories: boolean;
   activationRequiresFees: boolean;
   minAge: number;
 };
@@ -47,8 +44,6 @@ type Values = {
   next_of_kin_relation: string;
   next_of_kin_phone: string;
   joined_on: string;
-  share_category_id: string;
-  savings_category_id: string;
   pay_now: 'yes' | 'no';
   channel: 'cash' | 'merchant' | 'bank' | '';
   account_id: string;
@@ -62,7 +57,6 @@ type Values = {
 
 const STEPS = [
   { title: 'Member Information', short: 'Member', icon: 'person' },
-  { title: 'Membership & Categories', short: 'Categories', icon: 'workspace_premium' },
   { title: 'Registration Fees', short: 'Fees', icon: 'receipt' },
   { title: 'Payment', short: 'Payment', icon: 'payments' },
   { title: 'Confirmation', short: 'Confirm', icon: 'task_alt' },
@@ -73,9 +67,8 @@ const FIELD_STEP: Record<string, number> = {
   full_name: 0, phone: 0, email: 0, national_id: 0, date_of_birth: 0, gender: 0, address: 0,
   occupation: 0, next_of_kin_name: 0, next_of_kin_relation: 0, next_of_kin_phone: 0,
   joined_on: 0, override_reason: 0,
-  share_category_id: 1, savings_category_id: 1,
-  fees: 2,
-  account_id: 3, method: 3, reference: 3, paid_on: 3, amount_received: 3,
+  fees: 1,
+  account_id: 2, method: 2, reference: 2, paid_on: 2, amount_received: 2,
 };
 
 const CHANNELS = [
@@ -85,8 +78,13 @@ const CHANNELS = [
 ] as const;
 
 /**
- * Register a member in five steps: who they are, their categories, the fees,
- * the payment, and a last look before anything is saved.
+ * Register a member in four steps: who they are, the fees, the payment, and a
+ * last look before anything is saved.
+ *
+ * There used to be a step between the first two for choosing a share category
+ * and a savings category. Neither exists any more — savings are open and every
+ * share costs the same — so the step is gone rather than left asking a question
+ * with no answers in it.
  *
  * Nothing is written until the final "Register member". Then one call does the
  * whole registration in one database transaction - member, categories, fee
@@ -95,15 +93,11 @@ const CHANNELS = [
  * from Settings: the fees, the category amounts, the share price.
  */
 export function RegistrationWizard({
-  shareCategories,
-  savingsCategories,
   fees,
   accounts,
   rules,
   canOverridePhone,
 }: {
-  shareCategories: ShareCategoryRow[];
-  savingsCategories: SavingsCategoryRow[];
   fees: RegistrationFee[];
   accounts: CollectionAccount[];
   rules: RegistrationRules;
@@ -119,7 +113,6 @@ export function RegistrationWizard({
     full_name: '', phone: '', email: '', national_id: '', date_of_birth: '', gender: '',
     address: '', occupation: '', next_of_kin_name: '', next_of_kin_relation: '',
     next_of_kin_phone: '', joined_on: toISODate(),
-    share_category_id: '', savings_category_id: '',
     pay_now: 'yes', channel: '', account_id: '', bank_method: 'bank_transfer',
     reference: '', paid_on: toISODate(), amount_received: null,
     allow_shared_phone: false, override_reason: '',
@@ -203,11 +196,7 @@ export function RegistrationWizard({
       if (v.joined_on && v.joined_on > toISODate()) e.joined_on = 'The membership date cannot be in the future.';
       if (v.allow_shared_phone && v.override_reason.trim().length < 5) e.override_reason = 'Give a reason for letting two members share this number.';
     }
-    if (s === 1 && rules.requireCategories) {
-      if (!v.share_category_id) e.share_category_id = 'Choose the member’s share category.';
-      if (!v.savings_category_id) e.savings_category_id = 'Choose the member’s savings category.';
-    }
-    if (s === 3 && payNow) {
+    if (s === 2 && payNow) {
       if (!v.channel) e.method = 'Choose how the member paid.';
       else if (!v.account_id) e.account_id = 'No account of this kind is set up. Choose another way, or record the payment later.';
       if ((v.channel === 'merchant' || v.channel === 'bank') && !v.reference.trim()) {
@@ -236,8 +225,6 @@ export function RegistrationWizard({
     setStep((s) => Math.max(s - 1, 0));
   }
 
-  const share = shareCategories.find((c) => c.id === v.share_category_id);
-  const savings = savingsCategories.find((c) => c.id === v.savings_category_id);
   const account = accounts.find((a) => a.id === v.account_id);
   const willBePending = rules.activationRequiresFees && mandatoryTotal > 0 && !payNow;
 
@@ -251,7 +238,7 @@ export function RegistrationWizard({
         {(
           ['full_name', 'phone', 'email', 'national_id', 'date_of_birth', 'gender', 'address', 'occupation',
            'next_of_kin_name', 'next_of_kin_relation', 'next_of_kin_phone', 'joined_on',
-           'share_category_id', 'savings_category_id', 'reference', 'paid_on', 'override_reason'] as const
+           'reference', 'paid_on', 'override_reason'] as const
         ).map((k) => (
           <input key={k} type="hidden" name={k} value={v[k]} />
         ))}
@@ -348,7 +335,7 @@ export function RegistrationWizard({
             </Section>
 
             <Section title="Membership" icon="badge">
-              <Field label="Membership date" htmlFor="joined_on" error={errors.joined_on} hint="Today, unless the member joined earlier. Share category deadlines count from this date.">
+              <Field label="Membership date" htmlFor="joined_on" error={errors.joined_on} hint="Today, unless the member joined earlier.">
                 <Input id="joined_on" type="date" max={toISODate()} value={v.joined_on} onChange={(e) => set('joined_on', e.target.value)} invalid={!!errors.joined_on} />
               </Field>
               <p className="text-body-md text-on-surface-variant">
@@ -358,62 +345,8 @@ export function RegistrationWizard({
           </div>
         ) : null}
 
-        {/* ------------------------------------------------ 2. Categories */}
+        {/* ------------------------------------------------ 2. Fees */}
         {step === 1 ? (
-          <div className="flex flex-col gap-6">
-            <Alert tone="info" title="Two separate choices">
-              The share category is how many shares the member will own. The savings category is how much they save and how often. A member may, for example, hold Gold shares and save at the Diamond rate.
-            </Alert>
-
-            <Section title="Share category" icon="pie_chart" note={rules.requireCategories ? 'Required.' : 'Optional.'} error={errors.share_category_id}>
-              {shareCategories.length === 0 ? (
-                <p className="text-body-md text-on-surface-variant">No share categories are active. A manager can set them up under Categories.</p>
-              ) : (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Share category">
-                  {shareCategories.map((c) => (
-                    <ChoiceCard
-                      key={c.id}
-                      name="share-cat"
-                      checked={v.share_category_id === c.id}
-                      onSelect={() => set('share_category_id', c.id)}
-                      icon={categoryTier(c.code).icon}
-                      title={c.name}
-                      value={c.required_amount !== null ? formatUGX(c.required_amount) : 'Share price not set'}
-                      lines={[
-                        `${c.required_shares} ${c.required_shares === 1 ? 'share' : 'shares'}${c.share_price ? ` × ${formatUGX(c.share_price)}` : ''}`,
-                        qualificationWindow(c.qualification_months),
-                      ]}
-                    />
-                  ))}
-                </div>
-              )}
-            </Section>
-
-            <Section title="Savings category" icon="savings" note={rules.requireCategories ? 'Required.' : 'Optional.'} error={errors.savings_category_id}>
-              {savingsCategories.length === 0 ? (
-                <p className="text-body-md text-on-surface-variant">No savings categories are active. A manager can set them up under Categories.</p>
-              ) : (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Savings category">
-                  {savingsCategories.map((c) => (
-                    <ChoiceCard
-                      key={c.id}
-                      name="savings-cat"
-                      checked={v.savings_category_id === c.id}
-                      onSelect={() => set('savings_category_id', c.id)}
-                      icon={categoryTier(c.code).icon}
-                      title={c.name}
-                      value={formatUGX(c.amount)}
-                      lines={[`Saved ${SAVINGS_FREQUENCY_ADVERB[c.frequency]}`, c.description ?? '']}
-                    />
-                  ))}
-                </div>
-              )}
-            </Section>
-          </div>
-        ) : null}
-
-        {/* ------------------------------------------------ 3. Fees */}
-        {step === 2 ? (
           <Section title="Registration fees" icon="receipt" error={errors.fees}>
             {fees.length === 0 ? (
               <Alert tone="info" title="No registration fees are set up">
@@ -466,7 +399,7 @@ export function RegistrationWizard({
         ) : null}
 
         {/* ------------------------------------------------ 4. Payment */}
-        {step === 3 ? (
+        {step === 2 ? (
           <div className="flex flex-col gap-6">
             {total === 0 ? (
               <Alert tone="info" title="Nothing to pay">
@@ -579,7 +512,7 @@ export function RegistrationWizard({
         ) : null}
 
         {/* ------------------------------------------------ 5. Confirm */}
-        {step === 4 ? (
+        {step === 3 ? (
           <div className="flex flex-col gap-6">
             <Section title="Check before registering" icon="fact_check">
               <dl className="divide-outline-variant/70 divide-y">
@@ -588,8 +521,6 @@ export function RegistrationWizard({
                 {v.email ? <Row label="Email" value={v.email} onEdit={() => setStep(0)} /> : null}
                 {v.national_id ? <Row label="National ID" value={v.national_id.toUpperCase()} onEdit={() => setStep(0)} /> : null}
                 <Row label="Membership date" value={formatDate(v.joined_on)} onEdit={() => setStep(0)} />
-                <Row label="Share category" value={share ? `${share.name} · ${share.required_shares} ${share.required_shares === 1 ? 'share' : 'shares'}` : 'Not chosen'} onEdit={() => setStep(1)} />
-                <Row label="Savings category" value={savings ? `${savings.name} · ${formatUGX(savings.amount)} ${SAVINGS_FREQUENCY_ADVERB[savings.frequency]}` : 'Not chosen'} onEdit={() => setStep(1)} />
               </dl>
             </Section>
 

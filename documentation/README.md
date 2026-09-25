@@ -6,8 +6,8 @@ screenshots they are built from, and the reports that record how they were verif
 ```
 documentation/
 ├── manuals/
-│   ├── BAKENYE_SACCO_MEMBER_USER_MANUAL.pdf      36 pages, for members
-│   └── BAKENYE_SACCO_STAFF_ADMIN_MANUAL.pdf      91 pages, for staff and administrators
+│   ├── BAKENYE_SACCO_MEMBER_USER_MANUAL.pdf      37 pages, for members
+│   └── BAKENYE_SACCO_STAFF_ADMIN_MANUAL.pdf      92 pages, for staff and administrators
 ├── screenshots/
 │   ├── member/    the member portal, captured at phone size (390 × 844)
 │   ├── staff/     the back office, captured per role at 1440 × 900
@@ -24,9 +24,12 @@ documentation/
 
 ## Read these first
 
+* **`reports/BUSINESS_RULES_2026_REPORT.md`** — the approved change to the SACCO's business rules
+  (UGX 20,000 registration, open monthly savings, UGX 10,000 a share) and everything done to carry
+  it out. Read this first: it is why the manuals are at version 2.0.
 * **`reports/BAKENYE_SYSTEM_REMEDIATION_REPORT.md`** — the eight defects that were found and fixed
-  in the application, with the root cause, the fix and the test for each. Read this first: it is why
-  the manuals are at version 1.1.
+  in the application, with the root cause, the fix and the test for each. It is why the manuals
+  reached version 1.1.
 * **`reports/DOCUMENTATION_VERIFICATION_REPORT.md`** — records the seven findings as they were first
   observed, kept unaltered as the record of that verification. All of them have since been fixed.
 * **`reports/PDF_MANUAL_QA_REPORT.md`** — what was checked in the finished PDFs, and the decision

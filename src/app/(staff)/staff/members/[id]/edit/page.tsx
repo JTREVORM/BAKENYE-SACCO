@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getMemberFinancials, getSavingsCategories, getShareCategories } from '@/lib/queries';
+import { getMemberFinancials } from '@/lib/queries';
 import { can } from '@/lib/rbac';
 import { PageTitle } from '@/components/ui/primitives';
 import { EditMemberForm } from './EditMemberForm';
@@ -11,13 +11,7 @@ export const metadata: Metadata = { title: 'Edit Member' };
 export default async function EditMemberPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requirePermission('members.manage');
   const { id } = await params;
-  const mayCategorise = can(user, 'categories.manage');
-
-  const [member, shareCategories, savingsCategories] = await Promise.all([
-    getMemberFinancials(id),
-    mayCategorise ? getShareCategories() : Promise.resolve([]),
-    mayCategorise ? getSavingsCategories() : Promise.resolve([]),
-  ]);
+  const member = await getMemberFinancials(id);
 
   if (!member) notFound();
 
@@ -35,9 +29,6 @@ export default async function EditMemberPage({ params }: { params: Promise<{ id:
       />
       <EditMemberForm
         member={member}
-        shareCategories={shareCategories}
-        savingsCategories={savingsCategories}
-        canCategorise={mayCategorise}
         canOverridePhone={can(user, 'members.phone_override')}
       />
     </div>

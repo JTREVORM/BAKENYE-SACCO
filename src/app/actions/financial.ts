@@ -68,6 +68,13 @@ const buySharesSchema = z.object({
   method: methodSchema,
   purchased_on: isoDate,
   note: z.string().trim().max(500).optional(),
+  /**
+   * The total the form showed the member. It is never what gets charged: the
+   * database multiplies the quantity by its own price and refuses the sale if
+   * the two disagree, so a stale or tampered figure stops the purchase instead
+   * of deciding it.
+   */
+  expected_total: z.coerce.number().positive().optional(),
   idempotency_key: z.string().min(8),
 });
 
@@ -91,6 +98,7 @@ export async function buyShares(
     p_purchased_on: parsed.data.purchased_on,
     p_note: parsed.data.note ?? null,
     p_idempotency_key: parsed.data.idempotency_key,
+    p_expected_total: parsed.data.expected_total ?? null,
   });
 
   if (error) return fail(error);

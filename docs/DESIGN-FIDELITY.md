@@ -15,7 +15,7 @@ The original export is untouched at
 | --- | --- | --- |
 | `member_dashboard_mobile` | [`(member)/page.tsx`](../src/app/(member)/page.tsx) | Verbatim — greeting, royal-blue savings hero with its blurred corner, two-up Shares / Loan Balance, Next Payment strip, 3×2 action grid, transaction stack |
 | `bnd_sacco_mobile_app` | — | Byte-identical duplicate of `member_dashboard_mobile` (same MD5). Not ported twice. |
-| `savings_mobile` | [`(member)/savings`](../src/app/(member)/savings/page.tsx) | Verbatim, except the invented yield rate — see below |
+| `savings_mobile` | [`(member)/savings`](../src/app/(member)/savings/page.tsx) | The Stitch composition, with the invented yield rate and the savings-target cards replaced — see below |
 | `loans_mobile` | [`(member)/loans`](../src/app/(member)/loans/page.tsx) | Verbatim — active-loan card, gold progress bar, Next Payment panel, two actions, apply row, history list |
 | `apply_for_loan_step_1…review` | [`LoanWizard.tsx`](../src/app/(member)/loans/apply/LoanWizard.tsx) | Six exported screens → six steps of one flow. Progress header, radio cards and review layout carried over. |
 | `transaction_receipt_mobile` | [`Receipt.tsx`](../src/components/Receipt.tsx) | Verbatim treatment, extended to carry everything rule 17 requires |
@@ -76,6 +76,12 @@ describes for the staff sidebar.
 anywhere in the brief, and printing an invented rate on a member's balance is a false financial
 promise. That slot now shows the member's real deposits and withdrawals, in the same position with
 the same treatment.
+
+**The savings target cards are gone.** The Stitch design paired a *Monthly Target* tile with a
+progress bar against it. Monthly savings are open: there is no target, so a bar measuring progress
+towards one would be measuring nothing. The bento pair keeps its position and treatment and now
+shows what the member has saved this month and what they hold in shares — two figures that are
+true.
 
 **Dashboard growth pills show real numbers or nothing.** The `+12%` on the stat cards was
 decoration. It now shows an actual month-on-month figure, or is not rendered. An invented growth

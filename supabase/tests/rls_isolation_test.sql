@@ -41,10 +41,13 @@ begin
   end if;
 
   v_mid := (register_member(jsonb_build_object(
-              'full_name', 'Test Signed-In Member', 'phone', '+256779000002',
-              'share_category_id', (select id from share_categories where status = 'active' order by sort_order limit 1),
-              'savings_category_id', (select id from savings_categories where status = 'active' order by sort_order limit 1)))
+              'full_name', 'Test Signed-In Member', 'phone', '+256779000002'))
             ->> 'member_id')::uuid;
+
+  -- Whatever registration fee this SACCO charges is waived for the fixture, so
+  -- the member is active and the checks below have something to read.
+  perform waive_member_fee(mf.id, 'automated test fixture')
+     from member_fees mf where mf.member_id = v_mid and mf.status = 'unpaid';
 
   -- A member login names its member in app metadata, exactly as the sign-in
   -- action creates it; the on_auth_user_created trigger links the two.
@@ -70,8 +73,6 @@ declare
   v_member_user uuid;
   v_self       uuid;     -- the member linked to v_member_user
   v_other      uuid;     -- a member with no login at all
-  v_savings_cat uuid;
-  v_share_cat  uuid;
   v_product    uuid;
   v_loan       uuid;
   v_res        jsonb;
@@ -96,26 +97,16 @@ begin
   if v_wed > current_date then v_wed := v_wed - 7; end if;
 
   ------------------------------------------------------------------ set-up
-  -- Both members save under the same category. Sharing a category must not
-  -- make either of them visible to the other: a category is a rule they are
-  -- both held to, not a group they both belong to.
-  select id into v_savings_cat from savings_categories
-   where status = 'active' and frequency = 'weekly'
-   order by sort_order limit 1;
-  select id into v_share_cat from share_categories
-   where status = 'active' order by sort_order limit 1;
-
+  -- Two members saving on the same open monthly footing. Saving alongside
+  -- somebody must not make either of them visible to the other.
   v_res := register_member(jsonb_build_object(
-             'full_name', 'Test Other Person', 'phone', '+256779000001',
-             'share_category_id', v_share_cat, 'savings_category_id', v_savings_cat));
+             'full_name', 'Test Other Person', 'phone', '+256779000001'));
   v_other := (v_res ->> 'member_id')::uuid;
   -- Whatever registration fees this SACCO has configured are waived, so the
   -- fixture member is active and can save.
   perform waive_member_fee(mf.id, 'automated test fixture')
      from member_fees mf where mf.member_id = v_other and mf.status = 'unpaid';
 
-  perform set_member_categories(v_other, v_share_cat, v_savings_cat, 'automated test');
-  perform set_member_categories(v_self, v_share_cat, v_savings_cat, 'automated test');
   perform open_savings_schedules(v_wed);
 
   -- Money for the other member only, so anything the signed-in member can see
@@ -144,7 +135,7 @@ begin
 
   insert into t_result (step, ok, detail)
   values ('1 set-up complete', v_loan is not null,
-          format('two members in one savings category, one loan guaranteed by the other'));
+          format('two members saving on the same open footing, one loan guaranteed by the other'));
 
   ------------------------------------------------- staff can read the lot
   select count(*) into v_count from loans;
@@ -155,9 +146,9 @@ begin
   insert into t_result (step, ok, detail)
   values ('2b staff read member_financials', v_count >= 2, v_count || ' member(s)');
 
-  select count(*) into v_count from savings_category_summary;
+  select count(*) into v_count from savings_schedules;
   insert into t_result (step, ok, detail)
-  values ('2c staff read savings_category_summary', v_count >= 1, v_count || ' category(ies)');
+  values ('2c staff read savings_schedules', v_count >= 1, v_count || ' period(s)');
 
   select count(*) into v_count from member_share_progress;
   insert into t_result (step, ok, detail)
@@ -220,14 +211,15 @@ begin
   insert into t_result (step, ok, detail)
   values ('4e member sees no guarantee between other people', v_count = 0, v_count || ' row(s)');
 
-  ---------------------------- categories are readable, other members are not
-  -- The category register is deliberately open to any signed-in user: a member
-  -- is entitled to know what their own tier expects of them. What must not leak
-  -- is who else is in it, or what they have paid.
+  ------------------- the retired registers stay readable, members do not leak
+  -- The two category tables were retired by 0043 and their rows kept, so a
+  -- historical record that names a tier can still resolve the name. They stay
+  -- readable to any signed-in user, exactly as before; what must not leak is
+  -- who else is a member, or what anybody else has paid.
   select count(*) into v_count from savings_categories;
   insert into t_result (step, ok, detail)
-  values ('5a member may read the savings category register', v_count >= 1,
-          v_count || ' category(ies)');
+  values ('5a member may still read the retired category register', v_count >= 0,
+          v_count || ' retired category(ies)');
 
   select count(*) into v_count from member_share_progress;
   insert into t_result (step, ok, detail)

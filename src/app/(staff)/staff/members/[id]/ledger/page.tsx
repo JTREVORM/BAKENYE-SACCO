@@ -11,7 +11,6 @@ import { StatementRange } from '@/components/StatementRange';
 import { ExportButtons } from '@/components/ExportButtons';
 import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead';
 import { documentName } from '@/lib/print';
-import { SAVINGS_FREQUENCY_ADVERB } from '@/lib/categories';
 import { formatDate, todayISO, yearStartISO, TXN_LABELS } from '@/lib/format';
 import { formatAmount, formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
@@ -102,9 +101,7 @@ export default async function MemberLedgerPage({
       <div className="print:hidden">
       <PageTitle
         title="Financial ledger"
-        subtitle={`${member.full_name} · ${member.member_no}${
-          member.savings_category_name ? ` · ${member.savings_category_name}` : ''
-        }`}
+        subtitle={`${member.full_name} · ${member.member_no}`}
         action={
           <ExportButtons
             filename={`ledger-${member.member_no}-${from}-to-${to}`}
@@ -121,16 +118,11 @@ export default async function MemberLedgerPage({
         generatedBy={user.fullName}
         meta={[
           { label: 'Period', value: `${formatDate(from)} to ${formatDate(to)}` },
+          { label: 'Total savings', value: formatUGX(member.savings_balance) },
           {
-            label: 'Saves as',
-            value:
-              member.savings_category_name && member.savings_frequency
-                ? `${member.savings_category_name} · ${formatUGX(
-                    member.savings_expected_amount,
-                  )} ${SAVINGS_FREQUENCY_ADVERB[member.savings_frequency]}`
-                : 'No savings category',
+            label: 'Shares',
+            value: `${member.share_count} · ${formatUGX(member.share_value)}`,
           },
-          { label: 'Shares', value: member.share_category_name ?? 'No share category' },
           { label: 'Opening', value: formatUGX(statement.opening_balance) },
           { label: 'Closing', value: formatUGX(closing) },
         ]}

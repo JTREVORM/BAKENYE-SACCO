@@ -2,7 +2,9 @@
 
 > **Superseded in part.** This records an audit carried out while the SACCO still collected through
 > groups. The group register, the group form, the group report and *Today's Collections* have since
-> been removed, and the savings section rebuilt around share and savings categories. The findings
+> been removed, and the savings section rebuilt twice since — first around share and savings
+> categories, and then again when those categories were retired in favour of open monthly savings
+> and one flat share price. The findings
 > below are kept as written — they are a record of work actually done, and every fix they describe
 > lives on in the shared primitives (`ScrollRow`, `.sticky-actions`, the 44px control sizes) that the
 > replacement screens use. The pass count and the route list are stale until the script is re-run

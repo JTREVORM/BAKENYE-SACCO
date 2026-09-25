@@ -118,33 +118,11 @@ begin
       'next_of_kin_name',     'Next of Kin ' || v_i,
       'next_of_kin_phone',    '+25678210' || lpad(v_i::text, 4, '0'),
       'next_of_kin_relation', case when v_i % 2 = 0 then 'Spouse' else 'Sibling' end,
-      'joined_on',            current_date - (v_i * 47),
-      'share_category_id',    (select id from share_categories where status = 'active' order by sort_order limit 1),
-      'savings_category_id',  (select id from savings_categories where status = 'active' order by sort_order limit 1)
+      'joined_on',            current_date - (v_i * 47)
     )) ->> 'member_id')::uuid;
 
     perform waive_member_fee(mf.id, 'Demo data: fee not collected')
        from member_fees mf where mf.member_id = v_id and mf.status = 'unpaid';
-
-    -- Savings plans: a weekly target for everyone, monthly for most.
-    -- Savings targets, backdated to the day the member joined so their older
-    -- cycles carry a real expectation.
-    --
-    -- The application sets a target with set_savings_plan(), which stamps it
-    -- active from today - right for a change made at the counter, wrong for
-    -- seed data that is meant to have existed all along. 0036 withdrew the
-    -- direct INSERT from `authenticated`, so the seed borrows the owner role
-    -- for these two statements and hands it straight back. Nothing else in
-    -- this file writes to a table directly.
-    set local role postgres;
-    insert into savings_plans (member_id, kind, target_amount, active_from)
-    values (v_id, 'weekly', 20000, current_date - (v_i * 47));
-
-    if v_i % 4 <> 0 then
-      insert into savings_plans (member_id, kind, target_amount, active_from)
-      values (v_id, 'monthly', 100000, current_date - (v_i * 47));
-    end if;
-    set local role authenticated;
   end loop;
 end;
 $$;
@@ -160,7 +138,15 @@ declare
 begin
   for m in select id, member_no from members where status = 'active' order by member_no loop
     v_i := v_i + 1;
-    v_qty := 1 + (v_i * 3) % 20;
+    -- Any whole number of shares: there is no tier and no ceiling, so the demo
+    -- register shows a spread from one share to a hundred.
+    v_qty := case v_i % 5
+               when 0 then 1
+               when 1 then 5
+               when 2 then 20
+               when 3 then 47
+               else        100
+             end;
 
     perform buy_shares(
       p_member_id => m.id,
@@ -175,85 +161,64 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- Weekly savings for the last 10 weeks.
+-- Monthly savings for the last ten months.
 --
--- Deliberately imperfect: some members pay in full, some pay part, some miss
--- weeks entirely. A demo where everyone is compliant tells you nothing about
--- whether the arrears reporting works.
+-- Savings are open: a member saves what they choose, when they choose. The
+-- demo data is deliberately uneven - some months carry several deposits, some
+-- carry one, some carry none at all - because that is what open savings look
+-- like, and a month with nothing in it must not read as a debt anywhere in the
+-- system.
 -- ---------------------------------------------------------------------------
 do $$
 declare
   m record;
-  v_week integer;
+  v_month  integer;
   v_paid_on date;
   v_amount numeric;
-  v_i integer := 0;
+  v_i      integer := 0;
 begin
   for m in select id, member_no from members where status = 'active' order by member_no loop
     v_i := v_i + 1;
 
-    for v_week in reverse 10 .. 1 loop
-      v_paid_on := (date_trunc('week', current_date) - (v_week || ' weeks')::interval + interval '3 days')::date;
+    for v_month in reverse 10 .. 1 loop
+      v_paid_on := (date_trunc('month', current_date) - (v_month || ' months')::interval
+                    + interval '9 days')::date;
 
-      -- A repeatable but uneven pattern.
-      v_amount := case (v_i + v_week) % 5
-        when 0 then 0            -- missed
-        when 1 then 10000        -- partial
-        else 20000               -- on target
+      -- A repeatable but uneven pattern, in amounts a member would actually
+      -- choose rather than amounts a tier would have dictated.
+      v_amount := case (v_i + v_month) % 6
+        when 0 then 0        -- a month they did not save
+        when 1 then 5000
+        when 2 then 12000
+        when 3 then 30000
+        when 4 then 73500
+        else        100000
       end;
 
       if v_amount > 0 then
         perform record_savings_payment(
           p_member_id => m.id,
-          p_kind      => 'weekly',
+          p_kind      => 'monthly',
           p_amount    => v_amount,
           p_paid_on   => v_paid_on,
-          p_method    => case when (v_i + v_week) % 3 = 0 then 'mobile_money'::payment_method else 'cash'::payment_method end,
-          p_idempotency_key => 'seed:wk:' || m.member_no || ':' || v_week
+          p_method    => case when (v_i + v_month) % 3 = 0 then 'mobile_money'::payment_method
+                              else 'cash'::payment_method end,
+          p_idempotency_key => 'seed:mo:' || m.member_no || ':' || v_month
         );
-      else
-        -- Open the period anyway so the shortfall is measurable.
-        -- ensure_savings_period() is internal: 0030 §14 revoked it from
-        -- `authenticated`, so this one call runs as the owner.
-        set local role postgres;
-        perform ensure_savings_period(m.id, 'weekly', v_paid_on);
-        set local role authenticated;
+
+        -- Some members save twice in a month. Nothing stops them, and the two
+        -- deposits simply add up.
+        if (v_i + v_month) % 4 = 0 then
+          perform record_savings_payment(
+            p_member_id => m.id,
+            p_kind      => 'monthly',
+            p_amount    => 20000,
+            p_paid_on   => v_paid_on + 11,
+            p_method    => 'cash',
+            p_idempotency_key => 'seed:mo2:' || m.member_no || ':' || v_month
+          );
+        end if;
       end if;
-    end loop;
-  end loop;
-end;
-$$;
-
--- ---------------------------------------------------------------------------
--- Monthly savings for the last 4 months.
--- ---------------------------------------------------------------------------
-do $$
-declare
-  m record;
-  v_month integer;
-  v_paid_on date;
-  v_i integer := 0;
-begin
-  for m in
-    select distinct mem.id, mem.member_no
-      from members mem
-      join savings_plans sp on sp.member_id = mem.id and sp.kind = 'monthly'
-     where mem.status = 'active'
-     order by mem.member_no
-  loop
-    v_i := v_i + 1;
-
-    for v_month in reverse 4 .. 1 loop
-      v_paid_on := (date_trunc('month', current_date) - (v_month || ' months')::interval + interval '9 days')::date;
-
-      perform record_savings_payment(
-        p_member_id => m.id,
-        p_kind      => 'monthly',
-        p_amount    => case when (v_i + v_month) % 4 = 0 then 60000 else 100000 end,
-        p_paid_on   => v_paid_on,
-        p_method    => 'cash',
-        p_idempotency_key => 'seed:mo:' || m.member_no || ':' || v_month
-      );
     end loop;
   end loop;
 end;
@@ -375,7 +340,7 @@ begin
       -- Rejected, so the declined path is visible too.
       perform set_loan_status(v_loan, 'under_review', 'Assessing repayment capacity.');
       perform set_loan_status(v_loan, 'rejected',
-        'Existing weekly savings arrears must be cleared before a new loan can be considered.');
+        'Repayment capacity is not yet demonstrated by the savings record.');
 
     else
       -- Disbursed and being repaid.
@@ -550,7 +515,7 @@ declare
 begin
   select id into v_txn
     from transactions
-   where type = 'weekly_savings' and status = 'posted'
+   where type = 'monthly_savings' and status = 'posted'
    order by created_at
    limit 1;
 

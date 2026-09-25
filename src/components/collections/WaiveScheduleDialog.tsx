@@ -6,7 +6,6 @@ import { waiveSchedule } from '@/app/actions/collections';
 import { Modal } from '@/components/ui/Modal';
 import { Alert } from '@/components/ui/states';
 import { Button, Field, SubmitButton, Textarea } from '@/components/ui/form';
-import { formatUGX } from '@/lib/money';
 import type { ActionResult } from '@/lib/errors';
 import type { SavingsScheduleRow, SavingsStatus } from '@/types/db';
 
@@ -50,7 +49,7 @@ export function WaiveScheduleDialog({
     <Modal
       open={open}
       onClose={onClose}
-      title="Waive this contribution?"
+      title="Waive this month?"
       description={`${row.member_name} · ${row.period_label}`}
     >
       <form action={formAction} noValidate className="flex flex-col gap-5">
@@ -59,9 +58,11 @@ export function WaiveScheduleDialog({
 
         {state && !state.ok ? <Alert tone="error">{state.error}</Alert> : null}
 
-        <Alert tone="warning" title="This writes off an expected amount">
-          {formatUGX(row.expected_amount)} will no longer be counted as owed by{' '}
-          {row.member_name} for {row.period_label}. The schedule stays visible, marked as waived.
+        <Alert tone="warning" title="This closes the month to further savings">
+          {row.period_label} will be marked waived for {row.member_name}, and nothing further can
+          be recorded into it. Savings are open, so nothing is owed for the month either way — a
+          waiver is only for closing a month a manager has decided to settle in writing. The
+          record stays visible for ever.
         </Alert>
 
         <Field

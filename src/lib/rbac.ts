@@ -30,6 +30,11 @@ export type Permission =
   | 'members.manage'
   | 'members.status'
   | 'members.phone_override'
+  // Retired with the categories themselves (0043). The permission rows are
+  // deliberately left in the database so no role's permission set is silently
+  // narrowed; `categories.manage` is still what `savings.waive` checks behind
+  // `can_manage_categories()`. Nothing in the application grants access to a
+  // screen through them any more.
   | 'categories.view'
   | 'categories.manage'
   | 'fees.collect'
@@ -174,11 +179,10 @@ export const STAFF_NAV: readonly NavItem[] = [
     bottomBar: true,
     children: [
       { label: 'Collect Savings', href: '/staff/savings/collect',   icon: 'point_of_sale',  permission: 'savings.view' },
-      { label: 'Schedules',       href: '/staff/savings/schedules', icon: 'calendar_month', permission: 'savings.view' },
-      { label: 'Performance',     href: '/staff/savings/performance', icon: 'assessment',   permission: 'savings.view' },
+      { label: 'Savings Records', href: '/staff/savings/records', icon: 'calendar_month', permission: 'savings.view' },
+      { label: 'Activity',        href: '/staff/savings/performance', icon: 'assessment',   permission: 'savings.view' },
     ],
   },
-  { label: 'Categories',   href: '/staff/categories',   icon: 'workspace_premium',       permission: 'categories.view', bottomBar: true },
   { label: 'Shares',       href: '/staff/shares',       icon: 'pie_chart',               permission: 'shares.view' },
   {
     label: 'Loans',

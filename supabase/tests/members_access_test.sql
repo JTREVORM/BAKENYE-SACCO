@@ -27,8 +27,6 @@ declare
   v_admin     uuid := auth.uid();
   v_mer       uuid;
   v_bank      uuid;
-  v_gold_sav  uuid;
-  v_silver_sh uuid;
   v_member_fee uuid;
   v_reg_fee   uuid;
   v_res       jsonb;
@@ -45,7 +43,6 @@ begin
   -- Rules this suite asserts against, set explicitly.
   perform update_settings(jsonb_build_object(
     'members.activation_requires_fees', true,
-    'members.registration_requires_categories', true,
     'treasury.require_approval', false,
     'treasury.four_eyes', false,
     'treasury.allow_negative_balances', false), 'members test');
@@ -60,9 +57,6 @@ begin
                                       'TEST-MC-M1', '0770000009') ->> 'id')::uuid;
   v_bank := (create_financial_account('bank', 'TEST Bank (members)', null, null, null,
                                       'Test Bank Uganda', 'Kampala', '000999888') ->> 'id')::uuid;
-
-  select id into v_gold_sav  from savings_categories where code = 'GOLD_SAVER' and status = 'active';
-  select id into v_silver_sh from share_categories   where code = 'SILVER' and status = 'active';
 
   -- ---- Fees are configured, not coded --------------------------------------
   v_member_fee := (create_fee(jsonb_build_object(
@@ -85,8 +79,7 @@ begin
   v_total0 := (treasury_summary() -> 'totals' ->> 'total')::numeric;
 
   v_res := register_member(
-    jsonb_build_object('full_name', 'John Bakenye', 'phone', '0700000000',
-                       'savings_category_id', v_gold_sav, 'share_category_id', v_silver_sh),
+    jsonb_build_object('full_name', 'John Bakenye', 'phone', '0700000000'),
     array[v_reg_fee],
     jsonb_build_object('pay_now', true, 'account_id', v_mer, 'reference', 'MOMO-TEST-7001',
                        'amount_received', 25000),
@@ -102,8 +95,8 @@ begin
   insert into t_result (step, ok, detail)
   values ('2b the phone is stored in its one form', v_john.phone = '+256700000000', v_john.phone);
   insert into t_result (step, ok, detail)
-  values ('2c share and savings categories are separate and both set',
-          v_john.savings_category_id = v_gold_sav and v_john.share_category_id = v_silver_sh, null);
+  values ('2c a member registered now carries no savings or share category',
+          v_john.savings_category_id is null and v_john.share_category_id is null, null);
   insert into t_result (step, ok, detail)
   values ('2d paid in full, so the member is active', v_john.status = 'active', v_john.status::text);
   insert into t_result (step, ok, detail)
@@ -140,8 +133,7 @@ begin
 
   -- ---- Duplicates and validation -------------------------------------------
   begin
-    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '+256 700 000 000',
-                                               'savings_category_id', v_gold_sav, 'share_category_id', v_silver_sh),
+    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '+256 700 000 000'),
                             '{}', null, 20000);
     insert into t_result (step, ok, detail) values ('3a the same phone in another format is refused', false, 'accepted');
   exception when others then
@@ -150,8 +142,7 @@ begin
   end;
 
   begin
-    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '0123',
-                                               'savings_category_id', v_gold_sav, 'share_category_id', v_silver_sh),
+    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '0123'),
                             '{}', null, 20000);
     insert into t_result (step, ok, detail) values ('3b an invalid phone is refused', false, 'accepted');
   exception when others then
@@ -159,18 +150,18 @@ begin
     insert into t_result (step, ok, detail) values ('3b an invalid phone is refused', true, v_err);
   end;
 
-  begin
-    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '0700000077'),
-                            '{}', null, 20000);
-    insert into t_result (step, ok, detail) values ('3c a member without categories is refused', false, 'accepted');
-  exception when others then
-    get stacked diagnostics v_err = message_text;
-    insert into t_result (step, ok, detail) values ('3c a member without categories is refused', true, v_err);
-  end;
+  -- No categories are asked for any more, so a member registered without one
+  -- is an ordinary member, not a rejected form.
+  v_res := register_member(jsonb_build_object('full_name', 'Uncategorised Person Test', 'phone', '0700000066'),
+                           '{}', null, 20000);
+  insert into t_result (step, ok, detail)
+  values ('3c a member is registered with no category at all',
+          (v_res ->> 'member_id') is not null
+          and (select savings_category_id from members where id = (v_res ->> 'member_id')::uuid) is null,
+          v_res ->> 'member_no');
 
   begin
-    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '0700000077',
-                                               'savings_category_id', v_gold_sav, 'share_category_id', v_silver_sh),
+    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '0700000077'),
                             '{}', null, 99999);
     insert into t_result (step, ok, detail) values ('3d a total the officer was not shown is refused', false, 'accepted');
   exception when others then
@@ -179,8 +170,7 @@ begin
   end;
 
   begin
-    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '0700000077',
-                                               'savings_category_id', v_gold_sav, 'share_category_id', v_silver_sh),
+    perform register_member(jsonb_build_object('full_name', 'Jane Bakenye', 'phone', '0700000077'),
                             '{}', jsonb_build_object('pay_now', true, 'account_id', v_mer), 20000);
     insert into t_result (step, ok, detail) values ('3e a mobile money payment needs its reference', false, 'accepted');
   exception when others then
@@ -191,8 +181,7 @@ begin
   end;
 
   -- ---- Pay later: pending until the mandatory fee is paid -------------------
-  v_res := register_member(jsonb_build_object('full_name', 'Pending Person Test', 'phone', '0700000088',
-                                              'savings_category_id', v_gold_sav, 'share_category_id', v_silver_sh),
+  v_res := register_member(jsonb_build_object('full_name', 'Pending Person Test', 'phone', '0700000088'),
                            '{}', jsonb_build_object('pay_now', false), 20000);
   v_pending := (v_res ->> 'member_id')::uuid;
   insert into t_result (step, ok, detail)

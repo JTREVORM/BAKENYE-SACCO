@@ -25,22 +25,15 @@ declare
   v_b_user uuid := gen_random_uuid();
   v_c_user uuid := gen_random_uuid();
   v_a uuid; v_b uuid; v_c uuid;
-  v_share uuid := (select id from share_categories where status = 'active' order by sort_order limit 1);
 begin
   v_a := (register_member(jsonb_build_object(
-            'full_name', 'QA Borrower Test', 'phone', '+256779300001',
-            'share_category_id', v_share,
-            'savings_category_id', (select id from savings_categories where code = 'GOLD_SAVER')))
+            'full_name', 'QA Borrower Test', 'phone', '+256779300001'))
           ->> 'member_id')::uuid;
   v_b := (register_member(jsonb_build_object(
-            'full_name', 'QA Guarantor Test', 'phone', '+256779300002',
-            'share_category_id', v_share,
-            'savings_category_id', (select id from savings_categories where code = 'SILVER_SAVER')))
+            'full_name', 'QA Guarantor Test', 'phone', '+256779300002'))
           ->> 'member_id')::uuid;
   v_c := (register_member(jsonb_build_object(
-            'full_name', 'QA Stranger Test', 'phone', '+256779300003',
-            'share_category_id', v_share,
-            'savings_category_id', (select id from savings_categories where code = 'GOLD_SAVER')))
+            'full_name', 'QA Stranger Test', 'phone', '+256779300003'))
           ->> 'member_id')::uuid;
 
   perform waive_member_fee(mf.id, 'automated test fixture')

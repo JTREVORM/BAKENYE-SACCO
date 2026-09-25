@@ -53,35 +53,28 @@ export default async function StaffReportsPage() {
       ],
     },
     {
-      heading: 'Categories & collections',
+      heading: 'Savings',
       reports: [
         {
-          icon: 'workspace_premium',
-          title: 'Category performance',
-          description:
-            'Members, expected, collected and the collection rate for each savings category.',
-          href: '/staff/savings',
-          permission: 'savings.view',
-        },
-        {
           icon: 'assessment',
-          title: 'Savings performance',
-          description: 'Every member’s contribution record over a period, member by member.',
+          title: 'Savings activity',
+          description:
+            'Who saved over a period, how often, and how much. Savings are open — there is no target to measure anyone against.',
           href: '/staff/savings/performance',
           permission: 'savings.view',
         },
         {
           icon: 'calendar_month',
-          title: 'Savings schedules',
-          description: 'Every scheduled contribution — paid, partial, missed or waived.',
-          href: '/staff/savings/schedules',
+          title: 'Savings records',
+          description: 'Every member’s savings, month by month, across the whole membership.',
+          href: '/staff/savings/records',
           permission: 'savings.view',
         },
         {
-          icon: 'warning',
-          title: 'Savings arrears',
-          description: 'Schedules whose due date passed with nothing recorded.',
-          href: '/staff/savings/schedules?status=missed',
+          icon: 'savings',
+          title: 'Savings dashboard',
+          description: 'What came in over a period, from how many members and across how many deposits.',
+          href: '/staff/savings',
           permission: 'savings.view',
         },
       ],
@@ -91,16 +84,9 @@ export default async function StaffReportsPage() {
       reports: [
         {
           icon: 'account_balance_wallet',
-          title: 'Weekly savings performance',
-          description: 'Expected against collected, per member, by week.',
-          href: `/staff/savings?kind=weekly&from=${from}&to=${to}`,
-          permission: 'savings.view',
-        },
-        {
-          icon: 'calendar_month',
-          title: 'Monthly savings performance',
-          description: 'Expected against collected, per member, by month.',
-          href: `/staff/savings?kind=monthly&from=${from}&to=${to}`,
+          title: 'Savings this period',
+          description: 'What members saved between two dates, taken from the ledger.',
+          href: `/staff/savings?from=${from}&to=${to}`,
           permission: 'savings.view',
         },
         {

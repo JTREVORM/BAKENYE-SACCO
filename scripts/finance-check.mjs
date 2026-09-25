@@ -20,7 +20,9 @@ const ROUTES = [
 ];
 
 await mkdir(OUT, { recursive: true });
-const browser = await chromium.launch();
+const browser = await chromium.launch(
+  process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {},
+);
 let failures = 0;
 
 for (const width of (process.argv[3] ? process.argv[3].split(',').map(Number) : [390, 1440])) {

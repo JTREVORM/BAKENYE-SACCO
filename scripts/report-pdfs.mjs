@@ -23,7 +23,7 @@ const DOCS = [
   { path: '/staff/reports/members', name: 'member-register' },
   { path: '/staff/savings', name: 'savings-dashboard' },
   { path: '/staff/savings/performance', name: 'savings-performance' },
-  { path: '/staff/savings/schedules', name: 'savings-schedules' },
+  { path: '/staff/savings/records', name: 'savings-records' },
 ];
 
 const OUT = 'screenshots/pdf';

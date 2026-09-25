@@ -9,7 +9,7 @@ import { SignOutButton } from '@/components/SignOutButton';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX } from '@/lib/money';
-import { SAVINGS_FREQUENCY_ADVERB } from '@/lib/categories';
+import { shareCount } from '@/lib/savings';
 
 export const metadata: Metadata = { title: 'My Profile' };
 
@@ -91,21 +91,15 @@ export default async function ProfilePage() {
           <Item icon="verified_user" label="Status" value={<MemberStatusBadge status={m.status} />} />
           <Item
             icon="pie_chart"
-            label="Share category"
-            value={m.share_category_name ?? 'Not assigned'}
+            label="Shares held"
+            value={`${shareCount(Number(m.shares_owned ?? 0))}${
+              m.share_price ? ` · ${formatUGX(m.share_price)} each` : ''
+            }`}
           />
           <Item
             icon="savings"
-            label="Savings category"
-            value={
-              m.savings_category_name
-                ? `${m.savings_category_name}${
-                    m.savings_expected_amount && m.savings_frequency
-                      ? ` · ${formatUGX(m.savings_expected_amount)} ${SAVINGS_FREQUENCY_ADVERB[m.savings_frequency]}`
-                      : ''
-                  }`
-                : 'Not assigned'
-            }
+            label="Monthly savings"
+            value="Open — save any amount, any time"
           />
         </Card>
 

@@ -24,13 +24,13 @@ export type CollectionResult = {
   transaction_id: string;
   reference: string;
   schedule_id: string;
+  period_id: string;
   member_id: string;
   member_name: string;
-  savings_category: string | null;
   period_label: string;
-  expected: number;
+  /** What the member has saved in this month, after this deposit. */
   paid: number;
-  outstanding: number;
+  period_total: number;
   status: SavingsStatus;
 };
 
@@ -118,17 +118,17 @@ export async function recordCollection(
   const result = data as unknown as CollectionResult;
 
   revalidatePath('/staff/savings/collect');
-  revalidatePath('/staff/savings/schedules');
+  revalidatePath('/staff/savings/records');
   revalidatePath('/staff/savings');
   revalidatePath('/staff');
   if (d.member_id) revalidatePath(`/staff/members/${d.member_id}`);
 
-  const remaining = Number(result.outstanding);
+  // There is no target, so there is nothing to report as still owing. What the
+  // cashier wants confirmed is the amount and the running total for the month.
+  const month = Number(result.period_total);
   return succeed(
     result,
-    remaining > 0
-      ? `Payment recorded for ${result.member_name}. UGX ${remaining.toLocaleString('en-UG')} still outstanding.`
-      : `Payment recorded for ${result.member_name}. Settled in full.`,
+    `Savings recorded for ${result.member_name}. UGX ${month.toLocaleString('en-UG')} saved in ${result.period_label}.`,
   );
 }
 
@@ -174,7 +174,7 @@ export async function waiveSchedule(
   if (error) return fail(error, 'reason');
 
   revalidatePath('/staff/savings/collect');
-  revalidatePath('/staff/savings/schedules');
+  revalidatePath('/staff/savings/records');
   if (parsed.data.member_id) revalidatePath(`/staff/members/${parsed.data.member_id}`);
 
   return succeed(data as { status: SavingsStatus }, 'Schedule waived.');

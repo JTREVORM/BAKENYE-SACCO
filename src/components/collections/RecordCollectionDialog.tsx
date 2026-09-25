@@ -28,7 +28,7 @@ const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheq
 const NEEDS_REFERENCE: PaymentMethod[] = ['mobile_money', 'bank_transfer'];
 
 /**
- * Record one contribution against a member's schedule.
+ * Record one savings deposit for a member.
  *
  * Three steps, same as every other money movement in this application: fill in,
  * confirm the amount and the member, then post. The submit control is disabled
@@ -65,19 +65,19 @@ export function RecordCollectionDialog({
   const [clientError, setClientError] = useState<string | null>(null);
   const [idemKey, setIdemKey] = useState(() => newIdempotencyKey('collect'));
 
-  const outstanding = row ? toNumber(row.outstanding) : 0;
-
-  // Re-arm the dialog whenever it opens on a different member.
+  // Re-arm the dialog whenever it opens on a different member. The amount
+  // starts empty on purpose: savings are open, so the member says what they
+  // want to save and nothing here may suggest a figure to them.
   useEffect(() => {
     if (!open || !row) return;
     setConfirming(false);
     setClientError(null);
-    setAmount(outstanding > 0 ? outstanding : toNumber(row.expected_amount) || null);
+    setAmount(null);
     setMethod('cash');
     setReference('');
     setPaidOn(toISODate());
     setIdemKey(newIdempotencyKey('collect'));
-  }, [open, row, outstanding]);
+  }, [open, row]);
 
   useEffect(() => {
     if (state?.ok) {
@@ -91,9 +91,8 @@ export function RecordCollectionDialog({
 
   if (!row) return null;
 
-  const expected = toNumber(row.expected_amount);
-  const alreadyPaid = toNumber(row.paid_amount);
-  const willOwe = Math.max(expected - alreadyPaid - (amount ?? 0), 0);
+  const savedThisMonth = toNumber(row.saved_amount);
+  const monthAfter = savedThisMonth + (amount ?? 0);
 
   function validate(): string | null {
     if (!amount || amount <= 0) return 'Enter the amount received.';
@@ -108,21 +107,11 @@ export function RecordCollectionDialog({
 
   /* ------------------------------------------------------------------ done */
   if (state?.ok) {
-    const settled = toNumber(state.data.outstanding) === 0;
     return (
-      <Modal open={open} onClose={onClose} title="Payment recorded">
+      <Modal open={open} onClose={onClose} title="Savings recorded">
         <div className="animate-slide-up flex flex-col items-center py-4 text-center">
-          <div
-            className={clsx(
-              'mb-4 flex h-16 w-16 items-center justify-center rounded-full',
-              settled ? 'bg-tertiary-container' : 'bg-secondary-container',
-            )}
-          >
-            <Icon
-              name={settled ? 'check_circle' : 'pending'}
-              size={36}
-              className={settled ? 'text-white' : 'text-on-secondary-container'}
-            />
+          <div className="bg-tertiary-container mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+            <Icon name="check_circle" size={36} className="text-white" />
           </div>
           <p className="text-body-lg font-body-lg text-on-surface font-semibold">
             {state.data.member_name}
@@ -133,14 +122,8 @@ export function RecordCollectionDialog({
 
           <dl className="bg-surface-container-low divide-outline-variant/70 mt-5 w-full divide-y rounded-xl px-4 shadow-neu-sm">
             <Line label="Reference" value={<span className="tabular font-mono">{state.data.reference}</span>} />
-            <Line label="Cycle" value={state.data.period_label} />
-            <Line label="Expected" value={<Money value={state.data.expected} />} />
-            <Line label="Paid so far" value={<Money value={state.data.paid} />} />
-            <Line
-              label="Outstanding"
-              value={<Money value={state.data.outstanding} />}
-              tone={settled ? undefined : 'text-error'}
-            />
+            <Line label="Month" value={state.data.period_label} />
+            <Line label="Saved this month" value={<Money value={state.data.period_total} />} />
           </dl>
 
           <div className="mt-6 flex w-full flex-col gap-3">
@@ -152,7 +135,7 @@ export function RecordCollectionDialog({
               View receipt
             </Link>
             <Button variant="outline" size="lg" onClick={onClose}>
-              Back to the sheet
+              Back to the member
             </Button>
           </div>
         </div>
@@ -165,7 +148,7 @@ export function RecordCollectionDialog({
     <Modal
       open={open}
       onClose={onClose}
-      title={confirming ? 'Confirm this payment' : 'Record payment'}
+      title={confirming ? 'Confirm these savings' : 'Record savings'}
       description={confirming ? undefined : `${row.member_name} · ${row.period_label}`}
     >
       <form action={formAction} noValidate>
@@ -196,8 +179,10 @@ export function RecordCollectionDialog({
                 {row.member_name}
               </p>
               <p className="text-label-md font-label-md text-on-surface-variant tabular truncate normal-case">
-                {row.member_no} · expected {formatUGX(expected)}
-                {alreadyPaid > 0 ? ` · already paid ${formatUGX(alreadyPaid)}` : ''}
+                {row.member_no}
+                {savedThisMonth > 0
+                  ? ` · ${formatUGX(savedThisMonth)} saved so far in ${row.period_label}`
+                  : ` · nothing saved yet in ${row.period_label}`}
               </p>
             </div>
           </div>
@@ -206,11 +191,7 @@ export function RecordCollectionDialog({
             label="Amount received"
             htmlFor="collect-amount"
             required
-            hint={
-              outstanding > 0
-                ? `Outstanding for this cycle is ${formatUGX(outstanding)}.`
-                : 'This cycle is already settled — anything recorded now is extra.'
-            }
+            hint="Any amount the member chooses. There is no monthly target."
           >
             <MoneyInput
               id="collect-amount"
@@ -222,18 +203,6 @@ export function RecordCollectionDialog({
               enterKeyHint="next"
             />
           </Field>
-
-          {outstanding > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              <Chip label={`Full ${formatUGX(outstanding)}`} onClick={() => setAmount(outstanding)} />
-              {outstanding >= 2 ? (
-                <Chip
-                  label={`Half ${formatUGX(Math.round(outstanding / 2))}`}
-                  onClick={() => setAmount(Math.round(outstanding / 2))}
-                />
-              ) : null}
-            </div>
-          ) : null}
 
           <Field label="Payment method" htmlFor="collect-method" required>
             <Select
@@ -308,18 +277,13 @@ export function RecordCollectionDialog({
 
             <dl className="bg-surface divide-outline-variant/70 mb-5 divide-y rounded-xl px-4 shadow-neu-sm">
               <Line label="Member" value={`${row.member_name} (${row.member_no})`} />
-              <Line label="Cycle" value={row.period_label} />
-              <Line label="Expected" value={<Money value={expected} />} />
+              <Line label="Month" value={row.period_label} />
               <Line label="Payment method" value={PAYMENT_METHOD_LABELS[method]} />
               {reference.trim() ? (
                 <Line label="Reference" value={<span className="tabular">{reference.trim()}</span>} />
               ) : null}
               <Line label="Payment date" value={formatDate(paidOn)} />
-              <Line
-                label="Still outstanding after this"
-                value={<Money value={willOwe} />}
-                tone={willOwe > 0 ? 'text-error' : undefined}
-              />
+              <Line label="Saved this month after this" value={<Money value={monthAfter} />} />
             </dl>
 
             <Alert tone="warning">
@@ -341,7 +305,7 @@ export function RecordCollectionDialog({
                 Back
               </Button>
               <SubmitButton size="lg" className="flex-[2]" pendingLabel="Recording…" icon="check">
-                Record payment
+                Record savings
               </SubmitButton>
             </>
           ) : (
@@ -390,17 +354,5 @@ function Line({
         {value}
       </dd>
     </div>
-  );
-}
-
-function Chip({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-label-md font-label-md h-touch-target-min rounded-full px-4 normal-case transition-colors"
-    >
-      {label}
-    </button>
   );
 }

@@ -142,30 +142,30 @@ async function Balances({ memberId }: { memberId: string }) {
         </div>
       </section>
 
-      {/* Next Savings — from the member's own savings category and schedule.
-          A member with no category has nothing expected of them, so no card. */}
-      {m.savings_category_id && m.savings_next_due_on && m.savings_expected_amount ? (
-        <section className="mb-4">
-          <Link
-            href="/savings"
-            className="border-outline-variant bg-surface shadow-card flex items-center justify-between rounded-xl border p-4"
-          >
-            <div className="min-w-0">
-              <h4 className="text-button-text font-button-text text-on-surface flex items-center gap-1.5">
-                <Icon name="savings" size={18} className="text-primary" />
-                Next Savings
-              </h4>
-              <p className="text-body-md font-body-md text-on-surface-variant">
-                {m.savings_category_name} · due {weekdayOrDate(m.savings_next_due_on)}
-              </p>
-            </div>
-            <Money
-              value={m.savings_expected_amount}
-              className="text-headline-lg-mobile font-headline-lg-mobile text-primary shrink-0"
-            />
-          </Link>
-        </section>
-      ) : null}
+      {/* Saved this month — a fact, not a demand. Savings are open, so there
+          is no "next savings" falling due and nothing to chase. */}
+      <section className="mb-4">
+        <Link
+          href="/savings"
+          className="border-outline-variant bg-surface shadow-card flex items-center justify-between rounded-xl border p-4"
+        >
+          <div className="min-w-0">
+            <h4 className="text-button-text font-button-text text-on-surface flex items-center gap-1.5">
+              <Icon name="savings" size={18} className="text-primary" />
+              Saved this month
+            </h4>
+            <p className="text-body-md font-body-md text-on-surface-variant">
+              {Number(m.savings_this_month) > 0
+                ? 'Save any amount, any time — there is no target.'
+                : 'Nothing saved yet this month. Nothing is owed.'}
+            </p>
+          </div>
+          <Money
+            value={m.savings_this_month}
+            className="text-headline-lg-mobile font-headline-lg-mobile text-primary shrink-0"
+          />
+        </Link>
+      </section>
 
       {/* Next Payment — only shown when there is one, rather than a card
           reading "UGX 0" that the member has to interpret. */}
@@ -290,15 +290,6 @@ async function RecentTransactions({ memberId }: { memberId: string }) {
 /* ------------------------------------------------------------------------ */
 
 /** "Friday" within the coming week, otherwise the date. */
-function weekdayOrDate(iso: string): string {
-  const days = daysUntil(iso);
-  if (days === 0) return 'today';
-  if (days === 1) return 'tomorrow';
-  if (days !== null && days > 1 && days < 7) {
-    return new Intl.DateTimeFormat('en-GB', { weekday: 'long' }).format(new Date(`${iso}T12:00:00`));
-  }
-  return formatDate(iso);
-}
 
 /** Why a newly registered member is pending, from their own fee charges. */
 async function PendingNotice({ memberId }: { memberId: string }) {

@@ -24,9 +24,7 @@ declare
   v_mid  uuid;
 begin
   v_mid := (register_member(jsonb_build_object(
-              'full_name', 'Audit Borrower Test', 'phone', '+256779200001',
-              'share_category_id', (select id from share_categories where status = 'active' order by sort_order limit 1),
-              'savings_category_id', (select id from savings_categories where code = 'GOLD_SAVER')))
+              'full_name', 'Audit Borrower Test', 'phone', '+256779200001'))
             ->> 'member_id')::uuid;
 
   insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -68,12 +66,10 @@ begin
           current_setting('TimeZone'));
 
   ------------------------------------------------------------------ fixtures
-  v_b := (register_member(jsonb_build_object('full_name', 'Audit Guarantor Test', 'phone', '+256779200002',
-            'share_category_id', (select id from share_categories where status = 'active' order by sort_order limit 1),
-            'savings_category_id', (select id from savings_categories where code = 'SILVER_SAVER'))) ->> 'member_id')::uuid;
-  v_c := (register_member(jsonb_build_object('full_name', 'Audit Saver Test', 'phone', '+256779200003',
-            'share_category_id', (select id from share_categories where status = 'active' order by sort_order limit 1),
-            'savings_category_id', (select id from savings_categories where code = 'GOLD_SAVER'))) ->> 'member_id')::uuid;
+  v_b := (register_member(jsonb_build_object('full_name', 'Audit Guarantor Test', 'phone', '+256779200002'))
+          ->> 'member_id')::uuid;
+  v_c := (register_member(jsonb_build_object('full_name', 'Audit Saver Test', 'phone', '+256779200003'))
+          ->> 'member_id')::uuid;
   perform waive_member_fee(mf.id, 'automated test fixture')
      from member_fees mf where mf.member_id in (v_a, v_b, v_c) and mf.status = 'unpaid';
 
@@ -95,34 +91,38 @@ begin
   insert into t_result (step, ok, detail) values ('2b a withdrawal that keeps the minimum goes through', v_res ? 'reference', v_res ->> 'reference');
   perform update_settings(jsonb_build_object('members.min_savings_balance', 0), 'automated test');
 
-  ------------------------------------------------------------ part payments
-  perform update_settings(jsonb_build_object('savings.allow_partial_payment', false), 'automated test');
+  -------------------------------------------------- open monthly savings
+  --
+  -- Since 0043 there is no monthly target, so there is no such thing as a
+  -- part payment: any positive amount is a saving in its own right, and
+  -- several in one month simply add up.
   perform open_savings_schedules(current_date);
+  perform record_savings_payment(v_c, 'monthly', 10000, current_date, 'cash', 'test:audit:part1');
   select id into v_sched from savings_periods
-   where member_id = v_c and status in ('pending', 'partial') order by period_start desc limit 1;
-  begin
-    perform record_scheduled_savings(v_sched, 10000, current_date, 'cash', null, null, 'test:audit:part1');
-    insert into t_result (step, ok, detail) values ('3a with part payments off, a part payment is refused', false, 'accepted');
-  exception when others then
-    insert into t_result (step, ok, detail) values ('3a with part payments off, a part payment is refused', sqlerrm ilike '%part payments are switched off%', sqlerrm);
-  end;
-  v_res := record_scheduled_savings(v_sched, (select expected_amount from savings_periods where id = v_sched),
-                                    current_date, 'cash', null, null, 'test:audit:full1');
+   where member_id = v_c and kind = 'monthly'
+     and period_start = date_trunc('month', current_date)::date;
+  perform record_scheduled_savings(v_sched, 63500, current_date, 'cash', null, null, 'test:audit:part2');
   insert into t_result (step, ok, detail)
-  values ('3b a payment in full is accepted', (select status from savings_periods where id = v_sched) = 'paid',
+  values ('3a two deposits in one month add up, and neither is a part payment',
+          (select paid_amount from savings_periods where id = v_sched) = 73500,
+          (select paid_amount::text from savings_periods where id = v_sched));
+  insert into t_result (step, ok, detail)
+  values ('3b a month with savings in it expects nothing and owes nothing',
+          (select expected_amount from savings_periods where id = v_sched) = 0
+          and (select status from savings_periods where id = v_sched) = 'paid',
           (select status::text from savings_periods where id = v_sched));
-  perform update_settings(jsonb_build_object('savings.allow_partial_payment', true), 'automated test');
 
-  ------------------------------------------------------------- savings plan
-  perform set_savings_plan(v_a, 'monthly', 120000, null);
-  perform set_savings_plan(v_a, 'monthly', 150000, null);
-  select count(*) into v_n from savings_plans where member_id = v_a and kind = 'monthly' and active_to is null;
+  ------------------------------------------------- savings targets are gone
+  begin
+    perform set_savings_plan(v_a, 'monthly', 150000, null);
+    insert into t_result (step, ok, detail) values ('4a a savings target cannot be set', false, 'accepted');
+  exception when others then
+    insert into t_result (step, ok, detail)
+    values ('4a a savings target cannot be set', sqlerrm ilike '%no savings target%', sqlerrm);
+  end;
+  select count(*) into v_n from savings_plans where member_id = v_a;
   insert into t_result (step, ok, detail)
-  values ('4a two plan changes on one day leave one plan in force', v_n = 1
-          and (select target_amount from savings_plans where member_id = v_a and kind = 'monthly' and active_to is null) = 150000,
-          v_n || ' open plan(s)');
-  select count(*) into v_n from audit_logs where action = 'savings.plan_set' and record_id = v_a::text;
-  insert into t_result (step, ok, detail) values ('4b plan changes are audited', v_n = 2, v_n || ' entries');
+  values ('4b no plan was written', v_n = 0, v_n || ' plan(s)');
 
   ---------------------------------------------------------- loan decisions
   v_res := save_loan_product(null, jsonb_build_object(

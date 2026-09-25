@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getShareCategories, getShareProgress, getShareUnitPrice } from '@/lib/queries';
+import { getShareUnitPrice } from '@/lib/queries';
 import { getPickedMember } from '@/lib/picked-member';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
 import { Icon, PageTitle } from '@/components/ui/primitives';
+import { formatUGX } from '@/lib/money';
 import { ErrorState } from '@/components/ui/states';
 import { BuySharesForm } from '@/components/forms/BuySharesForm';
 
@@ -27,10 +28,9 @@ export default async function SellSharesPage({
   const user = await requirePermission('shares.sell');
   const sp = await searchParams;
 
-  const [member, unitPrice, categories] = await Promise.all([
+  const [member, unitPrice] = await Promise.all([
     getPickedMember(sp.member),
     getShareUnitPrice(),
-    getShareCategories(),
   ]);
 
   if (unitPrice === null) {
@@ -57,33 +57,26 @@ export default async function SellSharesPage({
   }
 
   let currentShares: number | undefined;
-  let target: { name: string; remaining: number } | null = null;
 
   if (member) {
     const supabase = await createClient();
-    const [{ data }, progress] = await Promise.all([
-      supabase.from('member_shares').select('share_count').eq('member_id', member.id).maybeSingle(),
-      getShareProgress(member.id),
-    ]);
+    const { data } = await supabase
+      .from('member_shares')
+      .select('share_count')
+      .eq('member_id', member.id)
+      .maybeSingle();
     currentShares = Number(data?.share_count ?? 0);
-
-    if (progress?.share_category_name && (progress.shares_remaining ?? 0) > 0) {
-      target = { name: progress.share_category_name, remaining: progress.shares_remaining ?? 0 };
-    }
   }
 
-  // Quick picks: one share, plus each category's own target, so buying the
-  // whole Gold or Diamond block is a single tap — and read from the categories,
-  // so a fourth tier appears here without anybody editing this file.
-  const quickPicks = Array.from(
-    new Set([1, 5, 10, ...categories.map((c) => c.required_shares)]),
-  ).sort((a, b) => a - b);
+  // Convenience taps, not limits. There is no share category and no ceiling:
+  // a member may buy any whole number of shares they choose.
+  const quickPicks = [1, 5, 10, 20, 50, 100];
 
   return (
     <div className="mx-auto max-w-xl">
       <PageTitle
         title="Record Share Purchase"
-        subtitle="Shares are bought in whole units at the SACCO's share price."
+        subtitle={`Any whole number of shares, at the SACCO's price of ${formatUGX(unitPrice)} each.`}
       />
       <BuySharesForm
         member={member}
@@ -91,7 +84,6 @@ export default async function SellSharesPage({
         unitPrice={unitPrice}
         currentShares={currentShares}
         quickPicks={quickPicks}
-        target={target}
         doneHref={member ? `/staff/members/${member.id}` : '/staff/shares'}
       />
     </div>

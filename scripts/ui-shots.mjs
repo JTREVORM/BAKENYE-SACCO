@@ -29,11 +29,10 @@ const VIEWPORTS = [
 const ROUTES = [
   { path: '/staff', name: 'dashboard' },
   { path: '/staff/members', name: 'members' },
-  { path: '/staff/categories', name: 'categories' },
   { path: '/staff/savings', name: 'savings' },
   { path: '/staff/savings/collect', name: 'savings-collect' },
   { path: '/staff/savings/performance', name: 'savings-performance' },
-  { path: '/staff/savings/schedules', name: 'savings-schedules' },
+  { path: '/staff/savings/records', name: 'savings-records' },
   { path: '/staff/shares', name: 'shares' },
   { path: '/staff/loans', name: 'loans' },
   { path: '/staff/transactions', name: 'transactions' },

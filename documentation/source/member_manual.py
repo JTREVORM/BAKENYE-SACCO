@@ -27,18 +27,23 @@ FRONT = f'''
     ['Intended audience', 'Registered members of Bakenye Unity and Development SACCO'],
     ['Purpose', 'To show members how to sign in to the SACCO system and read their own savings, '
                 'shares, loan and transaction records safely and correctly.'],
-    ['Applies to', 'The version of the SACCO system verified on 24 September 2026.'],
+    ['Applies to', 'The version of the SACCO system carrying the 2026 business-rule change, '
+                   'verified on 25 September 2026.'],
     ['Prepared by', 'Documentation review of the live application'],
 ], cls='docctl')}
 
 <h2>Revision history</h2>
 {table(['Version', 'Date', 'Change', 'By'], [
-    ['1.0', DATE, 'First issue. Every screen and step in this guide was checked against the working '
-                  'system before publication.', 'Documentation review'],
-    ['1.1', DATE, 'Reissued after corrections to the system. My Guarantees now names the borrower, '
-                  'so the warning that it could not has been removed and the screen '
-                  're-photographed; the savings screens now list only the cycles your category '
-                  'collects.', 'Documentation review'],
+    ['1.0', '24 September 2026', 'First issue. Every screen and step in this guide was checked '
+                  'against the working system before publication.', 'Documentation review'],
+    ['1.1', '24 September 2026', 'Reissued after corrections to the system. My Guarantees now names '
+                  'the borrower, so the warning that it could not has been removed and the screen '
+                  're-photographed.', 'Documentation review'],
+    ['2.0', DATE, 'Reissued for the 2026 business-rule change. Joining costs UGX 20,000. Monthly '
+                  'savings are open: you save any amount you choose, there is no target, no saver '
+                  'category, and a month you do not save in is not owed. One share costs '
+                  'UGX 10,000 and you may buy as many as you like. The savings, shares and profile '
+                  'screens were rewritten and re-photographed.', 'Documentation review'],
 ])}
 
 <h2>About this guide</h2>
@@ -95,7 +100,7 @@ speak to SACCO staff.</p>
 <h2>What you can and cannot do</h2>
 {table(['You can', 'You cannot'], [
     ['See your savings balance and history', 'Record a payment yourself'],
-    ['See your shares and how close you are to your share category', 'Buy shares inside the app'],
+    ['See the shares you own and what they are worth', 'Buy shares inside the app'],
     ['See your loan, its balance and its repayment schedule', 'Change your own name, phone number or member number'],
     ['Apply for a loan, if the SACCO has this switched on for members', 'Approve or disburse a loan'],
     ['Read and print your statement', 'See another member&rsquo;s records'],
@@ -244,8 +249,8 @@ members ask most often, in the order they ask them.</p>
     ['<strong>Shares</strong>', 'The value of the shares you own, and how many shares that is.'],
     ['<strong>Loan Balance</strong>', 'What is still owed on your loan, including interest. It is '
      'shown in red because it is money you owe. If you have no loan, this shows zero.'],
-    ['<strong>Next Savings</strong>', 'Your savings category, how much it expects and the date it '
-     'is next due.'],
+    ['<strong>Saved this month</strong>', 'What you have saved since the first of the month. '
+     'Savings are open, so there is no target and nothing is owed.'],
     ['<strong>Next Payment</strong>', 'The next loan installment: how much, and the date it falls due.'],
     ['<strong>Quick Actions</strong>', 'Shortcuts to the screens you use most.'],
     ['<strong>Recent activity</strong>', 'The last few payments recorded on your account.'],
@@ -255,7 +260,7 @@ members ask most often, in the order they ask them.</p>
 <p>The five tabs along the bottom of the screen are the whole of the member portal:</p>
 {table(['Tab', 'What it opens'], [
     ['<strong>Home</strong>', 'This dashboard.'],
-    ['<strong>Savings</strong>', 'Your savings balance, target and history.'],
+    ['<strong>Savings</strong>', 'Your savings balance, what you saved this month, and your history.'],
     ['<strong>Loans</strong>', 'Your loans, their balances and repayment history.'],
     ['<strong>Transactions</strong>', 'Every payment recorded against your account.'],
     ['<strong>More</strong>', 'Shares, statements, reports, guarantees, notifications, your profile and Log Out.'],
@@ -276,7 +281,6 @@ you can change only your password.</p>
 <ul>
   <li>Your name, member number, membership date and status.</li>
   <li>Your savings and shares totals, and your loan balance.</li>
-  <li>Your share category and savings category.</li>
   <li>Your telephone number and, if the SACCO holds one, your email address.</li>
 </ul>
 
@@ -287,7 +291,6 @@ you can change only your password.</p>
     ['Telephone number', 'SACCO staff, at the office.'],
     ['Member number', 'Nobody. It is issued once and never changes.'],
     ['Membership date', 'SACCO staff, and only to correct an error.'],
-    ['Share or savings category', 'SACCO staff, on your request.'],
     ['Membership status', 'SACCO management.'],
 ])}
 
@@ -309,37 +312,39 @@ you can change only your password.</p>
 ''')
 
 sec('Your savings', f'''
-<p class="lead">The Savings tab shows what you have saved, what your category expects of you, and
+<p class="lead">The Savings tab shows what you have saved, what you have saved this month, and
 every payment the SACCO has recorded.</p>
+
+<p><strong>Monthly savings are open.</strong> You save any amount you choose, as often as you like.
+There is no monthly target, no saver category, and no penalty for a month in which you save
+nothing. A month you skip is simply a month you did not save — it is never recorded as a debt.</p>
 
 {shot('member/mf-02-savings.png', 'The Savings screen.')}
 
 <h2>Reading the screen</h2>
 {table(['On the screen', 'What it means'], [
     ['<strong>Total Savings</strong>', 'Your savings balance today.'],
-    ['<strong>Savings category</strong>', 'The savings tier you were placed in — for example '
-     '<em>Diamond Saver, UGX 100,000 every month</em> — and the date your next payment is due.'],
-    ['<strong>Still owed</strong>', 'What is outstanding against your category so far. If this is '
-     'zero, you are up to date.'],
-    ['<strong>The week or month card</strong>', 'The current cycle: what was expected, what you '
-     'have paid, and what is left to pay.'],
-    ['<strong>Share progress</strong>', 'How far you are towards the shares your share category '
-     'requires, and by when.'],
-    ['<strong>Recent Cycles</strong>', 'Previous weeks or months, each marked paid, part paid, '
-     'pending or missed.'],
+    ['<strong>Save any amount, any time</strong>', 'A reminder of the rule: there is no monthly '
+     'target, and a month you do not save is not owed.'],
+    ['<strong>This month</strong>', 'What you have saved since the first of the month, and how '
+     'many separate deposits that was.'],
+    ['<strong>Shares</strong>', 'How many shares you own, what one costs today, and what your '
+     'holding is worth.'],
+    ['<strong>Savings by Month</strong>', 'Each month you have saved in, with the total for that '
+     'month and the date of your last deposit that month.'],
 ])}
 
-{note('You only see the cycles your category actually collects',
-      'A monthly saver has no weekly expectation, so no weekly cycle is listed for them, and a '
-      'weekly saver sees no monthly one. If your savings category collects on both, you will see '
-      'both. Nothing is hidden from you: a cycle that is not listed is one you owe nothing on.')}
+{note('A month with nothing in it is not a debt',
+      'Months you did not save in are simply not listed. Nothing is owed for them, no arrears are '
+      'raised and no penalty is charged. This is the SACCO&rsquo;s rule, not a gap in the '
+      'screen.')}
 
 <h2>How to pay</h2>
 <p>Press <strong>Save Money</strong>. This screen does <strong>not</strong> take a payment. It tells
 you how to pay and gives you the <strong>payment reference</strong> to quote so the cashier can
 match your money to your account.</p>
 
-{shot('member/mf-03-savings-deposit-guide.png', 'The Save Money screen: how much is outstanding, your payment reference, and how to pay.')}
+{shot('member/mf-03-savings-deposit-guide.png', 'The Save Money screen: your balance, what you have saved this month, your payment reference, and how to pay.')}
 
 {table(['Step', 'What to do'], [
     ['1', 'Note the <strong>payment reference</strong> shown on the screen (for example '
@@ -372,24 +377,25 @@ savings.</p>
 
 <h2>Reading the screen</h2>
 {table(['On the screen', 'What it means'], [
-    ['<strong>Share value</strong>', 'What the shares you hold are worth, at the SACCO&rsquo;s share price.'],
+    ['<strong>Share Capital</strong>', 'What the shares you hold are worth.'],
     ['<strong>Shares held</strong>', 'How many whole shares you own. Shares are bought in whole units.'],
-    ['<strong>Share category</strong>', 'The tier you were placed in and the number of shares it requires.'],
-    ['<strong>Progress</strong>', 'How many shares you still need, what that would cost, and the '
-     'date by which your category expects them.'],
+    ['<strong>Price per share</strong>', 'What one share costs today &mdash; currently '
+     '<strong>UGX 10,000</strong>.'],
     ['<strong>Purchase history</strong>', 'Every share purchase recorded for you, with its date, '
      'number of shares and reference.'],
 ])}
 
-{note('"Deadline passed"',
-      'Some share categories expect the shares to be bought within a set time of joining. If that '
-      'date has gone by and you have not reached the number, the screen says so. Speak to SACCO '
-      'staff — what happens next is a matter for SACCO management, not something the system decides.')}
+{note('One price, any number of shares',
+      'Every share costs the same: UGX 10,000. There are no share categories, no required number '
+      'and no deadline. You may buy one share or a hundred, whenever you choose. One share is '
+      'UGX 10,000, five are UGX 50,000, twenty are UGX 200,000 and a hundred are UGX 1,000,000.')}
 
 <h2>Buying shares</h2>
 <p><strong>Buy Shares</strong> works exactly like <em>Save Money</em>: it shows the current share
-price, what your remaining shares would cost, and the reference to quote. It does not take the
-payment. You pay, and a member of staff records the purchase.</p>
+price, what different numbers of shares would cost, and the reference to quote. It does not take the
+payment. You pay, and a member of staff records the purchase. The SACCO&rsquo;s own system works out
+the total from the number of shares and its own price, so the amount you are charged is never taken
+from a figure typed into a form.</p>
 ''')
 
 sec('Your loans', f'''
@@ -633,8 +639,8 @@ sec('Common problems and what to do', f'''
      'office with your National ID.'],
     ['My name or phone number is wrong.', 'The SACCO record needs correcting.',
      'Visit the office with your National ID. Members cannot change these themselves.'],
-    ['I want to change my savings or share category.', 'This is a SACCO decision.',
-     'Ask at the office. Staff will change it if it is agreed.'],
+    ['I want to save a different amount each month.', 'You already may — savings are open.',
+     'Save whatever suits you, whenever you like. There is nothing to arrange and no target to change.'],
 ])}
 ''')
 
@@ -649,6 +655,23 @@ password, and the system will ask you to choose your own the first time you use 
 
 <h3>How do I check my savings?</h3>
 <p>Tap the <strong>Savings</strong> tab.</p>
+
+<h3>How much do I have to save each month?</h3>
+<p>Whatever you choose. Monthly savings are open: there is no target, no saver category and no
+minimum you are held to. Save UGX 5,000 one month and UGX 73,500 the next if that is what suits you,
+and save more than once in a month if you wish &mdash; the deposits simply add up.</p>
+
+<h3>What happens if I save nothing in a month?</h3>
+<p>Nothing. A month you do not save in is not a debt. No arrears are raised against you, no overdue
+amount appears anywhere and no penalty is charged.</p>
+
+<h3>What does a share cost, and how many may I buy?</h3>
+<p>One share costs <strong>UGX 10,000</strong>, and you may buy any whole number of them &mdash;
+there is no category and no limit. Five shares are UGX 50,000, twenty are UGX 200,000, a hundred are
+UGX 1,000,000.</p>
+
+<h3>What does it cost to join?</h3>
+<p>The registration fee is <strong>UGX 20,000</strong>, paid once when you join.</p>
 
 <h3>How do I check my loan balance?</h3>
 <p>Tap the <strong>Loans</strong> tab, then the loan. The outstanding balance includes interest.</p>
@@ -705,8 +728,10 @@ record and correct what needs correcting.</p>
     ['<strong>Member number</strong>', 'Your permanent SACCO number, such as BND26006. It never changes.'],
     ['<strong>Reference</strong>', 'The code on a transaction, such as SAV260924133. Quote it when '
      'asking about a payment.'],
-    ['<strong>Savings category</strong>', 'The tier that says how much you save and how often.'],
-    ['<strong>Share category</strong>', 'The tier that says how many shares you should own, and by when.'],
+    ['<strong>Open savings</strong>', 'The SACCO&rsquo;s rule that you save any amount you choose, '
+     'as often as you choose, with no monthly target.'],
+    ['<strong>Share price</strong>', 'What one share costs. It is the same for every member: '
+     'UGX 10,000.'],
     ['<strong>Schedule / cycle</strong>', 'One week or one month of expected savings.'],
     ['<strong>Outstanding</strong>', 'What is still to be paid.'],
     ['<strong>Arrears</strong>', 'Money that was due and has not been paid.'],

@@ -18,18 +18,29 @@ FRONT = f'''
      'loan officers, field officers, accountants, managers and administrators'],
     ['Purpose', 'To set out how authorised staff use the SACCO system to keep accurate member, '
      'savings, share, loan and financial records, and what each role is permitted to do.'],
-    ['Applies to', 'The version of the SACCO system verified on 24 September 2026. Every workflow '
-     'in this manual was performed in a test copy of that version before publication.'],
+    ['Applies to', 'The version of the SACCO system carrying the 2026 business-rule change, '
+     'verified on 25 September 2026. Every workflow in this manual was performed in a test copy '
+     'of that version before publication.'],
     ['Classification', 'Internal. Not for circulation to members or the public.'],
 ], cls='docctl')}
 
 <h2>Revision history</h2>
 {table(['Version', 'Date', 'Change', 'By'], [
-    ['1.0', DATE, 'First issue, following a full review of the working system.', 'Documentation review'],
-    ['1.1', DATE, 'Reissued after the defects found by that review were corrected in the system. '
+    ['1.0', '24 September 2026', 'First issue, following a full review of the working system.',
+     'Documentation review'],
+    ['1.1', '24 September 2026', 'Reissued after the defects found by that review were corrected in the system. '
                   'The savings-reversal and repayment-shortcut warnings and their workarounds were '
                   'removed, the guarantor and savings screens were re-photographed, and the '
                   'troubleshooting section now records the two defects as fixed.',
+     'Documentation review'],
+    ['2.0', DATE, 'Reissued for the 2026 business-rule change. The registration fee is UGX 20,000. '
+                  'Monthly savings are open: there are no savings categories, no monthly target and '
+                  'no arrears, so the savings, collection, reporting and registration sections were '
+                  'rewritten and re-photographed. One share costs UGX 10,000 and a member may buy '
+                  'any number of them: the share categories and their deadlines are gone. The '
+                  'Categories screen has been removed from the system, and with it this '
+                  'manual&rsquo;s section on it. Savings waivers were retired: there is no '
+                  'required amount to forgive, and the months already waived are kept in full.',
      'Documentation review'],
 ])}
 
@@ -135,11 +146,9 @@ live position is always on <strong>Roles &amp; Permissions</strong>.</p>
     ['Edit a member&rsquo;s official record', '●', '●', '●', '—', '—', '—', '—', '—'],
     ['Change a member&rsquo;s status', '●', '●', '●', '—', '—', '—', '—', '—'],
     ['Allow two members to share a phone number', '●', '●', '—', '—', '—', '—', '—', '—'],
-    ['Manage share and savings categories', '●', '●', '●', '—', '—', '—', '—', '—'],
     ['Collect fees', '●', '●', '●', '—', '●', '—', '—', '—'],
     ['Create and edit fees', '●', '●', '●', '—', '—', '—', '—', '—'],
     ['Record savings', '●', '●', '●', '—', '●', '—', '●', '—'],
-    ['Waive a savings schedule', '●', '●', '●', '—', '—', '—', '—', '—'],
     ['View shares', '●', '●', '●', '—', '●', '●', '—', '●'],
     ['Sell shares', '●', '●', '●', '—', '●', '—', '—', '—'],
     ['View loans', '●', '●', '●', '●', '●', '●', '—', '●'],
@@ -262,8 +271,13 @@ balances, their loans and their recent transactions.</p>
 <h2>Registering a new member</h2>
 <p class="who"><strong>Who may do this:</strong> <span class="role">Admin</span>
 <span class="role">Manager</span> <span class="role">Super Admin</span></p>
-<p>Registration is one operation in five steps. <strong>Nothing at all is saved until the last
+<p>Registration is one operation in four steps. <strong>Nothing at all is saved until the last
 step</strong>, so you can go back and correct anything before you finish.</p>
+
+{note('There are no categories to choose',
+      'Monthly savings are open — a member saves any amount they choose — and every share costs the '
+      'same. So registration asks who the member is and what they are paying, and nothing about a '
+      'tier.')}
 
 {step(1, 'Members → Register Member: the member&rsquo;s details', f"""
 {shot('staff/register-01-step1-empty.png', 'Step 1 of the wizard.')}
@@ -276,8 +290,7 @@ step</strong>, so you can go back and correct anything before you finish.</p>
       has set under <em>Settings &rarr; Members</em>.</dd>
   <dt>Address, occupation</dt><dd>Free text.</dd>
   <dt>Next of kin</dt><dd>Name, relationship and phone number.</dd>
-  <dt>Membership date</dt><dd>Today, unless the member joined earlier. <strong>Share category
-      deadlines are counted from this date</strong>, so get it right.</dd>
+  <dt>Membership date</dt><dd>Today, unless the member joined earlier.</dd>
 </dl>
 {shot('staff/register-02-step1-filled.png', 'Step 1 completed.')}
 {note('If the phone number already belongs to a member',
@@ -285,26 +298,16 @@ step</strong>, so you can go back and correct anything before you finish.</p>
       'a shared phone number</em> (Admin or Super Admin) authorises it and records a reason.')}
 """)}
 
-{step(2, 'Categories', f"""
-<p>Choose a <strong>share category</strong> and a <strong>savings category</strong>. The screen shows
-what each one costs and requires, read from the SACCO&rsquo;s own configuration — not from anything
-fixed in the software.</p>
-{shot('staff/register-03-step2-categories.png', 'The categories on offer, with what each requires.')}
-{note('The two categories are independent',
-      'A member may hold Gold shares and save at the Diamond rate. Management can require them to '
-      'match, under Settings &rarr; Categories, but by default they do not have to.')}
-{shot('staff/register-validation-error.png', 'The wizard will not go on until both categories are chosen.')}
-""")}
-
-{step(3, 'Fees', f"""
-<p>The system totals every fee that applies at registration, at the amount in force today.</p>
+{step(2, 'Fees', f"""
+<p>The system totals every fee that applies at registration, at the amount in force today. The
+SACCO&rsquo;s registration fee is <strong>UGX 20,000</strong>.</p>
 {shot('staff/register-05-step3-fees.png', 'The fees due at registration.')}
 {note('Fees are configuration, not code',
       'What appears here comes from <em>Settings &rarr; Fees</em>. If the SACCO has no fees set up, '
       'nothing is charged and the screen says so.')}
 """)}
 
-{step(4, 'Payment', f"""
+{step(3, 'Payment', f"""
 {shot('staff/register-06-step4-payment.png', 'Paying now or later, and how the money came in.')}
 <ul>
   <li><strong>Paying now</strong> — record the payment with the registration.</li>
@@ -322,14 +325,13 @@ fixed in the software.</p>
       'It must equal the fees due. If it does not, the screen says so and will not go on.')}
 """)}
 
-{step(5, 'Confirm, and register', f"""
+{step(4, 'Confirm, and register', f"""
 <p>The last step lists everything you have entered. Read it against the papers in front of you
 before you press <strong>Register member</strong>.</p>
 {shot('staff/register-08-step5-confirm.png', 'The summary shown before anything is saved.')}
 <p><strong>What happens when you press it —</strong> all of this, or none of it:</p>
 <ul>
   <li>the next member number is issued (BND + the year + the sequence);</li>
-  <li>both categories are set;</li>
   <li>every applicable fee is charged at today&rsquo;s amount;</li>
   <li>the payment is posted to the right account;</li>
   <li>a receipt is issued;</li>
@@ -386,23 +388,33 @@ once, a new temporary one is shown once, and the member must replace it at their
 ''')
 
 
-sec('Categories and shares', f'''
-<p class="lead">Categories decide what a member is expected to save and how many shares they should
-own. They are rows the SACCO edits, not figures fixed in the software.</p>
-<p class="who"><strong>Viewing:</strong> every staff role. <strong>Creating and editing:</strong>
-<span class="role">Admin</span> <span class="role">Manager</span> <span class="role">Super Admin</span></p>
+sec('Shares', f'''
+<p class="lead">One share costs the same for every member, and a member may buy any whole number of
+them. There are no share categories, no required number and no deadline.</p>
+<p class="who"><strong>Viewing:</strong> every staff role. <strong>Selling:</strong>
+<span class="role">Cashier</span> <span class="role">Manager</span>
+<span class="role">Admin</span> <span class="role">Super Admin</span></p>
 
-<h2>The Categories screen</h2>
-{shot('admin/walk-categories.png', 'Categories: the share tiers, the savings tiers and the share price.')}
-<p>A <strong>share category</strong> holds how many shares the member should own and, if the SACCO
-sets one, the number of months from joining in which to buy them. A <strong>savings
-category</strong> holds an amount and how often it is collected.</p>
+<h2>The share price</h2>
+<p>The price of one share is <strong>UGX 10,000</strong>. It is a setting, not a figure fixed in the
+software: management changes it under <em>Settings &rarr; Shares</em>, and the change is audited.</p>
 
-{note('There is one share price',
-      'A share category stores only <em>how many shares</em>. What that comes to in shillings is '
-      'worked out from the single share price the SACCO has set. Change the price and every '
-      'category total changes with it — and no purchase already made is affected, because every '
-      'share bought records the price at the moment of sale.')}
+{table(['Shares bought', 'Total'], [
+    ['1', 'UGX 10,000'],
+    ['5', 'UGX 50,000'],
+    ['20', 'UGX 200,000'],
+    ['100', 'UGX 1,000,000'],
+])}
+
+{note('The total is worked out by the system, not typed in',
+      'The screen shows the number of shares multiplied by the price, and the database multiplies '
+      'again when it records the sale. If the two ever disagree — because the price changed while '
+      'the form was open — the sale stops and says so. Nobody can be charged a figure typed into a '
+      'form.')}
+
+{note('Changing the price never restates a sale',
+      'Every share bought records the price at the moment of sale. Change the price today and every '
+      'purchase already made keeps what it actually cost.')}
 
 <h2>Share capital</h2>
 {shot('admin/walk-shares.png', 'The share register: total capital held and every member&rsquo;s standing.')}
@@ -420,16 +432,17 @@ category</strong> holds an amount and how often it is collected.</p>
 you go on.</p>
 """)}
 {step(3, 'Enter the number of shares and how they paid', f"""
-<p>Shares are bought in <strong>whole units</strong>. The screen multiplies by the share price and
-shows the total — you do not calculate anything.</p>
+<p>Shares are bought in <strong>whole units</strong>, and a member may buy as many as they like —
+there is no category and no ceiling. The screen multiplies by the share price and shows the total;
+you do not calculate anything. A fraction, a zero or a negative number is refused.</p>
 {shot('staff/shares-03-filled.png', 'Five shares, paid in cash.')}
 <p>For mobile money or a bank transfer, the confirmation reference is required.</p>
 """)}
 {step(4, 'Review, then record', f"""
 {shot('staff/shares-04-confirm.png', 'The confirmation summary.')}
 {shot('staff/shares-05-result.png', 'The result, with the SHR receipt reference.')}
-<p><strong>Expected result:</strong> a receipt reference beginning <span class="kbd">SHR</span>, the
-member&rsquo;s share value increased, and their progress towards their share category updated.</p>
+<p><strong>Expected result:</strong> a receipt reference beginning <span class="kbd">SHR</span>, and
+the member&rsquo;s share count and share value increased by what they bought.</p>
 """)}
 
 {note('There is no "sell back" or "adjust" for shares',
@@ -440,7 +453,10 @@ member&rsquo;s share value increased, and their progress towards their share cat
 
 sec('Savings: collecting and recording', f'''
 <p class="lead">This is the counter's main job, and the screen is built around it: find the member,
-see what their category expects, record what they actually brought.</p>
+check it is the right one, and record whatever they brought.</p>
+<p><strong>Monthly savings are open.</strong> A member saves any amount they choose, as often as
+they choose. There is no monthly target, nothing is outstanding, and a month a member does not save
+in raises no arrears, no overdue amount and no penalty.</p>
 <p class="who"><strong>Who may record savings:</strong> <span class="role">Cashier</span>
 <span class="role">Field Officer</span> <span class="role">Manager</span>
 <span class="role">Admin</span> <span class="role">Super Admin</span>. Everybody else may look.</p>
@@ -450,18 +466,18 @@ see what their category expects, record what they actually brought.</p>
 """)}
 
 {step(2, 'Find the member', f"""
-<p>Search by member number, name or phone number. The result shows the member, their category and
-what they owe, before you open them.</p>
-{shot('staff/collect-02-search.png', 'A search result showing what the member owes.')}
+<p>Search by member number, name or phone number. The result shows the member, their savings
+balance and what they have saved this month, before you open them.</p>
+{shot('staff/collect-02-search.png', 'A search result showing where the member stands.')}
 """)}
 
 {step(3, 'Check that this is the right member', f"""
-{shot('staff/collect-03-member.png', 'The member panel: category, current cycle, expected, paid and outstanding.')}
+{shot('staff/collect-03-member.png', 'The member panel: total savings, saved this month, shares and history.')}
 <p><strong>Before you take the money, read back to the member:</strong></p>
 <ul>
   <li>their <strong>name</strong> and <strong>member number</strong>;</li>
-  <li>their <strong>savings category</strong> and what it expects;</li>
-  <li>the <strong>outstanding</strong> figure for the current cycle.</li>
+  <li>their <strong>total savings</strong>;</li>
+  <li>what they have <strong>saved this month</strong> so far.</li>
 </ul>
 {note('If the member says any of that is wrong, stop',
       'Do not record anything. Two members with similar names is the commonest way money ends up on '
@@ -471,8 +487,9 @@ what they owe, before you open them.</p>
 {step(4, 'Press Record payment', f"""
 {shot('staff/collect-04-record-dialog.png', 'The Record payment form.')}
 <dl class="fields">
-  <dt>Amount received (required)</dt><dd>What is actually in your hand. The screen shows what is
-      outstanding and offers a full or half shortcut, but <strong>type what you received</strong>.</dd>
+  <dt>Amount received (required)</dt><dd>What is actually in your hand. The field starts empty on
+      purpose: there is no target, so nothing may suggest an amount to the member. Any positive
+      amount is valid — UGX 5,000, UGX 20,000, UGX 73,500.</dd>
   <dt>Payment method (required)</dt><dd>Cash, Mobile Money, Bank Transfer or Cheque.</dd>
   <dt>Transaction reference</dt><dd>Required for mobile money and bank. Type it from the confirmation
       message. The same reference cannot be used twice.</dd>
@@ -483,7 +500,7 @@ what they owe, before you open them.</p>
 """)}
 
 {step(5, 'Enter what was received', f"""
-{shot('staff/collect-05-filled.png', 'UGX 100,000 by mobile money, with the provider reference.')}
+{shot('staff/collect-05-filled.png', 'The amount the member brought, by mobile money, with the provider reference.')}
 {note('Choosing "Mobile Money" records money already received',
       'It does not ask the provider for anything. Type the reference from the confirmation message '
       'in front of you. If you cannot see a confirmation message, do not record the payment.', kind='warn')}
@@ -496,9 +513,9 @@ anything.</p>
 """)}
 
 {step(7, 'Record it', f"""
-{shot('staff/collect-07-result.png', 'The member panel afterwards: the outstanding figure has fallen.')}
+{shot('staff/collect-07-result.png', 'The member panel afterwards: the month&rsquo;s total has risen.')}
 <p><strong>Expected result:</strong> one entry in the ledger with a <span class="kbd">SAV</span>
-reference, the member&rsquo;s schedule recalculated, the money in the right account (mobile money
+reference, the member&rsquo;s month recalculated, the money in the right account (mobile money
 &rarr; Cash at Merchant, cash &rarr; Cash at Hand, bank &rarr; Cash at Bank), and an audit entry in
 your name.</p>
 """)}
@@ -508,27 +525,36 @@ your name.</p>
 <p>It can be printed, saved as a PDF or shown to the member on screen.</p>
 """)}
 
-<h2>Schedules, arrears and waivers</h2>
-{shot('admin/walk-savings-schedules.png', 'Savings schedules: paid, part paid, pending and missed.')}
-<p>A schedule is what a member is <em>expected</em> to bring in a given week or month. It is raised
-before the money is due, so a member who pays nothing produces a <strong>missed</strong> schedule
-that can be counted — rather than no record at all.</p>
-{table(['Status', 'What it means'], [
-    ['<strong>Paid</strong>', 'The full expected amount was received.'],
-    ['<strong>Partial</strong>', 'Something was received, but not all of it.'],
-    ['<strong>Pending</strong>', 'Not yet due, or nothing received yet.'],
-    ['<strong>Missed</strong>', 'The cycle closed with nothing paid.'],
-    ['<strong>Waived</strong>', 'A manager excused this cycle, with a written reason.'],
+<h2>Savings records</h2>
+{shot('admin/walk-savings-records.png', 'Savings records: every member, month by month, with what they saved.')}
+<p>A savings record is one member in one month, holding what they actually saved and how many
+deposits that was. It is a record of what came in &mdash; never a demand for what should have. A
+month a member did not save in is simply a month with nothing in it.</p>
+{table(['Filter', 'What it shows'], [
+    ['<strong>All months</strong>', 'Every month on record for the members matched.'],
+    ['<strong>Months with savings</strong>', 'Months money actually went into.'],
+    ['<strong>Months without</strong>', 'Months nothing was saved in. This is not an arrears list: '
+     'nothing is owed for these months.'],
 ])}
-{note('Waiving a cycle',
-      'Only <span class="role">Manager</span> <span class="role">Admin</span> '
-      '<span class="role">Super Admin</span> may waive, a written reason is required, and a cycle '
-      'that has already had money paid against it cannot be waived at all.')}
+{note('There are no arrears, and nothing is overdue',
+      'Savings are open, so a member can never be behind on them. Nothing on this screen, on the '
+      'dashboard or in any report presents a month without a deposit as a debt, and the nightly '
+      'job no longer marks anything missed.')}
+{note('There are no savings waivers any more',
+      'A waiver forgave an amount the SACCO had asked for. Nothing is asked for, so there is '
+      'nothing to forgive, and the control has been removed. Months waived before the rules '
+      'changed keep that status for ever, stay closed to further deposits, and keep the manager '
+      'and the written reason recorded against them. Waiving an unpaid <em>fee</em> is a different '
+      'thing and is unaffected &mdash; see Section 5.')}
 
-<h2>Savings performance</h2>
-{shot('admin/walk-savings-performance.png', 'Savings performance by category: expected, collected and the collection rate.')}
-<p>Every figure here is a sum over the member schedules and the ledger. A category has no balance of
-its own, so what this screen shows can never disagree with what members see on their own phones.</p>
+<h2>Savings activity</h2>
+{shot('admin/walk-savings-performance.png', 'Savings activity: who saved over the period, how often and how much.')}
+<p>Over any date range: which members saved, how many deposits each made, and how much came in
+altogether. Every figure is a sum over the ledger, so what this screen shows can never disagree with
+what members see on their own phones.</p>
+{note('There is no collection rate any more',
+      'A collection rate measures money received against money expected. Nothing is expected, so '
+      'the report answers the question that is left: who saved, and how much?')}
 ''')
 
 
@@ -951,11 +977,11 @@ roles that may view Finance.</p>
 
 <h2>What is available</h2>
 {table(['Report', 'What it answers', 'Where'], [
-    ['<strong>Member register</strong>', 'Who the members are, their categories and standing.', 'Reports'],
+    ['<strong>Member register</strong>', 'Who the members are and where they stand.', 'Reports'],
     ['<strong>Member statement</strong>', 'One member&rsquo;s savings over a period.', 'Reports'],
     ['<strong>Member financial ledger</strong>', 'Every transaction for one member.', "The member&rsquo;s page"],
-    ['<strong>Savings performance</strong>', 'Expected against collected, by category.', 'Savings'],
-    ['<strong>Savings schedules</strong>', 'Who is paid up and who is behind.', 'Savings'],
+    ['<strong>Savings activity</strong>', 'Who saved over a period, how often and how much.', 'Savings'],
+    ['<strong>Savings records</strong>', 'Every member&rsquo;s savings, month by month.', 'Savings'],
     ['<strong>Share register</strong>', 'Share capital held, by member.', 'Shares'],
     ['<strong>Loan portfolio</strong>', 'Every loan at every stage.', 'Loans'],
     ['<strong>Overdue loans</strong>', 'Loans in arrears.', 'Loans'],
@@ -1084,8 +1110,9 @@ everybody, so they belong to a small number of people.</p>
      'grace periods and late penalties.'],
     ['<strong>Members</strong>', 'Which registration fields are required, the minimum age, and '
      'whether fees must be paid before a member becomes Active.'],
-    ['<strong>Savings</strong>', 'Minimum amounts, and whether part payments are allowed.'],
-    ['<strong>Categories</strong>', 'Whether a member&rsquo;s savings category must match their share category.'],
+    ['<strong>Savings</strong>', 'The smallest deposit the counter will take. Savings are open: '
+     'there is no target to set.'],
+    ['<strong>Shares</strong>', 'The price of one share, and the smallest number a member may hold.'],
     ['<strong>Cash &amp; Bank</strong>', 'Approval rules, the approval threshold, the four-eyes rule, '
      'whether an account may go below zero, and balance alerts.'],
     ['<strong>Notifications</strong>', 'Which events notify members.'],
@@ -1132,10 +1159,13 @@ append-only; nobody can edit or remove an entry.</p>
 why? who approved this expense? who was signed in on Tuesday afternoon?</p>
 
 <h2>Nightly maintenance</h2>
-<p>A scheduled job runs once a night. It opens the day's savings schedules, marks cycles missed
-where nothing was paid, and flags loans that have fallen into default. It is set up when the system
-is installed and is not something staff run.</p>
-{note('If schedules stop appearing, or loans are never flagged overdue',
+<p>A scheduled job runs once a night. It flags loans that have fallen into default. It is set up when
+the system is installed and is not something staff run.</p>
+{note('It no longer touches savings',
+      'The job used to open a savings schedule for every member and mark unpaid ones missed. '
+      'Savings are open, so there is nothing to raise and nothing to mark: a month without a '
+      'deposit is not a debt.')}
+{note('If loans are never flagged overdue',
       'The nightly job may not be running. This is a matter for whoever supports the system, not '
       'something to work around by entering data by hand.', kind='warn')}
 ''')
@@ -1160,9 +1190,9 @@ sec('Role workflows at a glance', f'''
 
 <h2>Field Officer</h2>
 {pair(shot('staff/fo-01-collections.png', 'Collections, as a Field Officer sees it.', in_pair=True),
-      shot('staff/fo-03-schedules.png', 'Schedules — who is behind.', in_pair=True))}
-<p>A Field Officer records savings and reads schedules, members and reports. They cannot sell shares,
-take loan repayments, or open Finance.</p>
+      shot('staff/fo-03-schedules.png', 'Savings records — what each member saved, month by month.', in_pair=True))}
+<p>A Field Officer records savings and reads savings records, members and reports. They cannot sell
+shares, take loan repayments, or open Finance.</p>
 {note('Recording a collection made earlier',
       'Set the <strong>payment date</strong> to the day you actually received the money. Record it '
       'the same day you return, not later.')}
@@ -1387,8 +1417,9 @@ cash.</p>
 <p>Only an Admin or Super Admin, holding <em>Allow a shared phone number</em>, can authorise it, and
 a reason is recorded. In most cases it means one of the numbers is wrong — check first.</p>
 
-<h3>The savings schedules have not appeared this week.</h3>
-<p>The nightly job may not be running. Report it; do not enter schedules by hand.</p>
+<h3>A member has saved nothing for months. Is the system wrong?</h3>
+<p>No. Savings are open: a member saves what they choose, when they choose, and a month without a
+deposit is not a debt. There is nothing to chase and nothing to correct.</p>
 
 <h3>How do I find out who recorded a particular payment?</h3>
 <p>Open the transaction — it names who recorded it — or search the audit log by the reference.</p>
@@ -1415,14 +1446,16 @@ sec('Appendix', f'''
      'it really holds.'],
     ['<strong>Reversal</strong>', 'A correcting entry that cancels an earlier one. Both remain.'],
     ['<strong>Role</strong>', 'A named set of permissions given to a member of staff.'],
-    ['<strong>Savings category</strong>', 'How much a member saves, and how often.'],
-    ['<strong>Schedule / cycle</strong>', 'One week or month of expected savings for one member.'],
-    ['<strong>Share category</strong>', 'How many shares a member should own, and by when.'],
+    ['<strong>Open savings</strong>', 'The rule that a member saves any amount they choose, as '
+     'often as they choose, with no monthly target.'],
+    ['<strong>Savings record</strong>', 'One member in one month, holding what they saved in it. It records what came in; it never says what should have.'],
+    ['<strong>Share price</strong>', 'What one share costs — the same for every member.'],
     ['<strong>Temporary password</strong>', 'A one-time password issued by the office, which the '
      'holder must replace at their first sign-in.'],
     ['<strong>Transfer</strong>', 'Money moved between the SACCO&rsquo;s own accounts. Neither '
      'income nor expense.'],
-    ['<strong>Waiver</strong>', 'A manager excusing a savings cycle, with a written reason.'],
+    ['<strong>Waiver</strong>', 'A manager excusing an unpaid fee, with a written reason. Savings '
+     'waivers were retired with the savings targets; the months already waived are kept.'],
 ])}
 
 <h2>Reference prefixes</h2>
@@ -1444,7 +1477,7 @@ each January. A member number is issued once and can never be changed.</p>
     ['End of each day', 'Cashier', 'Check today&rsquo;s collections on the Cashier desk against your '
      'receipt book.'],
     ['Weekly', 'Loan Officer', 'Work the overdue loans list.'],
-    ['Weekly', 'Manager', 'Review the savings schedules for members falling behind.'],
+    ['Weekly', 'Manager', 'Review the savings activity report to see what members are saving.'],
     ['At least monthly', 'Accountant', 'Reconcile Cash at Merchant, Cash at Bank and Cash at Hand.'],
     ['Monthly', 'Manager', 'Review the income and expenditure account, and the approval queue.'],
     ['Monthly', 'Admin', 'Review the Users list — deactivate anybody who has left.'],

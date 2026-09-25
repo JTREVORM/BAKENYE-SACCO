@@ -31,15 +31,24 @@ export type UserRole = string;
  */
 export type MemberStatus = 'pending' | 'active' | 'inactive' | 'suspended' | 'archived' | 'exited';
 export type SavingsKind = 'weekly' | 'monthly';
+/**
+ * The state of one member's savings month.
+ *
+ * Only `paid` (money went in) and `pending` (none did) are ever set on a new
+ * row. `partial` and `missed` survive on rows raised under the old savings
+ * targets, and `waived` on months a manager closed before 0044 retired
+ * waivers. None of the three is raised again.
+ */
 export type SavingsStatus = 'paid' | 'partial' | 'pending' | 'missed' | 'waived';
 
 /**
- * A share or savings category is either in use or retired. Categories are never
- * deleted: members hold history against them.
+ * A category is either in use or retired. Categories were retired wholesale by
+ * migration 0043 — savings are open and every share costs the same — and the
+ * rows are kept, inactive, so a record raised under one can still name it.
  */
 export type CategoryStatus = 'active' | 'inactive';
 
-/** How often a savings category collects. */
+/** How often a savings record covers. Monthly is what the SACCO collects. */
 export type SavingsFrequency = SavingsKind;
 
 /**
@@ -185,6 +194,10 @@ export type SavingsPaymentRow = {
   created_at: string;
 };
 
+/**
+ * A per-member savings target. Historical: nothing reads these rows any more
+ * and `set_savings_plan()` refuses to write one, because savings are open.
+ */
 export type SavingsPlanRow = {
   id: string;
   member_id: string;
@@ -511,25 +524,19 @@ export type AuditLogRow = {
   created_at: string;
 };
 
-// --- Share and savings categories -------------------------------------------
+// --- The retired category registers ------------------------------------------
+//
+// Both tables were retired by migration 0043 and every row in them marked
+// inactive. Nothing in the application reads them to decide an amount, price a
+// share or classify a member; the shapes remain only so a historical record
+// that names a tier can still resolve the name.
 
-/**
- * A share category — Diamond, Gold and Silver — as read from
- * `share_categories_priced`.
- *
- * `share_price` is not a property of the category. It is the SACCO's single
- * share price from `share_settings`, repeated on each row for convenience, and
- * `required_amount` is `required_shares` times it. Both are null if the price
- * cannot be read. `qualification_months` is the window measured from each
- * member's own joining date; null means the category has no deadline.
- */
-export type ShareCategoryRow = {
+/** A row of the retired `share_categories` register. */
+export type ShareCategoryTableRow = {
   id: string;
   code: string;
   name: string;
   required_shares: number;
-  share_price: number | null;
-  required_amount: number | null;
   qualification_months: number | null;
   description: string | null;
   status: CategoryStatus;
@@ -539,10 +546,7 @@ export type ShareCategoryRow = {
   updated_at: string;
 };
 
-/** The `share_categories` table itself: tiers carry no price of their own. */
-export type ShareCategoryTableRow = Omit<ShareCategoryRow, 'share_price' | 'required_amount'>;
-
-/** `savings_categories` — Diamond Saver, Gold Saver, Silver Saver. */
+/** A row of the retired `savings_categories` register. */
 export type SavingsCategoryRow = {
   id: string;
   code: string;
@@ -558,77 +562,21 @@ export type SavingsCategoryRow = {
 };
 
 /**
- * `member_share_progress` — how far one member is towards their share category.
+ * `member_share_progress` — what one member holds, at the one share price.
  *
- * Every field is derived from the member's own share lots and joining date. A
- * member with no share category still gets a row, with nulls where a target
- * would be, so the screen can say "no category chosen" rather than draw a
- * progress bar against nothing.
+ * The name is kept because every caller asks for it, but there is no longer a
+ * tier to make progress towards. `share_value` is what the lots actually cost;
+ * `value_at_current_price` is what the same holding is worth at today's price.
+ * They agree unless the price has moved since.
  */
 export type MemberShareProgressRow = {
   member_id: string;
-  share_category_id: string | null;
-  share_category_code: string | null;
-  share_category_name: string | null;
-  target_shares: number | null;
-  share_price: number | null;
-  target_amount: number | null;
-  qualification_months: number | null;
   shares_owned: number;
   share_value: number;
-  shares_remaining: number | null;
-  amount_remaining: number | null;
-  progress_percent: number | null;
-  qualifies_by: string | null;
-  days_to_qualify: number | null;
-  qualified: boolean;
-  qualification_lapsed: boolean;
-};
-
-/** `savings_category_summary` — the lifetime position of one savings category. */
-export type SavingsCategorySummaryRow = {
-  savings_category_id: string;
-  code: string;
-  name: string;
-  amount: number;
-  frequency: SavingsFrequency;
-  status: CategoryStatus;
-  sort_order: number;
-  member_count: number;
-  active_member_count: number;
-  expected_per_cycle: number;
-  expected_total: number;
-  collected_total: number;
-  outstanding_total: number;
-  schedules: number;
-  paid_schedules: number;
-  partial_schedules: number;
-  pending_schedules: number;
-  missed_schedules: number;
-  waived_schedules: number;
-  collection_rate: number;
-};
-
-/** `share_category_summary` — how a share category is being taken up. */
-export type ShareCategorySummaryRow = {
-  share_category_id: string;
-  code: string;
-  name: string;
-  required_shares: number;
-  /** The SACCO's one share price, and the total derived from it. */
+  /** The SACCO's one share price, or null if it cannot be read. */
   share_price: number | null;
-  required_amount: number | null;
-  qualification_months: number | null;
-  status: CategoryStatus;
-  sort_order: number;
-  member_count: number;
-  active_member_count: number;
-  qualified_members: number;
-  lapsed_members: number;
-  shares_held: number;
-  value_held: number;
-  value_targeted: number;
-  qualification_rate: number;
+  value_at_current_price: number | null;
+  last_purchase_on: string | null;
 };
 
 /** `savings_transactions` — one posted savings payment, names resolved. */
@@ -637,9 +585,9 @@ export type SavingsTransactionRow = {
   member_id: string;
   member_no: string;
   member_name: string;
-  savings_category_id: string | null;
-  savings_category_name: string | null;
   schedule_id: string;
+  period_id: string;
+  /** The month the deposit was filed under — "Sep 2026". */
   cycle: string | null;
   amount: number;
   payment_method: PaymentMethod;
@@ -710,69 +658,42 @@ export type MemberFinancialsRow = {
   next_due_amount: number | null;
   total_equity: number;
 
-  /** Share category, and how far this member is towards qualifying for it. */
-  share_category_id: string | null;
-  share_category_code: string | null;
-  share_category_name: string | null;
-  share_target_shares: number | null;
-  share_target_amount: number | null;
-  share_shares_remaining: number | null;
-  share_amount_remaining: number | null;
-  share_progress_percent: number | null;
-  share_qualifies_by: string | null;
-  share_qualified: boolean | null;
-  share_qualification_lapsed: boolean | null;
+  /** Shares, at the SACCO's one price. */
+  shares_owned: number;
+  share_price: number | null;
+  share_value_at_current_price: number | null;
+  last_share_purchase_on: string | null;
 
-  /** Savings category, and what it expects of them. */
-  savings_category_id: string | null;
-  savings_category_code: string | null;
-  savings_category_name: string | null;
-  savings_expected_amount: number | null;
-  savings_frequency: SavingsFrequency | null;
-
-  /** The next expectation that is not yet settled. */
-  savings_next_due_on: string | null;
-  savings_next_expected: number | null;
-  savings_next_paid: number | null;
-  savings_next_status: SavingsStatus | null;
-  savings_current_cycle: string | null;
-
-  /** Savings still owed across every unsettled schedule. */
-  savings_outstanding: number;
+  /** Saved since the first of this month, from the ledger. */
+  savings_this_month: number;
+  last_saved_on: string | null;
   /** Everything ever paid against a savings schedule. */
   savings_contributed: number;
 };
 
 /**
- * `savings_schedules` — one member, one cycle: expected, paid, outstanding.
+ * `savings_schedules` — one member, one month, and what they saved in it.
  *
- * This is the collection row and the "my savings" row at the same time.
- * `outstanding` is derived in the view, never stored.
+ * There is no expected amount and nothing outstanding: savings are open, so a
+ * row records what came in, not what should have.
  */
 export type SavingsScheduleRow = {
   schedule_id: string;
+  period_id: string;
   member_id: string;
   member_no: string;
   member_name: string;
   member_phone: string;
   member_photo: string | null;
   member_status: MemberStatus;
-  savings_category_id: string | null;
-  savings_category_code: string | null;
-  savings_category_name: string | null;
-  savings_category_frequency: SavingsFrequency | null;
-  share_category_id: string | null;
-  share_category_name: string | null;
   kind: SavingsKind;
   period_start: string;
   period_end: string;
   period_label: string;
-  /** The period label, under the name section 6 of the brief gives it. */
+  /** The period label, under the name the collection screens use. */
   cycle: string;
-  due_on: string;
-  expected_amount: number;
+  saved_amount: number;
   paid_amount: number;
-  outstanding: number;
   status: SavingsStatus;
   created_at: string;
   updated_at: string;
@@ -780,6 +701,8 @@ export type SavingsScheduleRow = {
   last_reference: string | null;
   last_paid_on: string | null;
   last_transaction_id: string | null;
+  /** How many posted deposits went into this month. */
+  deposits: number;
 };
 
 export type LoanBalanceRow = {
@@ -841,13 +764,12 @@ export type DashboardMetrics = {
   income_mtd: number;
   expenses_mtd: number;
   pending_expenses: number;
-  /** How many share and savings categories are currently in use. */
-  share_categories: number;
-  savings_categories: number;
-  /** Active members with no savings category, so nothing is expected of them. */
-  members_uncategorised: number;
-  schedules_due_today: number;
-  savings_arrears: number;
+  /** Shares issued, and what one costs today. */
+  shares_issued: number;
+  share_price: number | null;
+  /** Savings taken since the first of the month, and by how many members. */
+  savings_this_month: number;
+  savers_this_month: number;
 };
 
 /**
@@ -971,19 +893,22 @@ export type ReceiptPayload = {
 
 export type ReceiptAccount = { id: string; name: string; account_type: FinanceAccountType };
 
+/**
+ * `savings_performance()` — who saved, and how much, over a period.
+ *
+ * There is no target to measure anyone against, so the report counts deposits
+ * and adds up what came in, taken from the ledger.
+ */
 export type SavingsPerformanceRow = {
   member_id: string;
   member_no: string;
   full_name: string;
-  savings_category_name: string | null;
-  share_category_name: string | null;
-  periods: number;
-  expected: number;
-  paid: number;
-  balance: number;
-  paid_periods: number;
-  missed_periods: number;
-  compliance: number;
+  member_status: MemberStatus;
+  deposits: number;
+  total_saved: number;
+  first_saved_on: string | null;
+  last_saved_on: string | null;
+  savings_balance: number;
 };
 
 export type LoanPortfolioRow = {
@@ -1011,18 +936,18 @@ export type LoanPortfolioRow = {
 };
 
 /**
- * `member_collection_view()` — everything the centralised collection screen
- * needs for one member, in one round trip.
+ * `member_collection_view()` — everything the counter needs for one member, in
+ * one round trip.
  *
- * `current` is the schedule for the period the cashier is collecting; it is
- * raised on demand if it does not exist yet, so a member standing at the
- * counter never produces an empty screen.
+ * `current` is this month's savings record; it is opened on demand if it does
+ * not exist yet, so a member standing at the counter never produces an empty
+ * screen. Nothing here says what the member owes, because nothing is owed.
  */
 export type MemberCollectionView = {
   member: MemberFinancialsRow;
   current: SavingsScheduleRow | null;
   share_progress: MemberShareProgressRow | null;
-  next_due_on: string | null;
+  share_price: number | null;
   schedules: SavingsScheduleRow[];
   history: SavingsTransactionRow[];
   as_of: string;
@@ -1032,7 +957,7 @@ export type MemberCollectionView = {
 export type MemberSavingsOverview = {
   member: MemberFinancialsRow;
   share_progress: MemberShareProgressRow | null;
-  next_due_on: string | null;
+  share_price: number | null;
   schedules: SavingsScheduleRow[];
   recent_payments: SavingsTransactionRow[];
   loans: {
@@ -1051,84 +976,21 @@ export type MemberSavingsOverview = {
   generated_at: string;
 };
 
-/** One savings category on the staff dashboard. */
-export type SavingsCategoryTile = {
-  id: string;
-  code: string;
-  name: string;
-  amount: number;
-  frequency: SavingsFrequency;
-  status: CategoryStatus;
-  members: number;
-  expected_per_cycle: number;
-};
-
-/** One share category on the staff dashboard. */
-export type ShareCategoryTile = {
-  id: string;
-  code: string;
-  name: string;
-  required_shares: number;
-  /** Required shares × the SACCO's one share price; null if it cannot be read. */
-  required_amount: number | null;
-  status: CategoryStatus;
-  members: number;
-  qualified: number;
-  lapsed: number;
-};
-
-/** `savings_dashboard()` — section 13 of the brief. */
+/** `savings_dashboard()` — what members saved, not what they owed. */
 export type SavingsDashboard = {
   from: string;
   to: string;
   total_members: number;
-  uncategorised_members: number;
-  savings_categories: SavingsCategoryTile[];
-  share_categories: ShareCategoryTile[];
+  /** Lifetime savings held by the SACCO, from the ledger. */
   total_savings: number;
-  expected_savings: number;
+  /** The window in view. */
   collected_savings: number;
-  outstanding_savings: number;
-  paid_schedules: number;
-  partial_schedules: number;
-  pending_schedules: number;
-  missed_schedules: number;
-  waived_schedules: number;
-  due_today: number;
+  deposit_count: number;
+  saving_members: number;
+  largest_deposit: number;
+  average_deposit: number;
   collected_today: number;
-  total_arrears: number;
-  collection_rate: number;
-};
-
-/** One row of `savings_category_analytics()` — section 14. */
-export type SavingsCategoryAnalyticsRow = {
-  savings_category_id: string;
-  code: string;
-  name: string;
-  amount: number;
-  frequency: SavingsFrequency;
-  status: CategoryStatus;
-  sort_order: number;
-  members: number;
-  expected_per_cycle: number;
-  expected: number;
-  collected: number;
-  outstanding: number;
-  schedules: number;
-  paid_schedules: number;
-  partial_schedules: number;
-  pending_schedules: number;
-  missed_schedules: number;
-  collection_rate: number;
-};
-
-export type SavingsCategoryAnalytics = {
-  from: string;
-  to: string;
-  rows: SavingsCategoryAnalyticsRow[];
-  totals: { members: number; expected: number; collected: number; outstanding: number };
-  collection_rate: number;
-  generated_at: string;
+  savers_today: number;
 };
 
 export type CashbookLine = { category: string; total: number; entries: number };
@@ -1193,9 +1055,6 @@ export type Database = {
       savings_schedules: View<SavingsScheduleRow>;
       savings_transactions: View<SavingsTransactionRow>;
       member_share_progress: View<MemberShareProgressRow>;
-      savings_category_summary: View<SavingsCategorySummaryRow>;
-      share_category_summary: View<ShareCategorySummaryRow>;
-      share_categories_priced: View<ShareCategoryRow>;
     } & TreasuryViews;
     /**
      * RPC signatures.
@@ -1214,6 +1073,12 @@ export type Database = {
           p_purchased_on?: string;
           p_note?: string | null;
           p_idempotency_key?: string | null;
+          /**
+           * The total the form showed. The database multiplies quantity by its
+           * own price and refuses the sale if the two disagree, so a total
+           * computed in the browser can never decide what is charged.
+           */
+          p_expected_total?: number | null;
         };
         Returns: {
           transaction_id: string;
@@ -1240,10 +1105,9 @@ export type Database = {
           period_id: string;
           schedule_id: string;
           period_label: string;
-          expected: number;
+          /** What the member has saved in this month, after this deposit. */
           paid: number;
-          outstanding: number;
-          balance: number;
+          period_total: number;
           status: SavingsStatus;
         };
       };
@@ -1375,10 +1239,6 @@ export type Database = {
         Args: { p_member_id: string; p_status: MemberStatus; p_reason: string };
         Returns: { member_id: string; status: MemberStatus };
       };
-      set_savings_plan: {
-        Args: { p_member_id: string; p_kind: SavingsKind; p_target_amount: number; p_reason: string | null };
-        Returns: { id: string; changed: boolean };
-      };
       set_user_role: {
         Args: { p_user_id: string; p_role: UserRole; p_reason: string };
         Returns: { user_id: string; role: UserRole };
@@ -1410,9 +1270,6 @@ export type Database = {
           p_sort?: string;
           p_limit?: number;
           p_offset?: number;
-          p_savings_category_id?: string | null;
-          p_share_category_id?: string | null;
-          p_uncategorised?: boolean;
         };
         Returns: { rows: MemberFinancialsRow[]; total: number; limit: number; offset: number };
       };
@@ -1456,11 +1313,8 @@ export type Database = {
       receipt_for_transaction: { Args: { p_transaction_id: string }; Returns: ReceiptPayload };
       savings_performance: {
         Args: {
-          p_kind: SavingsKind;
           p_from: string;
           p_to: string;
-          p_savings_category_id?: string | null;
-          p_status?: SavingsStatus | null;
         };
         Returns: SavingsPerformanceRow[];
       };
@@ -1477,89 +1331,14 @@ export type Database = {
       open_savings_periods: { Args: { p_kind: SavingsKind; p_on?: string }; Returns: number };
       /** The SACCO's one share price, from `share_settings`. */
       share_unit_price: { Args: Record<PropertyKey, never>; Returns: number | null };
-      /* --- Categories, schedules and collection --------------------------- */
-      create_share_category: {
-        Args: {
-          p_name: string;
-          p_required_shares: number;
-          p_qualification_months?: number | null;
-          p_description?: string | null;
-          p_code?: string | null;
-          p_sort_order?: number;
-        };
-        Returns: { id: string; code: string; name: string };
-      };
-      update_share_category: {
-        Args: {
-          p_id: string;
-          p_name: string;
-          p_required_shares: number;
-          p_qualification_months?: number | null;
-          p_description?: string | null;
-          p_sort_order?: number;
-        };
-        Returns: { id: string; code: string; name: string };
-      };
-      set_share_category_status: {
-        Args: { p_id: string; p_status: CategoryStatus; p_reason: string };
-        Returns: { id: string; status: CategoryStatus; members: number };
-      };
-      create_savings_category: {
-        Args: {
-          p_name: string;
-          p_amount: number;
-          p_frequency: SavingsFrequency;
-          p_description?: string | null;
-          p_code?: string | null;
-          p_sort_order?: number;
-        };
-        Returns: { id: string; code: string; name: string };
-      };
-      update_savings_category: {
-        Args: {
-          p_id: string;
-          p_name: string;
-          p_amount: number;
-          p_frequency: SavingsFrequency;
-          p_description?: string | null;
-          p_sort_order?: number;
-        };
-        Returns: { id: string; code: string; name: string };
-      };
-      set_savings_category_status: {
-        Args: { p_id: string; p_status: CategoryStatus; p_reason: string };
-        Returns: { id: string; status: CategoryStatus; members: number };
-      };
-      set_member_categories: {
-        Args: {
-          p_member_id: string;
-          p_share_category_id: string | null;
-          p_savings_category_id: string | null;
-          p_reason?: string | null;
-        };
-        Returns: {
-          member_id: string;
-          share_category_id: string | null;
-          share_category_name: string | null;
-          savings_category_id: string | null;
-          savings_category_name: string | null;
-          schedules_repriced: number;
-        };
-      };
-      /** Raise the schedules every categorised member owes for a date. */
+      /* --- Savings and collection ------------------------------------------ */
+      /**
+       * Kept so the "open this period" control keeps working, and now a no-op:
+       * savings are open, so there is no schedule to raise.
+       */
       open_savings_schedules: {
         Args: { p_on?: string };
-        Returns: {
-          date: string;
-          schedules: number;
-          weekly: number;
-          monthly: number;
-          uncategorised: number;
-        };
-      };
-      next_savings_due_date: {
-        Args: { p_member_id: string; p_on?: string };
-        Returns: string | null;
+        Returns: { date: string; schedules: number; opened: boolean; message: string };
       };
       /**
        * The one call the collection screen makes. Manual by design: it records
@@ -1580,24 +1359,20 @@ export type Database = {
           reference: string;
           payment_id: string;
           schedule_id: string;
+          period_id: string;
           member_id: string;
           member_name: string;
-          savings_category: string | null;
           period_label: string;
-          expected: number;
+          /** What the member has saved in this month, after this deposit. */
           paid: number;
-          outstanding: number;
+          period_total: number;
           status: SavingsStatus;
         };
       };
-      waive_savings_schedule: {
-        Args: { p_schedule_id: string; p_reason: string };
-        Returns: { schedule_id: string; status: SavingsStatus };
-      };
       /**
-       * Everything the centralised collection screen needs for one member.
-       * Raises the current schedule on demand, so a member at the counter never
-       * produces an empty screen.
+       * Everything the counter needs for one member. Opens this month's savings
+       * record on demand, so a member at the counter never produces an empty
+       * screen.
        */
       member_collection_view: {
         Args: { p_member_id: string; p_on?: string };
@@ -1611,10 +1386,6 @@ export type Database = {
       savings_dashboard: {
         Args: { p_from?: string | null; p_to?: string | null };
         Returns: SavingsDashboard;
-      };
-      savings_category_analytics: {
-        Args: { p_from?: string | null; p_to?: string | null };
-        Returns: SavingsCategoryAnalytics;
       };
 
       /* --- Configuration (0014) --------------------------------------------

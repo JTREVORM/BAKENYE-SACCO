@@ -1,19 +1,19 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requireMember } from '@/lib/auth';
-import { getMemberFinancials, getMemberSchedules, getUnreadCount } from '@/lib/queries';
+import {
+  getMemberFinancials,
+  getMemberSchedules,
+  getShareUnitPrice,
+  getUnreadCount,
+} from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { MemberShell } from '@/components/layout/MemberShell';
-import { Badge, Icon, Money, ProgressBar } from '@/components/ui/primitives';
-import { SavingsStatusBadge } from '@/components/ui/status';
+import { Icon, Money } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/ui/states';
-import {
-  SAVINGS_FREQUENCY_EVERY,
-  categoryTier,
-} from '@/lib/categories';
+import { depositCount, shareCount } from '@/lib/savings';
 import { formatDate, PAYMENT_METHOD_LABELS } from '@/lib/format';
-import { formatUGX, percent, toNumber } from '@/lib/money';
-import { clsx } from '@/lib/clsx';
+import { formatUGX, toNumber } from '@/lib/money';
 import type { MemberFinancialsRow, SavingsPaymentRow, SavingsScheduleRow } from '@/types/db';
 
 export const metadata: Metadata = { title: 'My Savings' };
@@ -21,26 +21,24 @@ export const metadata: Metadata = { title: 'My Savings' };
 /**
  * Member savings.
  *
- * A direct port of `savings_mobile/code.html`: the royal-blue total with its
- * two decorative blurs, the bento pair of Monthly Target and This Week, and
- * the Recent Deposits stack with the `south_east` inbound icon.
+ * Monthly savings are open: a member saves whatever they choose, whenever they
+ * choose, and a month they skip is not a debt. So this page carries no target,
+ * no "amount remaining", no progress bar against an expectation and no saver
+ * tier. What it shows instead is what a member actually asks: how much they
+ * have in total, how much they have saved this month, the months behind that,
+ * and their recent deposits.
  *
- * The Stitch design carried a hardcoded "Yield Rate +4.2% p.a." badge. The
- * SACCO has no interest-on-savings product modelled anywhere in the brief, and
- * printing an invented rate on a member's balance would be a false financial
- * promise, so that slot now shows the current cycle's contribution status
- * instead — same position, same treatment, a number we can actually stand behind.
- *
- * What the member is expected to save comes from their savings category, not
- * from anything hard-coded here: a Silver Saver sees UGX 5,000 a week and a
- * Diamond Saver sees UGX 100,000 a month because that is what the SACCO set.
+ * The layout is the one the Stitch design set — the royal-blue total with its
+ * two blurs, a bento pair beneath it, then the deposit stack — because the
+ * design is good and only the content of the rules has changed.
  */
 export default async function SavingsPage() {
   const user = await requireMember();
-  const [m, unread, schedules] = await Promise.all([
+  const [m, unread, months, sharePrice] = await Promise.all([
     getMemberFinancials(user.memberId),
     getUnreadCount(),
     getMemberSchedules(user.memberId, 6),
+    getShareUnitPrice(),
   ]);
 
   const supabase = await createClient();
@@ -51,18 +49,9 @@ export default async function SavingsPage() {
     .order('paid_on', { ascending: false })
     .limit(8);
 
-  // The cycle the member is currently being judged against: the earliest that
-  // is still open, falling back to the most recent one if everything is settled.
-  //
-  // Only cycles that actually expect something count. A cadence the member's
-  // category does not collect on still raises rows, with an expectation of
-  // zero, and one of those used to be picked as "the cycle you are being judged
-  // against" - showing a week from last month with "Expected: UGX 0".
-  const obligations = schedules.filter((s) => toNumber(s.expected_amount) > 0);
-  const current =
-    obligations.find((s) => s.status === 'pending' || s.status === 'partial') ??
-    obligations[0] ??
-    null;
+  // Months worth showing: the ones money actually went into. A month with
+  // nothing in it is not a shortfall and does not need a row of its own.
+  const saved = months.filter((s) => toNumber(s.saved_amount) > 0);
 
   return (
     <MemberShell unreadCount={unread}>
@@ -103,64 +92,61 @@ export default async function SavingsPage() {
           </div>
         </section>
 
-        {/* The member's savings category: what they agreed to save, how often,
-          and when the next one falls due. A member who does not know what is
-          expected of them cannot meet it. */}
-        <SavingsCategoryCard member={m} />
-
-        {/* Bento pair: this cycle, and progress towards the share category. */}
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <CurrentCycleCard schedule={current} member={m} />
-          <ShareProgressCard member={m} />
+        {/* How saving works here, said once, plainly. */}
+        <section className="bg-surface-container-lowest border-surface-container-high shadow-card flex items-center gap-3 rounded-xl border p-5">
+          <span className="bg-primary-fixed text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
+            <Icon name="savings" size={24} />
+          </span>
+          <div className="min-w-0">
+            <p className="font-body-lg text-body-lg text-on-surface font-semibold">
+              Save any amount, any time
+            </p>
+            <p className="font-label-md text-label-md text-on-surface-variant normal-case">
+              There is no monthly target. Save what suits you — a month you do not save is not
+              owed, and nothing is charged for it.
+            </p>
+          </div>
         </section>
 
-        {/* Recent cycles — expected, paid and what is still owed on each. */}
+        {/* Bento pair: this month, and the shares held. */}
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <ThisMonthCard member={m} months={months} />
+          <SharesCard member={m} sharePrice={sharePrice} />
+        </section>
+
+        {/* Month by month. */}
         <section>
           <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-4">
-            Recent Cycles
+            Savings by Month
           </h3>
-          {obligations.length === 0 ? (
+          {saved.length === 0 ? (
             <div className="bg-surface-container-lowest border-surface-container-high rounded-xl border">
               <EmptyState
                 icon="calendar_month"
-                title="No savings cycles yet"
-                description={
-                  m?.savings_category_id
-                    ? 'Your first cycle will appear here once it opens.'
-                    : 'A savings category has not been set for you yet, so nothing is expected.'
-                }
+                title="No savings yet"
+                description="Each month you save in will appear here with its total."
               />
             </div>
           ) : (
             <ul className="flex flex-col gap-2">
-              {obligations.map((sch) => (
+              {saved.map((month) => (
                 <li
-                  key={sch.schedule_id}
+                  key={month.schedule_id}
                   className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
                 >
                   <div className="min-w-0">
                     <p className="font-body-lg text-body-lg text-on-surface truncate font-semibold">
-                      {sch.cycle}
+                      {month.cycle}
                     </p>
                     <p className="font-label-md text-label-md text-on-surface-variant normal-case">
-                      Due {formatDate(sch.due_on)} · Expected{' '}
-                      {formatUGX(sch.expected_amount)}
+                      {depositCount(toNumber(month.deposits))}
+                      {month.last_paid_on ? ` · last on ${formatDate(month.last_paid_on)}` : ''}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <Money
-                        value={sch.paid_amount}
-                        className="font-button-text text-button-text text-on-surface font-semibold"
-                      />
-                      {toNumber(sch.outstanding) > 0 ? (
-                        <p className="font-label-md text-label-md text-error normal-case">
-                          {formatUGX(sch.outstanding)} to go
-                        </p>
-                      ) : null}
-                    </div>
-                    <SavingsStatusBadge status={sch.status} />
-                  </div>
+                  <Money
+                    value={month.saved_amount}
+                    className="font-button-text text-button-text text-tertiary font-semibold"
+                  />
                 </li>
               ))}
             </ul>
@@ -187,7 +173,7 @@ export default async function SavingsPage() {
               <EmptyState
                 icon="savings"
                 title="No deposits yet"
-                description="Your weekly and monthly savings will be listed here once recorded."
+                description="Your savings will be listed here once they are recorded."
               />
             </div>
           ) : (
@@ -205,176 +191,61 @@ export default async function SavingsPage() {
 
 /* ------------------------------------------------------------------------ */
 
-/**
- * The savings category, stated plainly.
- *
- * With no category set, this says so rather than showing a zero target: nobody
- * has agreed an amount with this member, and printing "UGX 0 a month" would
- * read as though somebody had.
- */
-function SavingsCategoryCard({ member }: { member: MemberFinancialsRow | null }) {
-  if (!member?.savings_category_id || !member.savings_frequency) {
-    return (
-      <section className="bg-surface-container-lowest border-surface-container-high shadow-card flex items-center gap-3 rounded-xl border p-5">
-        <span className="bg-surface-container-high text-on-surface-variant flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
-          <Icon name="savings" size={24} />
-        </span>
-        <div className="min-w-0">
-          <p className="font-label-md text-label-md text-on-surface-variant">
-            Savings category
-          </p>
-          <p className="font-body-lg text-body-lg text-on-surface font-semibold">
-            Not set yet
-          </p>
-          <p className="font-label-md text-label-md text-on-surface-variant normal-case">
-            Speak to the SACCO office to choose how much you save and how often.
-          </p>
-        </div>
-      </section>
-    );
-  }
-
-  const tier = categoryTier(member.savings_category_code);
-  const behind = toNumber(member.savings_outstanding) > 0;
-
-  return (
-    <section className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-wrap items-center justify-between gap-4 rounded-xl border p-5">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="bg-primary-fixed text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
-          <Icon name={tier.icon} size={24} />
-        </span>
-        <div className="min-w-0">
-          <p className="font-label-md text-label-md text-on-surface-variant">
-            Savings category
-          </p>
-          <p className="font-body-lg text-body-lg text-on-surface truncate font-semibold">
-            {member.savings_category_name}
-          </p>
-          <p className="font-label-md text-label-md text-on-surface-variant normal-case">
-            {formatUGX(member.savings_expected_amount)}{' '}
-            {SAVINGS_FREQUENCY_EVERY[member.savings_frequency]}
-            {member.savings_next_due_on
-              ? ` · next due ${formatDate(member.savings_next_due_on)}`
-              : ''}
-          </p>
-        </div>
-      </div>
-
-      {behind ? (
-        <div className="text-right">
-          <p className="font-label-md text-label-md text-on-surface-variant">Still owed</p>
-          <Money
-            value={member.savings_outstanding}
-            className="font-headline-lg-mobile text-headline-lg-mobile text-error"
-          />
-        </div>
-      ) : (
-        <p className="font-label-md text-label-md text-tertiary flex items-center gap-1 normal-case">
-          <Icon name="check_circle" size={18} />
-          Up to date
-        </p>
-      )}
-    </section>
-  );
-}
-
-/**
- * This cycle: expected, paid, outstanding.
- *
- * Green only when the cycle is actually settled — the Stitch card is always the
- * celebratory green, which would be actively misleading in a week the member
- * has missed.
- */
-function CurrentCycleCard({
-  schedule,
+/** What this member has saved since the first of the month. */
+function ThisMonthCard({
   member,
+  months,
 }: {
-  schedule: SavingsScheduleRow | null;
   member: MemberFinancialsRow | null;
+  months: SavingsScheduleRow[];
 }) {
-  const settled = schedule?.status === 'paid';
+  const current = months[0] ?? null;
+  const saved = toNumber(member?.savings_this_month);
 
   return (
-    <div
-      className={clsx(
-        'shadow-card flex flex-col justify-between rounded-xl p-5',
-        settled
-          ? 'bg-tertiary-container text-on-tertiary-container'
-          : 'bg-surface-container-lowest border-surface-container-high border',
-      )}
-    >
+    <div className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-col justify-between rounded-xl border p-5">
       <div>
         <div className="mb-3 flex items-center justify-between gap-2">
-          <h3
-            className={clsx(
-              'font-body-lg text-body-lg font-semibold',
-              settled ? 'text-white' : 'text-on-surface',
-            )}
-          >
-            {schedule ? schedule.cycle : 'This cycle'}
+          <h3 className="font-body-lg text-body-lg text-on-surface font-semibold">
+            {current ? current.cycle : 'This month'}
           </h3>
-          <Icon
-            name={settled ? 'check_circle' : 'schedule'}
-            className={settled ? 'text-white' : 'text-outline'}
-          />
+          <Icon name="savings" className="text-outline" />
         </div>
-
-        {schedule ? (
-          <div className="font-body-md text-body-md mb-2 flex flex-wrap justify-between gap-x-3 gap-y-1">
-            <span className={settled ? 'text-white opacity-80' : 'text-on-surface-variant'}>
-              Paid:{' '}
-              <strong className={settled ? 'text-white' : 'text-on-surface'}>
-                {formatUGX(schedule.paid_amount)}
-              </strong>
-            </span>
-            <span className={settled ? 'text-white opacity-80' : 'text-on-surface-variant'}>
-              Expected: {formatUGX(schedule.expected_amount)}
-            </span>
-          </div>
-        ) : (
-          <p className="font-body-md text-body-md text-on-surface-variant mb-2">
-            {member?.savings_category_id
-              ? 'No cycle is open yet. Your next one will appear here.'
-              : 'A savings category has not been set for you yet.'}
-          </p>
-        )}
+        <Money
+          value={saved}
+          className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface"
+        />
+        <p className="font-body-md text-body-md text-on-surface-variant mt-1">
+          {saved > 0
+            ? `Saved so far this month${
+                current ? ` across ${depositCount(toNumber(current.deposits))}` : ''
+              }.`
+            : 'Nothing saved yet this month. Nothing is owed.'}
+        </p>
       </div>
-
-      {schedule ? (
-        <div>
-          <ProgressBar
-            value={percent(schedule.paid_amount, schedule.expected_amount)}
-            label="Savings cycle progress"
-            className="mb-1 h-2.5"
-            tone={settled ? 'tertiary' : 'primary'}
-          />
-          <p
-            className={clsx(
-              'font-label-md text-label-md text-right normal-case',
-              settled ? 'text-white opacity-90' : 'text-primary',
-            )}
-          >
-            {settled
-              ? 'Settled in full'
-              : `${formatUGX(schedule.outstanding)} to go · due ${formatDate(schedule.due_on)}`}
-          </p>
-        </div>
-      ) : null}
+      <p className="font-label-md text-label-md text-on-surface-variant mt-3 normal-case">
+        {member?.last_saved_on
+          ? `Last saved ${formatDate(member.last_saved_on)}.`
+          : 'No savings recorded yet.'}
+      </p>
     </div>
   );
 }
 
-/**
- * Progress towards the share category — section 12 of the brief, member side.
- *
- * The deadline is this member's own: their joining date plus the qualification
- * window their category carries.
- */
-function ShareProgressCard({ member }: { member: MemberFinancialsRow | null }) {
-  if (!member?.share_category_id || !member.share_target_shares) {
-    return (
-      <div className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-col justify-center rounded-xl border p-5">
-        <div className="mb-2 flex items-center justify-between">
+/** Shares held, at the SACCO's one price. */
+function SharesCard({
+  member,
+  sharePrice,
+}: {
+  member: MemberFinancialsRow | null;
+  sharePrice: number | null;
+}) {
+  const owned = toNumber(member?.share_count);
+
+  return (
+    <div className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-col justify-between rounded-xl border p-5">
+      <div>
+        <div className="mb-3 flex items-center justify-between gap-2">
           <h3 className="font-body-lg text-body-lg text-on-surface font-semibold">Shares</h3>
           <Icon name="pie_chart" className="text-outline" />
         </div>
@@ -383,77 +254,17 @@ function ShareProgressCard({ member }: { member: MemberFinancialsRow | null }) {
           className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface"
         />
         <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-          {member?.share_count ?? 0} {member?.share_count === 1 ? 'share' : 'shares'} held. No
-          share category has been set for you yet.
+          {shareCount(owned)} held
+          {sharePrice ? ` · ${formatUGX(sharePrice)} per share` : ''}
         </p>
       </div>
-    );
-  }
-
-  const pct = toNumber(member.share_progress_percent);
-  const tier = categoryTier(member.share_category_code);
-
-  return (
-    <div className="bg-surface-container-lowest border-surface-container-high shadow-card flex flex-col justify-between rounded-xl border p-5">
-      <div>
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h3 className="font-body-lg text-body-lg text-on-surface font-semibold">
-            {member.share_category_name} Shares
-          </h3>
-          {member.share_qualified ? (
-            <Badge tone="success" dot>
-              Qualified
-            </Badge>
-          ) : member.share_qualification_lapsed ? (
-            <Badge tone="error" dot>
-              Deadline passed
-            </Badge>
-          ) : (
-            <Badge tone={tier.tone}>{Math.round(pct)}%</Badge>
-          )}
-        </div>
-
-        <div className="font-body-md text-body-md mb-2 flex flex-wrap justify-between gap-x-3 gap-y-1">
-          <span className="text-on-surface-variant">
-            Held:{' '}
-            <strong className="text-on-surface">
-              {member.share_count} of {member.share_target_shares}
-            </strong>
-          </span>
-          <span className="text-on-surface-variant">
-            {formatUGX(member.share_value)} of {formatUGX(member.share_target_amount)}
-          </span>
-        </div>
-      </div>
-
-      <div>
-        <ProgressBar
-          value={pct}
-          label="Share category progress"
-          className="mb-1 h-2.5"
-          tone={
-            member.share_qualified
-              ? 'tertiary'
-              : member.share_qualification_lapsed
-                ? 'error'
-                : 'primary'
-          }
-        />
-        <p
-          className={clsx(
-            'font-label-md text-label-md text-right normal-case',
-            member.share_qualification_lapsed ? 'text-error' : 'text-primary',
-          )}
-        >
-          {member.share_qualified
-            ? 'Target reached'
-            : `${member.share_shares_remaining ?? 0} shares to go${
-                member.share_qualifies_by
-                  ? ` · by ${formatDate(member.share_qualifies_by)}`
-                  : ''
-              }`}
-        </p>
-      </div>
+      <Link
+        href="/shares/buy"
+        className="text-primary font-button-text text-button-text mt-3 flex items-center gap-1 hover:underline"
+      >
+        Buy shares
+        <Icon name="chevron_right" size={18} />
+      </Link>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 # Screenshot Inventory
 
 **Prepared:** 24 September 2026  
-**Revised:** 24 September 2026, for the version 1.1 reissue  
-**Total screenshots:** 212
+**Revised:** 25 September 2026, for the version 2.0 reissue  
+**Total screenshots:** 207
 
 Every image below was captured from the running application in the isolated
 documentation environment described in `DOCUMENTATION_VERIFICATION_REPORT.md`.
@@ -16,9 +16,36 @@ application. Every member name, phone number, national ID and amount shown is fi
 | --- | --: |
 | `shared/` | 12 |
 | `member/` | 34 |
-| `staff/` | 110 |
-| `admin/` | 56 |
-| **Total** | **212** |
+| `staff/` | 106 |
+| `admin/` | 55 |
+| **Total** | **207** |
+
+### Removed for version 2.0
+
+The screens these showed no longer exist. Savings are open and every share costs the same, so there
+are no categories to administer and no category step in registration.
+
+| File | Why |
+| --- | --- |
+| `admin/walk-categories.png`, `staff/mgr-03-categories.png` | The Categories screen has been removed from the system. |
+| `staff/register-03-step2-categories.png`, `staff/register-04-step2-chosen.png` | Registration no longer has a categories step; the wizard is four steps. |
+| `staff/register-validation-error.png` | It showed the wizard refusing to advance without a category chosen. There is no category to choose. |
+| `admin/walk-savings-schedules.png` | Replaced by `admin/walk-savings-records.png`: savings records, not schedules. |
+
+### Recaptured for version 2.0
+
+Retaken from the running system after the business-rule change, against the demonstration database
+rebuilt with the updated seed. Every one of these showed a savings category, a monthly target,
+arrears, or a share tier.
+
+| Area | Files |
+| --- | --- |
+| Member portal | `member/m-01`…`m-05`, `m-16`, `m-17` and their `mf-` phone counterparts — the dashboard, savings, Save Money, shares, Buy Shares, profile and More |
+| Savings, back office | `admin/walk-savings`, `walk-savings-records`, `walk-savings-performance`, `walk-savings-collect`, `walk-savings-record`; `staff/fo-01-collections`, `fo-03-schedules`, `mgr-04-schedules`, `mgr-05-performance`, `report-08-savings-performance` |
+| Collection workflow | `staff/collect-01`…`collect-08` — the counter taking UGX 73,500 from a member who had already saved UGX 73,500 that month |
+| Shares | `admin/walk-shares`, `walk-shares-sell`; `staff/shares-01`…`shares-05` — 25 shares at UGX 10,000 |
+| Registration | `staff/register-01`, `register-02`, `register-05`…`register-09` — the four-step wizard and the UGX 20,000 fee |
+| Dashboards and settings | `admin/walk-dash-overview`, `walk-dash-administration`, `walk-members-list`, `walk-members-new`, `walk-settings`, `walk-reports`; `staff/cashier-01`…`cashier-04`, `mgr-01-overview`, `report-01-index` |
 
 ### Recaptured for version 1.1
 
@@ -145,7 +172,6 @@ fixed seed:
 | 107 | `staff/member-reset-password-result.png` | Member management | Admin / Manager | Step 3 — hand it over | The new temporary password, shown once. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 108 | `staff/mgr-01-overview.png` | Dashboard | SACCO Manager | Screen overview | `/staff` — BAKENYE UNITY AND DEVELOPMENT SACCO | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 109 | `staff/mgr-02-register-member.png` | Member management | SACCO Manager | Screen overview | `/staff/members/new` — Register a Member | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
-| 110 | `staff/mgr-03-categories.png` | Categories | SACCO Manager | Screen overview | `/staff/categories` — Categories | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 111 | `staff/mgr-04-schedules.png` | Savings | SACCO Manager | Screen overview | `/staff/savings/schedules` — Savings schedules | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 112 | `staff/mgr-05-performance.png` | Savings | SACCO Manager | Screen overview | `/staff/savings/performance` — Savings performance | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 113 | `staff/mgr-06-reports.png` | Reports | SACCO Manager | Screen overview | `/staff/reports` — Reports | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
@@ -162,14 +188,11 @@ fixed seed:
 | 124 | `staff/recon-05-history.png` | Finance — reconciliation | Accountant | Result | The reconciliation history for each account. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 125 | `staff/register-01-step1-empty.png` | Member registration | SACCO Manager | Step 1 — open Register Member | The first step of the wizard, before anything is typed. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 126 | `staff/register-02-step1-filled.png` | Member registration | SACCO Manager | Step 2 — member details | Name, phone, National ID, address, occupation and next of kin. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
-| 127 | `staff/register-03-step2-categories.png` | Member registration | SACCO Manager | Step 3 — categories | The share and savings categories on offer, with what each costs. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
-| 128 | `staff/register-04-step2-chosen.png` | Member registration | SACCO Manager | Step 4 — categories chosen | Gold shares and Gold Saver selected. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 129 | `staff/register-05-step3-fees.png` | Member registration | SACCO Manager | Step 5 — fees | The fees that apply at registration and what they come to. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 130 | `staff/register-06-step4-payment.png` | Member registration | SACCO Manager | Step 6 — payment | Paying now or later, and how the money was received. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 131 | `staff/register-07-step4-filled.png` | Member registration | SACCO Manager | Step 7 — payment entered | Cash chosen, the amount received typed in. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 132 | `staff/register-08-step5-confirm.png` | Member registration | SACCO Manager | Step 8 — confirm | The full summary shown before the member is created. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 133 | `staff/register-09-result.png` | Member registration | SACCO Manager | Step 9 — result | The new member number, the amount paid, the status and the receipt. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
-| 134 | `staff/register-validation-error.png` | Member registration | SACCO Manager | What happens if something is missing | The wizard refuses to advance and names the field that still needs an answer. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 135 | `staff/repay-01-form.png` | Loan repayments | Cashier / Teller | Step 1 — open Record Repayment | The repayment form with the outstanding balance and the schedule. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 136 | `staff/repay-02-filled.png` | Loan repayments | Cashier / Teller | Step 2 — enter the amount | The amount typed in and the payment method chosen. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 137 | `staff/repay-03-confirm.png` | Loan repayments | Cashier / Teller | Step 3 — review | The confirmation summary before the repayment is saved. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
@@ -196,7 +219,6 @@ fixed seed:
 | 158 | `admin/users-list.png` | User management | Admin / Super Admin | Result | The Users screen listing every staff account, its role, status and last sign-in. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 159 | `admin/users-temporary-password.png` | User management | Admin / Super Admin | Step 3 — hand over the password | The generated temporary password, shown once, to be given to the new member of staff. | 1600×1000 | Workflow performed in the running application | None — fictional demonstration data only |
 | 160 | `admin/walk-audit.png` | Audit log | Super Admin | Screen overview | `/staff/audit` — System Audit Log | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
-| 161 | `admin/walk-categories.png` | Categories | Super Admin | Screen overview | `/staff/categories` — Categories | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 162 | `admin/walk-dash-administration.png` | Dashboard | Super Admin | Screen overview | `/staff/admin` — Welcome back, Grace | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 163 | `admin/walk-dash-cashier.png` | Dashboard | Super Admin | Screen overview | `/staff/desk` — Welcome back, Grace | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 164 | `admin/walk-dash-loans.png` | Dashboard | Super Admin | Screen overview | `/staff/loans-desk` — Welcome back, Grace | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
@@ -237,7 +259,6 @@ fixed seed:
 | 199 | `admin/walk-savings-collect.png` | Savings | Super Admin | Screen overview | `/staff/savings/collect` — Collect savings | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 200 | `admin/walk-savings-performance.png` | Savings | Super Admin | Screen overview | `/staff/savings/performance` — Savings performance | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 201 | `admin/walk-savings-record.png` | Savings | Super Admin | Screen overview | `/staff/savings/record` — Record Savings | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
-| 202 | `admin/walk-savings-schedules.png` | Savings | Super Admin | Screen overview | `/staff/savings/schedules` — Savings schedules | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 203 | `admin/walk-savings.png` | Savings | Super Admin | Screen overview | `/staff/savings` — Savings | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 204 | `admin/walk-settings.png` | Settings | Super Admin | Screen overview | `/staff/settings` — Settings | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |
 | 205 | `admin/walk-shares-sell.png` | Shares | Super Admin | Screen overview | `/staff/shares/sell` — Record Share Purchase | 1600×1000 | Loaded and screenshotted in the running application | None — fictional demonstration data only |

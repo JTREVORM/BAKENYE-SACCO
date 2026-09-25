@@ -10,9 +10,6 @@ import type {
   MemberShareProgressRow,
   NotificationRow,
   SaccoSettingsRow,
-  SavingsCategoryAnalytics,
-  SavingsCategoryRow,
-  ShareCategoryRow,
   ShareSettingsRow,
   SavingsDashboard,
   SavingsPeriodRow,
@@ -181,7 +178,7 @@ export const getCollectionsTrend = cache(async (months = 6): Promise<TrendPoint[
 
 /**
  * The SACCO's share price — the one value every purchase is charged at, every
- * category total is derived from, and `buy_shares()` reads in the database.
+ * share purchase is charged at, and `buy_shares()` reads in the database.
  *
  * Null when the settings row cannot be read. There is deliberately no fallback
  * number: a share form priced by a guess is a wrong sale, so callers say the
@@ -195,60 +192,10 @@ export const getShareUnitPrice = cache(async (): Promise<number | null> => {
 });
 
 /* ==========================================================================
- * Share and savings categories
- *
- * The three tiers are rows, not constants, so a manager who edits the Gold
- * Saver amount changes what every screen below quotes.
+ * Shares
  * ======================================================================== */
 
-/** Active share categories, for the pickers on the member forms. */
-export const getShareCategories = cache(async (): Promise<ShareCategoryRow[]> => {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('share_categories_priced')
-    .select('*')
-    .eq('status', 'active')
-    .order('sort_order')
-    .order('name');
-  return data ?? [];
-});
-
-/** Active savings categories, for the pickers on the member forms. */
-export const getSavingsCategories = cache(async (): Promise<SavingsCategoryRow[]> => {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('savings_categories')
-    .select('*')
-    .eq('status', 'active')
-    .order('sort_order')
-    .order('name');
-  return data ?? [];
-});
-
-/** Every category, retired ones included — the administration screen shows both. */
-export const getAllShareCategories = cache(async (): Promise<ShareCategoryRow[]> => {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('share_categories_priced')
-    .select('*')
-    .order('status')
-    .order('sort_order')
-    .order('name');
-  return data ?? [];
-});
-
-export const getAllSavingsCategories = cache(async (): Promise<SavingsCategoryRow[]> => {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('savings_categories')
-    .select('*')
-    .order('status')
-    .order('sort_order')
-    .order('name');
-  return data ?? [];
-});
-
-/** How far one member is towards their share category. */
+/** What one member holds, valued at the SACCO's one price. */
 export const getShareProgress = cache(
   async (memberId: string): Promise<MemberShareProgressRow | null> => {
     const supabase = await createClient();
@@ -261,7 +208,7 @@ export const getShareProgress = cache(
   },
 );
 
-/** The schedules a member is judged against, most recent first. */
+/** A member's savings month by month, most recent first. */
 export const getMemberSchedules = cache(
   async (memberId: string, limit = 12): Promise<SavingsScheduleRow[]> => {
     const supabase = await createClient();
@@ -269,7 +216,7 @@ export const getMemberSchedules = cache(
       .from('savings_schedules')
       .select('*')
       .eq('member_id', memberId)
-      .order('due_on', { ascending: false })
+      .order('period_start', { ascending: false })
       .limit(limit);
     return data ?? [];
   },
@@ -280,10 +227,8 @@ export const getMemberSchedules = cache(
  * ======================================================================== */
 
 /**
- * The staff savings dashboard — section 13 of the brief.
- *
- * Bounded by a date range rather than a single collection day, because members
- * now save on their own category's cadence rather than on a shared meeting day.
+ * The staff savings dashboard: what members saved in a window, not what they
+ * were expected to save. There is no expectation to report.
  */
 export const getSavingsDashboard = cache(
   async (from?: string, to?: string): Promise<SavingsDashboard | null> => {
@@ -297,23 +242,10 @@ export const getSavingsDashboard = cache(
   },
 );
 
-/** Category-level statistics — section 14. */
-export const getCategoryAnalytics = cache(
-  async (from?: string, to?: string): Promise<SavingsCategoryAnalytics | null> => {
-    const supabase = await createClient();
-    const { data, error } = await supabase.rpc('savings_category_analytics', {
-      p_from: from ?? null,
-      p_to: to ?? null,
-    });
-    if (error || !data) return null;
-    return data as unknown as SavingsCategoryAnalytics;
-  },
-);
-
 /**
- * Everything the centralised collection screen needs for one member, in one
- * round trip: who they are, what their category expects, what is outstanding,
- * when they are next due, and their history.
+ * Everything the counter needs for one member, in one round trip: who they
+ * are, what they have saved this month, what their balance is and what their
+ * last few deposits were.
  */
 export const getMemberCollectionView = cache(
   async (memberId: string, on?: string): Promise<MemberCollectionView | null> => {
@@ -327,7 +259,7 @@ export const getMemberCollectionView = cache(
   },
 );
 
-/** The member's own financial dashboard — section 12. */
+/** The member's own financial dashboard. */
 export const getMemberSavingsOverview = cache(
   async (memberId: string): Promise<MemberSavingsOverview | null> => {
     const supabase = await createClient();

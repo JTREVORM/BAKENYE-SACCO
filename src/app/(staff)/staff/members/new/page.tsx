@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getSavingsCategories, getShareCategories } from '@/lib/queries';
 import { getCollectionAccounts, getRegistrationFees } from '@/lib/access-queries';
 import { getRules } from '@/lib/settings';
 import { can } from '@/lib/rbac';
@@ -13,9 +12,7 @@ export const metadata: Metadata = { title: 'Register a Member' };
 export default async function NewMemberPage() {
   const user = await requirePermission('members.create');
 
-  const [shareCategories, savingsCategories, fees, accounts, rules, brand] = await Promise.all([
-    getShareCategories(),
-    getSavingsCategories(),
+  const [fees, accounts, rules, brand] = await Promise.all([
     getRegistrationFees(),
     getCollectionAccounts(),
     getRules(),
@@ -31,8 +28,6 @@ export default async function NewMemberPage() {
         breadcrumb={[{ label: 'Members', href: '/staff/members' }, { label: 'Register' }]}
       />
       <RegistrationWizard
-        shareCategories={shareCategories}
-        savingsCategories={savingsCategories}
         fees={fees}
         accounts={accounts}
         canOverridePhone={can(user, 'members.phone_override')}
@@ -41,7 +36,6 @@ export default async function NewMemberPage() {
           requireDateOfBirth: rules.requireDateOfBirth,
           requireGender: rules.requireGender,
           requireNextOfKin: rules.requireNextOfKin,
-          requireCategories: rules.registrationRequiresCategories,
           activationRequiresFees: rules.activationRequiresFees,
           minAge: rules.minAge,
         }}

@@ -16,8 +16,8 @@ CSS = os.path.join(ROOT, 'documentation', 'source', 'manual.css')
 
 ORG = 'BAKENYE UNITY AND DEVELOPMENT SACCO'
 MOTTO = 'Together We Grow, Prosper and Build'
-DATE = '24 September 2026'
-VERSION = '1.1'
+DATE = '25 September 2026'
+VERSION = '2.0'
 
 
 def fig(path, caption, cls='', number=None, in_pair=False):

@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Avatar, Badge, Icon, Money } from '@/components/ui/primitives';
+import { Avatar, Icon, Money } from '@/components/ui/primitives';
 import { SearchInput } from '@/components/ui/form';
 import { EmptyState } from '@/components/ui/states';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
-import { SAVINGS_FREQUENCY_ADVERB, categoryTier } from '@/lib/categories';
+
 import { clsx } from '@/lib/clsx';
 import type { MemberFinancialsRow } from '@/types/db';
 
@@ -71,8 +71,7 @@ export function CollectSearch({
       ) : (
         <ul className="flex flex-col gap-2">
           {results.map((m) => {
-            const owed = toNumber(m.savings_outstanding);
-            const tier = categoryTier(m.savings_category_code);
+            const thisMonth = toNumber(m.savings_this_month);
             const selected = m.id === selectedId;
 
             return (
@@ -96,32 +95,21 @@ export function CollectSearch({
                       {m.member_no} · {formatPhone(m.phone)}
                     </p>
                     <p className="text-label-md font-label-md text-on-surface-variant/80 truncate normal-case">
-                      {m.savings_category_name && m.savings_frequency
-                        ? `${m.savings_category_name} · ${formatUGX(
-                            m.savings_expected_amount,
-                          )} ${SAVINGS_FREQUENCY_ADVERB[m.savings_frequency]}`
-                        : 'No savings category'}
-                      {m.savings_next_due_on
-                        ? ` · next due ${formatDate(m.savings_next_due_on)}`
-                        : ''}
+                      {formatUGX(m.savings_balance)} in savings
+                      {m.last_saved_on ? ` · last saved ${formatDate(m.last_saved_on)}` : ''}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    {owed > 0 ? (
-                      <>
-                        <p className="text-label-md font-label-md text-on-surface-variant">
-                          Owes
-                        </p>
-                        <Money
-                          value={owed}
-                          className="text-button-text font-button-text text-error font-semibold"
-                        />
-                      </>
-                    ) : (
-                      <Badge tone={tier.tone} dot>
-                        Up to date
-                      </Badge>
-                    )}
+                    <p className="text-label-md font-label-md text-on-surface-variant">
+                      This month
+                    </p>
+                    <Money
+                      value={thisMonth}
+                      className={clsx(
+                        'text-button-text font-button-text font-semibold',
+                        thisMonth > 0 ? 'text-tertiary' : 'text-on-surface-variant',
+                      )}
+                    />
                   </div>
                   <Icon name="chevron_right" size={20} className="text-outline shrink-0" />
                 </Link>

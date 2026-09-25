@@ -14,19 +14,18 @@ the visual source of truth, and every screen below names the file it came from.
 
 | Area | Covered |
 | --- | --- |
-| **Members** | Five-step registration (member, categories, fees, payment, confirmation) in one database transaction; search by number, name or phone; Pending / Active / Suspended / Inactive / Archived; share and savings categories; fees; field-by-field change history; full financial history and ledger |
+| **Members** | Four-step registration (member, fees, payment, confirmation) in one database transaction; search by number, name or phone; Pending / Active / Suspended / Inactive / Archived; fees; field-by-field change history; full financial history and ledger |
 | **Sign-in** | One form for everyone: member number or phone number (or a staff email) + password. The account and its role are detected, and each role opens its own dashboard |
-| **Fees** | Membership, registration and any other fee the SACCO defines under Settings → Fees. Amounts are rows, never code; a change never touches a past receipt |
-| **Categories** | Diamond / Gold / Silver share tiers and Diamond / Gold / Silver Saver savings tiers — created, edited and retired by a manager, never hard-coded |
-| **Collections** | One centralised screen: search a member by number, name or phone, see what their category expects, and record cash, mobile money, bank or cheque against a reference |
-| **Shares** | Share capital kept separate from savings; lots priced at purchase time; per-member progress towards the share category and its qualification deadline |
-| **Savings** | Per-member schedules driven by the savings category, with paid/partial/pending/missed/waived status, arrears and per-category analytics |
+| **Fees** | The UGX 20,000 registration fee and any other fee the SACCO defines under Settings → Fees. Amounts are rows, never code; a change never touches a past receipt |
+| **Collections** | One centralised screen: search a member by number, name or phone and record whatever they want to save — cash, mobile money, bank or cheque against a reference |
+| **Shares** | Share capital kept separate from savings; one configured price (UGX 10,000) and any whole number of shares; lots priced at purchase time |
+| **Savings** | Open monthly savings: any positive amount, as often as a member likes, with no target and no arrears; every deposit recorded by member, date, amount and reference |
 | **Loans** | Applied → Under Review → Approved → Disbursed → Active → Completed, plus Rejected; amortisation schedule; guarantors |
 | **Repayments** | Interest-first allocation, automatic status transitions, guarantor release on completion |
 | **Transactions** | One immutable ledger, `SAV260912001` references, reversal workflow |
 | **Receipts** | Printable / PDF / shareable, with the SACCO crest and full transaction detail |
 | **Finance** | Income by category, expenses with a mandatory approval step, cashbook, profit & loss |
-| **Reports** | Member register, category performance, savings performance, schedules, statements, ledgers, cashbook — every one downloadable as a letterheaded PDF and as CSV |
+| **Reports** | Member register, savings activity, savings records, statements, ledgers, cashbook — every one downloadable as a letterheaded PDF and as CSV |
 | **Users & roles** | Roles and permissions are data: eight built-in staff roles plus any a Super Admin creates, edited on Roles & Permissions and enforced by the database |
 | **Audit log** | Append-only, with before/after values and a mandatory reason on sensitive actions |
 
@@ -95,7 +94,7 @@ supabase db push
 | `0022_category_views.sql` | Share progress, `member_financials`, schedules, savings transactions, category summaries |
 | `0023_category_functions.sql` | Schedule arithmetic, collection, waivers, category administration |
 | `0024_category_reports.sql` | Savings dashboard, category analytics, member overview, the collection screen |
-| `0025_one_share_price.sql` | Corrects the share price to UGX 20,000 and removes the per-category copy, so one stored price serves shares, categories and receipts |
+| `0025_one_share_price.sql` | Removes the per-category price copy, so one stored price serves shares and receipts |
 | `0026_treasury_enums.sql` | The `transfer` and `payment` ledger types and the Cash & Bank enums. Kept apart because new enum values must commit before use |
 | `0027_cash_and_bank.sql` | Cash at Merchant, Cash at Bank, Cash at Hand: accounts, the account ledger, receipts, transfers, payments, reconciliation, supporting documents, approval rules, reports and RLS |
 | `0028_member_lifecycle_enums.sql` | The `pending` and `archived` member statuses. Kept apart because new enum values must commit before use |
@@ -108,6 +107,13 @@ supabase db push
 | `0035_provision_on_app_metadata.sql` | Provisions a login when Supabase writes its role or member link (a moment after creating the user), and repairs accounts created before the fix |
 | `0036_production_audit_fixes.sql` | Uganda time (Africa/Kampala) for the database; dashboard income/expenses exclude reversals; reversing a disbursement undoes the loan and its fees; reopening a loan restores its guarantors' real standing; `set_savings_plan()` |
 | `0037_settings_enforced_or_removed.sql` | Every setting on the Settings screen is enforced (loan-decision notices, minimum savings balance, part payments) or removed; the invented seed loan products are not shipped |
+| `0038_reference_numbering.sql` | One counter per document kind, safe under concurrency; `BND26001` member numbers |
+| `0039_savings_period_recompute.sql` | One typed function owns the "recompute a period from its payments" arithmetic, so collection and reversal cannot drift; savings payments become reversible |
+| `0040_member_statement_reversals.sql` | A statement's running balance accounts for reversals, so it closes at the member's real balance |
+| `0041_no_future_value_dates.sql` | No money-posting function accepts a value date in the future |
+| `0042_guarantor_sees_borrower.sql` | A guarantor can see the borrower they guarantee, and nobody else |
+| `0043_flexible_savings_and_flat_shares.sql` | The 2026 business rules: registration UGX 20,000, open monthly savings with no target and no arrears, one share price of UGX 10,000 and any number of shares. Retires the category registers without deleting a row, and restates every view, report and function that depended on them |
+| `0044_retire_savings_waivers.sql` | Removes the one function that could waive a savings month. With no required amount there is nothing to forgive. Every month already waived keeps its status, its reason and its place in the member's history |
 
 ### 4. Create the first administrator
 
@@ -330,58 +336,57 @@ go to the private `finance-documents` bucket and open through two-minute signed 
 
 ## How savings work
 
-The SACCO does not run group meetings. Each member saves on the cadence of the savings category
-they chose, and the office collects from whoever comes to the counter:
+The SACCO does not run group meetings, and since the 2026 business-rule change it does not run
+savings tiers either. **Monthly savings are open.** A member saves whatever amount they choose,
+as often as they choose, and the office records whoever comes to the counter:
 
 ```
-SACCO → MEMBERS → SHARE CATEGORY
-                → SAVINGS CATEGORY → SAVINGS PLAN → SCHEDULE → MANUAL TRANSACTION → LEDGER
+SACCO → MEMBERS → SAVINGS PERIOD (a month) → MANUAL TRANSACTION → LEDGER
 ```
 
-**The categories are rows, not constants.** `savings_categories` holds Diamond Saver at UGX 100,000
-monthly, Gold Saver at UGX 50,000 monthly and Silver Saver at UGX 5,000 weekly; `share_categories`
-holds Diamond at 50 shares, Gold at 25 and Silver at 1. Every screen reads
-them back, so a manager who introduces a fourth tier, or moves Gold Saver to UGX 60,000, does it on
-the Categories screen. Nothing is deployed. **There is one share price.** It lives in `share_settings.unit_price` — UGX 20,000 — and
-nowhere else. `buy_shares()` charges it, every share lot records it at the moment of sale, Settings
-edits it, and the Categories screen shows it. A category stores only how many shares and by when;
-its total is derived in `share_categories_priced`, so 50 shares is UGX 1,000,000 because a share
-costs UGX 20,000, not because a second field says so. Changing the price changes every category
-total at once and no purchase already made.
+**Nothing is expected, so nothing can be outstanding.** `ensure_savings_period()` opens the month a
+deposit belongs to with `expected_amount = 0`. There is no target, no saver category, no arrears,
+no overdue amount and no penalty. A month a member does not save in is a month with no deposits in
+it — never a debt. `open_savings_schedules()` and `open_savings_periods()` are kept so the "open
+this period" control keeps working, and both are now no-ops that say so; the nightly job no longer
+sweeps anything into `missed`.
 
-**Share category and savings category are independent.** A member may hold Gold shares and save at
-the Diamond rate; the brief's own worked example says so, and both are separate columns on `members`.
-A SACCO that later decides the two must always agree turns on
-`categories.share_matches_savings`, and `set_member_categories()` starts refusing the mismatch.
+**A savings period is a bucket, not an account.** One row per member per month, holding what was
+actually paid into it, recomputed from the posted payment rows by `recompute_savings_period()` —
+the one function that owns that arithmetic, called by both collection and reversal. Periods are
+never deleted, so every month a member saved in stays readable for ever.
 
-**Due dates are computed, never stored.** A weekly saver falls due at the end of their
-Monday-to-Sunday week; a monthly saver on the last day of the month. `next_savings_due_date()`
-answers "when next?" from the member's own open schedules and their category's frequency, so it is
-right the morning after a cycle closes without anything having run overnight. Moving a member
-between categories changes when they are next due with no code change.
+**There are no savings waivers.** A waiver forgave an amount the SACCO had asked for; nothing is
+asked for, so `0044` removed the function that could make one. The months waived before it keep
+their status, their reason and their audit entry, stay closed to further deposits, and survive a
+recompute exactly as they always did. Waiving an unpaid *fee* is a different thing and is
+unaffected.
 
-**A schedule is an expectation, not an account.** `open_savings_schedules()` raises one row per
-active categorised member for the current period, carrying what that member is expected to bring —
-their own savings plan if they have one, otherwise their category's amount. A member with neither
-gets an expectation of zero rather than an invented target. Raising the schedule *before* the money
-is due is what turns a member who pays nothing into a measurable `missed` schedule rather than no
-row at all.
+**Every deposit is recorded in full.** Member, date, amount, method, external reference, who
+recorded it and the ledger reference it posted under. `savings_transactions` is a view over the
+posted payments, so a reversed payment drops out of it the moment it is reversed.
 
-**A category has no balance.** Members, expected, collected, outstanding and the collection rate are
-all `SUM()`s over the member schedules, in `savings_category_summary` and
-`savings_category_analytics()`. Forty-two Diamond Savers at UGX 100,000 is UGX 4,200,000 expected;
-what they actually paid is what the ledger says. Because there is no second copy, a category total
-cannot drift away from what its members see on their own phones.
+**There is one share price.** It lives in `share_settings.unit_price` — UGX 10,000 — and nowhere
+else. `buy_shares()` charges it, every share lot records it at the moment of sale, and Settings
+edits it through the audited `update_share_settings()`. A member may buy **any whole number of
+shares**: there is no category, no required number, no qualification deadline and no ceiling. One
+share is UGX 10,000, twenty-five are UGX 250,000, because the database multiplied — not because a
+figure was typed into a form.
 
-**Progress towards a share category is arithmetic on real lots.** `member_share_progress` reads the
-shares a member actually bought and the joining date on their own record: 32 of 50 Diamond shares is
-64%, 18 remaining, UGX 360,000 to go, and the deadline is their `joined_on` plus their category's
-qualification window. A category with no window — Silver — simply has no deadline to show.
+**The server prices the sale.** `buy_shares()` takes an optional `p_expected_total`: the figure the
+form showed. It multiplies quantity by its own price, and if the two disagree — because the price
+moved while the form was open, or because the total did not come from the quantity at all — the
+sale stops and says so. A client-supplied total can never decide what is charged.
 
-**Schedules are never deleted.** Paid, partial, missed and waived are all states of the same row,
-so a week somebody missed in July is still visible in September with its shortfall attached. A
-waiver needs a manager and a written reason, and is refused outright once any money has been paid
-against the schedule.
+**Registration costs UGX 20,000.** The fee is a row in `fees` with `charged_when = 'registration'`,
+editable under Settings → Fees, not a number in code. `member_fees` copies the name and amount at
+the moment of charging, so raising the fee tomorrow never rewrites what somebody was asked to pay
+yesterday.
+
+**The retired tiers are kept, not deleted.** `share_categories` and `savings_categories` still hold
+their rows, all marked `inactive`, and `members.share_category_id` / `savings_category_id` still
+hold whatever each member joined under. Nothing reads them to decide an amount, price a share or
+classify anybody; they exist so a record raised under a tier can still name it.
 
 **Collection is manual, and one door wide.** The collection screen calls exactly one function,
 `record_scheduled_savings()`, which validates the amount, refuses a future date, refuses a
@@ -398,8 +403,8 @@ each one carries a letterhead of its own, rendered by
 [`PrintLetterhead.tsx`](src/components/print/PrintLetterhead.tsx):
 
 - the SACCO crest and full registered name;
-- what the document **is** — *Savings by Category*, *Member Register*, *Member Financial Ledger*;
-- what it is **about** — the category, the member, the filter applied;
+- what the document **is** — *Savings Activity*, *Member Register*, *Member Financial Ledger*;
+- what it is **about** — the member, the period, the filter applied;
 - the **period** it covers, its headline totals, when it was generated and **by whom**.
 
 It is `hidden` on screen, because the page already has a heading, and `print:block` in the output,
@@ -438,10 +443,11 @@ calls the same settlement function; the savings, ledger, audit and UI code does 
 
 ## Members, registration and fees
 
-**Registration is one transaction.** The five-step wizard at **Members → Register Member** collects
+**Registration is one transaction.** The four-step wizard at **Members → Register Member** collects
 everything and changes nothing until the last step. Then `register_member()`
-([`0030`](supabase/migrations/0030_member_registration_and_fees.sql)) validates the member, issues the
-next `BND26001` number, sets both categories, charges every applicable fee at its current
+([`0030`](supabase/migrations/0030_member_registration_and_fees.sql), restated by
+[`0043`](supabase/migrations/0043_flexible_savings_and_flat_shares.sql)) validates the member,
+issues the next `BND26001` number, charges every applicable fee at its current
 amount, posts the payment as one `fee` ledger row into Cash at Merchant, Cash at Bank or Cash at
 Hand, issues the `RCT260912001` receipt, books each fee as income in the cashbook, and writes the audit
 trail. If any part fails - a duplicate phone, a missing mobile-money reference, a fee that changed
@@ -467,7 +473,7 @@ spellings of their number. Two live members may share a number only through an e
 someone holding *Allow a shared phone number*, with a reason that is recorded.
 
 **Members cannot change their official record.** Name, phone, member number, membership date,
-categories, status and fees are shown to the member read-only. There is no edit control in the
+status and fees are shown to the member read-only. There is no edit control in the
 member portal, and more importantly no write path: members have no `UPDATE` privilege on
 `members`, no policy allows one, and `update_member_profile()` refuses anyone without *Edit member
 records*. Staff who hold it must give a reason, and every changed field is kept in
@@ -519,8 +525,8 @@ A reset link opens `/reset-password` for fifteen minutes and for that account on
 signed-in session cannot use that page to skip the current password. A session left idle longer than
 **Settings → Security → Session timeout** is signed out on its next request.
 
-A member can change their **password** from their profile; they cannot change their name, phone,
-member number or categories, which are the SACCO's record. Sign-in, failures, sign-out, resets and
+A member can change their **password** from their profile; they cannot change their name, phone or
+member number, which are the SACCO's record. Sign-in, failures, sign-out, resets and
 password changes all go to the audit log (module *Security*); no password ever does.
 
 ---
@@ -545,12 +551,11 @@ the data. The built-in roles start like this - the live matrix is on the Roles &
 
 | | Super Admin | Admin | Manager | Loan Officer | Cashier | Accountant | Field Officer | Viewer | Member |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| View members, categories, savings, transactions | ● | ● | ● | ● | ● | ● | ● | ● | own |
+| View members, savings, shares, transactions | ● | ● | ● | ● | ● | ● | ● | ● | own |
 | Register members & take registration fees | ● | ● | ● | — | — | — | — | — | — |
 | Edit official member records | ● | ● | ● | — | — | — | — | — | — |
 | Change member status | ● | ● | ● | — | — | — | — | — | — |
 | Allow a shared phone number | ● | ● | — | — | — | — | — | — | — |
-| Manage categories | ● | ● | ● | — | — | — | — | — | — |
 | Collect fees / manage fees | ● | ● / ● | ● / ● | — | ● / — | — | — | — | — |
 | Record savings | ● | ● | ● | — | ● | — | ● | — | — |
 | Sell shares | ● | ● | ● | — | ● | — | — | — | — |
@@ -581,8 +586,7 @@ that is a real obligation of theirs. Everything else returns nothing, at the dat
 - **A sign-up cannot choose its role.** New accounts take their role only from app metadata, which
   only the service role can write. An account nobody provisioned is created switched off.
 - **No direct writes to people or money.** `authenticated` has `SELECT` on tables and nothing else,
-  except the three writes a policy was written for (savings targets, marking notifications read,
-  loan documents). Members, users, roles, fees and the ledger change only through audited functions.
+  except the two writes a policy was written for (marking notifications read and loan documents). Members, users, roles, fees and the ledger change only through audited functions.
 - **Members see only themselves.** The guarantor search gives a member a name and member number,
   never another member's phone, savings or shares.
 
@@ -631,18 +635,17 @@ src/
 ├── components/
 │   ├── ui/             primitives carrying the Stitch design tokens
 │   ├── layout/         TopAppBar, BottomNav, Sidebar, shells
-│   ├── categories/     category register dialogs, status, member placement
-│   ├── collections/    the member collection panel and its record/waive dialogs
+│   ├── collections/    the member collection panel and its record dialog
 │   └── forms/          financial forms, all wrapped in FinancialForm
 ├── lib/
 │   ├── rbac.ts         roles, permissions, navigation — one source of truth
-│   ├── categories.ts   tiers, frequencies, category vocabulary
+│   ├── savings.ts      savings and share vocabulary, share arithmetic
 │   ├── money.ts        UGX formatting and input parsing
 │   ├── auth.ts         session and permission guards
 │   └── icons.ts        the icon subset
 └── types/db.ts         schema and RPC signatures
 
-supabase/migrations/    schema → functions → views → RLS → reference data → roles → categories
+supabase/migrations/    schema → functions → views → RLS → reference data → roles → business rules
 supabase/tests/         SQL suites, run in a transaction that is always rolled back
 scripts/                responsive-check.mjs, db-exec.mjs, test-db.mjs, numbering-check.mjs
 docs/                   setup, architecture, responsive results
@@ -652,22 +655,16 @@ docs/                   setup, architecture, responsive results
 
 ## Scheduled work
 
-These expect to be run on a schedule — with `pg_cron`, or any external scheduler:
+One job expects to be run on a schedule — with `pg_cron`, or any external scheduler:
 
 ```sql
-select run_daily_maintenance();              -- nightly: mark missed schedules, flag loan
-                                             -- defaults, and raise today's schedules
-select open_savings_schedules(current_date); -- every morning, if run separately
-select open_savings_periods('weekly');       -- one cadence only, if wanted
-select open_savings_periods('monthly');
+select run_daily_maintenance();              -- nightly: flag loans that have fallen into default
 ```
 
-`run_daily_maintenance()` already calls `open_savings_schedules()`, so a single nightly job is
-enough. Raising schedules in advance matters: a member who pays nothing then has a `missed` schedule
-rather than no row at all, which is the difference between a measurable shortfall and a silent gap.
-Members with no savings category are skipped and counted, not given a default — the count is on the
-savings dashboard, because it is a problem for a person to fix rather than for the database to paper
-over.
+It used to raise a savings schedule for every member and sweep the unpaid ones into `missed`. It
+does neither any more: savings are open, so there is no schedule to raise and a month without a
+deposit is not a debt. `open_savings_schedules()` and `open_savings_periods()` are kept so the
+"open this period" control keeps working, and both now return zero and say why.
 
 ---
 
@@ -686,17 +683,31 @@ node scripts/report-pdfs.mjs           # renders every report to a real PDF, plu
 node scripts/finance-check.mjs [url]   # signs in and loads every Finance screen at 390px and 1440px
 ```
 
-`supabase/tests/members_access_test.sql` walks the registration scenario from the brief: John
-Bakenye, 0700000000, Gold saver, Silver shares, a UGX 20,000 Membership Fee and a UGX 5,000
-Registration Fee paid by mobile money. It checks the member number, the stored phone, both categories,
-Cash at Merchant +25,000, one fee transaction with its MoMo reference, the receipt and its two lines,
-the two income entries and the audit trail; that a retry registers nobody twice; the duplicate-phone,
-invalid-phone, missing-category, changed-total and missing-reference refusals, with nothing left
-half-made; pending until paid; a fee increase that leaves John's receipt at UGX 20,000; a merchant →
+`supabase/tests/members_access_test.sql` walks the registration scenario end to end: John Bakenye,
+0700000000, a UGX 20,000 Membership Fee and a UGX 5,000 Registration Fee paid by mobile money. It
+checks the member number, the stored phone, that no category is recorded against him, Cash at
+Merchant +25,000, one fee transaction with its MoMo reference, the receipt and its two lines, the
+two income entries and the audit trail; that a retry registers nobody twice; the duplicate-phone,
+invalid-phone, changed-total and missing-reference refusals, with nothing left half-made; that a
+member registered with no category at all is simply an ordinary member; pending until paid; a fee increase that leaves John's receipt at UGX 20,000; a merchant →
 bank transfer that leaves total funds unchanged; an admin phone change recorded field by field; roles
 and permissions; member sign-in, the old number failing and the lock-out; a self sign-up claiming
 `super_admin` getting nothing; John unable to change his record, post to the ledger or write the
 audit log by any route; and that nothing internal is executable from the REST API.
+
+`supabase/tests/business_rules_2026_test.sql` is the executable statement of the current business
+rules. It proves the registration fee is UGX 20,000 and that paying it activates the member; that a
+member can save UGX 5,000, UGX 20,000 and UGX 73,500, several times in one month, with every deposit
+recorded by member, date, amount and reference; that a member who saves nothing has no missed
+period, no arrears and no penalty, and that the nightly job raises none; that a savings target
+cannot be set at all; that 1, 10, 25 and 100 shares cost UGX 10,000, 100,000, 250,000 and 1,000,000,
+that fractional, zero and negative quantities are refused, and that a client-supplied total which is
+not quantity × price is refused; that no read model or dashboard exposes a category, a target or
+arrears any more; that savings and share balances still reconcile with the ledger; that reversals
+still work and the statement still closes at the member's real balance; that every historical
+transaction, share lot and savings period is byte-for-byte what it was; and that a member still
+sees only their own records and can still neither record savings, sell themselves shares nor change
+the share price.
 
 `supabase/tests/treasury_test.sql` walks the Cash & Bank scenario end to end. It covers two member
 merchant payments, a merchant → bank transfer, a bank → cash withdrawal and a stationery expense.
@@ -739,7 +750,7 @@ and `STAFF_PASSWORD`. No credential is written into them.
 
 `scripts/reset-data.sql` removes every login (Super Admins included), member and business record
 in one transaction, keeps the schema and the SACCO's configuration (roles, permissions, settings,
-share and savings categories, fees table, Cash at Hand), and refuses to finish if anything is left.
+the retired category registers, fees table, Cash at Hand), and refuses to finish if anything is left.
 It is destructive by design - run it only on data you mean to discard, then create the first
 administrator again with `npm run bootstrap:admin`.
 
@@ -753,12 +764,11 @@ node scripts/db-exec.mjs scripts/reset-data.sql
 
 - **No payment gateway — deliberately.** Phase One records payments that already happened.
   `payment_intents` is the seam a provider plugs into in Phase Two; nothing calls one today.
-- **A savings category collects weekly or monthly, and nothing else.** A tier that needs a different
-  rhythm — fortnightly, or quarterly — needs a new value on `savings_kind` and the period arithmetic
-  to match.
-- **Editing a category is forward-looking.** Changing an amount re-prices only schedules that are
-  still pending, unpaid and not yet due. A cycle already collected keeps the figure it was actually
-  judged against, so last month's receipts and last month's report never disagree.
+- **Savings are filed by calendar month.** A deposit belongs to the month it was paid in, and the
+  month is worked out from the payment date on the server. `weekly` survives on the `savings_kind`
+  enum only because periods raised before 2026 use it; nothing raises a weekly period now.
+- **Changing the share price is forward-looking.** Every lot records the price at the moment of
+  sale, so a new price changes what the next purchase costs and nothing that has already happened.
 - **Excel export is CSV.** Opens natively in Excel, with a UTF-8 BOM so member names with accents
   survive. A true `.xlsx` writer was not worth ~200 KB for flat reports.
 - **Loan interest is flat-rate by default.** `quote_loan()` also implements reducing-balance

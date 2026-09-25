@@ -52,16 +52,11 @@ export default async function BuySharesPage() {
           { label: 'Price per share', value: formatUGX(unitPrice) },
           { label: 'Shares you hold', value: `${m?.share_count ?? 0}` },
           { label: 'Value of your shares', value: formatUGX(m?.share_value) },
-          ...(m?.share_category_name && m.share_target_shares
-            ? [
-                {
-                  label: `${m.share_category_name} target`,
-                  value: `${m.share_target_shares} shares · ${formatUGX(m.share_target_amount)}`,
-                },
-              ]
-            : []),
+          { label: '5 shares', value: formatUGX(unitPrice * 5) },
+          { label: '20 shares', value: formatUGX(unitPrice * 20) },
+          { label: '100 shares', value: formatUGX(unitPrice * 100) },
         ]}
-        footnote="Tell the cashier how many shares you want to buy — the total is the number of shares times the price above."
+        footnote="Buy as many shares as you like — there is no limit and no share category. The total is the number of shares times the price above."
         backHref="/shares"
       />
     </MemberShell>

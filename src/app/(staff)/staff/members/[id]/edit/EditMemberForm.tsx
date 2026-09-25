@@ -7,30 +7,23 @@ import { Alert } from '@/components/ui/states';
 import { Icon } from '@/components/ui/primitives';
 import { Field, Input, PhoneInput, Select, StickyActions, SubmitButton, Textarea } from '@/components/ui/form';
 import { formatPhone, toISODate } from '@/lib/format';
-import { formatUGX } from '@/lib/money';
-import { SAVINGS_FREQUENCY_ADVERB } from '@/lib/categories';
 import type { ActionResult } from '@/lib/errors';
-import type { MemberFinancialsRow, SavingsCategoryRow, ShareCategoryRow } from '@/types/db';
+import type { MemberFinancialsRow } from '@/types/db';
 
 /**
  * Edit a member's official record - staff only.
  *
- * The member number is shown but never editable. Status and categories have
- * their own audited controls (categories appear here only for someone who may
- * set them). Every save needs a reason, and every field that changed is kept
+ * The member number is shown but never editable, and status has its own
+ * audited control. There are no categories to set any more: savings are open
+ * and every share costs the same, so nothing about a member's tier has to be
+ * decided here. Every save needs a reason, and every field that changed is kept
  * on the member's history with its old value, new value, who and why.
  */
 export function EditMemberForm({
   member,
-  shareCategories,
-  savingsCategories,
-  canCategorise,
   canOverridePhone,
 }: {
   member: MemberFinancialsRow;
-  shareCategories: ShareCategoryRow[];
-  savingsCategories: SavingsCategoryRow[];
-  canCategorise: boolean;
   canOverridePhone: boolean;
 }) {
   const [state, action] = useActionState<ActionResult<{ member_id: string; changed: string[] }> | null, FormData>(
@@ -41,18 +34,11 @@ export function EditMemberForm({
   const fieldError = (f: string) => (err?.field === f ? err.error : null);
   const phoneClash = err?.field === 'phone' && /already the phone number/.test(err.error);
   const SHOWN = ['full_name', 'phone', 'national_id', 'date_of_birth', 'gender', 'joined_on',
-    'share_category_id', 'savings_category_id', 'email', 'next_of_kin_phone', 'reason'];
+    'email', 'next_of_kin_phone', 'reason'];
 
   return (
     <form action={action} className="mx-auto max-w-2xl" noValidate>
       <input type="hidden" name="member_id" value={member.id} />
-      {!canCategorise ? (
-        <>
-          <input type="hidden" name="share_category_id" value={member.share_category_id ?? ''} />
-          <input type="hidden" name="savings_category_id" value={member.savings_category_id ?? ''} />
-        </>
-      ) : null}
-
       {state?.ok ? (
         <div className="mb-5">
           <Alert tone="success" title="Member record updated">
@@ -115,42 +101,11 @@ export function EditMemberForm({
                 <option value="other">Other</option>
               </Select>
             </Field>
-            <Field label="Membership date" htmlFor="joined_on" error={fieldError('joined_on')} hint="Share category deadlines count from this date.">
+            <Field label="Membership date" htmlFor="joined_on" error={fieldError('joined_on')} hint="The date this member joined the SACCO.">
               <Input id="joined_on" name="joined_on" type="date" max={toISODate()} defaultValue={member.joined_on} />
             </Field>
           </div>
         </Section>
-
-        {canCategorise ? (
-          <Section title="Categories">
-            <Field label="Share category" htmlFor="share_category_id" error={fieldError('share_category_id')}>
-              <Select id="share_category_id" name="share_category_id" defaultValue={member.share_category_id ?? ''}>
-                <option value="">Not chosen</option>
-                {shareCategories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} · {c.required_shares} {c.required_shares === 1 ? 'share' : 'shares'}
-                    {c.required_amount !== null ? ` · ${formatUGX(c.required_amount)}` : ''}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field
-              label="Savings category"
-              htmlFor="savings_category_id"
-              error={fieldError('savings_category_id')}
-              hint="Moving a member re-prices only schedules not yet due and not yet paid."
-            >
-              <Select id="savings_category_id" name="savings_category_id" defaultValue={member.savings_category_id ?? ''}>
-                <option value="">Not chosen</option>
-                {savingsCategories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} · {formatUGX(c.amount)} {SAVINGS_FREQUENCY_ADVERB[c.frequency]}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </Section>
-        ) : null}
 
         <Section title="Contact & address">
           <Field label="Email address" htmlFor="email" error={fieldError('email')} hint="Optional.">

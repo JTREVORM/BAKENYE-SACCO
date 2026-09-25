@@ -2,22 +2,15 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import {
-  getMemberFinancials,
-  getSavingsCategories,
-  getShareCategories,
-  getShareProgress,
-} from '@/lib/queries';
+import { getMemberFinancials, getShareProgress, getShareUnitPrice } from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
-import { Avatar, Badge, Icon, Money, PageTitle, ProgressBar } from '@/components/ui/primitives';
-import { LoanStatusBadge, MemberStatusBadge, SavingsStatusBadge } from '@/components/ui/status';
+import { Avatar, Badge, Icon, Money, PageTitle } from '@/components/ui/primitives';
+import { LoanStatusBadge, MemberStatusBadge } from '@/components/ui/status';
 import { EmptyState } from '@/components/ui/states';
 import { TransactionRow } from '@/components/member/TransactionRow';
 import { MemberStatusControl } from './MemberStatusControl';
 import { MemberAccountPanel } from '@/components/accounts/MemberAccountPanel';
-import { SavingsPlanControl } from './SavingsPlanControl';
-import { MemberCategoryControl } from '@/components/categories/MemberCategoryControl';
 import { MemberFeeActions } from '@/components/fees/MemberFeeActions';
 import {
   getCollectionAccounts,
@@ -28,12 +21,7 @@ import {
 import { formatDateTime, MEMBER_STATUS_HINTS } from '@/lib/format';
 import type { MemberFeeRow, MemberProfileChangeRow } from '@/types/access';
 import type { AuditLogRow } from '@/types/db';
-import {
-  SAVINGS_FREQUENCY_ADVERB,
-  SAVINGS_FREQUENCY_PERIOD,
-  categoryTier,
-  qualificationWindow,
-} from '@/lib/categories';
+import { shareCount } from '@/lib/savings';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
@@ -42,7 +30,6 @@ import type {
   MemberFinancialsRow,
   MemberShareProgressRow,
   SavingsPeriodRow,
-  SavingsPlanRow,
   ShareLotRow,
   TransactionFeedRow,
 } from '@/types/db';
@@ -64,7 +51,6 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   if (!member) notFound();
 
   const supabase = await createClient();
-  const mayCategorise = can(user, 'categories.manage');
   const mayCollect = can(user, 'fees.collect');
   const [memberFees, profileChanges, allFees, accounts, auditRes] = await Promise.all([
     getMemberFees(id),
@@ -91,12 +77,11 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
     .map((f) => ({ id: f.id, name: f.name, amount: Number(f.amount) }));
   const statusEvents = (auditRes.data ?? []) as AuditLogRow[];
   const canSeeHistory = can(user, 'members.manage') || can(user, 'audit.view');
-  const [shareProgress, shareCategories, savingsCategories] = await Promise.all([
+  const [shareProgress, sharePrice] = await Promise.all([
     getShareProgress(id),
-    mayCategorise ? getShareCategories() : Promise.resolve([]),
-    mayCategorise ? getSavingsCategories() : Promise.resolve([]),
+    getShareUnitPrice(),
   ]);
-  const [loansRes, txnRes, sharesRes, weeklyRes, monthlyRes, plansRes] = await Promise.all([
+  const [loansRes, txnRes, sharesRes, weeklyRes, monthlyRes] = await Promise.all([
     supabase.from('loan_balances').select('*').eq('member_id', id).order('disbursed_on', { ascending: false, nullsFirst: false }),
     supabase
       .from('transaction_feed')
@@ -108,7 +93,6 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
     supabase.from('share_lots').select('*').eq('member_id', id).order('purchased_on', { ascending: false }).limit(5),
     supabase.from('savings_periods').select('*').eq('member_id', id).eq('kind', 'weekly').order('period_start', { ascending: false }).limit(6),
     supabase.from('savings_periods').select('*').eq('member_id', id).eq('kind', 'monthly').order('period_start', { ascending: false }).limit(6),
-    supabase.from('savings_plans').select('*').eq('member_id', id).is('active_to', null),
   ]);
 
   const loans = (loansRes.data ?? []) as LoanBalanceRow[];
@@ -116,10 +100,6 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   const shares = (sharesRes.data ?? []) as ShareLotRow[];
   const weekly = (weeklyRes.data ?? []) as SavingsPeriodRow[];
   const monthly = (monthlyRes.data ?? []) as SavingsPeriodRow[];
-  const plans = (plansRes.data ?? []) as SavingsPlanRow[];
-
-  const weeklyPlan = plans.find((p) => p.kind === 'weekly');
-  const monthlyPlan = plans.find((p) => p.kind === 'monthly');
 
   const actions = [
     can(user, 'savings.record') && {
@@ -235,16 +215,6 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         </div>
 
         <div className="flex shrink-0 flex-wrap gap-2">
-          {mayCategorise ? (
-            <MemberCategoryControl
-              memberId={id}
-              memberName={member.full_name}
-              currentShareCategoryId={member.share_category_id}
-              currentSavingsCategoryId={member.savings_category_id}
-              shareCategories={shareCategories}
-              savingsCategories={savingsCategories}
-            />
-          ) : null}
           {can(user, 'members.status') ? (
             <MemberStatusControl memberId={id} status={member.status} name={member.full_name} />
           ) : null}
@@ -267,8 +237,8 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         Both are read from the member's own row, so a blank one says so rather
         than being filled in with a plausible default. */}
       <section className="gap-gutter grid grid-cols-1 lg:grid-cols-2">
-        <SavingsCategoryPanel member={member} />
-        <ShareCategoryPanel progress={shareProgress} />
+        <SavingsSummaryPanel member={member} />
+        <SharesSummaryPanel progress={shareProgress} sharePrice={sharePrice} />
       </section>
 
       {/* The three balances, deliberately separate. */}
@@ -365,29 +335,19 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           )}
         </Panel>
 
-        {/* Savings targets and periods */}
-        <Panel
-          title="Savings"
-          action={
-            can(user, 'savings.record') ? (
-              <SavingsPlanControl
-                memberId={id}
-                weeklyTarget={weeklyPlan ? Number(weeklyPlan.target_amount) : null}
-                monthlyTarget={monthlyPlan ? Number(monthlyPlan.target_amount) : null}
-              />
-            ) : undefined
-          }
-        >
+        {/* Savings, month by month. There is no target, so there is nothing to
+            set here and nothing to fall short of. */}
+        <Panel title="Savings">
           <div className="border-outline-variant grid grid-cols-2 divide-x divide-outline-variant/70 border-b">
-            <TargetCell label="Weekly target" value={weeklyPlan?.target_amount} />
-            <TargetCell label="Monthly target" value={monthlyPlan?.target_amount} />
+            <Figure label="Total savings" value={member.savings_balance} />
+            <Figure label="Saved this month" value={member.savings_this_month} tone="text-tertiary" />
           </div>
 
           {weekly.length === 0 && monthly.length === 0 ? (
             <EmptyState
               icon="savings"
-              title="No savings periods yet"
-              description="Periods open automatically once a target is set and a payment is recorded."
+              title="No savings yet"
+              description="Months appear here as savings are recorded. Savings are open — nothing is expected."
             />
           ) : (
             <ul className="divide-outline-variant/70 divide-y">
@@ -401,11 +361,13 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
                         {p.period_label}
                       </p>
                       <p className="text-label-md font-label-md text-on-surface-variant normal-case">
-                        {p.kind === 'weekly' ? 'Weekly' : 'Monthly'} ·{' '}
-                        {formatUGX(p.paid_amount)} of {formatUGX(p.expected_amount)}
+                        {toNumber(p.paid_amount) > 0 ? 'Saved' : 'Nothing saved'}
                       </p>
                     </div>
-                    <SavingsStatusBadge status={p.status} />
+                    <Money
+                      value={p.paid_amount}
+                      className="text-body-md font-body-md text-tertiary shrink-0 font-semibold"
+                    />
                   </li>
                 ))}
             </ul>
@@ -570,203 +532,103 @@ function Panel({
   );
 }
 
-function TargetCell({ label, value }: { label: string; value: unknown }) {
-  return (
-    <div className="p-4">
-      <p className="text-label-md font-label-md text-on-surface-variant">{label}</p>
-      {value ? (
-        <Money value={value} className="text-body-lg font-body-lg text-on-surface font-semibold" />
-      ) : (
-        <p className="text-body-md font-body-md text-on-surface-variant/70">Not set</p>
-      )}
-    </div>
-  );
-}
-
 /* ------------------------------------------------------------------------ */
 
 /**
- * What this member is expected to save, and where they stand on it.
+ * How this member is saving.
  *
- * Every figure comes from `member_financials`, which derives it from the
- * savings category and the schedules actually raised. A member with no category
- * gets a plain statement of that fact — not a zero target that reads like a
- * decision somebody made.
+ * Savings are open: there is no target, nothing outstanding and no next due
+ * date, so none of those appear. What a member of staff is actually asked at
+ * the counter is how much the member holds and how much they have put in this
+ * month, and that is what this says.
  */
-function SavingsCategoryPanel({ member }: { member: MemberFinancialsRow }) {
-  const tier = categoryTier(member.savings_category_code);
-
-  if (!member.savings_category_id) {
-    return (
-      <div className="bg-secondary-fixed text-on-secondary-fixed flex flex-col gap-2 rounded-xl p-5">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/40">
-            <Icon name="savings" size={22} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-label-md font-label-md">Savings category</p>
-            <p className="text-body-lg font-body-lg font-semibold">Not chosen yet</p>
-          </div>
-        </div>
-        <p className="text-body-md font-body-md">
-          No savings schedule is raised for this member, and nothing is expected of them,
-          until a category is set.
-        </p>
-      </div>
-    );
-  }
-
-  const frequency = member.savings_frequency ?? 'monthly';
-
+function SavingsSummaryPanel({ member }: { member: MemberFinancialsRow }) {
   return (
     <div className="bg-surface border-outline-variant shadow-card flex flex-col gap-4 rounded-xl border p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="bg-primary-fixed text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
-            <Icon name={tier.icon} size={22} />
+            <Icon name="savings" size={22} />
           </span>
           <div className="min-w-0">
-            <p className="text-label-md font-label-md text-on-surface-variant">
-              Savings category
-            </p>
+            <p className="text-label-md font-label-md text-on-surface-variant">Savings</p>
             <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
-              {member.savings_category_name}
+              Open — any amount, any time
             </p>
           </div>
         </div>
-        <Badge tone={tier.tone}>
-          {formatUGX(member.savings_expected_amount)} {SAVINGS_FREQUENCY_ADVERB[frequency]}
-        </Badge>
+        <Badge tone="info">No target</Badge>
       </div>
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Figure label="Contributed" value={member.savings_contributed} tone="text-tertiary" />
-        <Figure
-          label="Outstanding"
-          value={member.savings_outstanding}
-          tone={toNumber(member.savings_outstanding) > 0 ? 'text-error' : undefined}
-        />
+        <Figure label="Total savings" value={member.savings_balance} />
+        <Figure label="This month" value={member.savings_this_month} tone="text-tertiary" />
         <div className="min-w-0">
           <dt className="text-label-md font-label-md text-on-surface-variant truncate">
-            Next due
+            Last saved
           </dt>
           <dd className="text-body-md font-body-md text-on-surface truncate font-semibold">
-            {member.savings_next_due_on ? formatDate(member.savings_next_due_on) : '—'}
+            {member.last_saved_on ? formatDate(member.last_saved_on) : '—'}
           </dd>
         </div>
       </dl>
 
       <p className="text-label-md font-label-md text-on-surface-variant normal-case">
-        {member.savings_current_cycle
-          ? `Current cycle: ${member.savings_current_cycle}`
-          : `No open ${SAVINGS_FREQUENCY_PERIOD[frequency]} to collect for yet.`}
+        A month without a deposit is not arrears and carries no penalty.
       </p>
     </div>
   );
 }
 
 /**
- * Progress towards the share category — section 15 of the brief.
+ * What this member holds in shares, at the SACCO's one price.
  *
- * The deadline is computed from this member's own joining date and their
- * category's qualification window, so it moves when either does. A category
- * with no window — Silver — simply has no deadline to show.
+ * There is no tier, no required number and no qualification deadline: a member
+ * may buy any whole number of shares whenever they like.
  */
-function ShareCategoryPanel({ progress }: { progress: MemberShareProgressRow | null }) {
-  if (!progress?.share_category_id || !progress.target_shares) {
-    return (
-      <div className="bg-surface border-outline-variant flex flex-col gap-2 rounded-xl border p-5">
-        <div className="flex items-center gap-3">
-          <span className="bg-surface-container-high text-on-surface-variant flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
-            <Icon name="pie_chart" size={22} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-label-md font-label-md text-on-surface-variant">
-              Share category
-            </p>
-            <p className="text-body-lg font-body-lg text-on-surface font-semibold">
-              Not chosen yet
-            </p>
-          </div>
-        </div>
-        <p className="text-body-md font-body-md text-on-surface-variant">
-          There is no share target to measure this member against until a category is set.
-        </p>
-      </div>
-    );
-  }
-
-  const tier = categoryTier(progress.share_category_code);
-  const pct = toNumber(progress.progress_percent);
+function SharesSummaryPanel({
+  progress,
+  sharePrice,
+}: {
+  progress: MemberShareProgressRow | null;
+  sharePrice: number | null;
+}) {
+  const owned = toNumber(progress?.shares_owned);
+  const price = progress?.share_price ?? sharePrice;
 
   return (
     <div className="bg-surface border-outline-variant shadow-card flex flex-col gap-4 rounded-xl border p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="bg-primary-fixed text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
-            <Icon name={tier.icon} size={22} />
+            <Icon name="pie_chart" size={22} />
           </span>
           <div className="min-w-0">
-            <p className="text-label-md font-label-md text-on-surface-variant">
-              Share category
-            </p>
+            <p className="text-label-md font-label-md text-on-surface-variant">Shares</p>
             <p className="text-body-lg font-body-lg text-on-surface truncate font-semibold">
-              {progress.share_category_name}
+              {shareCount(owned)}
             </p>
           </div>
         </div>
-        {progress.qualified ? (
-          <Badge tone="success" dot>
-            Qualified
-          </Badge>
-        ) : progress.qualification_lapsed ? (
-          <Badge tone="error" dot>
-            Deadline passed
-          </Badge>
-        ) : (
-          <Badge tone={tier.tone}>{Math.round(pct)}%</Badge>
-        )}
+        <Badge tone="neutral">{price ? `${formatUGX(price)} each` : 'Price not set'}</Badge>
       </div>
 
-      <div>
-        <p className="text-label-md font-label-md text-on-surface-variant mb-1.5 normal-case">
-          {progress.shares_owned} of {progress.target_shares} shares ·{' '}
-          {formatUGX(progress.share_value)} of {formatUGX(progress.target_amount)}
-        </p>
-        <ProgressBar
-          value={pct}
-          tone={
-            progress.qualified ? 'tertiary' : progress.qualification_lapsed ? 'error' : 'primary'
-          }
-          label="Share category progress"
-        />
-      </div>
-
-      <dl className="grid grid-cols-2 gap-3">
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Figure label="Total share value" value={progress?.share_value} tone="text-tertiary" />
+        <Figure label="Price per share" value={price} />
         <div className="min-w-0">
           <dt className="text-label-md font-label-md text-on-surface-variant truncate">
-            Shares remaining
+            Last purchase
           </dt>
-          <dd className="text-body-md font-body-md text-on-surface tabular truncate font-semibold">
-            {progress.shares_remaining ?? 0} · {formatUGX(progress.amount_remaining)}
-          </dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-label-md font-label-md text-on-surface-variant truncate">
-            Qualifies by
-          </dt>
-          <dd
-            className={clsx(
-              'text-body-md font-body-md truncate font-semibold',
-              progress.qualification_lapsed ? 'text-error' : 'text-on-surface',
-            )}
-          >
-            {progress.qualifies_by
-              ? formatDate(progress.qualifies_by)
-              : qualificationWindow(progress.qualification_months)}
+          <dd className="text-body-md font-body-md text-on-surface truncate font-semibold">
+            {progress?.last_purchase_on ? formatDate(progress.last_purchase_on) : '—'}
           </dd>
         </div>
       </dl>
+
+      <p className="text-label-md font-label-md text-on-surface-variant normal-case">
+        Any whole number of shares may be bought. There is no category and no ceiling.
+      </p>
     </div>
   );
 }

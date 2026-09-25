@@ -15,11 +15,11 @@ export const metadata: Metadata = { title: 'Collect savings' };
 const RESULT_LIMIT = 8;
 
 /**
- * Savings collection — section 8 of the brief.
+ * Savings collection.
  *
- * Without groups there is no sheet to work down, so collection is centralised
- * on the member: search for whoever is at the counter, see what their category
- * expects of them, and record what they have handed over.
+ * There is no sheet to work down and nothing expected of anybody, so collection
+ * is centralised on the member: search for whoever is at the counter, see where
+ * they stand, and record whatever they have handed over.
  *
  * Both halves are query-string state, which means a cashier can keep a member
  * open in one tab, and a link to "Mary's collection screen" is a real link.
@@ -38,7 +38,7 @@ export default async function CollectSavingsPage({
     <div className="flex flex-col gap-6">
       <PageTitle
         title="Collect savings"
-        subtitle="Find a member, see what their category expects, and record what they have paid."
+        subtitle="Find a member and record whatever they want to save. Any amount, as often as they like."
       />
 
       <div className="gap-gutter grid grid-cols-1 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
@@ -54,7 +54,6 @@ export default async function CollectSavingsPage({
               <Selected
                 memberId={memberId}
                 canRecord={can(user, 'savings.record')}
-                canWaive={can(user, 'savings.waive')}
               />
             </Suspense>
           ) : (
@@ -98,11 +97,9 @@ async function Results({ query, selectedId }: { query: string; selectedId: strin
 async function Selected({
   memberId,
   canRecord,
-  canWaive,
 }: {
   memberId: string;
   canRecord: boolean;
-  canWaive: boolean;
 }) {
   // This raises the current cycle's schedule if it does not exist yet, so a
   // member standing at the counter never produces an empty screen.
@@ -117,5 +114,5 @@ async function Selected({
     );
   }
 
-  return <MemberCollectionPanel view={view} canRecord={canRecord} canWaive={canWaive} />;
+  return <MemberCollectionPanel view={view} canRecord={canRecord} />;
 }

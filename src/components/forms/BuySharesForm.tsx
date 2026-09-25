@@ -11,15 +11,21 @@ import { formatDate, PAYMENT_METHOD_LABELS, toISODate } from '@/lib/format';
 import type { PaymentMethod } from '@/types/db';
 
 const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheque'];
-const DEFAULT_QUICK_PICKS = [1, 2, 5, 10, 20];
+const DEFAULT_QUICK_PICKS = [1, 5, 10, 20, 50, 100];
 
 /**
  * Record a share purchase.
  *
- * Shares are bought in whole units at the SACCO's current unit price, and the
- * total is derived — the operator enters a *quantity*, never a shilling amount.
- * That is what keeps share capital from drifting into a savings-like balance
- * that nobody can reconcile back to a share count.
+ * Shares are bought in whole units at the SACCO's one price, and the total is
+ * derived — the operator enters a *quantity*, never a shilling amount. That is
+ * what keeps share capital from drifting into a savings-like balance nobody can
+ * reconcile back to a share count.
+ *
+ * The total shown here is for the person at the counter to read. It is not what
+ * is charged: the figure travels to the database as `expected_total`, which
+ * multiplies quantity by its own price and refuses the sale if the two
+ * disagree. There is no tier and no ceiling — any whole number of shares from
+ * one upwards is a valid purchase.
  */
 export function BuySharesForm({
   member,
@@ -27,7 +33,6 @@ export function BuySharesForm({
   unitPrice,
   currentShares,
   quickPicks,
-  target,
   doneHref,
 }: {
   member?: PickedMember | null;
@@ -35,10 +40,8 @@ export function BuySharesForm({
   /** The SACCO's one share price — the same value `buy_shares()` charges. */
   unitPrice: number;
   currentShares?: number;
-  /** One-tap quantities; the page passes each share category's target. */
+  /** One-tap quantities. Convenience only; any whole number is allowed. */
   quickPicks?: number[];
-  /** What this member still needs to reach their share category, if anything. */
-  target?: { name: string; remaining: number } | null;
   doneHref?: string;
 }) {
   const picks = quickPicks && quickPicks.length > 0 ? quickPicks : DEFAULT_QUICK_PICKS;
@@ -93,6 +96,10 @@ export function BuySharesForm({
       }}
     >
       <div className="flex flex-col gap-5">
+        {/* What the counter was shown, for the database to check its own
+            arithmetic against. It cannot decide the price. */}
+        <input type="hidden" name="expected_total" value={String(total)} />
+
         {lockMember && picked ? (
           <input type="hidden" name="member_id" value={picked.id} />
         ) : (
@@ -103,7 +110,7 @@ export function BuySharesForm({
           label="Number of shares"
           htmlFor="quantity"
           required
-          hint={`Each share costs ${formatUGX(unitPrice)}.`}
+          hint={`Each share costs ${formatUGX(unitPrice)}. Buy any number you like.`}
         >
           <div className="flex items-stretch gap-2">
             <Button
@@ -139,19 +146,6 @@ export function BuySharesForm({
         </Field>
 
         <div className="-mt-2 flex flex-wrap gap-2">
-          {target && target.remaining > 0 ? (
-            <button
-              type="button"
-              onClick={() => setQuantity(target.remaining)}
-              className={`text-label-md font-label-md h-touch-target-min rounded-full px-4 normal-case transition-colors ${
-                quantity === target.remaining
-                  ? 'bg-primary text-on-primary'
-                  : 'bg-secondary-container text-on-secondary-container hover:opacity-90'
-              }`}
-            >
-              {target.remaining} to reach {target.name}
-            </button>
-          ) : null}
           {picks.map((n) => (
             <button
               key={n}

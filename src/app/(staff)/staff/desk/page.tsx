@@ -73,17 +73,18 @@ async function TodayFigures() {
     <section aria-label="Today" className="grid grid-cols-2 gap-gutter lg:grid-cols-4">
       <KpiCard icon="payments" label="Collected today" value={formatUGX(m.todays_collections)} tone="success" />
       <KpiCard
-        icon="event_available"
-        label="Savings due today"
-        value={m.schedules_due_today}
-        tone={m.schedules_due_today > 0 ? 'primary' : 'neutral'}
-        href="/staff/savings/schedules"
+        icon="savings"
+        label="Saved this month"
+        value={formatUGX(m.savings_this_month)}
+        tone={Number(m.savings_this_month) > 0 ? 'primary' : 'neutral'}
+        href="/staff/savings/records"
       />
       <KpiCard
-        icon="event_busy"
-        label="Savings in arrears"
-        value={formatUGX(m.savings_arrears)}
-        tone={Number(m.savings_arrears) > 0 ? 'warning' : 'neutral'}
+        icon="group_add"
+        label="Members who saved"
+        value={m.savers_this_month}
+        tone="neutral"
+        href="/staff/savings/performance"
       />
       <KpiCard icon="group" label="Active members" value={m.total_members} href="/staff/members" />
     </section>

@@ -114,7 +114,6 @@ function toRules(map: SettingsMap) {
     // Fees are not settings: they are rows in `fees`, managed under
     // Settings -> Fees, and read by registration itself.
     activationRequiresFees: settingBool(map, 'members.activation_requires_fees', true),
-    registrationRequiresCategories: settingBool(map, 'members.registration_requires_categories', true),
     requireNationalId: settingBool(map, 'members.require_national_id'),
     requireDateOfBirth: settingBool(map, 'members.require_date_of_birth'),
     requireGender: settingBool(map, 'members.require_gender'),
@@ -122,9 +121,13 @@ function toRules(map: SettingsMap) {
     minSavingsBalance: settingNumber(map, 'members.min_savings_balance'),
     minAge: settingNumber(map, 'members.min_age', 18),
 
+    /**
+     * The smallest deposit the counter will take. Both ship at zero, which is
+     * what "a member may save any positive amount" means in practice; a SACCO
+     * that later wants a floor sets one here rather than in code.
+     */
     minWeeklySaving: settingNumber(map, 'savings.min_weekly_amount'),
     minMonthlySaving: settingNumber(map, 'savings.min_monthly_amount'),
-    allowPartialSaving: settingBool(map, 'savings.allow_partial_payment', true),
 
     maxActiveLoans: settingNumber(map, 'loans.max_active_per_member', 1),
     maxSavingsMultiple: settingNumber(map, 'loans.max_savings_multiple'),
@@ -133,13 +136,6 @@ function toRules(map: SettingsMap) {
     defaultLatePenaltyPct: settingNumber(map, 'loans.default_late_penalty_pct'),
     requireGuarantors: settingBool(map, 'loans.require_guarantors', true),
     guarantorCoverPct: settingNumber(map, 'loans.guarantor_cover_pct', 100),
-
-    /**
-     * Whether a member's savings category has to match their share category.
-     * Off by default: the SACCO's own worked example is a Gold shareholder who
-     * saves at the Diamond rate.
-     */
-    shareMatchesSavings: settingBool(map, 'categories.share_matches_savings'),
 
     notifyOnLoanDecision: settingBool(map, 'notifications.notify_on_loan_decision', true),
 
@@ -189,20 +185,14 @@ export const SETTING_CATEGORIES: {
     id: 'members',
     label: 'Members',
     icon: 'group',
-    description: 'What registration asks for, when a new member becomes active, and what a member is expected to maintain. Fees are under Fees.',
+    description: 'What registration asks for, when a new member becomes active, and what a member is expected to maintain. The registration fee is under Fees.',
   },
   {
     id: 'savings',
     label: 'Savings',
     icon: 'account_balance_wallet',
-    description: 'Minimum contributions and how part payments are treated.',
-  },
-  {
-    id: 'categories',
-    label: 'Categories',
-    icon: 'workspace_premium',
     description:
-      'Whether share and savings categories must agree, and whether every member needs one.',
+      'The smallest deposit the counter will take. Savings are open: there is no monthly target.',
   },
   {
     id: 'treasury',

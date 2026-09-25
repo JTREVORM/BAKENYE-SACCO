@@ -25,22 +25,15 @@ declare
   v_b_user uuid := gen_random_uuid();
   v_c_user uuid := gen_random_uuid();
   v_a uuid; v_b uuid; v_c uuid;
-  v_share uuid := (select id from share_categories where status = 'active' order by sort_order limit 1);
 begin
   v_a := (register_member(jsonb_build_object(
-            'full_name', 'QA Borrower Test', 'phone', '+256779300001',
-            'share_category_id', v_share,
-            'savings_category_id', (select id from savings_categories where code = 'GOLD_SAVER')))
+            'full_name', 'QA Borrower Test', 'phone', '+256779300001'))
           ->> 'member_id')::uuid;
   v_b := (register_member(jsonb_build_object(
-            'full_name', 'QA Guarantor Test', 'phone', '+256779300002',
-            'share_category_id', v_share,
-            'savings_category_id', (select id from savings_categories where code = 'SILVER_SAVER')))
+            'full_name', 'QA Guarantor Test', 'phone', '+256779300002'))
           ->> 'member_id')::uuid;
   v_c := (register_member(jsonb_build_object(
-            'full_name', 'QA Stranger Test', 'phone', '+256779300003',
-            'share_category_id', v_share,
-            'savings_category_id', (select id from savings_categories where code = 'GOLD_SAVER')))
+            'full_name', 'QA Stranger Test', 'phone', '+256779300003'))
           ->> 'member_id')::uuid;
 
   perform waive_member_fee(mf.id, 'automated test fixture')
@@ -277,13 +270,31 @@ declare
   v_sched uuid;
 begin
   -- The V-5 checks above left the session claiming to be somebody else, or
-  -- nobody. Put the administrator back, so the waiver is attributed properly.
+  -- nobody. Put the administrator back.
   perform set_config('request.jwt.claims',
     json_build_object('sub', (select id from app_users
                                where role = 'super_admin' and is_active
                                order by created_at limit 1),
                       'role', 'authenticated')::text, false);
+end;
+$$;
 
+-- ---------------------------------------------------------------------------
+-- V-1h, restated for 0044: a waiver made before waivers were retired still
+-- survives a recompute.
+--
+-- 0044 removed the function that could create one, so this stands a historical
+-- waiver up the only way that is left - by writing the status directly, as the
+-- owner - and then proves the rule that matters: `recompute_savings_period()`
+-- leaves a waived month waived whatever happens to the payments around it.
+-- ---------------------------------------------------------------------------
+reset role;
+
+do $waiver$
+declare
+  v_a     uuid := (select id from t_ctx where key = 'a');
+  v_sched uuid;
+begin
   select id into v_sched from savings_periods
    where member_id = v_a and status <> 'waived' and paid_amount = 0 limit 1;
 
@@ -291,15 +302,23 @@ begin
     insert into t_result (step, ok, detail)
     values ('V-1h a waived period stays waived', true, 'no waivable period in this fixture');
   else
-    perform waive_savings_schedule(v_sched, 'Automated test: waiver must survive a recompute.');
+    update savings_periods set status = 'waived' where id = v_sched;
     perform recompute_savings_period(v_sched);
     insert into t_result (step, ok, detail)
     values ('V-1h a waived period stays waived',
             (select status from savings_periods where id = v_sched) = 'waived',
             (select status::text from savings_periods where id = v_sched));
   end if;
+
+  insert into t_result (step, ok, detail)
+  values ('0044 a new waiver cannot be created at all',
+          not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                       where n.nspname = 'public' and p.proname = 'waive_savings_schedule'),
+          'waive_savings_schedule() no longer exists');
 end;
-$$;
+$waiver$;
+
+set role authenticated;
 
 select step, ok, detail from t_result order by n;
 

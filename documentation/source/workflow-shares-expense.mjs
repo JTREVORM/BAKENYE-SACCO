@@ -16,7 +16,9 @@ const browser = await openBrowser();
   await page.locator('main button, main [role="option"]').filter({ hasText: 'BND26006' }).first().click().catch(() => {});
   await settle(page, 900);
 
-  await page.locator('main button', { hasText: '5 shares' }).first().click().catch(() => {});
+  // Any whole number is allowed; 25 is chosen because 25 x UGX 10,000 is the
+  // worked example the SACCO's rules give.
+  await page.locator('#quantity').fill('25').catch(() => {});
   await page.selectOption('#method', 'cash').catch(() => {});
   await settle(page, 400);
   await shot(page, 'staff', 'shares-03-filled');

@@ -108,8 +108,6 @@ function firstIssue(error: z.ZodError): ActionResult<never> {
 
 const registrationSchema = z.object({
   ...profileFields,
-  share_category_id: optionalUuid,
-  savings_category_id: optionalUuid,
   optional_fee_ids: z
     .string()
     .optional()
@@ -184,8 +182,6 @@ export async function registerMember(
       next_of_kin_phone: d.next_of_kin_phone,
       next_of_kin_relation: d.next_of_kin_relation,
       joined_on: d.joined_on,
-      share_category_id: d.share_category_id,
-      savings_category_id: d.savings_category_id,
     },
     p_optional_fee_ids: d.optional_fee_ids,
     p_payment: payNow
@@ -353,8 +349,6 @@ export async function setUserPhone(
 const editSchema = z.object({
   member_id: z.string().uuid(),
   ...profileFields,
-  share_category_id: optionalUuid,
-  savings_category_id: optionalUuid,
   reason: z.string().trim().min(5, 'Give a reason for this change - it is kept on the member’s record.').max(500),
   allow_shared_phone: z.enum(['on', 'off']).optional(),
 });
@@ -378,12 +372,6 @@ export async function updateMemberProfile(
   const d = parsed.data;
 
   const supabase = await createClient();
-  const { data: current } = await supabase
-    .from('members')
-    .select('share_category_id, savings_category_id')
-    .eq('id', d.member_id)
-    .maybeSingle();
-  if (!current) return { ok: false, error: 'That member could not be found.' };
 
   const changes: Record<string, string | null> = {
     full_name: d.full_name,
@@ -400,11 +388,6 @@ export async function updateMemberProfile(
   };
   if (d.joined_on) changes.joined_on = d.joined_on;
 
-  const categoriesChanged =
-    can(user, 'categories.manage') &&
-    ((current.share_category_id ?? null) !== d.share_category_id ||
-      (current.savings_category_id ?? null) !== d.savings_category_id);
-
   let changed: string[] = [];
   const { data, error } = await supabase.rpc('update_member_profile', {
     p_member_id: d.member_id,
@@ -413,27 +396,11 @@ export async function updateMemberProfile(
     p_allow_shared_phone: d.allow_shared_phone === 'on',
   });
 
-  if (error) {
-    // "Nothing changed" is only a failure if the categories did not change
-    // either.
-    if (!(categoriesChanged && /Nothing changed/.test(error.message ?? ''))) return fail(error);
-  } else {
-    // A new phone number is a new sign-in identifier from this moment; the
-    // member's password is untouched, because it is theirs, not the record's.
-    changed = (data as { changed: string[] }).changed;
-  }
+  if (error) return fail(error);
 
-  if (categoriesChanged) {
-    const { error: categoryError } = await supabase.rpc('set_member_categories', {
-      p_member_id: d.member_id,
-      p_share_category_id: d.share_category_id,
-      p_savings_category_id: d.savings_category_id,
-      p_reason: d.reason,
-    });
-    if (categoryError) return fail(categoryError, 'savings_category_id');
-    changed.push('categories');
-    revalidatePath('/staff/categories');
-  }
+  // A new phone number is a new sign-in identifier from this moment; the
+  // member's password is untouched, because it is theirs, not the record's.
+  changed = (data as { changed: string[] }).changed;
 
   revalidatePath('/staff/members');
   revalidatePath(`/staff/members/${d.member_id}`);
@@ -482,48 +449,6 @@ export async function setMemberStatus(
 
   const result = data as { status: string };
   return succeed(result, `Member marked ${result.status}.`);
-}
-
-/* ==========================================================================
- * Savings plans — the per-member weekly / monthly targets
- * ======================================================================== */
-
-export async function setSavingsPlan(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<ActionResult<null>> {
-  const user = await requireUser();
-  if (!can(user, 'savings.record')) {
-    return { ok: false, error: 'You do not have permission to set savings targets.' };
-  }
-
-  const parsed = z
-    .object({
-      member_id: z.string().uuid(),
-      kind: z.enum(['weekly', 'monthly']),
-      target_amount: z.coerce.number().min(0, 'Enter a target of zero or more.'),
-    })
-    .safeParse(Object.fromEntries(formData));
-
-  if (!parsed.success) return firstIssue(parsed.error);
-
-  // One audited, atomic database call. It closes the previous plan the day
-  // before (so past periods keep the target they were judged against) and a
-  // second change on the same day corrects today's plan instead (0036).
-  const supabase = await createClient();
-  const { error } = await supabase.rpc('set_savings_plan', {
-    p_member_id: parsed.data.member_id,
-    p_kind: parsed.data.kind,
-    p_target_amount: parsed.data.target_amount,
-    p_reason: null,
-  });
-
-  if (error) return fail(error);
-
-  revalidatePath(`/staff/members/${parsed.data.member_id}`);
-  revalidatePath('/savings');
-
-  return succeed(null, `${parsed.data.kind === 'weekly' ? 'Weekly' : 'Monthly'} target updated.`);
 }
 
 /* ==========================================================================

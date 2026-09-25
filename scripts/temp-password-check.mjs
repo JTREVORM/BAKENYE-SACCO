@@ -39,7 +39,9 @@ if (!STAFF_EMAIL || !STAFF_PASSWORD) { console.error('Set STAFF_EMAIL and STAFF_
 const MEMBER_NO = process.env.MEMBER_NO ?? 'BND26001';
 const CHOSEN = `Chosen${Math.floor(Math.random() * 9000 + 1000)}x`;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(
+  process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {},
+);
 let failures = 0;
 const ok = (pass, text) => {
   if (!pass) failures += 1;

@@ -12,7 +12,7 @@ import { toISODate } from '@/lib/format';
 import { ACCOUNT_TYPE_META, COLLECTION_TYPES } from '@/lib/treasury-format';
 import { AccountSelect, AccountSummary, defaultAccountId, type AccountOption } from '../AccountSelect';
 import { RecordedBy, beforeAfter, dateLine } from './fields';
-import type { CategoryRow, PaymentMethod, SavingsKind } from '@/types/db';
+import type { CategoryRow, PaymentMethod } from '@/types/db';
 import type { CollectionType, FinanceAccountType } from '@/types/treasury';
 
 const METHODS: { value: PaymentMethod; label: string; type: FinanceAccountType }[] = [
@@ -70,8 +70,6 @@ export function MemberCollectionForm({
   const [reference, setReference] = useState('');
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
-  const [kind, setKind] = useState<SavingsKind | ''>('');
-  const [categoryName, setCategoryName] = useState<string | null>(null);
   const [loans, setLoans] = useState<MemberLoan[]>([]);
   const [loanId, setLoanId] = useState('');
   const [incomeCategoryId, setIncomeCategoryId] = useState('');
@@ -82,35 +80,24 @@ export function MemberCollectionForm({
   const loan = loans.find((l) => l.loan_id === loanId);
   const feeCategories = useMemo(() => incomeCategories.filter((c) => !c.is_system), [incomeCategories]);
 
-  // What the member owes and saves under is theirs, so it is read when they
-  // are chosen: their savings cadence and any loan they are repaying.
+  // Any loan the member is repaying, read when they are chosen. There is
+  // nothing else about them to look up: savings are open and monthly, so there
+  // is no cadence and no category to fetch.
   useEffect(() => {
     if (!member) {
       setLoans([]);
       setLoanId('');
-      setKind('');
-      setCategoryName(null);
       return;
     }
     let cancelled = false;
     (async () => {
       const supabase = createClient();
-      const [{ data: fin }, { data: loanRows }] = await Promise.all([
-        supabase
-          .from('member_financials')
-          .select('savings_frequency, savings_category_name')
-          .eq('id', member.id)
-          .maybeSingle(),
-        supabase
-          .from('loan_balances')
-          .select('loan_id, loan_no, outstanding, status')
-          .eq('member_id', member.id)
-          .in('status', ['active', 'disbursed', 'defaulted']),
-      ]);
+      const { data: loanRows } = await supabase
+        .from('loan_balances')
+        .select('loan_id, loan_no, outstanding, status')
+        .eq('member_id', member.id)
+        .in('status', ['active', 'disbursed', 'defaulted']);
       if (cancelled) return;
-      const f = fin as { savings_frequency: SavingsKind | null; savings_category_name: string | null } | null;
-      setKind(f?.savings_frequency ?? '');
-      setCategoryName(f?.savings_category_name ?? null);
       const list = ((loanRows ?? []) as MemberLoan[]).map((l) => ({
         ...l,
         outstanding: Number(l.outstanding),
@@ -141,9 +128,7 @@ export function MemberCollectionForm({
       {
         label: 'Transaction type',
         value:
-          type === 'savings' && kind
-            ? `${typeLabel} · ${kind === 'weekly' ? 'weekly' : 'monthly'}`
-            : type === 'shares' && shares
+          type === 'shares' && shares
               ? `${typeLabel} · ${shares} share${shares === 1 ? '' : 's'}`
               : type === 'loan_repayment' && loan
                 ? `${typeLabel} · ${loan.loan_no}`
@@ -191,7 +176,6 @@ export function MemberCollectionForm({
             ? 'Enter the mobile money transaction reference from the confirmation message.'
             : 'Enter the bank transfer, deposit slip or cheque reference.';
         }
-        if (type === 'savings' && !kind) return 'Choose weekly or monthly savings.';
         if (type === 'shares' && !sharePrice) return 'The share price has not been set.';
         if (sharesInvalid) return `${formatUGX(amount)} is not a whole number of shares at ${formatUGX(sharePrice)} each.`;
         if (type === 'loan_repayment' && !loanId) return 'This member has no loan being repaid.';
@@ -217,7 +201,7 @@ export function MemberCollectionForm({
         {member ? (
           <p className="-mt-2 text-label-md font-normal text-on-surface-variant">
             Member number <span className="tabular font-semibold text-on-surface">{member.member_no}</span>
-            {categoryName ? ` · saves under ${categoryName}` : ' · no savings category'}
+
           </p>
         ) : null}
 
@@ -237,18 +221,9 @@ export function MemberCollectionForm({
           </Select>
         </Field>
 
-        {type === 'savings' ? (
-          <Field label="Savings" htmlFor="savings-kind" required
-            hint={categoryName ? `Their category, ${categoryName}, sets the default.` : undefined}>
-            <Select id="savings-kind" name="savings_kind" value={kind} onChange={(e) => setKind(e.target.value as SavingsKind)}>
-              <option value="" disabled>
-                Choose weekly or monthly…
-              </option>
-              <option value="weekly">Weekly savings</option>
-              <option value="monthly">Monthly savings</option>
-            </Select>
-          </Field>
-        ) : null}
+        {/* Savings are monthly and open: there is no cadence to choose and no
+            target to meet, so the form asks for the amount and nothing else. */}
+        {type === 'savings' ? <input type="hidden" name="savings_kind" value="monthly" /> : null}
 
         {type === 'loan_repayment' ? (
           loans.length === 0 ? (

@@ -1,14 +1,14 @@
 {
  "admin/settings-fees-create-dialog.png": {
   "description": "The Create Fee form: name, amount, type, when it is charged and whether it is mandatory.",
-  "module": "Settings \u2014 Fees",
+  "module": "Settings — Fees",
   "role": "Admin / Manager",
-  "step": "Step 2 \u2014 describe the fee",
+  "step": "Step 2 — describe the fee",
   "verified": "Workflow performed in the running application"
  },
  "admin/settings-fees-list.png": {
-  "description": "Settings \u2192 Fees after the Membership and Registration fees were created.",
-  "module": "Settings \u2014 Fees",
+  "description": "Settings → Fees after the Membership and Registration fees were created.",
+  "module": "Settings — Fees",
   "role": "Admin / Manager",
   "step": "Result",
   "verified": "Workflow performed in the running application"
@@ -17,7 +17,7 @@
   "description": "The \"Add staff account\" form: full name, phone number, optional email and role.",
   "module": "User management",
   "role": "Admin / Super Admin",
-  "step": "Step 2 \u2014 add a staff account",
+  "step": "Step 2 — add a staff account",
   "verified": "Workflow performed in the running application"
  },
  "admin/users-list.png": {
@@ -31,599 +31,585 @@
   "description": "The generated temporary password, shown once, to be given to the new member of staff.",
   "module": "User management",
   "role": "Admin / Super Admin",
-  "step": "Step 3 \u2014 hand over the password",
+  "step": "Step 3 — hand over the password",
   "verified": "Workflow performed in the running application"
  },
  "admin/walk-audit.png": {
-  "description": "`/staff/audit` \u2014 System Audit Log",
+  "description": "`/staff/audit` — System Audit Log",
   "module": "Audit log",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
- "admin/walk-categories.png": {
-  "description": "`/staff/categories` \u2014 Categories",
-  "module": "Categories",
-  "role": "Super Admin",
-  "step": "Screen overview",
-  "verified": "Loaded and screenshotted in the running application"
- },
  "admin/walk-dash-administration.png": {
-  "description": "`/staff/admin` \u2014 Welcome back, Grace",
+  "description": "`/staff/admin` — Welcome back, Grace",
   "module": "Dashboard",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-dash-cashier.png": {
-  "description": "`/staff/desk` \u2014 Welcome back, Grace",
+  "description": "`/staff/desk` — Welcome back, Grace",
   "module": "Dashboard",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-dash-loans.png": {
-  "description": "`/staff/loans-desk` \u2014 Welcome back, Grace",
+  "description": "`/staff/loans-desk` — Welcome back, Grace",
   "module": "Dashboard",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-dash-overview.png": {
-  "description": "`/staff` \u2014 BAKENYE UNITY AND DEVELOPMENT SACCO",
+  "description": "`/staff` — BAKENYE UNITY AND DEVELOPMENT SACCO",
   "module": "Dashboard",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-accounts.png": {
-  "description": "`/staff/finance/accounts` \u2014 Accounts & Setup",
+  "description": "`/staff/finance/accounts` — Accounts & Setup",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-expenses.png": {
-  "description": "`/staff/finance/expenses` \u2014 Expenses",
+  "description": "`/staff/finance/expenses` — Expenses",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-income-expenses.png": {
-  "description": "`/staff/finance/income-expenses` \u2014 Income & Expenses",
+  "description": "`/staff/finance/income-expenses` — Income & Expenses",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-ledger.png": {
-  "description": "`/staff/finance/ledger` \u2014 Transaction Ledger",
+  "description": "`/staff/finance/ledger` — Transaction Ledger",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-new-collection.png": {
-  "description": "`/staff/finance/new/collection` \u2014 Record Collection",
+  "description": "`/staff/finance/new/collection` — Record Collection",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-new-expense.png": {
-  "description": "`/staff/finance/new/expense` \u2014 Record Expense",
+  "description": "`/staff/finance/new/expense` — Record Expense",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-new-payment.png": {
-  "description": "`/staff/finance/new/payment` \u2014 Record Payment",
+  "description": "`/staff/finance/new/payment` — Record Payment",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-new-receipt.png": {
-  "description": "`/staff/finance/new/receipt` \u2014 Record Other Receipt",
+  "description": "`/staff/finance/new/receipt` — Record Other Receipt",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-new-transfer.png": {
-  "description": "`/staff/finance/new/transfer` \u2014 Transfer Merchant to Bank",
+  "description": "`/staff/finance/new/transfer` — Transfer Merchant to Bank",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-payments.png": {
-  "description": "`/staff/finance/payments` \u2014 Payments",
+  "description": "`/staff/finance/payments` — Payments",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-receipts.png": {
-  "description": "`/staff/finance/receipts` \u2014 Receipts",
+  "description": "`/staff/finance/receipts` — Receipts",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-reconciliation.png": {
-  "description": "`/staff/finance/reconciliation` \u2014 Reconciliation",
+  "description": "`/staff/finance/reconciliation` — Reconciliation",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-reports.png": {
-  "description": "`/staff/finance/reports` \u2014 Finance Reports",
+  "description": "`/staff/finance/reports` — Finance Reports",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance-transfers.png": {
-  "description": "`/staff/finance/transfers` \u2014 Transfers",
+  "description": "`/staff/finance/transfers` — Transfers",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-finance.png": {
-  "description": "`/staff/finance` \u2014 Finance",
+  "description": "`/staff/finance` — Finance",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-loan-detail-active.png": {
-  "description": "`/staff/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0` \u2014 LN260924006",
+  "description": "`/staff/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0` — LN260924006",
   "module": "Loans",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-loan-detail-applied.png": {
-  "description": "`/staff/loans/56888a32-f431-477d-a141-0766d4a2a768` \u2014 LN260924001",
+  "description": "`/staff/loans/56888a32-f431-477d-a141-0766d4a2a768` — LN260924001",
   "module": "Loans",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-loan-products-new.png": {
-  "description": "`/staff/loans/products/new` \u2014 New loan product",
+  "description": "`/staff/loans/products/new` — New loan product",
   "module": "Loans",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-loan-products.png": {
-  "description": "`/staff/loans/products` \u2014 Loan Products",
+  "description": "`/staff/loans/products` — Loan Products",
   "module": "Loans",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-loan-repay.png": {
-  "description": "`/staff/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0/repay` \u2014 Record Repayment",
+  "description": "`/staff/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0/repay` — Record Repayment",
   "module": "Loans",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-loans-list.png": {
-  "description": "`/staff/loans` \u2014 Loans",
+  "description": "`/staff/loans` — Loans",
   "module": "Loans",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-loans-new.png": {
-  "description": "`/staff/loans/new` \u2014 New Loan Application",
+  "description": "`/staff/loans/new` — New Loan Application",
   "module": "Loans",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-member-detail.png": {
-  "description": "`/staff/members/752bad80-b799-4d16-90db-d549f46e9ca2` \u2014 Nakabugo Christine",
+  "description": "`/staff/members/752bad80-b799-4d16-90db-d549f46e9ca2` — Nakabugo Christine",
   "module": "Member management",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-member-edit.png": {
-  "description": "`/staff/members/752bad80-b799-4d16-90db-d549f46e9ca2/edit` \u2014 Edit Nakabugo Christine",
+  "description": "`/staff/members/752bad80-b799-4d16-90db-d549f46e9ca2/edit` — Edit Nakabugo Christine",
   "module": "Member management",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-member-ledger.png": {
-  "description": "`/staff/members/752bad80-b799-4d16-90db-d549f46e9ca2/ledger` \u2014 Financial ledger",
+  "description": "`/staff/members/752bad80-b799-4d16-90db-d549f46e9ca2/ledger` — Financial ledger",
   "module": "Member management",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-members-list.png": {
-  "description": "`/staff/members` \u2014 Members",
+  "description": "`/staff/members` — Members",
   "module": "Member management",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-members-new.png": {
-  "description": "`/staff/members/new` \u2014 Register a Member",
+  "description": "`/staff/members/new` — Register a Member",
   "module": "Member management",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-notifications.png": {
-  "description": "`/staff/notifications` \u2014 Notifications",
+  "description": "`/staff/notifications` — Notifications",
   "module": "Notifications",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-profile.png": {
-  "description": "`/staff/profile` \u2014 My Profile",
+  "description": "`/staff/profile` — My Profile",
   "module": "Staff profile",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-reports-members.png": {
-  "description": "`/staff/reports/members` \u2014 Member Register",
+  "description": "`/staff/reports/members` — Member Register",
   "module": "Reports",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-reports-statement.png": {
-  "description": "`/staff/reports/statement` \u2014 Member Statement",
+  "description": "`/staff/reports/statement` — Member Statement",
   "module": "Reports",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-reports.png": {
-  "description": "`/staff/reports` \u2014 Reports",
+  "description": "`/staff/reports` — Reports",
   "module": "Reports",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-roles.png": {
-  "description": "`/staff/roles` \u2014 Roles & Permissions",
+  "description": "`/staff/roles` — Roles & Permissions",
   "module": "Roles & permissions",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-savings-collect.png": {
-  "description": "`/staff/savings/collect` \u2014 Collect savings",
+  "description": "`/staff/savings/collect` — Collect savings",
   "module": "Savings",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-savings-performance.png": {
-  "description": "`/staff/savings/performance` \u2014 Savings performance",
+  "description": "`/staff/savings/performance` — Savings performance",
   "module": "Savings",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-savings-record.png": {
-  "description": "`/staff/savings/record` \u2014 Record Savings",
-  "module": "Savings",
-  "role": "Super Admin",
-  "step": "Screen overview",
-  "verified": "Loaded and screenshotted in the running application"
- },
- "admin/walk-savings-schedules.png": {
-  "description": "`/staff/savings/schedules` \u2014 Savings schedules",
+  "description": "`/staff/savings/record` — Record Savings",
   "module": "Savings",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-savings.png": {
-  "description": "`/staff/savings` \u2014 Savings",
+  "description": "`/staff/savings` — Savings",
   "module": "Savings",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-settings.png": {
-  "description": "`/staff/settings` \u2014 Settings",
+  "description": "`/staff/settings` — Settings",
   "module": "Settings",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-shares-sell.png": {
-  "description": "`/staff/shares/sell` \u2014 Record Share Purchase",
+  "description": "`/staff/shares/sell` — Record Share Purchase",
   "module": "Shares",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-shares.png": {
-  "description": "`/staff/shares` \u2014 Share Capital",
+  "description": "`/staff/shares` — Share Capital",
   "module": "Shares",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-transaction-detail.png": {
-  "description": "`/staff/transactions/5f807cbf-7461-4bf9-b31e-310707c91f3e` \u2014 Payment Successful",
+  "description": "`/staff/transactions/5f807cbf-7461-4bf9-b31e-310707c91f3e` — Payment Successful",
   "module": "Transactions",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-transactions-cash.png": {
-  "description": "`/staff/transactions/cash` \u2014 Record Deposit",
+  "description": "`/staff/transactions/cash` — Record Deposit",
   "module": "Transactions",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-transactions.png": {
-  "description": "`/staff/transactions` \u2014 Transactions",
+  "description": "`/staff/transactions` — Transactions",
   "module": "Transactions",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "admin/walk-users.png": {
-  "description": "`/staff/users` \u2014 Users",
+  "description": "`/staff/users` — Users",
   "module": "User management",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-01-dashboard.png": {
-  "description": "`/` \u2014 BUD-SACCO",
+  "description": "`/` — BUD-SACCO",
   "module": "Member dashboard",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-02-savings.png": {
-  "description": "`/savings` \u2014 BUD-SACCO",
+  "description": "`/savings` — BUD-SACCO",
   "module": "Member savings",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-03-savings-deposit-guide.png": {
-  "description": "`/savings/deposit` \u2014 Save Money",
+  "description": "`/savings/deposit` — Save Money",
   "module": "Member savings",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-04-shares.png": {
-  "description": "`/shares` \u2014 BUD-SACCO",
+  "description": "`/shares` — BUD-SACCO",
   "module": "Member shares",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-05-shares-buy-guide.png": {
-  "description": "`/shares/buy` \u2014 Buy Shares",
+  "description": "`/shares/buy` — Buy Shares",
   "module": "Member shares",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-06-loans.png": {
-  "description": "`/loans` \u2014 BUD-SACCO",
+  "description": "`/loans` — BUD-SACCO",
   "module": "Member loans",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-07-loan-detail.png": {
-  "description": "`/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0` \u2014 LN260924006",
+  "description": "`/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0` — LN260924006",
   "module": "Member loans",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-08-loan-repay-guide.png": {
-  "description": "`/loans/repay` \u2014 Repay Loan",
+  "description": "`/loans/repay` — Repay Loan",
   "module": "Member loans",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-09-loan-apply.png": {
-  "description": "`/loans/apply` \u2014 Loan Application",
+  "description": "`/loans/apply` — Loan Application",
   "module": "Member loans",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-10-transactions.png": {
-  "description": "`/transactions` \u2014 BUD-SACCO",
+  "description": "`/transactions` — BUD-SACCO",
   "module": "Member transactions",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-11-transaction-detail.png": {
-  "description": "`/transactions/65aa94ac-c2fa-4d37-a650-db1f19d3f669` \u2014 Receipt",
+  "description": "`/transactions/65aa94ac-c2fa-4d37-a650-db1f19d3f669` — Receipt",
   "module": "Member transactions",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-12-statements.png": {
-  "description": "`/statements` \u2014 BUD-SACCO",
+  "description": "`/statements` — BUD-SACCO",
   "module": "Member statements",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-13-reports.png": {
-  "description": "`/reports` \u2014 BUD-SACCO",
+  "description": "`/reports` — BUD-SACCO",
   "module": "Member reports",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-14-guarantees.png": {
-  "description": "`/guarantees` \u2014 BUD-SACCO",
+  "description": "`/guarantees` — BUD-SACCO",
   "module": "Guarantees",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-15-notifications.png": {
-  "description": "`/notifications` \u2014 BUD-SACCO",
+  "description": "`/notifications` — BUD-SACCO",
   "module": "Notifications",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-16-profile.png": {
-  "description": "`/profile` \u2014 BUD-SACCO",
+  "description": "`/profile` — BUD-SACCO",
   "module": "Member profile",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/m-17-more.png": {
-  "description": "`/more` \u2014 BUD-SACCO",
+  "description": "`/more` — BUD-SACCO",
   "module": "Member portal",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-01-dashboard.png": {
-  "description": "`/` \u2014 BUD-SACCO",
+  "description": "`/` — BUD-SACCO",
   "module": "Member dashboard",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-02-savings.png": {
-  "description": "`/savings` \u2014 BUD-SACCO",
+  "description": "`/savings` — BUD-SACCO",
   "module": "Member savings",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-03-savings-deposit-guide.png": {
-  "description": "`/savings/deposit` \u2014 Save Money",
+  "description": "`/savings/deposit` — Save Money",
   "module": "Member savings",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-04-shares.png": {
-  "description": "`/shares` \u2014 BUD-SACCO",
+  "description": "`/shares` — BUD-SACCO",
   "module": "Member shares",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-05-shares-buy-guide.png": {
-  "description": "`/shares/buy` \u2014 Buy Shares",
+  "description": "`/shares/buy` — Buy Shares",
   "module": "Member shares",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-06-loans.png": {
-  "description": "`/loans` \u2014 BUD-SACCO",
+  "description": "`/loans` — BUD-SACCO",
   "module": "Member loans",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-07-loan-detail.png": {
-  "description": "`/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0` \u2014 LN260924006",
+  "description": "`/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0` — LN260924006",
   "module": "Member loans",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-08-loan-repay-guide.png": {
-  "description": "`/loans/repay` \u2014 Repay Loan",
+  "description": "`/loans/repay` — Repay Loan",
   "module": "Member loans",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-09-loan-apply.png": {
-  "description": "`/loans/apply` \u2014 Loan Application",
+  "description": "`/loans/apply` — Loan Application",
   "module": "Member loans",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-10-transactions.png": {
-  "description": "`/transactions` \u2014 BUD-SACCO",
+  "description": "`/transactions` — BUD-SACCO",
   "module": "Member transactions",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-11-transaction-detail.png": {
-  "description": "`/transactions/65aa94ac-c2fa-4d37-a650-db1f19d3f669` \u2014 Receipt",
+  "description": "`/transactions/65aa94ac-c2fa-4d37-a650-db1f19d3f669` — Receipt",
   "module": "Member transactions",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-12-statements.png": {
-  "description": "`/statements` \u2014 BUD-SACCO",
+  "description": "`/statements` — BUD-SACCO",
   "module": "Member statements",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-13-reports.png": {
-  "description": "`/reports` \u2014 BUD-SACCO",
+  "description": "`/reports` — BUD-SACCO",
   "module": "Member reports",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-14-guarantees.png": {
-  "description": "`/guarantees` \u2014 BUD-SACCO",
+  "description": "`/guarantees` — BUD-SACCO",
   "module": "Guarantees",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-15-notifications.png": {
-  "description": "`/notifications` \u2014 BUD-SACCO",
+  "description": "`/notifications` — BUD-SACCO",
   "module": "Notifications",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-16-profile.png": {
-  "description": "`/profile` \u2014 BUD-SACCO",
+  "description": "`/profile` — BUD-SACCO",
   "module": "Member profile",
   "role": "Member",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "member/mf-17-more.png": {
-  "description": "`/more` \u2014 BUD-SACCO",
+  "description": "`/more` — BUD-SACCO",
   "module": "Member portal",
   "role": "Member",
   "step": "Screen overview",
@@ -633,28 +619,28 @@
   "description": "The Administration dashboard, reached once the password has been replaced.",
   "module": "Dashboard",
   "role": "Super Admin",
-  "step": "Step 7 \u2014 after the change",
+  "step": "Step 7 — after the change",
   "verified": "Workflow performed in the running application"
  },
  "shared/check-after-login.png": {
   "description": "What a brand-new account sees straight after signing in: \"Choose your password\".",
   "module": "Sign in",
   "role": "Super Admin",
-  "step": "Step 5 \u2014 first sign-in",
+  "step": "Step 5 — first sign-in",
   "verified": "Workflow performed in the running application"
  },
  "shared/check-change-password.png": {
   "description": "The \"Choose your password\" form with the three fields filled in.",
   "module": "Sign in",
   "role": "Super Admin",
-  "step": "Step 6 \u2014 choose a password",
+  "step": "Step 6 — choose a password",
   "verified": "Workflow performed in the running application"
  },
  "shared/check-login.png": {
   "description": "The sign-in screen as first seen.",
   "module": "Sign in",
   "role": "Everyone",
-  "step": "Step 1 \u2014 open the system",
+  "step": "Step 1 — open the system",
   "verified": "Workflow performed in the running application"
  },
  "shared/forgot-password-desktop.png": {
@@ -689,144 +675,144 @@
   "description": "The sign-in screen at desktop size: one form for members and staff alike.",
   "module": "Sign in",
   "role": "Everyone",
-  "step": "Step 1 \u2014 open the system",
+  "step": "Step 1 — open the system",
   "verified": "Workflow performed in the running application"
  },
  "shared/login-phone.png": {
   "description": "The sign-in screen at phone size: one form for members and staff alike.",
   "module": "Sign in",
   "role": "Everyone",
-  "step": "Step 1 \u2014 open the system",
+  "step": "Step 1 — open the system",
   "verified": "Workflow performed in the running application"
  },
  "staff/acc-01-finance.png": {
-  "description": "`/staff/finance` \u2014 Finance",
+  "description": "`/staff/finance` — Finance",
   "module": "Finance",
   "role": "Accountant",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/acc-02-ledger.png": {
-  "description": "`/staff/finance/ledger` \u2014 Transaction Ledger",
+  "description": "`/staff/finance/ledger` — Transaction Ledger",
   "module": "Finance",
   "role": "Accountant",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/acc-03-reconciliation.png": {
-  "description": "`/staff/finance/reconciliation` \u2014 Reconciliation",
+  "description": "`/staff/finance/reconciliation` — Reconciliation",
   "module": "Finance",
   "role": "Accountant",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/acc-04-reports.png": {
-  "description": "`/staff/finance/reports` \u2014 Finance Reports",
+  "description": "`/staff/finance/reports` — Finance Reports",
   "module": "Finance",
   "role": "Accountant",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/acc-05-expense.png": {
-  "description": "`/staff/finance/new/expense` \u2014 Record Expense",
+  "description": "`/staff/finance/new/expense` — Record Expense",
   "module": "Finance",
   "role": "Accountant",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/acc-06-audit.png": {
-  "description": "`/staff/audit` \u2014 System Audit Log",
+  "description": "`/staff/audit` — System Audit Log",
   "module": "Audit log",
   "role": "Accountant",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/acc-07-collect-view.png": {
-  "description": "`/staff/savings/collect` \u2014 Collect savings",
+  "description": "`/staff/savings/collect` — Collect savings",
   "module": "Savings",
   "role": "Accountant",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-01-desk.png": {
-  "description": "`/staff/desk` \u2014 Welcome back, Sarah",
+  "description": "`/staff/desk` — Welcome back, Sarah",
   "module": "Dashboard",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-02-collect.png": {
-  "description": "`/staff/savings/collect` \u2014 Collect savings",
+  "description": "`/staff/savings/collect` — Collect savings",
   "module": "Savings",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-03-record-savings.png": {
-  "description": "`/staff/savings/record` \u2014 Record Savings",
+  "description": "`/staff/savings/record` — Record Savings",
   "module": "Savings",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-04-sell-shares.png": {
-  "description": "`/staff/shares/sell` \u2014 Record Share Purchase",
+  "description": "`/staff/shares/sell` — Record Share Purchase",
   "module": "Shares",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-05-deposit.png": {
-  "description": "`/staff/transactions/cash` \u2014 Record Deposit",
+  "description": "`/staff/transactions/cash` — Record Deposit",
   "module": "Transactions",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-06-transactions.png": {
-  "description": "`/staff/transactions` \u2014 Transactions",
+  "description": "`/staff/transactions` — Transactions",
   "module": "Transactions",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-07-finance.png": {
-  "description": "`/staff/finance` \u2014 Finance",
+  "description": "`/staff/finance` — Finance",
   "module": "Finance",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-08-other-receipt.png": {
-  "description": "`/staff/finance/new/receipt` \u2014 Record Other Receipt",
+  "description": "`/staff/finance/new/receipt` — Record Other Receipt",
   "module": "Finance",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-09-members.png": {
-  "description": "`/staff/members` \u2014 Members",
+  "description": "`/staff/members` — Members",
   "module": "Member management",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-10-users-denied.png": {
-  "description": "`/staff/users` \u2014 Welcome back, Sarah",
+  "description": "`/staff/users` — Welcome back, Sarah",
   "module": "User management",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-11-settings-denied.png": {
-  "description": "`/staff/settings` \u2014 Welcome back, Sarah",
+  "description": "`/staff/settings` — Welcome back, Sarah",
   "module": "Settings",
   "role": "Cashier / Teller",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/cashier-desk-after-collection.png": {
-  "description": "`/staff/desk` \u2014 Welcome back, Sarah",
+  "description": "`/staff/desk` — Welcome back, Sarah",
   "module": "Dashboard",
   "role": "Cashier / Teller",
   "step": "Screen overview",
@@ -836,221 +822,221 @@
   "description": "The collection screen, waiting for a member to be found.",
   "module": "Savings collection",
   "role": "Cashier / Teller",
-  "step": "Step 1 \u2014 open Collect Savings",
+  "step": "Step 1 — open Collect Savings",
   "verified": "Workflow performed in the running application"
  },
  "staff/collect-02-search.png": {
   "description": "Searching by member number; the result shows what the member owes.",
   "module": "Savings collection",
   "role": "Cashier / Teller",
-  "step": "Step 2 \u2014 find the member",
+  "step": "Step 2 — find the member",
   "verified": "Workflow performed in the running application"
  },
  "staff/collect-03-member.png": {
-  "description": "The member panel: category, current cycle, expected, paid and outstanding.",
+  "description": "The member panel: total savings, saved this month, shares held and the savings history.",
   "module": "Savings collection",
   "role": "Cashier / Teller",
-  "step": "Step 3 \u2014 check the member",
+  "step": "Step 3 — check the member",
   "verified": "Workflow performed in the running application"
  },
  "staff/collect-04-record-dialog.png": {
   "description": "The Record payment form before anything is typed.",
   "module": "Savings collection",
   "role": "Cashier / Teller",
-  "step": "Step 4 \u2014 open Record payment",
+  "step": "Step 4 — open Record payment",
   "verified": "Workflow performed in the running application"
  },
  "staff/collect-05-filled.png": {
   "description": "Amount, payment method and the provider reference from the confirmation message.",
   "module": "Savings collection",
   "role": "Cashier / Teller",
-  "step": "Step 5 \u2014 enter what was received",
+  "step": "Step 5 — enter what was received",
   "verified": "Workflow performed in the running application"
  },
  "staff/collect-06-confirm.png": {
   "description": "The confirmation summary shown before anything is saved.",
   "module": "Savings collection",
   "role": "Cashier / Teller",
-  "step": "Step 6 \u2014 review",
+  "step": "Step 6 — review",
   "verified": "Workflow performed in the running application"
  },
  "staff/collect-07-result.png": {
   "description": "The member panel after the payment: the outstanding figure has fallen.",
   "module": "Savings collection",
   "role": "Cashier / Teller",
-  "step": "Step 7 \u2014 result",
+  "step": "Step 7 — result",
   "verified": "Workflow performed in the running application"
  },
  "staff/collect-08-receipt.png": {
   "description": "The receipt produced by the collection, with its receipt number and transaction reference.",
   "module": "Savings collection",
   "role": "Cashier / Teller",
-  "step": "Step 8 \u2014 the receipt",
+  "step": "Step 8 — the receipt",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-01-form.png": {
   "description": "The expense form before anything is typed.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "Accountant",
-  "step": "Step 1 \u2014 open Record Expense",
+  "step": "Step 1 — open Record Expense",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-02-filled.png": {
   "description": "Category, amount, description, payee and the supplier reference.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "Accountant",
-  "step": "Step 2 \u2014 describe the spending",
+  "step": "Step 2 — describe the spending",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-03-confirm.png": {
   "description": "The confirmation summary before the expense is filed.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "Accountant",
-  "step": "Step 3 \u2014 review",
+  "step": "Step 3 — review",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-04-result.png": {
   "description": "The expense filed for approval; no money has moved.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "Accountant",
-  "step": "Step 4 \u2014 filed",
+  "step": "Step 4 — filed",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-05-awaiting-approval.png": {
   "description": "Expenses waiting for a manager.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "SACCO Manager",
-  "step": "Step 5 \u2014 the approval queue",
+  "step": "Step 5 — the approval queue",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-06-approve-confirm.png": {
   "description": "The warning that approving posts the entry and changes the balances.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "SACCO Manager",
-  "step": "Step 6 \u2014 confirm the approval",
+  "step": "Step 6 — confirm the approval",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-06-approve-dialog.png": {
   "description": "Each pending expense with its Approve and Reject controls.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "SACCO Manager",
-  "step": "Step 6 \u2014 the approval queue in detail",
+  "step": "Step 6 — the approval queue in detail",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-06-pending-list.png": {
   "description": "Expenses awaiting approval, with the month to date by category above.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "SACCO Manager",
-  "step": "Step 5 \u2014 the approval queue",
+  "step": "Step 5 — the approval queue",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-07-approved.png": {
   "description": "The expenses screen after the approval.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "SACCO Manager",
-  "step": "Step 7 \u2014 approved",
+  "step": "Step 7 — approved",
   "verified": "Workflow performed in the running application"
  },
  "staff/expense-08-reject-confirm.png": {
   "description": "What is shown when an expense is rejected rather than approved.",
-  "module": "Finance \u2014 expenses",
+  "module": "Finance — expenses",
   "role": "SACCO Manager",
   "step": "Rejecting instead",
   "verified": "Workflow performed in the running application"
  },
  "staff/fo-01-collections.png": {
-  "description": "`/staff/savings/collect` \u2014 Collect savings",
+  "description": "`/staff/savings/collect` — Collect savings",
   "module": "Savings",
   "role": "Field Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/fo-02-record.png": {
-  "description": "`/staff/savings/record` \u2014 Record Savings",
+  "description": "`/staff/savings/record` — Record Savings",
   "module": "Savings",
   "role": "Field Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/fo-03-schedules.png": {
-  "description": "`/staff/savings/schedules` \u2014 Savings schedules",
+  "description": "`/staff/savings/records` — Savings records, as a Field Officer sees them.",
   "module": "Savings",
   "role": "Field Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/fo-04-members.png": {
-  "description": "`/staff/members` \u2014 Members",
+  "description": "`/staff/members` — Members",
   "module": "Member management",
   "role": "Field Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/fo-05-reports.png": {
-  "description": "`/staff/reports` \u2014 Reports",
+  "description": "`/staff/reports` — Reports",
   "module": "Reports",
   "role": "Field Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/fo-06-finance-denied.png": {
-  "description": "`/staff/finance` \u2014 Collect savings",
+  "description": "`/staff/finance` — Collect savings",
   "module": "Finance",
   "role": "Field Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/lo-01-desk.png": {
-  "description": "`/staff/loans-desk` \u2014 Welcome back, Daniel",
+  "description": "`/staff/loans-desk` — Welcome back, Daniel",
   "module": "Dashboard",
   "role": "Loan Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/lo-02-loans.png": {
-  "description": "`/staff/loans` \u2014 Loans",
+  "description": "`/staff/loans` — Loans",
   "module": "Loans",
   "role": "Loan Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/lo-03-new-application.png": {
-  "description": "`/staff/loans/new` \u2014 New Loan Application",
+  "description": "`/staff/loans/new` — New Loan Application",
   "module": "Loans",
   "role": "Loan Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/lo-04-assess.png": {
-  "description": "`/staff/loans/56888a32-f431-477d-a141-0766d4a2a768` \u2014 LN260924001",
+  "description": "`/staff/loans/56888a32-f431-477d-a141-0766d4a2a768` — LN260924001",
   "module": "Loans",
   "role": "Loan Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/lo-05-repay.png": {
-  "description": "`/staff/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0/repay` \u2014 Record Repayment",
+  "description": "`/staff/loans/78fbe1a0-ff16-45dd-a21a-10cf11c5c9e0/repay` — Record Repayment",
   "module": "Loans",
   "role": "Loan Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/lo-06-products.png": {
-  "description": "`/staff/loans/products` \u2014 Loan Products",
+  "description": "`/staff/loans/products` — Loan Products",
   "module": "Loans",
   "role": "Loan Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/lo-07-members.png": {
-  "description": "`/staff/members` \u2014 Members",
+  "description": "`/staff/members` — Members",
   "module": "Member management",
   "role": "Loan Officer",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/lo-08-finance-denied.png": {
-  "description": "`/staff/finance` \u2014 Welcome back, Daniel",
+  "description": "`/staff/finance` — Welcome back, Daniel",
   "module": "Finance",
   "role": "Loan Officer",
   "step": "Screen overview",
@@ -1060,49 +1046,49 @@
   "description": "Applications waiting to be assessed, repayments due and loans in arrears.",
   "module": "Loans",
   "role": "Loan Officer",
-  "step": "Step 1 \u2014 the loans desk",
+  "step": "Step 1 — the loans desk",
   "verified": "Workflow performed in the running application"
  },
  "staff/loan-02-application.png": {
   "description": "A loan application with its amount, purpose, guarantors and history.",
   "module": "Loans",
   "role": "Loan Officer",
-  "step": "Step 2 \u2014 open the application",
+  "step": "Step 2 — open the application",
   "verified": "Workflow performed in the running application"
  },
  "staff/loan-03-under-review.png": {
   "description": "The loan after the review has been started.",
   "module": "Loans",
   "role": "Loan Officer",
-  "step": "Step 3 \u2014 start the review",
+  "step": "Step 3 — start the review",
   "verified": "Workflow performed in the running application"
  },
  "staff/loan-04-approve-dialog.png": {
   "description": "The approval form, which requires a reason.",
   "module": "Loans",
   "role": "SACCO Manager",
-  "step": "Step 4 \u2014 approve",
+  "step": "Step 4 — approve",
   "verified": "Workflow performed in the running application"
  },
  "staff/loan-05-approved.png": {
   "description": "The approved loan, now offering \"Disburse funds\".",
   "module": "Loans",
   "role": "SACCO Manager",
-  "step": "Step 5 \u2014 approved",
+  "step": "Step 5 — approved",
   "verified": "Workflow performed in the running application"
  },
  "staff/loan-06-disburse-dialog.png": {
   "description": "The disbursement form: how the money is being handed over and on what date.",
   "module": "Loans",
   "role": "SACCO Manager",
-  "step": "Step 6 \u2014 disburse",
+  "step": "Step 6 — disburse",
   "verified": "Workflow performed in the running application"
  },
  "staff/loan-07-disbursed.png": {
   "description": "The loan is Active, with its outstanding balance and repayment schedule.",
   "module": "Loans",
   "role": "SACCO Manager",
-  "step": "Step 7 \u2014 active",
+  "step": "Step 7 — active",
   "verified": "Workflow performed in the running application"
  },
  "staff/loan-08-repay-form.png": {
@@ -1116,7 +1102,7 @@
   "description": "The confirmation shown before a member portal login is created.",
   "module": "Member management",
   "role": "Admin / Manager",
-  "step": "Step 2 \u2014 create the login",
+  "step": "Step 2 — create the login",
   "verified": "Workflow performed in the running application"
  },
  "staff/member-login-created.png": {
@@ -1130,81 +1116,74 @@
   "description": "The confirmation shown before a password is reset at the office.",
   "module": "Member management",
   "role": "Admin / Manager",
-  "step": "Step 2 \u2014 confirm the reset",
+  "step": "Step 2 — confirm the reset",
   "verified": "Workflow performed in the running application"
  },
  "staff/member-reset-password-result.png": {
   "description": "The new temporary password, shown once.",
   "module": "Member management",
   "role": "Admin / Manager",
-  "step": "Step 3 \u2014 hand it over",
+  "step": "Step 3 — hand it over",
   "verified": "Workflow performed in the running application"
  },
  "staff/mgr-01-overview.png": {
-  "description": "`/staff` \u2014 BAKENYE UNITY AND DEVELOPMENT SACCO",
+  "description": "`/staff` — BAKENYE UNITY AND DEVELOPMENT SACCO",
   "module": "Dashboard",
   "role": "SACCO Manager",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/mgr-02-register-member.png": {
-  "description": "`/staff/members/new` \u2014 Register a Member",
+  "description": "`/staff/members/new` — Register a Member",
   "module": "Member management",
   "role": "SACCO Manager",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
- "staff/mgr-03-categories.png": {
-  "description": "`/staff/categories` \u2014 Categories",
-  "module": "Categories",
-  "role": "SACCO Manager",
-  "step": "Screen overview",
-  "verified": "Loaded and screenshotted in the running application"
- },
  "staff/mgr-04-schedules.png": {
-  "description": "`/staff/savings/schedules` \u2014 Savings schedules",
+  "description": "`/staff/savings/records` — Savings records, as a SACCO Manager sees them.",
   "module": "Savings",
   "role": "SACCO Manager",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/mgr-05-performance.png": {
-  "description": "`/staff/savings/performance` \u2014 Savings performance",
+  "description": "`/staff/savings/performance` — Savings performance",
   "module": "Savings",
   "role": "SACCO Manager",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/mgr-06-reports.png": {
-  "description": "`/staff/reports` \u2014 Reports",
+  "description": "`/staff/reports` — Reports",
   "module": "Reports",
   "role": "SACCO Manager",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/mgr-07-settings.png": {
-  "description": "`/staff/settings` \u2014 Settings",
+  "description": "`/staff/settings` — Settings",
   "module": "Settings",
   "role": "SACCO Manager",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/mgr-08-audit.png": {
-  "description": "`/staff/audit` \u2014 System Audit Log",
+  "description": "`/staff/audit` — System Audit Log",
   "module": "Audit log",
   "role": "SACCO Manager",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/mgr-09-users-denied.png": {
-  "description": "`/staff/users` \u2014 BAKENYE UNITY AND DEVELOPMENT SACCO",
+  "description": "`/staff/users` — BAKENYE UNITY AND DEVELOPMENT SACCO",
   "module": "User management",
   "role": "SACCO Manager",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/mgr-10-roles-denied.png": {
-  "description": "`/staff/roles` \u2014 BAKENYE UNITY AND DEVELOPMENT SACCO",
+  "description": "`/staff/roles` — BAKENYE UNITY AND DEVELOPMENT SACCO",
   "module": "Roles & permissions",
   "role": "SACCO Manager",
   "step": "Screen overview",
@@ -1226,35 +1205,35 @@
  },
  "staff/recon-01-form.png": {
   "description": "The reconciliation form before anything is entered.",
-  "module": "Finance \u2014 reconciliation",
+  "module": "Finance — reconciliation",
   "role": "Accountant",
-  "step": "Step 1 \u2014 open Reconcile an account",
+  "step": "Step 1 — open Reconcile an account",
   "verified": "Workflow performed in the running application"
  },
  "staff/recon-02-filled.png": {
   "description": "A cash count entered, with the reason for the difference.",
-  "module": "Finance \u2014 reconciliation",
+  "module": "Finance — reconciliation",
   "role": "Accountant",
-  "step": "Step 2 \u2014 enter what is really there",
+  "step": "Step 2 — enter what is really there",
   "verified": "Workflow performed in the running application"
  },
  "staff/recon-03-confirm.png": {
   "description": "The variance shown before the record is saved.",
-  "module": "Finance \u2014 reconciliation",
+  "module": "Finance — reconciliation",
   "role": "Accountant",
-  "step": "Step 3 \u2014 review",
+  "step": "Step 3 — review",
   "verified": "Workflow performed in the running application"
  },
  "staff/recon-04-result.png": {
   "description": "The reconciliation record and its REC reference.",
-  "module": "Finance \u2014 reconciliation",
+  "module": "Finance — reconciliation",
   "role": "Accountant",
-  "step": "Step 4 \u2014 recorded",
+  "step": "Step 4 — recorded",
   "verified": "Workflow performed in the running application"
  },
  "staff/recon-05-history.png": {
   "description": "The reconciliation history for each account.",
-  "module": "Finance \u2014 reconciliation",
+  "module": "Finance — reconciliation",
   "role": "Accountant",
   "step": "Result",
   "verified": "Workflow performed in the running application"
@@ -1263,165 +1242,144 @@
   "description": "The first step of the wizard, before anything is typed.",
   "module": "Member registration",
   "role": "SACCO Manager",
-  "step": "Step 1 \u2014 open Register Member",
+  "step": "Step 1 — open Register Member",
   "verified": "Workflow performed in the running application"
  },
  "staff/register-02-step1-filled.png": {
   "description": "Name, phone, National ID, address, occupation and next of kin.",
   "module": "Member registration",
   "role": "SACCO Manager",
-  "step": "Step 2 \u2014 member details",
-  "verified": "Workflow performed in the running application"
- },
- "staff/register-03-step2-categories.png": {
-  "description": "The share and savings categories on offer, with what each costs.",
-  "module": "Member registration",
-  "role": "SACCO Manager",
-  "step": "Step 3 \u2014 categories",
-  "verified": "Workflow performed in the running application"
- },
- "staff/register-04-step2-chosen.png": {
-  "description": "Gold shares and Gold Saver selected.",
-  "module": "Member registration",
-  "role": "SACCO Manager",
-  "step": "Step 4 \u2014 categories chosen",
+  "step": "Step 2 — member details",
   "verified": "Workflow performed in the running application"
  },
  "staff/register-05-step3-fees.png": {
   "description": "The fees that apply at registration and what they come to.",
   "module": "Member registration",
   "role": "SACCO Manager",
-  "step": "Step 5 \u2014 fees",
+  "step": "Step 5 — fees",
   "verified": "Workflow performed in the running application"
  },
  "staff/register-06-step4-payment.png": {
   "description": "Paying now or later, and how the money was received.",
   "module": "Member registration",
   "role": "SACCO Manager",
-  "step": "Step 6 \u2014 payment",
+  "step": "Step 6 — payment",
   "verified": "Workflow performed in the running application"
  },
  "staff/register-07-step4-filled.png": {
   "description": "Cash chosen, the amount received typed in.",
   "module": "Member registration",
   "role": "SACCO Manager",
-  "step": "Step 7 \u2014 payment entered",
+  "step": "Step 7 — payment entered",
   "verified": "Workflow performed in the running application"
  },
  "staff/register-08-step5-confirm.png": {
   "description": "The full summary shown before the member is created.",
   "module": "Member registration",
   "role": "SACCO Manager",
-  "step": "Step 8 \u2014 confirm",
+  "step": "Step 8 — confirm",
   "verified": "Workflow performed in the running application"
  },
  "staff/register-09-result.png": {
   "description": "The new member number, the amount paid, the status and the receipt.",
   "module": "Member registration",
   "role": "SACCO Manager",
-  "step": "Step 9 \u2014 result",
-  "verified": "Workflow performed in the running application"
- },
- "staff/register-validation-error.png": {
-  "description": "The wizard refuses to advance and names the field that still needs an answer.",
-  "module": "Member registration",
-  "role": "SACCO Manager",
-  "step": "What happens if something is missing",
+  "step": "Step 9 — result",
   "verified": "Workflow performed in the running application"
  },
  "staff/repay-01-form.png": {
   "description": "The repayment form with the outstanding balance and the schedule.",
   "module": "Loan repayments",
   "role": "Cashier / Teller",
-  "step": "Step 1 \u2014 open Record Repayment",
+  "step": "Step 1 — open Record Repayment",
   "verified": "Workflow performed in the running application"
  },
  "staff/repay-02-filled.png": {
   "description": "The amount typed in and the payment method chosen.",
   "module": "Loan repayments",
   "role": "Cashier / Teller",
-  "step": "Step 2 \u2014 enter the amount",
+  "step": "Step 2 — enter the amount",
   "verified": "Workflow performed in the running application"
  },
  "staff/repay-03-confirm.png": {
   "description": "The confirmation summary before the repayment is saved.",
   "module": "Loan repayments",
   "role": "Cashier / Teller",
-  "step": "Step 3 \u2014 review",
+  "step": "Step 3 — review",
   "verified": "Workflow performed in the running application"
  },
  "staff/repay-04-result.png": {
   "description": "The repayment receipt reference after a successful save.",
   "module": "Loan repayments",
   "role": "Cashier / Teller",
-  "step": "Step 4 \u2014 result",
+  "step": "Step 4 — result",
   "verified": "Workflow performed in the running application"
  },
  "staff/report-01-index.png": {
-  "description": "`/staff/reports` \u2014 Reports",
+  "description": "`/staff/reports` — Reports",
   "module": "Reports",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-02-member-register.png": {
-  "description": "`/staff/reports/members` \u2014 Member Register",
+  "description": "`/staff/reports/members` — Member Register",
   "module": "Reports",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-03-member-statement.png": {
-  "description": "`/staff/reports/statement?member=37dfd9b3-371a-4e88-a539-c392905bc99f` \u2014 Member Statement",
+  "description": "`/staff/reports/statement?member=37dfd9b3-371a-4e88-a539-c392905bc99f` — Member Statement",
   "module": "Reports",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-04-member-ledger.png": {
-  "description": "`/staff/members/37dfd9b3-371a-4e88-a539-c392905bc99f/ledger` \u2014 Financial ledger",
+  "description": "`/staff/members/37dfd9b3-371a-4e88-a539-c392905bc99f/ledger` — Financial ledger",
   "module": "Member management",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-05-cash-bank.png": {
-  "description": "`/staff/finance/reports?view=cash-bank&from=2026-09-01&to=2026-09-24` \u2014 Finance Reports",
+  "description": "`/staff/finance/reports?view=cash-bank&from=2026-09-01&to=2026-09-24` — Finance Reports",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-06-receipts-payments.png": {
-  "description": "`/staff/finance/reports?view=receipts-payments&from=2026-09-01&to=2026-09-24` \u2014 Finance Reports",
+  "description": "`/staff/finance/reports?view=receipts-payments&from=2026-09-01&to=2026-09-24` — Finance Reports",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-07-profit-loss.png": {
-  "description": "`/staff/finance/income-expenses?tab=summary&from=2026-01-01&to=2026-09-24` \u2014 Income & Expenses",
+  "description": "`/staff/finance/income-expenses?tab=summary&from=2026-01-01&to=2026-09-24` — Income & Expenses",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-08-savings-performance.png": {
-  "description": "`/staff/savings/performance` \u2014 Savings performance",
+  "description": "`/staff/savings/performance` — Savings performance",
   "module": "Savings",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-09-overdue-loans.png": {
-  "description": "`/staff/loans?status=overdue` \u2014 Loans",
+  "description": "`/staff/loans?status=overdue` — Loans",
   "module": "Loans",
   "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  },
  "staff/report-10-ledger.png": {
-  "description": "`/staff/finance/ledger` \u2014 Transaction Ledger",
+  "description": "`/staff/finance/ledger` — Transaction Ledger",
   "module": "Finance",
   "role": "Super Admin",
   "step": "Screen overview",
@@ -1431,41 +1389,48 @@
   "description": "The share sale screen before a member is chosen.",
   "module": "Shares",
   "role": "Cashier / Teller",
-  "step": "Step 1 \u2014 open Record Share Purchase",
+  "step": "Step 1 — open Record Share Purchase",
   "verified": "Workflow performed in the running application"
  },
  "staff/shares-02-member-found.png": {
   "description": "Searching for the member who is buying.",
   "module": "Shares",
   "role": "Cashier / Teller",
-  "step": "Step 2 \u2014 find the member",
+  "step": "Step 2 — find the member",
   "verified": "Workflow performed in the running application"
  },
  "staff/shares-03-filled.png": {
   "description": "The number of shares, the price and the payment method.",
   "module": "Shares",
   "role": "Cashier / Teller",
-  "step": "Step 3 \u2014 how many shares",
+  "step": "Step 3 — how many shares",
   "verified": "Workflow performed in the running application"
  },
  "staff/shares-04-confirm.png": {
   "description": "The confirmation summary before the sale is recorded.",
   "module": "Shares",
   "role": "Cashier / Teller",
-  "step": "Step 4 \u2014 review",
+  "step": "Step 4 — review",
   "verified": "Workflow performed in the running application"
  },
  "staff/shares-05-result.png": {
   "description": "The share purchase receipt reference.",
   "module": "Shares",
   "role": "Cashier / Teller",
-  "step": "Step 5 \u2014 result",
+  "step": "Step 5 — result",
   "verified": "Workflow performed in the running application"
  },
  "staff/transactions-after-collection.png": {
-  "description": "`/staff/transactions` \u2014 Transactions",
+  "description": "`/staff/transactions` — Transactions",
   "module": "Transactions",
   "role": "Cashier / Teller",
+  "step": "Screen overview",
+  "verified": "Loaded and screenshotted in the running application"
+ },
+ "admin/walk-savings-records.png": {
+  "description": "`/staff/savings/records` — Savings records: every member, month by month, with what they saved",
+  "module": "Savings",
+  "role": "Super Admin",
   "step": "Screen overview",
   "verified": "Loaded and screenshotted in the running application"
  }

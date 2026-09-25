@@ -24,10 +24,9 @@ const WIDTHS = [1280, 1440, 1920];
 const ROUTES = [
   { path: '/staff', name: 'dashboard' },
   { path: '/staff/members', name: 'members' },
-  { path: '/staff/categories', name: 'categories' },
   { path: '/staff/savings', name: 'savings' },
   { path: '/staff/savings/collect', name: 'collect' },
-  { path: '/staff/savings/schedules', name: 'schedules' },
+  { path: '/staff/savings/records', name: 'savings-records' },
   { path: '/staff/reports', name: 'reports' },
   { path: '/staff/users', name: 'users' },
   { path: '/staff/transactions', name: 'transactions' },

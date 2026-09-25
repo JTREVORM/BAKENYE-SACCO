@@ -14,7 +14,6 @@ import { PreviewControls } from './PreviewControls';
 
 import {
   FIXTURE_COLLECTION_VIEW,
-  FIXTURE_SAVINGS_CATEGORIES,
   FIXTURE_LOAN_BALANCE,
   FIXTURE_MEMBERS,
   FIXTURE_PORTFOLIO,
@@ -173,7 +172,6 @@ export default function PreviewPage() {
             page={1}
             pageSize={20}
             canRegister
-            savingsCategories={FIXTURE_SAVINGS_CATEGORIES}
           />
         </Section>
 
@@ -181,9 +179,9 @@ export default function PreviewPage() {
         <Section
           id="staff-collections"
           title="Staff · savings collection"
-          note="One member at the counter: category, cycle, outstanding, history"
+          note="One member at the counter: this month, shares, savings history"
         >
-          <MemberCollectionPanel view={FIXTURE_COLLECTION_VIEW} canRecord canWaive />
+          <MemberCollectionPanel view={FIXTURE_COLLECTION_VIEW} canRecord />
         </Section>
 
         {/* ---------------------------------------------------- staff loans */}

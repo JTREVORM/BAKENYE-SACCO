@@ -24,13 +24,13 @@ export type CollectionResult = {
   transaction_id: string;
   reference: string;
   schedule_id: string;
+  period_id: string;
   member_id: string;
   member_name: string;
-  savings_category: string | null;
   period_label: string;
-  expected: number;
+  /** What the member has saved in this month, after this deposit. */
   paid: number;
-  outstanding: number;
+  period_total: number;
   status: SavingsStatus;
 };
 
@@ -118,64 +118,16 @@ export async function recordCollection(
   const result = data as unknown as CollectionResult;
 
   revalidatePath('/staff/savings/collect');
-  revalidatePath('/staff/savings/schedules');
+  revalidatePath('/staff/savings/records');
   revalidatePath('/staff/savings');
   revalidatePath('/staff');
   if (d.member_id) revalidatePath(`/staff/members/${d.member_id}`);
 
-  const remaining = Number(result.outstanding);
+  // There is no target, so there is nothing to report as still owing. What the
+  // cashier wants confirmed is the amount and the running total for the month.
+  const month = Number(result.period_total);
   return succeed(
     result,
-    remaining > 0
-      ? `Payment recorded for ${result.member_name}. UGX ${remaining.toLocaleString('en-UG')} still outstanding.`
-      : `Payment recorded for ${result.member_name}. Settled in full.`,
+    `Savings recorded for ${result.member_name}. UGX ${month.toLocaleString('en-UG')} saved in ${result.period_label}.`,
   );
-}
-
-/**
- * Forgive one schedule.
- *
- * Only possible while nothing has been paid against it, and always with a
- * reason: a waiver writes off money the SACCO expected, so somebody has to own
- * that decision in the audit log.
- */
-export async function waiveSchedule(
-  _prev: ActionResult<{ status: SavingsStatus }> | null,
-  formData: FormData,
-): Promise<ActionResult<{ status: SavingsStatus }>> {
-  const user = await requireUser();
-  if (!can(user, 'savings.waive')) {
-    return { ok: false, error: 'You do not have permission to waive a savings schedule.' };
-  }
-
-  const parsed = z
-    .object({
-      schedule_id: z.string().uuid(),
-      reason: z
-        .string()
-        .trim()
-        .min(5, 'Give a reason — this is recorded in the audit log.')
-        .max(500),
-      member_id: z.string().uuid().optional().or(z.literal('')),
-    })
-    .safeParse(Object.fromEntries(formData));
-
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return { ok: false, error: issue.message, field: String(issue.path[0]) };
-  }
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('waive_savings_schedule', {
-    p_schedule_id: parsed.data.schedule_id,
-    p_reason: parsed.data.reason,
-  });
-
-  if (error) return fail(error, 'reason');
-
-  revalidatePath('/staff/savings/collect');
-  revalidatePath('/staff/savings/schedules');
-  if (parsed.data.member_id) revalidatePath(`/staff/members/${parsed.data.member_id}`);
-
-  return succeed(data as { status: SavingsStatus }, 'Schedule waived.');
 }

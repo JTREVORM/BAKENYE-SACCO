@@ -977,6 +977,84 @@ export type MemberSavingsOverview = {
 };
 
 /** `savings_dashboard()` — what members saved, not what they owed. */
+/** The Membership Fees module's summary cards. */
+export type MembershipFeeDashboard = {
+  /** What it currently costs to join, from the `fees` configuration. */
+  fee_amount: number;
+  collected_total: number;
+  collected_month: number;
+  collected_today: number;
+  members_paid: number;
+  members_partial: number;
+  members_unpaid: number;
+  members_waived: number;
+  outstanding_total: number;
+};
+
+/** Where a member stands on the membership fee. */
+export type MembershipFeeStatus = 'paid' | 'partial' | 'unpaid' | 'waived' | 'none';
+
+/** One row of the Membership Fees table. */
+export type MembershipFeeRow = {
+  member_id: string;
+  member_no: string;
+  full_name: string;
+  member_status: MemberStatus;
+  registered_on: string | null;
+  /** The sum of what this member was charged, at the amounts they were charged. */
+  required_amount: number;
+  paid_amount: number;
+  outstanding_amount: number;
+  status: MembershipFeeStatus;
+  last_payment_on: string | null;
+  last_reference: string | null;
+  last_receipt_no: string | null;
+  /** Repeated on every row so one call can paginate. */
+  total_count: number;
+};
+
+/** One charge making up a member's membership fee. */
+export type MembershipFeeCharge = {
+  charge_id: string;
+  fee_name: string;
+  charged_amount: number;
+  paid_amount: number;
+  outstanding_amount: number;
+  status: 'unpaid' | 'partial' | 'paid' | 'waived';
+  charged_on: string;
+  charge_reason: string | null;
+};
+
+/** One payment against a member's membership fee. */
+export type MembershipFeePayment = {
+  paid_on: string;
+  amount: number;
+  reference: string | null;
+  external_ref: string | null;
+  receipt_no: string | null;
+  method: PaymentMethod;
+  /** A reversed payment stays listed, and counts towards nothing. */
+  transaction_status: TxnStatus;
+  fee_name: string;
+};
+
+/** One member's membership fee, for the profile card and the collect dialog. */
+export type MemberMembershipFee = {
+  member_id: string;
+  member_no: string;
+  full_name: string;
+  member_status: MemberStatus;
+  registered_on: string | null;
+  required_amount: number;
+  paid_amount: number;
+  outstanding_amount: number;
+  status: MembershipFeeStatus;
+  last_payment_on: string | null;
+  fee_amount: number;
+  charges: MembershipFeeCharge[];
+  payments: MembershipFeePayment[];
+};
+
 export type SavingsDashboard = {
   from: string;
   to: string;

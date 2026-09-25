@@ -11,6 +11,9 @@ import type {
   NotificationRow,
   SaccoSettingsRow,
   ShareSettingsRow,
+  MemberMembershipFee,
+  MembershipFeeDashboard,
+  MembershipFeeRow,
   SavingsDashboard,
   SavingsPeriodRow,
   SavingsScheduleRow,
@@ -230,6 +233,57 @@ export const getMemberSchedules = cache(
  * The staff savings dashboard: what members saved in a window, not what they
  * were expected to save. There is no expectation to report.
  */
+/* ------------------------------------------------------- membership fees */
+
+/**
+ * The Membership Fees module's summary cards. The fee amount in it comes from
+ * the `fees` configuration, never from a constant here.
+ */
+export const getMembershipFeeDashboard = cache(
+  async (): Promise<MembershipFeeDashboard | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('membership_fee_dashboard', {});
+    if (error || !data) return null;
+    return data as unknown as MembershipFeeDashboard;
+  },
+);
+
+/**
+ * One page of the Membership Fees table. `total_count` rides on every row, so
+ * paging needs one round trip rather than two.
+ */
+export const searchMembershipFees = cache(
+  async (
+    query?: string,
+    status?: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<{ rows: MembershipFeeRow[]; total: number }> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('search_membership_fees', {
+      p_query: query ?? null,
+      p_status: status && status !== 'all' ? status : null,
+      p_limit: limit,
+      p_offset: offset,
+    });
+    if (error || !data) return { rows: [], total: 0 };
+    const rows = data as unknown as MembershipFeeRow[];
+    return { rows, total: rows[0]?.total_count ?? 0 };
+  },
+);
+
+/** One member's membership fee: the charges, the payments and where they stand. */
+export const getMemberMembershipFee = cache(
+  async (memberId: string): Promise<MemberMembershipFee | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('member_membership_fee_detail', {
+      p_member_id: memberId,
+    });
+    if (error || !data) return null;
+    return data as unknown as MemberMembershipFee;
+  },
+);
+
 export const getSavingsDashboard = cache(
   async (from?: string, to?: string): Promise<SavingsDashboard | null> => {
     const supabase = await createClient();

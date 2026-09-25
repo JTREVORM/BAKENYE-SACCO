@@ -2,7 +2,12 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
-import { getMemberFinancials, getShareProgress, getShareUnitPrice } from '@/lib/queries';
+import {
+  getMemberFinancials,
+  getMemberMembershipFee,
+  getShareProgress,
+  getShareUnitPrice,
+} from '@/lib/queries';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
 import { Avatar, Badge, Icon, Money, PageTitle } from '@/components/ui/primitives';
@@ -12,6 +17,7 @@ import { TransactionRow } from '@/components/member/TransactionRow';
 import { MemberStatusControl } from './MemberStatusControl';
 import { MemberAccountPanel } from '@/components/accounts/MemberAccountPanel';
 import { MemberFeeActions } from '@/components/fees/MemberFeeActions';
+import { MembershipFeeCard } from '@/components/fees/MembershipFeeCard';
 import {
   getCollectionAccounts,
   getFees,
@@ -52,7 +58,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
 
   const supabase = await createClient();
   const mayCollect = can(user, 'fees.collect');
-  const [memberFees, profileChanges, allFees, accounts, auditRes] = await Promise.all([
+  const [memberFees, profileChanges, allFees, accounts, auditRes, membershipFee] = await Promise.all([
     getMemberFees(id),
     getMemberProfileChanges(id),
     mayCollect ? getFees() : Promise.resolve([]),
@@ -67,11 +73,16 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
       .not('action', 'in', '("member.profile_updated","member.phone_changed","member.name_changed")')
       .order('created_at', { ascending: false })
       .limit(30),
+    getMemberMembershipFee(id),
   ]);
-  const unpaidFees = memberFees.filter((f) => f.status === 'unpaid');
-  const owedMandatory = unpaidFees
-    .filter((f) => f.is_mandatory && f.charged_at_registration)
-    .reduce((sum, f) => sum + Number(f.amount), 0);
+  // A charge that is part paid still owes something, so "unpaid" is no longer
+  // the whole story: both states can be collected against.
+  const unpaidFees = memberFees.filter((f) => f.status === 'unpaid' || f.status === 'partial');
+  const owedMandatory = membershipFee
+    ? Number(membershipFee.outstanding_amount)
+    : unpaidFees
+        .filter((f) => f.is_mandatory && f.charged_at_registration)
+        .reduce((sum, f) => sum + Number(f.amount), 0);
   const chargeable = allFees
     .filter((f) => f.status === 'active' && f.applies_to_existing_members)
     .map((f) => ({ id: f.id, name: f.name, amount: Number(f.amount) }));
@@ -422,6 +433,10 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         </Panel>
       </div>
 
+      {membershipFee && membershipFee.charges.length > 0 ? (
+        <MembershipFeeCard fee={membershipFee} />
+      ) : null}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <FeesPanel
           fees={memberFees}
@@ -651,7 +666,12 @@ function Figure({ label, value, tone }: { label: string; value: unknown; tone?: 
 
 /* ------------------------------------------------------------------------ */
 
-const FEE_STATUS_TONE = { unpaid: 'warning', paid: 'success', waived: 'neutral' } as const;
+const FEE_STATUS_TONE = {
+  unpaid: 'warning',
+  partial: 'warning',
+  paid: 'success',
+  waived: 'neutral',
+} as const;
 
 /** What this member has been charged, and what became of each charge. */
 function FeesPanel({
@@ -693,7 +713,9 @@ function FeesPanel({
                     Receipt
                   </Link>
                 ) : (
-                  <Badge tone={FEE_STATUS_TONE[f.status]}>{f.status === 'unpaid' ? 'Unpaid' : 'Waived'}</Badge>
+                  <Badge tone={FEE_STATUS_TONE[f.status]}>
+                    {f.status === 'unpaid' ? 'Unpaid' : f.status === 'partial' ? 'Part paid' : 'Waived'}
+                  </Badge>
                 )}
               </div>
             </li>

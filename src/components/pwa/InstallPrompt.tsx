@@ -7,13 +7,15 @@ import { Button } from '@/components/ui/form';
 import { Icon } from '@/components/ui/primitives';
 import { Alert } from '@/components/ui/states';
 import {
+  INSTALL_OFFERED_KEY,
   INSTALL_PROMPT_COOKIE,
+  alreadyInstalled,
   detectPlatform,
-  isStandalone,
   manualInstructions,
+  rememberInstalled,
   type Platform,
 } from '@/lib/pwa';
-import { INSTALLED_KEY, INSTALL_EVENT_KEY } from './InstallEventCapture';
+import { INSTALL_EVENT_KEY } from './InstallEventCapture';
 
 /**
  * Offer to install the app, once per sign-in.
@@ -28,11 +30,13 @@ import { INSTALLED_KEY, INSTALL_EVENT_KEY } from './InstallEventCapture';
  *
  * WHEN IT APPEARS
  *
- * The sign-in action sets a short-lived, non-secret cookie for members only.
- * This component reads it, deletes it, and shows the modal. So: after every
- * member sign-in while the app is not installed; never a second time in the
- * same session; again after signing out and back in; never when the app is
- * already running installed; and never for staff, who are not given the cookie.
+ * A member's sign-in sets a non-secret cookie whose value is a nonce for that
+ * sign-in. This component offers the app once per nonce and records which nonce
+ * it has offered for. So: after every member sign-in while the app is not
+ * installed; never a second time in the same session; again after signing out
+ * and back in; never when the app is already installed, whether it is running
+ * standalone or being viewed in a tab; and never for staff, who are not given
+ * the cookie.
  *
  * It touches nothing to do with authentication, performs no navigation, and
  * renders nothing at all when there is no reason to appear.
@@ -54,7 +58,10 @@ export function InstallPrompt({
   const deferred = useRef<BeforeInstallPromptEvent | null>(null);
 
   const clearCookie = useCallback(() => {
-    document.cookie = `${INSTALL_PROMPT_COOKIE}=; Max-Age=0; path=/; SameSite=Lax`;
+    // `Secure` is repeated because the cookie was set with it; some browsers
+    // refuse to overwrite a Secure cookie from a non-Secure write.
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${INSTALL_PROMPT_COOKIE}=; Max-Age=0; path=/; SameSite=Lax${secure}`;
   }, []);
 
   /** Whatever the head script has already caught, plus anything fired later. */
@@ -73,6 +80,9 @@ export function InstallPrompt({
     }
     function onInstalled() {
       deferred.current = null;
+      // Remember it, so a later tab on this browser does not offer the app the
+      // member has just installed.
+      rememberInstalled();
       setOpen(false);
       clearCookie();
     }
@@ -84,28 +94,47 @@ export function InstallPrompt({
     };
   }, [clearCookie]);
 
-  // Decide once, on mount, whether this sign-in gets the prompt.
+  // Decide whether this sign-in still owes the member an offer.
   useEffect(() => {
-    const armed = document.cookie
-      .split('; ')
-      .some((c) => c.startsWith(`${INSTALL_PROMPT_COOKIE}=`));
-    if (!armed) return;
+    const nonce = readCookie(INSTALL_PROMPT_COOKIE);
+    if (!nonce) return;
 
-    // Consume it immediately: whatever happens next, this session is done
-    // asking. A member who taps "Not now" is not asked again until they sign in
-    // afresh.
-    clearCookie();
-    if (isStandalone()) return;
-    // Installed during an earlier visit in this tab.
-    if ((window as unknown as Record<string, unknown>)[INSTALLED_KEY] === true) return;
+    // Already offered for this sign-in: nothing more to do. Recorded per tab, so
+    // moving around the portal does not ask again, and a fresh sign-in - which
+    // mints a new nonce - does.
+    if (readOffered() === nonce) {
+      clearCookie();
+      return;
+    }
+
+    // Somebody who already has the app does not need offering it. Recorded when
+    // the install succeeded, so it holds in an ordinary tab too, not only when
+    // running standalone.
+    if (alreadyInstalled()) {
+      rememberOffered(nonce);
+      clearCookie();
+      return;
+    }
 
     setPlatform(detectPlatform());
-    // A short beat gives Chromium time to fire `beforeinstallprompt`, so the
-    // modal opens with a working button rather than falling back to steps the
-    // member does not need.
-    const timer = window.setTimeout(() => setOpen(true), 900);
+
+    // The offer is only counted as made once the modal is actually on screen, so
+    // nothing in between can swallow it. If the browser has already handed us an
+    // install event there is nothing to wait for; otherwise give Chromium a
+    // short grace period to fire it, so the button works rather than falling
+    // straight through to manual steps.
+    function offer() {
+      rememberOffered(nonce!);
+      clearCookie();
+      setOpen(true);
+    }
+    if (captured()) {
+      offer();
+      return;
+    }
+    const timer = window.setTimeout(offer, 900);
     return () => window.clearTimeout(timer);
-  }, [clearCookie]);
+  }, [clearCookie, captured]);
 
   if (!open) return null;
 
@@ -205,6 +234,31 @@ export function InstallPrompt({
       </div>
     </Modal>
   );
+}
+
+/** One cookie value, or null. Never throws. */
+function readCookie(name: string): string | null {
+  const hit = document.cookie
+    .split('; ')
+    .find((c) => c.startsWith(`${name}=`));
+  return hit ? decodeURIComponent(hit.slice(name.length + 1)) : null;
+}
+
+/** Which sign-in this tab has already made the offer for. */
+function readOffered(): string | null {
+  try {
+    return window.sessionStorage.getItem(INSTALL_OFFERED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function rememberOffered(nonce: string): void {
+  try {
+    window.sessionStorage.setItem(INSTALL_OFFERED_KEY, nonce);
+  } catch {
+    /* private window: the offer may appear once more, which is harmless */
+  }
 }
 
 /**

@@ -11,6 +11,8 @@
  * before anything else and park the event on `window` for the modal to pick up.
  * It is a Server Component, so none of it is in the client bundle.
  */
+import { INSTALLED_LOCALLY_KEY } from '@/lib/pwa';
+
 export const INSTALL_EVENT_KEY = '__bndInstallPromptEvent';
 export const INSTALLED_KEY = '__bndAppInstalled';
 
@@ -27,6 +29,10 @@ const SCRIPT = `(function(){
     window.addEventListener('appinstalled', function () {
       window.${INSTALL_EVENT_KEY} = null;
       window.${INSTALLED_KEY} = true;
+      // Persisted here as well as in the modal, because an install can finish
+      // before React has hydrated and nothing else would record it. A member
+      // who has the app must not be offered it again in a later tab.
+      try { window.localStorage.setItem('${INSTALLED_LOCALLY_KEY}', '1'); } catch (err) {}
     });
   } catch (e) { /* an old browser: the modal falls back to manual steps */ }
 })();`;

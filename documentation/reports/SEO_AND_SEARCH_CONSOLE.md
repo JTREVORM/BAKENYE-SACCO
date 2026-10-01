@@ -54,6 +54,10 @@ Two environment variables, both set where the application is deployed
 Both are build-time variables. **After changing either, redeploy** — they are
 compiled into the pages and will not take effect until the next build.
 
+Set `NEXT_PUBLIC_SITE_URL` anyway, even though the build recognises Vercel's
+production environment on its own and falls back to the SACCO's domain there.
+The explicit value is what makes the behaviour obvious to the next person.
+
 Leave `NEXT_PUBLIC_SITE_URL` unset on preview deployments. Without it the build
 knows it is not production, and then `robots.txt` blocks everything and the
 sitemap is empty, so a preview URL cannot compete with the real site in search

@@ -26,16 +26,29 @@ export const PRODUCTION_URL = 'https://bakenye-sacco.online';
 /**
  * The base URL for this environment, with no trailing slash.
  *
- * `NEXT_PUBLIC_SITE_URL` wins when it is set, because that is the one value an
- * operator can point at a custom domain. `VERCEL_URL` covers preview
- * deployments, which get a generated hostname nobody configures. The production
- * domain is the last resort rather than the first, so a staging deployment that
- * forgets the variable describes itself honestly instead of claiming to be
- * production.
+ * In order:
+ *
+ *  1. `NEXT_PUBLIC_SITE_URL`, the one value an operator can point at a custom
+ *     domain.
+ *  2. The SACCO's own domain, whenever the host says this is the production
+ *     deployment. This comes **before** `VERCEL_URL` deliberately: Vercel sets
+ *     `VERCEL_URL` on production deployments too, to the generated
+ *     `*.vercel.app` hostname, and letting that win would make the live site
+ *     believe it was a preview - which would publish an empty sitemap and a
+ *     robots.txt blocking everything.
+ *  3. `VERCEL_URL`, which is then genuinely a preview deployment.
+ *  4. The production domain, for any other production build.
+ *  5. localhost, in development.
+ *
+ * A staging deployment that forgets the variable therefore describes itself
+ * honestly instead of claiming to be production.
  */
 export function siteUrl(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (configured) return stripSlash(configured);
+
+  const hostEnv = process.env.VERCEL_ENV ?? process.env.NEXT_PUBLIC_VERCEL_ENV;
+  if (hostEnv === 'production') return PRODUCTION_URL;
 
   const vercel = process.env.VERCEL_URL?.trim();
   if (vercel) return stripSlash(vercel.startsWith('http') ? vercel : `https://${vercel}`);

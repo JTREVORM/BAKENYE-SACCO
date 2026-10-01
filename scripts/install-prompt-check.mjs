@@ -253,19 +253,29 @@ for (const [name, viewport] of [
 }
 
 /* ======================================================================== */
-console.log('\n── staff are not interrupted');
+console.log('\n── staff are offered the app as well');
 
 if (STAFF && STAFF_PW) {
+  // The first release left staff out on purpose; the SACCO then asked for them to
+  // be included. The workspace mounts the same modal in its own layout.
   const { ctx, page } = await newPage({ viewport: { width: 1440, height: 900 } });
   await signIn(page, STAFF, STAFF_PW);
   const landed = new URL(page.url()).pathname;
   add(landed.startsWith('/staff'), 'the staff member lands in the workspace', landed);
-  await page.waitForTimeout(2500);
-  add(!(await dialog(page).first().isVisible().catch(() => false)),
-      'no install prompt interrupts a staff sign-in');
-  const cookies = await ctx.cookies();
-  add(!cookies.some((c) => c.name === 'bnd_install_prompt'),
-      'and no install cookie was set for them');
+  add(await waitForPrompt(page), 'the install prompt appears for them too');
+  // The offer is consumed the moment the modal opens, so by now the cookie may
+  // already be spent. Either it is still there or it became the recorded nonce;
+  // neither can exist unless the sign-in armed it.
+  const armedStaff = await page.evaluate(() => ({
+    cookie: document.cookie.includes('bnd_install_prompt='),
+    nonce: sessionStorage.getItem('bnd_install_offered'),
+  }));
+  add(armedStaff.cookie || !!armedStaff.nonce, 'their sign-in armed the offer',
+      armedStaff.cookie ? 'cookie still present' : `consumed into nonce ${armedStaff.nonce}`);
+  await page.getByRole('button', { name: 'Not Now' }).click();
+  await dialog(page).first().waitFor({ state: 'hidden', timeout: 4000 }).catch(() => {});
+  add(new URL(page.url()).pathname === landed,
+      'Not Now leaves them in the workspace - no redirect', new URL(page.url()).pathname);
   await ctx.close();
 } else {
   console.log('  — skipped (set STAFF_ID and STAFF_PASSWORD)');

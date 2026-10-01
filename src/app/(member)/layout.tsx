@@ -11,10 +11,11 @@ import { InstallPrompt } from '@/components/pwa/InstallPrompt';
  * establishes *who*; RLS in Postgres is what actually stops anyone reading
  * anyone else's rows.
  *
- * It is also where members - and only members - are offered the app on their
- * device. The offer is armed by their own sign-in and shown once; it is mounted
- * here rather than on a page so it survives moving around the portal, and it
- * never runs for staff, who have no layout in common with it.
+ * It is also where members are offered the app on their device. The offer is
+ * armed by their own sign-in and shown once; it is mounted here rather than on a
+ * page so it survives moving around the portal. The staff workspace mounts the
+ * same component in its own layout, because the two share no layout above this
+ * one.
  */
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();

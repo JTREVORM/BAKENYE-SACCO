@@ -30,13 +30,15 @@ import { INSTALL_EVENT_KEY } from './InstallEventCapture';
  *
  * WHEN IT APPEARS
  *
- * A member's sign-in sets a non-secret cookie whose value is a nonce for that
- * sign-in. This component offers the app once per nonce and records which nonce
- * it has offered for. So: after every member sign-in while the app is not
- * installed; never a second time in the same session; again after signing out
- * and back in; never when the app is already installed, whether it is running
- * standalone or being viewed in a tab; and never for staff, who are not given
- * the cookie.
+ * A sign-in sets a non-secret cookie whose value is a nonce for that sign-in.
+ * This component offers the app once per nonce and records which nonce it has
+ * offered for. So: after every sign-in while the app is not installed; never a
+ * second time in the same session; again after signing out and back in; and
+ * never when the app is already installed, whether it is running standalone or
+ * being viewed in a tab.
+ *
+ * It is mounted by both the member layout and the staff layout, because members
+ * and staff share no layout above those two.
  *
  * It touches nothing to do with authentication, performs no navigation, and
  * renders nothing at all when there is no reason to appear.

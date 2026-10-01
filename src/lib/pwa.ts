@@ -8,36 +8,92 @@
  *
  * HOW IT IS ARMED
  *
- * A successful member sign-in sets one cookie, `bnd_install_prompt`, with no
- * value of any consequence. The member area reads it in the browser, shows the
- * modal once, and deletes it. That gives exactly the behaviour asked for:
+ * Every sign-in that admits a member into the portal sets one cookie,
+ * `bnd_install_prompt`, whose value is a nonce identifying that sign-in. The
+ * member area reads it in the browser and offers the app once per nonce,
+ * remembering which nonce it has already offered for in `sessionStorage`.
+ *
+ * The nonce is what makes this robust. An earlier version used a fixed value
+ * and relied on *deleting* the cookie to mean "already offered", which lost the
+ * offer whenever the cookie went early or late:
+ *
+ *   * a member sent through "choose your password" first spent that detour
+ *     outside the member area, where nothing reads the cookie, and a slow
+ *     detour outlived a short-lived cookie;
+ *   * the browser consumed the cookie before the modal was actually on screen,
+ *     so anything that interrupted the gap between the two lost the offer for
+ *     good.
+ *
+ * With a nonce, the cookie may be read early, late or twice; what decides is
+ * whether this sign-in's nonce has been offered for yet. That gives exactly the
+ * behaviour asked for:
  *
  *   * prompted after every sign-in while the app is not installed,
- *   * never twice in one session, because the cookie is gone after the first
- *     render,
- *   * prompted again after signing out and back in, because signing in sets it
- *     again,
- *   * never for staff, because the sign-in action only sets it for a member.
+ *   * never twice in one session, because the nonce is recorded once offered,
+ *   * prompted again after signing out and back in, because a new sign-in mints
+ *     a new nonce,
+ *   * never for staff, because only a member's sign-in sets it,
+ *   * never for someone who has already installed it on this device.
  *
  * The cookie is readable by the browser (it is not httpOnly) because the client
- * is what clears it. It carries no identity, no token and nothing private - it
- * says "this person has just signed in", which they already know. It is not
- * read by the middleware and nothing about authentication depends on it, so it
- * cannot cause a redirect loop: at worst the modal does not appear.
+ * is what clears it. It carries no identity, no token and nothing private - a
+ * random nonce and the fact that somebody just signed in, which they know. It
+ * is not read by the middleware and nothing about authentication depends on it,
+ * so it cannot cause a redirect loop: at worst the modal does not appear.
  */
 
 export const INSTALL_PROMPT_COOKIE = 'bnd_install_prompt';
 
-/** The cookie the sign-in action sets. Session-lived, same-site, not httpOnly. */
+/** Which sign-in the browser has already made the offer for, per tab. */
+export const INSTALL_OFFERED_KEY = 'bnd_install_offered';
+
+/** That this browser installed the app, so later tabs do not ask again. */
+export const INSTALLED_LOCALLY_KEY = 'bnd_app_installed';
+
+/** A value identifying one sign-in. Not a secret and not an identifier. */
+export function newLoginNonce(): string {
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+/** The cookie a member's sign-in sets. Same-site, not httpOnly, no identity. */
 export const installPromptCookieOptions = {
   httpOnly: false,
   sameSite: 'lax' as const,
   path: '/',
   secure: process.env.NODE_ENV === 'production',
-  // A couple of minutes is plenty to survive the redirect into the portal, and
-  // short enough that a cookie left behind by a closed tab expires on its own.
-  maxAge: 300,
+  // Long enough to survive a "choose your password" detour on a first sign-in
+  // and a slow first paint on a 3G phone. It is safe to outlive the visit
+  // because the nonce, not the cookie's absence, is what stops a second offer.
+  maxAge: 30 * 60,
 };
+
+/**
+ * Has this browser already installed the app?
+ *
+ * Running standalone proves it. Otherwise we rely on what we recorded when the
+ * install succeeded: a browser gives a page no way to ask "is this site
+ * installed?" from an ordinary tab, so an installed member who opens the site in
+ * a tab would otherwise be offered the app they already have.
+ */
+export function alreadyInstalled(): boolean {
+  if (isStandalone()) return true;
+  try {
+    return window.localStorage.getItem(INSTALLED_LOCALLY_KEY) === '1';
+  } catch {
+    // Private window, or site data blocked. Fall back to "not installed": an
+    // extra offer is better than never offering.
+    return false;
+  }
+}
+
+/** Remember that this browser installed the app, so later tabs do not ask. */
+export function rememberInstalled(): void {
+  try {
+    window.localStorage.setItem(INSTALLED_LOCALLY_KEY, '1');
+  } catch {
+    /* nothing to do - the prompt simply may appear again */
+  }
+}
 
 /** Is the app being viewed as an installed app rather than in a browser tab? */
 export function isStandalone(): boolean {

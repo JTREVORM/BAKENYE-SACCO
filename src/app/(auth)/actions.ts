@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
 import { RECOVERY_COOKIE } from '@/lib/recovery';
 import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE, sessionCookieOptions } from '@/lib/session-timeout';
-import { INSTALL_PROMPT_COOKIE, installPromptCookieOptions } from '@/lib/pwa';
+import { INSTALL_PROMPT_COOKIE, installPromptCookieOptions, newLoginNonce } from '@/lib/pwa';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -31,6 +31,24 @@ import type { LoginResolution, SessionPayload } from '@/types/access';
  * The person never says whether they are a member or staff; the account they
  * turn out to be says it for them.
  */
+
+/**
+ * Offer the app to a member who has just signed in, and never to staff.
+ *
+ * Called from every path that admits somebody into the portal - the ordinary
+ * sign-in and the "choose your password" step a first sign-in goes through -
+ * because each of those is a successful member login, and the brief asks for the
+ * offer after every one of them. The value is a nonce identifying this sign-in;
+ * see lib/pwa.ts for why that matters.
+ */
+async function armInstallPrompt(roleKind: string | null | undefined): Promise<void> {
+  const jar = await cookies();
+  if (roleKind === 'member') {
+    jar.set(INSTALL_PROMPT_COOKIE, newLoginNonce(), installPromptCookieOptions);
+  } else {
+    jar.delete(INSTALL_PROMPT_COOKIE);
+  }
+}
 
 /** Messages the brief fixed, so every path says the same thing. */
 const INVALID = 'Invalid login credentials. Please check your identifier and password.';
@@ -100,15 +118,8 @@ async function admitOrRefuse(
   jar.set(IDLE_LIMIT_COOKIE, String(Math.round(rules.sessionTimeoutMinutes)), sessionCookieOptions);
   jar.set(LAST_SEEN_COOKIE, String(Date.now()), sessionCookieOptions);
 
-  // Arm the "install the app" prompt for this sign-in, for members only. The
-  // member area reads this cookie in the browser, shows the offer once and
-  // deletes it; signing out and back in arms it again. Staff are never
-  // interrupted. Nothing about the session depends on it - see lib/pwa.ts.
-  if (s!.role_kind === 'member') {
-    jar.set(INSTALL_PROMPT_COOKIE, '1', installPromptCookieOptions);
-  } else {
-    jar.delete(INSTALL_PROMPT_COOKIE);
-  }
+  // Offer the app to a member on this sign-in. Staff are never interrupted.
+  await armInstallPrompt(s!.role_kind);
 
   const access: Access = {
     role: s!.role,
@@ -402,6 +413,11 @@ export async function chooseFirstPassword(
   if (!result.ok) return result;
 
   const session = await getSessionUser();
+  // This is the end of a successful member sign-in: the person arrived here
+  // from the sign-in screen on a temporary password and is being let into the
+  // portal now. Without this, a member whose first sign-in goes through
+  // "choose your password" is never offered the app for that sign-in.
+  await armInstallPrompt(session?.roleKind);
   revalidatePath('/', 'layout');
   redirect(session ? landingPath(session) : '/login');
 }

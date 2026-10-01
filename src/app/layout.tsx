@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { MATERIAL_SYMBOLS_HREF } from '@/lib/icons';
 import { BrandProvider } from '@/components/brand/BrandProvider';
+import { InstallEventCapture } from '@/components/pwa/InstallEventCapture';
+import { ServiceWorker } from '@/components/pwa/ServiceWorker';
 import { getBrand } from '@/lib/brand';
 import './globals.css';
 
@@ -37,8 +39,16 @@ export async function generateMetadata(): Promise<Metadata> {
   applicationName: brand.shortName,
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/brand/bnd-logo.png',
-    apple: '/brand/bnd-logo.png',
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/icons/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    title: brand.shortName,
+    statusBarStyle: 'default',
   },
   formatDetection: { telephone: false },
   // The app is behind a login; there is nothing here for a crawler.
@@ -64,12 +74,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`light ${inter.variable}`}>
       <head>
+        {/* Before anything else: Chrome fires its install event earlier than
+            React hydrates, and the member app prompt needs that event. */}
+        <InstallEventCapture />
         {/* Subsetted icon font — see src/lib/icons.ts for why. */}
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="stylesheet" href={MATERIAL_SYMBOLS_HREF} />
       </head>
       <body className={`${inter.className} bg-background text-on-background antialiased`}>
         <BrandProvider brand={brand}>{children}</BrandProvider>
+        {/* Registered for everyone: a browser will not offer to install the app
+            without it. It caches icons and nothing else. */}
+        <ServiceWorker />
       </body>
     </html>
   );

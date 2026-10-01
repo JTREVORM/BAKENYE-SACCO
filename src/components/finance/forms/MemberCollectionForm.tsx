@@ -9,32 +9,43 @@ import { Alert } from '@/components/ui/states';
 import { createClient } from '@/lib/supabase/client';
 import { formatUGX } from '@/lib/money';
 import { toISODate } from '@/lib/format';
-import { ACCOUNT_TYPE_META, COLLECTION_TYPES } from '@/lib/treasury-format';
+import { ACCOUNT_TYPES, ACCOUNT_TYPE_META, COLLECTION_TYPES } from '@/lib/treasury-format';
+import { RECEIVING_LABEL } from '@/lib/receiving-accounts';
 import { AccountSelect, AccountSummary, defaultAccountId, type AccountOption } from '../AccountSelect';
-import { RecordedBy, beforeAfter, dateLine } from './fields';
+import { BankMethodSelect, RecordedBy, beforeAfter, dateLine, methodForAccountType } from './fields';
 import type { CategoryRow, PaymentMethod } from '@/types/db';
-import type { CollectionType, FinanceAccountType } from '@/types/treasury';
+import type { CollectionType } from '@/types/treasury';
 
-const METHODS: { value: PaymentMethod; label: string; type: FinanceAccountType }[] = [
-  { value: 'mobile_money', label: 'Merchant / Mobile Money', type: 'merchant' },
-  { value: 'cash', label: 'Cash', type: 'cash' },
-  { value: 'bank_transfer', label: 'Bank transfer / deposit', type: 'bank' },
-  { value: 'cheque', label: 'Cheque', type: 'bank' },
-];
+/**
+ * The account the form opens on: a merchant account for the merchant screen,
+ * otherwise whichever account a manager marked as the default, otherwise cash.
+ * Never a hard-coded method.
+ */
+function openingAccount(accounts: AccountOption[], merchantOnly: boolean): string {
+  if (merchantOnly) return defaultAccountId(accounts, 'merchant');
+  const active = accounts.filter((a) => a.status === 'active');
+  return (
+    active.find((a) => a.is_default) ??
+    active.find((a) => a.account_type === 'cash') ??
+    active[0]
+  )?.id ?? '';
+}
 
 type MemberLoan = { loan_id: string; loan_no: string; outstanding: number };
 
 /**
  * Record money a member paid.
  *
- * The payment method decides which of the SACCO's accounts the money landed
- * in - merchant code to Cash at Merchant, cash to Cash at Hand, a bank
- * transfer or cheque to Cash at Bank - and the account is chosen for the
- * cashier, who still sees it and confirms it before anything is posted.
+ * The cashier names the account the money was received into - one of the
+ * SACCO's own active accounts, each listed individually - and the payment
+ * method follows from it rather than the other way round. That is the whole
+ * point: "Mobile Money" cannot say which merchant wallet took the money when
+ * the SACCO runs an Airtel code and an MTN code, and the ledger credits the
+ * account that is named here.
  *
- * With `preset="merchant"` this is the Record Merchant Collection form: the
- * method is fixed to mobile money and the provider and merchant code of the
- * chosen merchant account are shown alongside the reference field.
+ * With `preset="merchant"` this is the Record Merchant Collection form: only
+ * merchant accounts are offered, and the provider and merchant code of the
+ * chosen one are shown alongside the reference field.
  *
  * Phase One is manual: the provider reference is recorded as typed. Nothing
  * here contacts MTN, Airtel or any bank, and nothing claims to have verified
@@ -64,8 +75,8 @@ export function MemberCollectionForm({
   const [member, setMember] = useState<PickedMember | null>(initialMember ?? null);
   const [type, setType] = useState<CollectionType>(initialType ?? 'savings');
   const [amount, setAmount] = useState<number | null>(null);
-  const [method, setMethod] = useState<PaymentMethod>('mobile_money');
-  const [accountId, setAccountId] = useState(() => defaultAccountId(accounts, 'merchant'));
+  const [bankMethod, setBankMethod] = useState<PaymentMethod>('bank_transfer');
+  const [accountId, setAccountId] = useState(() => openingAccount(accounts, merchantOnly));
   const [paidOn, setPaidOn] = useState(toISODate());
   const [reference, setReference] = useState('');
   const [description, setDescription] = useState('');
@@ -74,8 +85,9 @@ export function MemberCollectionForm({
   const [loanId, setLoanId] = useState('');
   const [incomeCategoryId, setIncomeCategoryId] = useState('');
 
-  const accountType = METHODS.find((m) => m.value === method)?.type ?? 'cash';
   const account = accounts.find((a) => a.id === accountId);
+  const accountType = account?.account_type ?? 'cash';
+  const method = methodForAccountType(account?.account_type, bankMethod);
   const needsReference = accountType === 'merchant' || accountType === 'bank';
   const loan = loans.find((l) => l.loan_id === loanId);
   const feeCategories = useMemo(() => incomeCategories.filter((c) => !c.is_system), [incomeCategories]);
@@ -110,12 +122,6 @@ export function MemberCollectionForm({
     };
   }, [member]);
 
-  function chooseMethod(next: PaymentMethod) {
-    setMethod(next);
-    const nextType = METHODS.find((m) => m.value === next)?.type ?? 'cash';
-    if (account?.account_type !== nextType) setAccountId(defaultAccountId(accounts, nextType));
-  }
-
   const shares = sharePrice && amount ? amount / sharePrice : null;
   const sharesInvalid = type === 'shares' && !!amount && (!sharePrice || !Number.isInteger(shares));
   const overpaysLoan = type === 'loan_repayment' && !!loan && !!amount && amount > loan.outstanding;
@@ -137,8 +143,10 @@ export function MemberCollectionForm({
                   : typeLabel,
       },
       { label: 'Amount', value: formatUGX(amount), emphasis: true },
-      { label: 'Payment method', value: METHODS.find((m) => m.value === method)?.label ?? method },
-      { label: 'Receiving account', value: account ? `${account.name} (${ACCOUNT_TYPE_META[account.account_type].label})` : '—' },
+      {
+        label: RECEIVING_LABEL,
+        value: account ? `${account.name} (${ACCOUNT_TYPE_META[account.account_type].label})` : '—',
+      },
       { label: 'Account balance', value: beforeAfter(balance, balance + (amount ?? 0)) },
       { label: 'Date', value: dateLine(paidOn) },
       ...(reference.trim() ? [{ label: 'Reference', value: reference.trim() }] : []),
@@ -275,30 +283,27 @@ export function MemberCollectionForm({
             required invalid={sharesInvalid || overpaysLoan} />
         </Field>
 
-        {merchantOnly ? null : (
-          <Field label="Payment method" htmlFor="collection-method" required
-            hint="Chooses the receiving account for you. Confirm it below.">
-            <Select id="collection-method" value={method} onChange={(e) => chooseMethod(e.target.value as PaymentMethod)}>
-              {METHODS.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        )}
-
         <AccountSelect
           id="collection-account"
           name="account_id"
-          label="Receiving account"
+          label={RECEIVING_LABEL}
           accounts={accounts}
-          types={[accountType]}
+          types={merchantOnly ? ['merchant'] : ACCOUNT_TYPES}
           value={accountId}
           onChange={setAccountId}
-          hint={`${ACCOUNT_TYPE_META[accountType].label} - selected from the payment method.`}
+          hint="The account that actually takes the money. Finance balances follow this choice."
         />
         <AccountSummary account={account} />
+
+        {/* Bank money moves by transfer or by cheque; every other account has
+            one way in, so this is the only method question that remains. */}
+        {accountType === 'bank' ? (
+          <BankMethodSelect
+            id="collection-bank-method"
+            value={bankMethod}
+            onChange={setBankMethod}
+          />
+        ) : null}
 
         <Field
           label={accountType === 'merchant' ? 'Provider transaction reference' : accountType === 'bank' ? 'Bank or cheque reference' : 'Receipt book reference'}

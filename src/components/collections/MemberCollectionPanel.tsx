@@ -11,6 +11,7 @@ import { formatDate, formatPhone, PAYMENT_METHOD_LABELS } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import { SAVINGS_STATUS_HINTS, depositCount, shareCount } from '@/lib/savings';
 import { clsx } from '@/lib/clsx';
+import type { CollectionAccount } from '@/types/access';
 import type { MemberCollectionView, SavingsScheduleRow } from '@/types/db';
 import { ScrollRow } from '@/components/ui/scroll';
 
@@ -30,9 +31,12 @@ import { ScrollRow } from '@/components/ui/scroll';
 export function MemberCollectionPanel({
   view,
   canRecord,
+  accounts,
 }: {
   view: MemberCollectionView;
   canRecord: boolean;
+  /** The SACCO's active receiving accounts, from `collection_accounts()`. */
+  accounts: CollectionAccount[];
 }) {
   const [recording, setRecording] = useState<SavingsScheduleRow | null>(null);
 
@@ -273,6 +277,7 @@ export function MemberCollectionPanel({
       <RecordCollectionDialog
         row={recording}
         memberId={member.id}
+        accounts={accounts}
         open={!!recording}
         onClose={() => setRecording(null)}
       />

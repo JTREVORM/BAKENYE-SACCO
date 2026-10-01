@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE } from '@/lib/session-timeout';
+import { INSTALL_PROMPT_COOKIE } from '@/lib/pwa';
 
 /**
  * Sign out.
@@ -25,5 +26,8 @@ export async function POST(request: NextRequest) {
   res.headers.set('Clear-Site-Data', '"cache"');
   res.cookies.delete(LAST_SEEN_COOKIE);
   res.cookies.delete(IDLE_LIMIT_COOKIE);
+  // Nothing of this sign-in survives, including an install offer that was armed
+  // but never shown. The next sign-in arms it again.
+  res.cookies.delete(INSTALL_PROMPT_COOKIE);
   return res;
 }

@@ -2,15 +2,23 @@
 
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
-import { disburseLoan, setLoanStatus } from '@/app/actions/financial';
+import { setLoanStatus } from '@/app/actions/financial';
+import { recordMemberCollection } from '@/app/actions/treasury';
+import {
+  ReceivingAccountFields,
+  useReceivingAccount,
+} from '@/components/forms/ReceivingAccountField';
 import { Alert } from '@/components/ui/states';
 import { Icon } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/Modal';
-import { Button, Field, Input, Select, SubmitButton, Textarea } from '@/components/ui/form';
+import { Button, Field, Input, SubmitButton, Textarea } from '@/components/ui/form';
 import { formatUGX } from '@/lib/money';
-import { PAYMENT_METHOD_LABELS, toISODate } from '@/lib/format';
+import { toISODate } from '@/lib/format';
+import { PAYING_LABEL } from '@/lib/receiving-accounts';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
-import type { LoanStatus, PaymentMethod } from '@/types/db';
+import type { CollectionAccount } from '@/types/access';
+import type { MemberCollectionResult } from '@/types/treasury';
+import type { LoanStatus } from '@/types/db';
 
 /**
  * Loan lifecycle controls.
@@ -23,16 +31,20 @@ import type { LoanStatus, PaymentMethod } from '@/types/db';
  * Disbursement is the moment money leaves the SACCO, so it gets the same
  * confirm-then-commit treatment as every other financial action, plus an
  * idempotency key — a double-click here would otherwise be a second loan's
- * worth of cash.
+ * worth of cash. It names the account the money leaves, chosen from the SACCO's
+ * own configured accounts, so the drawer or wallet that is actually emptied is
+ * the one the ledger debits.
  */
 export function LoanActions({
   loanId,
   loanNo,
+  memberId,
   status,
   principal,
   processingFee,
   netDisbursed,
   memberName,
+  accounts,
   guarantorsPending,
   canAssess,
   canApprove,
@@ -41,11 +53,14 @@ export function LoanActions({
 }: {
   loanId: string;
   loanNo: string;
+  memberId: string;
   status: LoanStatus;
   principal: number;
   processingFee: number;
   netDisbursed: number;
   memberName: string;
+  /** The SACCO's active accounts, from `collection_accounts()`. */
+  accounts: CollectionAccount[];
   guarantorsPending: number;
   canAssess: boolean;
   canApprove: boolean;
@@ -160,10 +175,12 @@ export function LoanActions({
         onClose={() => setDialog(null)}
         loanId={loanId}
         loanNo={loanNo}
+        memberId={memberId}
         principal={principal}
         processingFee={processingFee}
         netDisbursed={netDisbursed}
         memberName={memberName}
+        accounts={accounts}
       />
     </>
   );
@@ -262,26 +279,30 @@ function DisburseDialog({
   onClose,
   loanId,
   loanNo,
+  memberId,
   principal,
   processingFee,
   netDisbursed,
   memberName,
+  accounts,
 }: {
   open: boolean;
   onClose: () => void;
   loanId: string;
   loanNo: string;
+  memberId: string;
   principal: number;
   processingFee: number;
   netDisbursed: number;
   memberName: string;
+  accounts: CollectionAccount[];
 }) {
-  const [state, action] = useActionState<
-    ActionResult<{ loan_no: string; reference: string; transaction_id: string }> | null,
-    FormData
-  >(disburseLoan, null);
+  const [state, action] = useActionState<ActionResult<MemberCollectionResult> | null, FormData>(
+    recordMemberCollection,
+    null,
+  );
   const [idemKey] = useState(() => newIdempotencyKey('disburse'));
-  const [method, setMethod] = useState<PaymentMethod>('cash');
+  const outOf = useReceivingAccount(accounts, 'out');
   const err = state && !state.ok ? state : null;
 
   return (
@@ -309,7 +330,10 @@ function DisburseDialog({
         </div>
       ) : (
         <form action={action} className="flex flex-col gap-5" noValidate>
+          <input type="hidden" name="collection_type" value="loan_disbursement" />
           <input type="hidden" name="loan_id" value={loanId} />
+          <input type="hidden" name="member_id" value={memberId} />
+          <input type="hidden" name="amount" value={String(principal)} />
           <input type="hidden" name="idempotency_key" value={idemKey} />
 
           {err ? <Alert tone="error">{err.error}</Alert> : null}
@@ -324,25 +348,17 @@ function DisburseDialog({
             <Row label="Cash to hand over" value={formatUGX(netDisbursed)} emphasis />
           </dl>
 
-          <Field label="Disbursement method" htmlFor="disburse-method" required>
-            <Select
-              id="disburse-method"
-              name="method"
-              value={method}
-              onChange={(e) => setMethod(e.target.value as PaymentMethod)}
-            >
-              {(['cash', 'mobile_money', 'bank_transfer', 'cheque'] as PaymentMethod[]).map((m) => (
-                <option key={m} value={m}>
-                  {PAYMENT_METHOD_LABELS[m]}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          <ReceivingAccountFields
+            state={outOf}
+            idPrefix="disburse"
+            direction="out"
+            label={PAYING_LABEL}
+          />
 
           <Field label="Disbursement date" htmlFor="disbursed_on" required>
             <Input
               id="disbursed_on"
-              name="disbursed_on"
+              name="paid_on"
               type="date"
               defaultValue={toISODate()}
               max={toISODate()}
@@ -359,7 +375,13 @@ function DisburseDialog({
             <Button variant="outline" size="lg" className="flex-1" onClick={onClose}>
               Cancel
             </Button>
-            <SubmitButton size="lg" className="flex-1" pendingLabel="Disbursing…" icon="check">
+            <SubmitButton
+              size="lg"
+              className="flex-1"
+              pendingLabel="Disbursing…"
+              icon="check"
+              disabled={!outOf.accountId}
+            >
               Confirm disbursement
             </SubmitButton>
           </div>

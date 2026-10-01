@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
+import { getCollectionAccounts } from '@/lib/access-queries';
 import { getPickedMember } from '@/lib/picked-member';
 import { PageTitle } from '@/components/ui/primitives';
 import { CashMovementForm } from '@/components/forms/CashMovementForm';
@@ -14,7 +15,10 @@ export default async function CashMovementPage({
   await requirePermission('cash.movement');
   const sp = await searchParams;
   const type = sp.type === 'withdrawal' ? 'withdrawal' : 'deposit';
-  const member = await getPickedMember(sp.member);
+  const [member, accounts] = await Promise.all([
+    getPickedMember(sp.member),
+    getCollectionAccounts(),
+  ]);
 
   return (
     <div className="mx-auto max-w-xl">
@@ -31,6 +35,7 @@ export default async function CashMovementPage({
         member={member}
         lockMember={!!member}
         availableBalance={member ? Number(member.savings_balance) : undefined}
+        accounts={accounts}
         doneHref={member ? `/staff/members/${member.id}` : '/staff/transactions'}
       />
     </div>

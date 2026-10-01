@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Field, Select } from '@/components/ui/form';
 import { Alert } from '@/components/ui/states';
 import { ACCOUNT_TYPE_META } from '@/lib/treasury-format';
+import { maskAccountNumber, receivingAccountLabel } from '@/lib/receiving-accounts';
 import { formatUGX } from '@/lib/money';
 import type { FinanceAccountType, FinancialAccountBalanceRow } from '@/types/treasury';
 
@@ -102,9 +103,12 @@ export function AccountSelect({
             Choose an account…
           </option>
         ) : null}
+        {/* Named by the one shared helper, so "Airtel Merchant — 4455667"
+            reads the same here as it does at the counter. These screens are
+            behind `finance.view`, so the live balance comes with it. */}
         {options.map((a) => (
           <option key={a.id} value={a.id}>
-            {a.name} · {formatUGX(a.balance)}
+            {receivingAccountLabel(a)} · {formatUGX(a.balance)}
           </option>
         ))}
       </Select>
@@ -120,7 +124,10 @@ export function AccountSummary({ account }: { account: AccountOption | undefined
     account.account_type === 'merchant'
       ? [account.provider, account.merchant_code ? `Merchant code ${account.merchant_code}` : null]
       : account.account_type === 'bank'
-        ? [account.bank_name, account.account_number ? `A/C ${account.account_number}` : null]
+        ? [
+            account.bank_name,
+            account.account_number ? `A/C ${maskAccountNumber(account.account_number)}` : null,
+          ]
         : [account.code];
 
   return (

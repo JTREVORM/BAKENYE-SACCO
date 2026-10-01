@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { getMemberCollectionView } from '@/lib/queries';
+import { getCollectionAccounts } from '@/lib/access-queries';
 import { can } from '@/lib/rbac';
 import { PageTitle } from '@/components/ui/primitives';
 import { ErrorState, ListSkeleton, PanelSkeleton } from '@/components/ui/states';
@@ -102,8 +103,12 @@ async function Selected({
   canRecord: boolean;
 }) {
   // This raises the current cycle's schedule if it does not exist yet, so a
-  // member standing at the counter never produces an empty screen.
-  const view = await getMemberCollectionView(memberId);
+  // member standing at the counter never produces an empty screen. The accounts
+  // the money may be received into come from Finance alongside it.
+  const [view, accounts] = await Promise.all([
+    getMemberCollectionView(memberId),
+    getCollectionAccounts(),
+  ]);
 
   if (!view) {
     return (
@@ -114,5 +119,5 @@ async function Selected({
     );
   }
 
-  return <MemberCollectionPanel view={view} canRecord={canRecord} />;
+  return <MemberCollectionPanel view={view} canRecord={canRecord} accounts={accounts} />;
 }

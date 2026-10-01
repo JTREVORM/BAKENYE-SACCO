@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { getShareUnitPrice } from '@/lib/queries';
+import { getCollectionAccounts } from '@/lib/access-queries';
 import { getPickedMember } from '@/lib/picked-member';
 import { createClient } from '@/lib/supabase/server';
 import { can } from '@/lib/rbac';
@@ -28,9 +29,10 @@ export default async function SellSharesPage({
   const user = await requirePermission('shares.sell');
   const sp = await searchParams;
 
-  const [member, unitPrice] = await Promise.all([
+  const [member, unitPrice, accounts] = await Promise.all([
     getPickedMember(sp.member),
     getShareUnitPrice(),
+    getCollectionAccounts(),
   ]);
 
   if (unitPrice === null) {
@@ -84,6 +86,7 @@ export default async function SellSharesPage({
         unitPrice={unitPrice}
         currentShares={currentShares}
         quickPicks={quickPicks}
+        accounts={accounts}
         doneHref={member ? `/staff/members/${member.id}` : '/staff/shares'}
       />
     </div>

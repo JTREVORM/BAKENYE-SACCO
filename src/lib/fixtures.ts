@@ -10,6 +10,7 @@ import type {
   SavingsTransactionRow,
   TransactionFeedRow,
 } from '@/types/db';
+import type { CollectionAccount } from '@/types/access';
 
 /**
  * Fixture data for the design QA harness at `/dev/preview`.
@@ -496,3 +497,37 @@ export const FIXTURE_COLLECTION_VIEW: MemberCollectionView = {
   history: FIXTURE_SAVINGS_TRANSACTIONS,
   as_of: '2026-09-10',
 };
+
+/**
+ * The accounts the preview harness offers as receiving accounts: exactly the
+ * shape the SACCO is in at the time of writing — cash plus one Airtel merchant
+ * code, no bank and no MTN — so the preview shows what a counter really sees.
+ */
+export const FIXTURE_COLLECTION_ACCOUNTS: CollectionAccount[] = [
+  {
+    id: 'acct-cash-0001',
+    code: 'CSH-001',
+    name: 'Cash at Hand',
+    account_type: 'cash',
+    is_default: true,
+    provider: null,
+    merchant_code: null,
+    account_identifier: null,
+    bank_name: null,
+    branch: null,
+    account_number: null,
+  },
+  {
+    id: 'acct-merch-0001',
+    code: 'MER-001',
+    name: 'Airtel Collections',
+    account_type: 'merchant',
+    is_default: false,
+    provider: 'Airtel',
+    merchant_code: '4455667',
+    account_identifier: '0700000000',
+    bank_name: null,
+    branch: null,
+    account_number: null,
+  },
+];

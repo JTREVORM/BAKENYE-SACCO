@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
 import { RECOVERY_COOKIE } from '@/lib/recovery';
 import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE, sessionCookieOptions } from '@/lib/session-timeout';
+import { INSTALL_PROMPT_COOKIE, installPromptCookieOptions } from '@/lib/pwa';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -98,6 +99,16 @@ async function admitOrRefuse(
   const jar = await cookies();
   jar.set(IDLE_LIMIT_COOKIE, String(Math.round(rules.sessionTimeoutMinutes)), sessionCookieOptions);
   jar.set(LAST_SEEN_COOKIE, String(Date.now()), sessionCookieOptions);
+
+  // Arm the "install the app" prompt for this sign-in, for members only. The
+  // member area reads this cookie in the browser, shows the offer once and
+  // deletes it; signing out and back in arms it again. Staff are never
+  // interrupted. Nothing about the session depends on it - see lib/pwa.ts.
+  if (s!.role_kind === 'member') {
+    jar.set(INSTALL_PROMPT_COOKIE, '1', installPromptCookieOptions);
+  } else {
+    jar.delete(INSTALL_PROMPT_COOKIE);
+  }
 
   const access: Access = {
     role: s!.role,
@@ -199,6 +210,7 @@ export async function signOut() {
   const supabase = await createClient();
   await supabase.rpc('log_logout');
   await supabase.auth.signOut();
+  (await cookies()).delete(INSTALL_PROMPT_COOKIE);
   revalidatePath('/', 'layout');
   redirect('/login');
 }

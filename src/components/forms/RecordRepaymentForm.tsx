@@ -1,16 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { recordRepayment } from '@/app/actions/financial';
+import { recordMemberCollection } from '@/app/actions/treasury';
 import { FinancialForm, type FinancialSummaryLine } from './FinancialForm';
-import { Field, Input, MoneyInput, Select } from '@/components/ui/form';
+import { ReceivingAccountFields, useReceivingAccount } from './ReceivingAccountField';
+import { Field, Input, MoneyInput } from '@/components/ui/form';
 import { Money, ProgressBar } from '@/components/ui/primitives';
 import { Alert } from '@/components/ui/states';
 import { formatUGX, toNumber } from '@/lib/money';
-import { formatDate, PAYMENT_METHOD_LABELS, toISODate } from '@/lib/format';
-import type { LoanBalanceRow, PaymentMethod } from '@/types/db';
-
-const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheque'];
+import { formatDate, toISODate } from '@/lib/format';
+import { RECEIVING_LABEL } from '@/lib/receiving-accounts';
+import type { CollectionAccount } from '@/types/access';
+import type { LoanBalanceRow } from '@/types/db';
 
 /**
  * Record a loan repayment.
@@ -19,15 +20,22 @@ const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheq
  * not a stored column — and the server re-derives it inside the transaction
  * before accepting the payment. An overpayment is rejected there, so two
  * cashiers taking the last installment at the same moment cannot both succeed.
+ *
+ * The repayment is credited to the account the cashier chose, so a repayment
+ * that arrived on the Airtel merchant code is held there and not in the cash
+ * drawer.
  */
 export function RecordRepaymentForm({
   loan,
   memberName,
+  accounts,
   doneHref,
   staff = true,
 }: {
   loan: LoanBalanceRow;
   memberName: string;
+  /** The SACCO's active receiving accounts, from `collection_accounts()`. */
+  accounts: CollectionAccount[];
   doneHref?: string;
   staff?: boolean;
 }) {
@@ -38,8 +46,8 @@ export function RecordRepaymentForm({
   const [amount, setAmount] = useState<number | null>(
     overdue > 0 ? Math.min(overdue, outstanding) : Math.min(installment, outstanding),
   );
-  const [method, setMethod] = useState<PaymentMethod>('cash');
   const [paidOn, setPaidOn] = useState(toISODate());
+  const into = useReceivingAccount(accounts);
 
   const remainingAfter = Math.max(outstanding - (amount ?? 0), 0);
   const clears = amount != null && amount >= outstanding - 0.005;
@@ -55,7 +63,10 @@ export function RecordRepaymentForm({
         value: clears ? 'Fully repaid' : formatUGX(remainingAfter),
         emphasis: true,
       },
-      { label: 'Payment method', value: PAYMENT_METHOD_LABELS[method] },
+      { label: RECEIVING_LABEL, value: into.label },
+      ...(into.reference.trim()
+        ? [{ label: 'Reference', value: into.reference.trim() }]
+        : []),
       { label: 'Payment date', value: formatDate(paidOn) },
     ];
   }
@@ -70,14 +81,14 @@ export function RecordRepaymentForm({
 
   return (
     <FinancialForm
-      action={recordRepayment}
+      action={recordMemberCollection}
       idempotencyPrefix="repay"
       submitLabel="Record repayment"
       pendingLabel="Recording…"
       successTitle="Repayment recorded"
       amount={() => amount}
       summary={summary}
-      canConfirm={!!amount && amount > 0}
+      canConfirm={!!amount && amount > 0 && !!into.accountId}
       doneHref={doneHref}
       doneLabel="Back to loan"
       receiptHref={(r) =>
@@ -91,10 +102,12 @@ export function RecordRepaymentForm({
           return `The outstanding balance is ${formatUGX(
             outstanding,
           )}. Enter that amount or less.`;
-        return null;
+        return into.validate();
       }}
     >
+      <input type="hidden" name="collection_type" value="loan_repayment" />
       <input type="hidden" name="loan_id" value={loan.loan_id} />
+      <input type="hidden" name="member_id" value={loan.member_id} />
 
       <div className="flex flex-col gap-5">
         {/* Loan position, restated so the operator is never guessing. */}
@@ -165,20 +178,7 @@ export function RecordRepaymentForm({
           </Alert>
         ) : null}
 
-        <Field label="Payment method" htmlFor="method" required>
-          <Select
-            id="method"
-            name="method"
-            value={method}
-            onChange={(e) => setMethod(e.target.value as PaymentMethod)}
-          >
-            {METHODS.map((m) => (
-              <option key={m} value={m}>
-                {PAYMENT_METHOD_LABELS[m]}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        <ReceivingAccountFields state={into} idPrefix="repay" />
 
         <Field label="Payment date" htmlFor="paid_on" required>
           <Input

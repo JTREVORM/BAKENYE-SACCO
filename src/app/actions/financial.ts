@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth';
 import { can } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
-import type { PaymentMethod } from '@/types/db';
 
 /**
  * Financial server actions.
@@ -28,10 +27,6 @@ const money = z.coerce
   .max(99_999_999_999, 'That amount is too large.');
 
 const uuid = z.string().uuid('Please select a valid record.');
-
-const methodSchema = z
-  .enum(['cash', 'mobile_money', 'bank_transfer', 'cheque', 'internal'])
-  .default('cash');
 
 const isoDate = z
   .string()
@@ -55,216 +50,21 @@ function revalidateFinancial(memberId?: string | null) {
 }
 
 /* ==========================================================================
- * SHARES
+ * MEMBER MONEY — MOVED
+ *
+ * `buyShares`, `recordSavings`, `recordCashMovement` and `recordRepayment` used
+ * to live here, each taking a `method` from its own hard-coded list of four and
+ * letting the database guess which account the money landed in. They are gone:
+ * every one of those screens now posts to `recordMemberCollection` in
+ * `actions/treasury.ts`, which carries the account the operator chose down to
+ * `record_member_collection()`. One action, one account rule, one place to
+ * change it. The member-side database functions they called - `buy_shares`,
+ * `record_savings_payment`, `record_cash_movement`, `record_loan_repayment` -
+ * are unchanged and still do the member side of the work.
+ *
+ * `disburseLoan` has moved the same way, as collection type
+ * `loan_disbursement`, so a disbursement names the account the money leaves.
  * ======================================================================== */
-
-const buySharesSchema = z.object({
-  member_id: uuid,
-  quantity: z.coerce
-    .number({ invalid_type_error: 'Enter a number of shares.' })
-    .int('Shares are whole units.')
-    .positive('Buy at least one share.')
-    .max(100_000, 'That is more shares than the SACCO issues.'),
-  method: methodSchema,
-  purchased_on: isoDate,
-  note: z.string().trim().max(500).optional(),
-  /**
-   * The total the form showed the member. It is never what gets charged: the
-   * database multiplies the quantity by its own price and refuses the sale if
-   * the two disagree, so a stale or tampered figure stops the purchase instead
-   * of deciding it.
-   */
-  expected_total: z.coerce.number().positive().optional(),
-  idempotency_key: z.string().min(8),
-});
-
-export async function buyShares(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<ActionResult<{ reference: string; total_value: number; transaction_id: string }>> {
-  const user = await requireUser();
-  if (!can(user, 'shares.sell')) {
-    return { ok: false, error: 'You do not have permission to record share purchases.' };
-  }
-
-  const parsed = buySharesSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return firstIssue(parsed.error);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('buy_shares', {
-    p_member_id: parsed.data.member_id,
-    p_quantity: parsed.data.quantity,
-    p_method: parsed.data.method as PaymentMethod,
-    p_purchased_on: parsed.data.purchased_on,
-    p_note: parsed.data.note ?? null,
-    p_idempotency_key: parsed.data.idempotency_key,
-    p_expected_total: parsed.data.expected_total ?? null,
-  });
-
-  if (error) return fail(error);
-
-  revalidateFinancial(parsed.data.member_id);
-  revalidatePath('/shares');
-  revalidatePath('/staff/shares');
-
-  const result = data as { reference: string; total_value: number; transaction_id: string };
-  return succeed(result, `Share purchase recorded. Receipt ${result.reference}.`);
-}
-
-/* ==========================================================================
- * SAVINGS
- * ======================================================================== */
-
-const savingsSchema = z.object({
-  member_id: uuid,
-  kind: z.enum(['weekly', 'monthly'], { invalid_type_error: 'Choose weekly or monthly.' }),
-  amount: money,
-  paid_on: isoDate,
-  method: methodSchema,
-  idempotency_key: z.string().min(8),
-});
-
-export async function recordSavings(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<ActionResult<Record<string, unknown>>> {
-  const user = await requireUser();
-  if (!can(user, 'savings.record')) {
-    return { ok: false, error: 'You do not have permission to record savings.' };
-  }
-
-  const parsed = savingsSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return firstIssue(parsed.error);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('record_savings_payment', {
-    p_member_id: parsed.data.member_id,
-    p_kind: parsed.data.kind,
-    p_amount: parsed.data.amount,
-    p_paid_on: parsed.data.paid_on,
-    p_method: parsed.data.method as PaymentMethod,
-    p_idempotency_key: parsed.data.idempotency_key,
-  });
-
-  if (error) return fail(error);
-
-  revalidateFinancial(parsed.data.member_id);
-  revalidatePath('/savings');
-  revalidatePath('/staff/savings');
-
-  const result = data as { reference: string };
-  return succeed(result as Record<string, unknown>, `Savings recorded. Receipt ${result.reference}.`);
-}
-
-/* ==========================================================================
- * DEPOSITS & WITHDRAWALS
- * ======================================================================== */
-
-const cashSchema = z.object({
-  member_id: uuid,
-  type: z.enum(['deposit', 'withdrawal']),
-  amount: money,
-  method: methodSchema,
-  occurred_on: isoDate,
-  description: z.string().trim().max(500).optional(),
-  idempotency_key: z.string().min(8),
-});
-
-export async function recordCashMovement(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<ActionResult<{ reference: string; transaction_id: string }>> {
-  const user = await requireUser();
-  if (!can(user, 'cash.movement')) {
-    return { ok: false, error: 'You do not have permission to record this.' };
-  }
-
-  const parsed = cashSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return firstIssue(parsed.error);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('record_cash_movement', {
-    p_member_id: parsed.data.member_id,
-    p_type: parsed.data.type,
-    p_amount: parsed.data.amount,
-    p_method: parsed.data.method as PaymentMethod,
-    p_occurred_on: parsed.data.occurred_on,
-    p_description: parsed.data.description ?? null,
-    p_idempotency_key: parsed.data.idempotency_key,
-  });
-
-  if (error) return fail(error);
-
-  revalidateFinancial(parsed.data.member_id);
-  revalidatePath('/savings');
-
-  const result = data as { reference: string; transaction_id: string };
-  const verb = parsed.data.type === 'deposit' ? 'Deposit' : 'Withdrawal';
-  return succeed(result, `${verb} recorded. Receipt ${result.reference}.`);
-}
-
-/* ==========================================================================
- * LOAN REPAYMENTS
- * ======================================================================== */
-
-const repaymentSchema = z.object({
-  loan_id: uuid,
-  amount: money,
-  paid_on: isoDate,
-  method: methodSchema,
-  idempotency_key: z.string().min(8),
-});
-
-export async function recordRepayment(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<
-  ActionResult<{
-    reference: string;
-    transaction_id: string;
-    outstanding: number;
-    completed: boolean;
-  }>
-> {
-  const user = await requireUser();
-  if (!can(user, 'loans.repay')) {
-    return { ok: false, error: 'You do not have permission to record repayments.' };
-  }
-
-  const parsed = repaymentSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return firstIssue(parsed.error);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('record_loan_repayment', {
-    p_loan_id: parsed.data.loan_id,
-    p_amount: parsed.data.amount,
-    p_paid_on: parsed.data.paid_on,
-    p_method: parsed.data.method as PaymentMethod,
-    p_idempotency_key: parsed.data.idempotency_key,
-  });
-
-  if (error) return fail(error);
-
-  const result = data as {
-    reference: string;
-    transaction_id: string;
-    outstanding: number;
-    completed: boolean;
-  };
-
-  revalidateFinancial();
-  revalidatePath('/loans');
-  revalidatePath(`/loans/${parsed.data.loan_id}`);
-  revalidatePath('/staff/loans');
-  revalidatePath(`/staff/loans/${parsed.data.loan_id}`);
-
-  return succeed(
-    result,
-    result.completed
-      ? `Loan fully repaid. Receipt ${result.reference}.`
-      : `Repayment recorded. Receipt ${result.reference}.`,
-  );
-}
 
 /* ==========================================================================
  * LOAN LIFECYCLE
@@ -314,44 +114,6 @@ export async function setLoanStatus(
     parsed.data.status
   ];
   return succeed(result, `Loan ${result.loan_no} ${verb}.`);
-}
-
-export async function disburseLoan(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<ActionResult<{ loan_no: string; reference: string; transaction_id: string }>> {
-  const user = await requireUser();
-  if (!can(user, 'loans.disburse')) {
-    return { ok: false, error: 'You do not have permission to disburse loans.' };
-  }
-
-  const parsed = z
-    .object({
-      loan_id: uuid,
-      method: methodSchema,
-      disbursed_on: isoDate,
-      idempotency_key: z.string().min(8),
-    })
-    .safeParse(Object.fromEntries(formData));
-
-  if (!parsed.success) return firstIssue(parsed.error);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('disburse_loan', {
-    p_loan_id: parsed.data.loan_id,
-    p_method: parsed.data.method as PaymentMethod,
-    p_disbursed_on: parsed.data.disbursed_on,
-    p_idempotency_key: parsed.data.idempotency_key,
-  });
-
-  if (error) return fail(error);
-
-  revalidateFinancial();
-  revalidatePath('/staff/loans');
-  revalidatePath(`/staff/loans/${parsed.data.loan_id}`);
-
-  const result = data as { loan_no: string; reference: string; transaction_id: string };
-  return succeed(result, `Loan ${result.loan_no} disbursed. Receipt ${result.reference}.`);
 }
 
 /* ==========================================================================
@@ -498,93 +260,16 @@ export async function removeGuarantor(
 }
 
 /* ==========================================================================
- * INCOME & EXPENSES
+ * EXPENSE APPROVAL
  * ======================================================================== */
 
-export async function recordIncome(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<ActionResult<{ reference: string }>> {
-  const user = await requireUser();
-  if (!can(user, 'finance.record')) {
-    return { ok: false, error: 'You do not have permission to record income.' };
-  }
-
-  const parsed = z
-    .object({
-      category_id: uuid,
-      amount: money,
-      description: z.string().trim().min(3, 'Describe this income.').max(500),
-      received_on: isoDate,
-      method: methodSchema,
-      member_id: z.string().uuid().optional().or(z.literal('')),
-      idempotency_key: z.string().min(8),
-    })
-    .safeParse(Object.fromEntries(formData));
-
-  if (!parsed.success) return firstIssue(parsed.error);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('record_income', {
-    p_category_id: parsed.data.category_id,
-    p_amount: parsed.data.amount,
-    p_description: parsed.data.description,
-    p_received_on: parsed.data.received_on,
-    p_method: parsed.data.method as PaymentMethod,
-    p_member_id: parsed.data.member_id || null,
-    p_idempotency_key: parsed.data.idempotency_key,
-  });
-
-  if (error) return fail(error);
-
-  revalidatePath('/staff/finance');
-  revalidateFinancial();
-
-  return succeed(data as { reference: string }, 'Income recorded.');
-}
-
-export async function recordExpense(
-  _prev: ActionResult<unknown> | null,
-  formData: FormData,
-): Promise<ActionResult<{ expense_id: string }>> {
-  const user = await requireUser();
-  if (!can(user, 'finance.record')) {
-    return { ok: false, error: 'You do not have permission to record expenses.' };
-  }
-
-  const parsed = z
-    .object({
-      category_id: uuid,
-      amount: money,
-      description: z.string().trim().min(3, 'Describe this expense.').max(500),
-      spent_on: isoDate,
-      method: methodSchema,
-      attachment_path: z.string().trim().max(500).optional(),
-      idempotency_key: z.string().min(8),
-    })
-    .safeParse(Object.fromEntries(formData));
-
-  if (!parsed.success) return firstIssue(parsed.error);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('record_expense', {
-    p_category_id: parsed.data.category_id,
-    p_amount: parsed.data.amount,
-    p_description: parsed.data.description,
-    p_spent_on: parsed.data.spent_on,
-    p_method: parsed.data.method as PaymentMethod,
-    p_attachment_path: parsed.data.attachment_path || null,
-    p_idempotency_key: parsed.data.idempotency_key,
-  });
-
-  if (error) return fail(error);
-
-  revalidatePath('/staff/finance');
-  return succeed(
-    data as { expense_id: string },
-    'Expense submitted for approval. No money has left the SACCO yet.',
-  );
-}
+/*
+ * `recordIncome` and `recordExpense` were here too, each with its own
+ * hard-coded four-method list and no account. The Finance screens they served
+ * now use `recordOtherReceipt` and `recordExpenseRequest` in
+ * `actions/treasury.ts`, which name the account the money is received into or
+ * paid out of. Only the approval step, which moves no money of its own, stays.
+ */
 
 export async function approveExpense(
   _prev: ActionResult<unknown> | null,

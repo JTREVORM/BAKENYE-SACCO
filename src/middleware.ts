@@ -1,6 +1,15 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE, idleMinutes, sessionCookieOptions } from '@/lib/session-timeout';
+import {
+  MAINTENANCE_BYPASS_COOKIE,
+  isMaintenanceEnabled,
+  isMaintenanceExempt,
+  maintenanceBypassToken,
+  maintenanceHeaders,
+  maintenanceHtml,
+  safeEqual,
+} from '@/lib/maintenance';
 
 /**
  * Refreshes the Supabase session cookie on every navigation and keeps
@@ -16,12 +25,34 @@ const PUBLIC_PATHS = [
   '/reset-password',
   '/auth',
   '/help',
+  // Exchanges the maintainer's token for a cookie; it reveals nothing and the
+  // application behind it still demands a real sign-in.
+  '/maintenance-bypass',
   // The design QA harness. The route itself returns a 404 when
   // NODE_ENV is production, so this only ever opens it locally.
   ...(process.env.NODE_ENV === 'production' ? [] : ['/dev']),
 ];
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // ---- Maintenance mode -----------------------------------------------------
+  //
+  // Before anything else, and deliberately before the Supabase client is built:
+  // maintenance is most useful while the database is being worked on, so the
+  // page must not depend on it. See lib/maintenance.ts.
+  if (isMaintenanceEnabled() && !isMaintenanceExempt(pathname)) {
+    const token = maintenanceBypassToken();
+    const carried = request.cookies.get(MAINTENANCE_BYPASS_COOKIE)?.value;
+    const maintainer = !!token && !!carried && safeEqual(carried, token);
+    if (!maintainer) {
+      return new NextResponse(maintenanceHtml(), {
+        status: 503,
+        headers: maintenanceHeaders(),
+      });
+    }
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -47,7 +78,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   if (!user && !isPublic) {

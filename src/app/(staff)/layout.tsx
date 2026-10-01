@@ -1,7 +1,9 @@
 import { requireStaff } from '@/lib/auth';
+import { getBrand } from '@/lib/brand';
 import { getUnreadCount } from '@/lib/queries';
 import { STAFF_NAV, landingPath, visibleNav } from '@/lib/rbac';
 import { StaffShell } from '@/components/layout/StaffShell';
+import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 
 /**
  * The staff workspace.
@@ -10,10 +12,16 @@ import { StaffShell } from '@/components/layout/StaffShell';
  * "Users" or "Audit Log" — they are not rendered as links that bounce. Each
  * page below re-checks its own permission with `requirePermission()`, and RLS
  * checks it again in the database.
+ *
+ * Staff are offered the app here, the same way members are offered it in their
+ * own layout: mounted on the layout rather than a page, so it survives moving
+ * around the workspace, and shown once per sign-in to somebody who has not
+ * installed it. A teller opening the workspace from a home-screen icon starts
+ * the day a step sooner.
  */
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const user = await requireStaff();
-  const unread = await getUnreadCount();
+  const [unread, brand] = await Promise.all([getUnreadCount(), getBrand()]);
   // "Dashboard" opens this person's own dashboard - the cashier desk, the
   // loans desk, administration - rather than one page for everyone.
   const home = landingPath(user);
@@ -28,6 +36,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
       unreadCount={unread}
     >
       {children}
+      <InstallPrompt appName={brand.shortName} legalName={brand.legalName} />
     </StaffShell>
   );
 }

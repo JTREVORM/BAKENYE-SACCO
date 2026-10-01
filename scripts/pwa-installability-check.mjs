@@ -89,9 +89,17 @@ async function signIn(page, id, pw) {
   await page.fill('input[name="identifier"]', id);
   await page.fill('input[name="password"], input[type="password"]', pw);
   await Promise.all([
-    page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30000 }).catch(() => {}),
+    page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 60000 }).catch(() => {}),
     page.click('button[type="submit"]'),
   ]);
+  await page.waitForLoadState('networkidle').catch(() => {});
+  // The submit button reads "Signing in..." while the action is in flight. On a
+  // cold route that can outlast the navigation wait, so settle on it rather than
+  // reporting a slow sign-in as a failed one.
+  await page
+    .locator('button[type="submit"]:has-text("Signing in")')
+    .waitFor({ state: 'hidden', timeout: 30000 })
+    .catch(() => {});
   await page.waitForLoadState('networkidle').catch(() => {});
   if (new URL(page.url()).pathname.startsWith('/login')) {
     // Say why, rather than leaving a later assertion to fail mysteriously. The
@@ -293,6 +301,13 @@ if (process.env.TEMP_MEMBER_ID && process.env.TEMP_MEMBER_PASSWORD) {
   const atChange = new URL(page.url()).pathname;
   add(atChange === '/change-password',
       'a temporary password sends the member to choose a new one', atChange);
+
+  if (atChange !== '/change-password') {
+    // Without that screen there is nothing to drive, and pressing on would throw
+    // on a field that is not there. Say so plainly and move to the next section.
+    console.log('     (skipping the rest of this section - the password screen was never reached)');
+    await ctx.close();
+  } else {
   add(!(await dialog(page).isVisible().catch(() => false)),
       'the offer is not made on the password screen, which is outside the portal');
 
@@ -313,20 +328,56 @@ if (process.env.TEMP_MEMBER_ID && process.env.TEMP_MEMBER_PASSWORD) {
   add(await promptVisible(page),
       'and the app is offered for that sign-in');
   await ctx.close();
+  }
 } else {
   console.log('  — skipped (set TEMP_MEMBER_ID and TEMP_MEMBER_PASSWORD)');
 }
 
 /* ===================================================================== */
-console.log('\n── staff are not interrupted');
+console.log('\n── staff are offered the app too');
 if (STAFF && STAFF_PW) {
+  // The first release deliberately left staff out. The SACCO asked for them to be
+  // included, so the workspace mounts the same modal in its own layout - these
+  // checks are the ones that would fail if that mount were ever dropped.
   const { ctx, page } = await freshBrowser();
   await warmServiceWorker(page);
   await signIn(page, STAFF, STAFF_PW);
+  const landed = new URL(page.url()).pathname;
+  add(landed.startsWith('/staff'), 'the staff member lands in the workspace', landed);
+  add(await promptVisible(page), 'the install modal appears for a staff sign-in');
+  const text = await dialog(page).innerText();
+  add(/Install .*App/i.test(text) && /Install App/.test(text) && /Not Now/.test(text),
+      'with the same Install App and Not Now buttons', text.split('\n')[0]);
+
+  // Dismissing it must leave them in the workspace, not bounce them anywhere.
+  await page.getByRole('button', { name: 'Not Now' }).click();
+  await dialog(page).waitFor({ state: 'hidden', timeout: 4000 }).catch(() => {});
+  add(new URL(page.url()).pathname === landed,
+      'Not Now leaves them where they were - no redirect', new URL(page.url()).pathname);
+
+  // And it must not follow them around the workspace.
+  let again = false;
+  for (const p of ['/staff/members', '/staff/transactions', landed]) {
+    await page.goto(`${B}${p}`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1200);
+    if (await dialog(page).isVisible().catch(() => false)) { again = true; break; }
+  }
+  add(!again, 'and it is not shown again elsewhere in the workspace');
+  await ctx.close();
+} else {
+  console.log('  — skipped (set STAFF_ID and STAFF_PASSWORD)');
+}
+
+/* ===================================================================== */
+console.log('\n── a staff member who already installed it is left alone');
+if (STAFF && STAFF_PW) {
+  const { ctx, page } = await freshBrowser();
+  await warmServiceWorker(page);
+  await page.evaluate(() => localStorage.setItem('bnd_app_installed', '1'));
+  await signIn(page, STAFF, STAFF_PW);
   await page.waitForTimeout(4000);
-  add(!(await dialog(page).isVisible().catch(() => false)), 'no modal for a staff sign-in');
-  const armed = await page.evaluate(() => document.cookie.includes('bnd_install_prompt'));
-  add(!armed, 'and their sign-in arms nothing');
+  add(!(await dialog(page).isVisible().catch(() => false)),
+      'an installed staff member is not offered the app again');
   await ctx.close();
 } else {
   console.log('  — skipped (set STAFF_ID and STAFF_PASSWORD)');

@@ -8,18 +8,18 @@
  *
  * HOW IT IS ARMED
  *
- * Every sign-in that admits a member into the portal sets one cookie,
- * `bnd_install_prompt`, whose value is a nonce identifying that sign-in. The
- * member area reads it in the browser and offers the app once per nonce,
- * remembering which nonce it has already offered for in `sessionStorage`.
+ * Every sign-in sets one cookie, `bnd_install_prompt`, whose value is a nonce
+ * identifying that sign-in. The member area and the staff workspace each read it
+ * in the browser and offer the app once per nonce, remembering which nonce they
+ * have already offered for in `sessionStorage`.
  *
  * The nonce is what makes this robust. An earlier version used a fixed value
  * and relied on *deleting* the cookie to mean "already offered", which lost the
  * offer whenever the cookie went early or late:
  *
- *   * a member sent through "choose your password" first spent that detour
- *     outside the member area, where nothing reads the cookie, and a slow
- *     detour outlived a short-lived cookie;
+ *   * somebody sent through "choose your password" first spent that detour on a
+ *     screen that reads nothing, and a slow detour outlived a short-lived
+ *     cookie;
  *   * the browser consumed the cookie before the modal was actually on screen,
  *     so anything that interrupted the gap between the two lost the offer for
  *     good.
@@ -32,7 +32,8 @@
  *   * never twice in one session, because the nonce is recorded once offered,
  *   * prompted again after signing out and back in, because a new sign-in mints
  *     a new nonce,
- *   * never for staff, because only a member's sign-in sets it,
+ *   * offered to members and staff alike - the SACCO asked for staff to be
+ *     included after the first release, which had left them out,
  *   * never for someone who has already installed it on this device.
  *
  * The cookie is readable by the browser (it is not httpOnly) because the client

@@ -33,21 +33,22 @@ import type { LoginResolution, SessionPayload } from '@/types/access';
  */
 
 /**
- * Offer the app to a member who has just signed in, and never to staff.
+ * Offer the app to whoever has just signed in.
  *
- * Called from every path that admits somebody into the portal - the ordinary
- * sign-in and the "choose your password" step a first sign-in goes through -
- * because each of those is a successful member login, and the brief asks for the
- * offer after every one of them. The value is a nonce identifying this sign-in;
- * see lib/pwa.ts for why that matters.
+ * Called from every path that admits somebody into the application - the
+ * ordinary sign-in and the "choose your password" step a first sign-in goes
+ * through - because each of those is a successful login, and the offer is made
+ * after every one of them. The value is a nonce identifying this sign-in; see
+ * lib/pwa.ts for why that matters.
+ *
+ * Members and staff both get it. The SACCO asked for staff to be included after
+ * the first release, which had deliberately left them out: a teller who opens the
+ * workspace from a home-screen icon starts the day a step sooner, for the same
+ * reason a member does.
  */
-async function armInstallPrompt(roleKind: string | null | undefined): Promise<void> {
+async function armInstallPrompt(): Promise<void> {
   const jar = await cookies();
-  if (roleKind === 'member') {
-    jar.set(INSTALL_PROMPT_COOKIE, newLoginNonce(), installPromptCookieOptions);
-  } else {
-    jar.delete(INSTALL_PROMPT_COOKIE);
-  }
+  jar.set(INSTALL_PROMPT_COOKIE, newLoginNonce(), installPromptCookieOptions);
 }
 
 /** Messages the brief fixed, so every path says the same thing. */
@@ -118,8 +119,8 @@ async function admitOrRefuse(
   jar.set(IDLE_LIMIT_COOKIE, String(Math.round(rules.sessionTimeoutMinutes)), sessionCookieOptions);
   jar.set(LAST_SEEN_COOKIE, String(Date.now()), sessionCookieOptions);
 
-  // Offer the app to a member on this sign-in. Staff are never interrupted.
-  await armInstallPrompt(s!.role_kind);
+  // Offer the app on this sign-in, to members and staff alike.
+  await armInstallPrompt();
 
   const access: Access = {
     role: s!.role,
@@ -413,11 +414,11 @@ export async function chooseFirstPassword(
   if (!result.ok) return result;
 
   const session = await getSessionUser();
-  // This is the end of a successful member sign-in: the person arrived here
-  // from the sign-in screen on a temporary password and is being let into the
-  // portal now. Without this, a member whose first sign-in goes through
-  // "choose your password" is never offered the app for that sign-in.
-  await armInstallPrompt(session?.roleKind);
+  // This is the end of a successful sign-in: the person arrived here from the
+  // sign-in screen on a temporary password and is being let in now. Without this,
+  // anybody whose first sign-in goes through "choose your password" is never
+  // offered the app for that sign-in.
+  if (session) await armInstallPrompt();
   revalidatePath('/', 'layout');
   redirect(session ? landingPath(session) : '/login');
 }

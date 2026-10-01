@@ -187,7 +187,13 @@ export type RegistrationResult = {
   duplicate: boolean;
 };
 
-/** An account money can be received into, from `collection_accounts()`. No balance. */
+/**
+ * An account money can be received into or paid out of, from
+ * `collection_accounts()` (0031, widened in 0046). Active accounts only, with
+ * the identifiers a counter screen needs to tell two of them apart — no
+ * balance and no ledger, because the people who take money at the counter are
+ * not the people who read the books.
+ */
 export type CollectionAccount = {
   id: string;
   code: string;
@@ -196,7 +202,9 @@ export type CollectionAccount = {
   is_default: boolean;
   provider: string | null;
   merchant_code: string | null;
+  account_identifier: string | null;
   bank_name: string | null;
+  branch: string | null;
   account_number: string | null;
 };
 

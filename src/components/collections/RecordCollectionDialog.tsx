@@ -3,7 +3,11 @@
 import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { recordCollection, type CollectionResult } from '@/app/actions/collections';
+import { recordMemberCollection } from '@/app/actions/treasury';
+import {
+  ReceivingAccountFields,
+  useReceivingAccount,
+} from '@/components/forms/ReceivingAccountField';
 import { Modal } from '@/components/ui/Modal';
 import { Alert } from '@/components/ui/states';
 import { Avatar, Icon, Money } from '@/components/ui/primitives';
@@ -12,20 +16,17 @@ import {
   Field,
   Input,
   MoneyInput,
-  Select,
   SubmitButton,
   Textarea,
 } from '@/components/ui/form';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
 import { formatUGX, toNumber } from '@/lib/money';
-import { formatDate, PAYMENT_METHOD_LABELS, toISODate } from '@/lib/format';
+import { formatDate, toISODate } from '@/lib/format';
+import { RECEIVING_LABEL } from '@/lib/receiving-accounts';
 import { clsx } from '@/lib/clsx';
-import type { PaymentMethod, SavingsScheduleRow } from '@/types/db';
-
-const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheque'];
-
-/** Methods that happened somewhere else and therefore need a reference. */
-const NEEDS_REFERENCE: PaymentMethod[] = ['mobile_money', 'bank_transfer'];
+import type { CollectionAccount } from '@/types/access';
+import type { MemberCollectionResult } from '@/types/treasury';
+import type { SavingsScheduleRow } from '@/types/db';
 
 /**
  * Record one savings deposit for a member.
@@ -35,35 +36,37 @@ const NEEDS_REFERENCE: PaymentMethod[] = ['mobile_money', 'bank_transfer'];
  * while the action is in flight and a stable idempotency key rides along, so a
  * double tap on a patchy connection settles into one ledger row.
  *
- * "Mobile Money" here means *a transfer that already happened*. Nothing in this
- * dialog contacts MTN, Airtel or any gateway; the reference field is where the
- * staff member types the confirmation code from the handset so the entry can be
- * reconciled later.
+ * Choosing a merchant or bank account here means *a transfer that already
+ * happened*. Nothing in this dialog contacts MTN, Airtel or any gateway; the
+ * reference field is where the staff member types the confirmation code from the
+ * handset so the entry can be reconciled later.
  */
 export function RecordCollectionDialog({
   row,
   memberId,
+  accounts,
   open,
   onClose,
 }: {
   row: SavingsScheduleRow | null;
   memberId: string;
+  /** The SACCO's active receiving accounts, from `collection_accounts()`. */
+  accounts: CollectionAccount[];
   open: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
-  const [state, formAction] = useActionState<ActionResult<CollectionResult> | null, FormData>(
-    recordCollection,
-    null,
-  );
+  const [state, formAction] = useActionState<
+    ActionResult<MemberCollectionResult> | null,
+    FormData
+  >(recordMemberCollection, null);
 
   const [confirming, setConfirming] = useState(false);
   const [amount, setAmount] = useState<number | null>(null);
-  const [method, setMethod] = useState<PaymentMethod>('cash');
-  const [reference, setReference] = useState('');
   const [paidOn, setPaidOn] = useState(toISODate());
   const [clientError, setClientError] = useState<string | null>(null);
   const [idemKey, setIdemKey] = useState(() => newIdempotencyKey('collect'));
+  const into = useReceivingAccount(accounts);
 
   // Re-arm the dialog whenever it opens on a different member. The amount
   // starts empty on purpose: savings are open, so the member says what they
@@ -73,10 +76,12 @@ export function RecordCollectionDialog({
     setConfirming(false);
     setClientError(null);
     setAmount(null);
-    setMethod('cash');
-    setReference('');
+    into.setReference('');
     setPaidOn(toISODate());
     setIdemKey(newIdempotencyKey('collect'));
+    // `into` is re-created every render; only its setter is used here, and that
+    // setter is stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, row]);
 
   useEffect(() => {
@@ -96,13 +101,8 @@ export function RecordCollectionDialog({
 
   function validate(): string | null {
     if (!amount || amount <= 0) return 'Enter the amount received.';
-    if (NEEDS_REFERENCE.includes(method) && !reference.trim()) {
-      return method === 'mobile_money'
-        ? 'Enter the mobile money transaction reference from the confirmation message.'
-        : 'Enter the bank transfer or deposit slip reference.';
-    }
     if (paidOn > toISODate()) return 'A payment cannot be dated in the future.';
-    return null;
+    return into.validate();
   }
 
   /* ------------------------------------------------------------------ done */
@@ -122,8 +122,9 @@ export function RecordCollectionDialog({
 
           <dl className="bg-surface-container-low divide-outline-variant/70 mt-5 w-full divide-y rounded-xl px-4 shadow-neu-sm">
             <Line label="Reference" value={<span className="tabular font-mono">{state.data.reference}</span>} />
-            <Line label="Month" value={state.data.period_label} />
-            <Line label="Saved this month" value={<Money value={state.data.period_total} />} />
+            <Line label="Month" value={state.data.period_label ?? '—'} />
+            <Line label="Saved this month" value={<Money value={state.data.period_total ?? 0} />} />
+            <Line label={RECEIVING_LABEL} value={state.data.account_name} />
           </dl>
 
           <div className="mt-6 flex w-full flex-col gap-3">
@@ -152,7 +153,10 @@ export function RecordCollectionDialog({
       description={confirming ? undefined : `${row.member_name} · ${row.period_label}`}
     >
       <form action={formAction} noValidate>
-        <input type="hidden" name="schedule_id" value={row.schedule_id} />
+        <input type="hidden" name="collection_type" value="savings" />
+        {/* The month this screen is settling, so a payment dated in another
+            month still lands on the row the cashier opened. */}
+        <input type="hidden" name="period_id" value={row.period_id} />
         <input type="hidden" name="member_id" value={memberId} />
         <input type="hidden" name="idempotency_key" value={idemKey} />
 
@@ -204,45 +208,7 @@ export function RecordCollectionDialog({
             />
           </Field>
 
-          <Field label="Payment method" htmlFor="collect-method" required>
-            <Select
-              id="collect-method"
-              name="method"
-              value={method}
-              onChange={(e) => setMethod(e.target.value as PaymentMethod)}
-            >
-              {METHODS.map((m) => (
-                <option key={m} value={m}>
-                  {PAYMENT_METHOD_LABELS[m]}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          {NEEDS_REFERENCE.includes(method) ? (
-            <Alert tone="info">
-              This records a transfer that has already been received. Type the reference from the
-              confirmation message so it can be reconciled against the statement.
-            </Alert>
-          ) : null}
-
-          <Field
-            label={NEEDS_REFERENCE.includes(method) ? 'Transaction reference' : 'Receipt reference'}
-            htmlFor="collect-ref"
-            required={NEEDS_REFERENCE.includes(method)}
-            hint="Must be unique — the same reference cannot be banked twice."
-          >
-            <Input
-              id="collect-ref"
-              name="external_ref"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder={method === 'mobile_money' ? 'e.g. 1234567890' : 'Optional'}
-              maxLength={80}
-              autoComplete="off"
-              className="tabular"
-            />
-          </Field>
+          <ReceivingAccountFields state={into} idPrefix="collect" />
 
           <Field label="Payment date" htmlFor="collect-date" required>
             <Input
@@ -257,7 +223,7 @@ export function RecordCollectionDialog({
           </Field>
 
           <Field label="Note" htmlFor="collect-note">
-            <Textarea id="collect-note" name="note" maxLength={500} rows={2} />
+            <Textarea id="collect-note" name="notes" maxLength={500} rows={2} />
           </Field>
         </div>
 
@@ -278,9 +244,12 @@ export function RecordCollectionDialog({
             <dl className="bg-surface divide-outline-variant/70 mb-5 divide-y rounded-xl px-4 shadow-neu-sm">
               <Line label="Member" value={`${row.member_name} (${row.member_no})`} />
               <Line label="Month" value={row.period_label} />
-              <Line label="Payment method" value={PAYMENT_METHOD_LABELS[method]} />
-              {reference.trim() ? (
-                <Line label="Reference" value={<span className="tabular">{reference.trim()}</span>} />
+              <Line label={RECEIVING_LABEL} value={into.label} />
+              {into.reference.trim() ? (
+                <Line
+                  label="Reference"
+                  value={<span className="tabular">{into.reference.trim()}</span>}
+                />
               ) : null}
               <Line label="Payment date" value={formatDate(paidOn)} />
               <Line label="Saved this month after this" value={<Money value={monthAfter} />} />

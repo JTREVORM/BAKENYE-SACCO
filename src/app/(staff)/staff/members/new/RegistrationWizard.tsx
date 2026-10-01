@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { registerMember, type RegistrationOutcome } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
@@ -20,6 +20,12 @@ import { formatDate, formatPhone, normaliseUgandanMobile, toISODate } from '@/li
 import { formatUGX } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
+import {
+  RECEIVING_LABEL,
+  defaultReceivingAccountId,
+  methodForAccount,
+  receivingAccountLabel,
+} from '@/lib/receiving-accounts';
 import type { CollectionAccount, RegistrationFee } from '@/types/access';
 
 export type RegistrationRules = {
@@ -45,7 +51,6 @@ type Values = {
   next_of_kin_phone: string;
   joined_on: string;
   pay_now: 'yes' | 'no';
-  channel: 'cash' | 'merchant' | 'bank' | '';
   account_id: string;
   bank_method: 'bank_transfer' | 'cheque';
   reference: string;
@@ -70,12 +75,6 @@ const FIELD_STEP: Record<string, number> = {
   fees: 1,
   account_id: 2, method: 2, reference: 2, paid_on: 2, amount_received: 2,
 };
-
-const CHANNELS = [
-  { id: 'cash', label: 'Cash', icon: 'payments', type: 'cash', hint: 'Counted at the office. Goes into Cash at Hand.' },
-  { id: 'merchant', label: 'Merchant / Mobile Money', icon: 'smartphone', type: 'merchant', hint: 'Paid to the SACCO merchant code. Goes into Cash at Merchant.' },
-  { id: 'bank', label: 'Bank', icon: 'account_balance', type: 'bank', hint: 'Deposited or transferred to the bank. Goes into Cash at Bank.' },
-] as const;
 
 /**
  * Register a member in four steps: who they are, the fees, the payment, and a
@@ -113,7 +112,7 @@ export function RegistrationWizard({
     full_name: '', phone: '', email: '', national_id: '', date_of_birth: '', gender: '',
     address: '', occupation: '', next_of_kin_name: '', next_of_kin_relation: '',
     next_of_kin_phone: '', joined_on: toISODate(),
-    pay_now: 'yes', channel: '', account_id: '', bank_method: 'bank_transfer',
+    pay_now: 'yes', account_id: defaultReceivingAccountId(accounts), bank_method: 'bank_transfer',
     reference: '', paid_on: toISODate(), amount_received: null,
     allow_shared_phone: false, override_reason: '',
   }));
@@ -138,20 +137,6 @@ export function RegistrationWizard({
   const total = charged.reduce((sum, f) => sum + Number(f.amount), 0);
   const mandatoryTotal = mandatory.reduce((sum, f) => sum + Number(f.amount), 0);
   const payNow = v.pay_now === 'yes' && total > 0;
-
-  const channelAccounts = useMemo(
-    () => accounts.filter((a) => CHANNELS.find((c) => c.id === v.channel)?.type === a.account_type),
-    [accounts, v.channel],
-  );
-
-  // Choosing a channel picks its default account; the officer can change it.
-  useEffect(() => {
-    if (!v.channel) return;
-    if (channelAccounts.some((a) => a.id === v.account_id)) return;
-    const pick = channelAccounts.find((a) => a.is_default) ?? channelAccounts[0];
-    set('account_id', pick?.id ?? '');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [v.channel, channelAccounts]);
 
   // A server-side refusal names its field; take the officer to it.
   const serverError = state && !state.ok ? state : null;
@@ -197,10 +182,13 @@ export function RegistrationWizard({
       if (v.allow_shared_phone && v.override_reason.trim().length < 5) e.override_reason = 'Give a reason for letting two members share this number.';
     }
     if (s === 2 && payNow) {
-      if (!v.channel) e.method = 'Choose how the member paid.';
-      else if (!v.account_id) e.account_id = 'No account of this kind is set up. Choose another way, or record the payment later.';
-      if ((v.channel === 'merchant' || v.channel === 'bank') && !v.reference.trim()) {
-        e.reference = v.channel === 'merchant'
+      if (!v.account_id) {
+        e.account_id = accounts.length
+          ? 'Choose the account the money was received into.'
+          : 'No receiving account is set up. Add one under Finance → Accounts & Setup, or record the payment later.';
+      }
+      if (needsRef && !v.reference.trim()) {
+        e.reference = channel === 'merchant'
           ? 'Enter the mobile money transaction reference from the confirmation message.'
           : 'Enter the bank transfer or deposit slip reference.';
       }
@@ -226,6 +214,10 @@ export function RegistrationWizard({
   }
 
   const account = accounts.find((a) => a.id === v.account_id);
+  // The kind of account chosen is what decides the method, the reference rule
+  // and the wording - there is no separate "how did they pay?" question.
+  const channel = account?.account_type ?? '';
+  const needsRef = channel === 'merchant' || channel === 'bank';
   const willBePending = rules.activationRequiresFees && mandatoryTotal > 0 && !payNow;
 
   return (
@@ -249,7 +241,7 @@ export function RegistrationWizard({
         <input
           type="hidden"
           name="method"
-          value={!payNow ? '' : v.channel === 'cash' ? 'cash' : v.channel === 'merchant' ? 'mobile_money' : v.channel === 'bank' ? v.bank_method : ''}
+          value={payNow ? methodForAccount(account, v.bank_method) : ''}
         />
         <input type="hidden" name="amount_received" value={payNow && v.amount_received !== null ? v.amount_received : ''} />
         <input type="hidden" name="allow_shared_phone" value={v.allow_shared_phone ? 'on' : 'off'} />
@@ -428,53 +420,37 @@ export function RegistrationWizard({
 
                 {payNow ? (
                   <Section title="Payment" icon="payments">
-                    <Field label="How did the member pay?" htmlFor="channel-cash" required error={errors.method}>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Payment method">
-                        {CHANNELS.map((c) => {
-                          const available = accounts.some((a) => a.account_type === c.type);
-                          return (
-                            <ChoiceCard
-                              key={c.id}
-                              id={`channel-${c.id}`}
-                              name="channel"
-                              checked={v.channel === c.id}
-                              onSelect={() => set('channel', c.id)}
-                              icon={c.icon}
-                              title={c.label}
-                              value={available ? '' : 'Not set up'}
-                              lines={[c.hint]}
-                              disabled={!available}
-                            />
-                          );
-                        })}
-                      </div>
-                    </Field>
-                    {!accounts.length ? (
+                    {/* One question: which of the SACCO's accounts took the
+                        money. The method, the reference rule and the wording all
+                        follow from the kind of account chosen. */}
+                    {accounts.length === 0 ? (
                       <Alert tone="warning">
-                        No receiving accounts are set up. A manager adds them under Finance → Accounts &amp; Setup. Until then, choose “Paying later”.
+                        No receiving accounts are set up. A manager adds them under Finance →
+                        Accounts &amp; Setup. Until then, choose &ldquo;Paying later&rdquo;.
                       </Alert>
-                    ) : null}
-
-                    {v.channel ? (
+                    ) : (
                       <>
-                        {channelAccounts.length > 1 ? (
-                          <Field label="Received into" htmlFor="account_id" required error={errors.account_id}>
-                            <Select id="account_id" value={v.account_id} onChange={(e) => set('account_id', e.target.value)} invalid={!!errors.account_id}>
-                              {channelAccounts.map((a) => (
-                                <option key={a.id} value={a.id}>{accountLabel(a)}</option>
-                              ))}
-                            </Select>
-                          </Field>
-                        ) : account ? (
-                          <p className="text-body-md text-on-surface-variant">
-                            Received into <strong className="text-on-surface">{accountLabel(account)}</strong>.
-                          </p>
-                        ) : errors.account_id ? (
-                          <Alert tone="error">{errors.account_id}</Alert>
-                        ) : null}
+                        <Field
+                          label={RECEIVING_LABEL}
+                          htmlFor="account_id"
+                          required
+                          error={errors.account_id}
+                          hint="The account that actually takes the money. Finance balances follow this choice."
+                        >
+                          <Select id="account_id" value={v.account_id} onChange={(e) => set('account_id', e.target.value)} invalid={!!errors.account_id}>
+                            {v.account_id === '' ? (
+                              <option value="" disabled>
+                                Choose an account…
+                              </option>
+                            ) : null}
+                            {accounts.map((a) => (
+                              <option key={a.id} value={a.id}>{receivingAccountLabel(a)}</option>
+                            ))}
+                          </Select>
+                        </Field>
 
-                        {v.channel === 'bank' ? (
-                          <Field label="Bank payment type" htmlFor="bank_method">
+                        {channel === 'bank' ? (
+                          <Field label="How the bank was used" htmlFor="bank_method">
                             <Select id="bank_method" value={v.bank_method} onChange={(e) => set('bank_method', e.target.value as Values['bank_method'])}>
                               <option value="bank_transfer">Bank transfer / deposit</option>
                               <option value="cheque">Cheque</option>
@@ -482,15 +458,15 @@ export function RegistrationWizard({
                           </Field>
                         ) : null}
 
-                        {v.channel !== 'cash' ? (
+                        {needsRef ? (
                           <Field
-                            label={v.channel === 'merchant' ? 'Mobile money transaction reference' : 'Bank reference or deposit slip number'}
+                            label={channel === 'merchant' ? 'Mobile money transaction reference' : 'Bank reference or deposit slip number'}
                             htmlFor="reference"
                             required
                             error={errors.reference}
-                            hint={v.channel === 'merchant' ? 'From the confirmation SMS. Recorded as typed - the system does not contact the provider.' : 'From the deposit slip or transfer confirmation.'}
+                            hint={channel === 'merchant' ? 'From the confirmation SMS. Recorded as typed - the system does not contact the provider.' : 'From the deposit slip or transfer confirmation.'}
                           >
-                            <Input id="reference" value={v.reference} onChange={(e) => set('reference', e.target.value)} autoCapitalize="characters" spellCheck={false} className="tabular" invalid={!!errors.reference} placeholder={v.channel === 'merchant' ? 'e.g. MP240911.1234.A56789' : 'e.g. SLIP-004512'} />
+                            <Input id="reference" value={v.reference} onChange={(e) => set('reference', e.target.value)} autoCapitalize="characters" spellCheck={false} className="tabular" invalid={!!errors.reference} placeholder={channel === 'merchant' ? 'e.g. MP240911.1234.A56789' : 'e.g. SLIP-004512'} />
                           </Field>
                         ) : null}
 
@@ -503,7 +479,7 @@ export function RegistrationWizard({
                           </Field>
                         </div>
                       </>
-                    ) : null}
+                    )}
                   </Section>
                 ) : null}
               </>
@@ -545,8 +521,8 @@ export function RegistrationWizard({
                 <p className="text-body-md text-on-surface mt-3">
                   {payNow ? (
                     <>
-                      Paid by <strong>{CHANNELS.find((c) => c.id === v.channel)?.label}</strong>
-                      {account ? <> into <strong>{account.name}</strong></> : null}
+                      Received into{' '}
+                      <strong>{account ? receivingAccountLabel(account) : '—'}</strong>
                       {v.reference ? <>, ref <span className="font-mono">{v.reference}</span></> : null}.
                     </>
                   ) : (
@@ -596,16 +572,6 @@ export function RegistrationWizard({
 }
 
 /* ------------------------------------------------------------------------ */
-
-function accountLabel(a: CollectionAccount): string {
-  const detail =
-    a.account_type === 'merchant'
-      ? [a.provider, a.merchant_code].filter(Boolean).join(' · ')
-      : a.account_type === 'bank'
-        ? [a.bank_name, a.account_number].filter(Boolean).join(' · ')
-        : '';
-  return detail ? `${a.name} (${detail})` : a.name;
-}
 
 function Stepper({ step, onJump }: { step: number; onJump: (i: number) => void }) {
   return (

@@ -13,6 +13,7 @@ import { MemberCollectionPanel } from '@/components/collections/MemberCollection
 import { PreviewControls } from './PreviewControls';
 
 import {
+  FIXTURE_COLLECTION_ACCOUNTS,
   FIXTURE_COLLECTION_VIEW,
   FIXTURE_LOAN_BALANCE,
   FIXTURE_MEMBERS,
@@ -181,7 +182,11 @@ export default function PreviewPage() {
           title="Staff · savings collection"
           note="One member at the counter: this month, shares, savings history"
         >
-          <MemberCollectionPanel view={FIXTURE_COLLECTION_VIEW} canRecord />
+          <MemberCollectionPanel
+            view={FIXTURE_COLLECTION_VIEW}
+            canRecord
+            accounts={FIXTURE_COLLECTION_ACCOUNTS}
+          />
         </Section>
 
         {/* ---------------------------------------------------- staff loans */}

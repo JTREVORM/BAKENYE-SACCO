@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { recordCashMovement } from '@/app/actions/financial';
+import { recordMemberCollection } from '@/app/actions/treasury';
 import { FinancialForm, type FinancialSummaryLine } from './FinancialForm';
 import { MemberPicker, type PickedMember } from './MemberPicker';
-import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/form';
+import { ReceivingAccountFields, useReceivingAccount } from './ReceivingAccountField';
+import { Field, Input, MoneyInput, Textarea } from '@/components/ui/form';
 import { Money } from '@/components/ui/primitives';
 import { Alert } from '@/components/ui/states';
 import { formatUGX } from '@/lib/money';
-import { formatDate, PAYMENT_METHOD_LABELS, toISODate } from '@/lib/format';
-import type { PaymentMethod } from '@/types/db';
-
-const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheque'];
+import { formatDate, toISODate } from '@/lib/format';
+import { PAYING_LABEL, RECEIVING_LABEL } from '@/lib/receiving-accounts';
+import type { CollectionAccount } from '@/types/access';
 
 /**
  * Deposit or withdrawal.
@@ -24,27 +24,34 @@ const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheq
  *
  * Share capital is deliberately excluded from what is withdrawable; it is not
  * liquid, and offering it here would promise money the SACCO will not release.
+ *
+ * A deposit names the account it is received into; a withdrawal names the
+ * account the money is paid out of. Either way it is one of the SACCO's own
+ * configured accounts, and that account is the one the ledger moves.
  */
 export function CashMovementForm({
   type,
   member,
   lockMember = false,
   availableBalance,
+  accounts,
   doneHref,
 }: {
   type: 'deposit' | 'withdrawal';
   member?: PickedMember | null;
   lockMember?: boolean;
   availableBalance?: number;
+  /** The SACCO's active accounts, from `collection_accounts()`. */
+  accounts: CollectionAccount[];
   doneHref?: string;
 }) {
+  const isWithdrawal = type === 'withdrawal';
   const [picked, setPicked] = useState<PickedMember | null>(member ?? null);
   const [amount, setAmount] = useState<number | null>(null);
-  const [method, setMethod] = useState<PaymentMethod>('cash');
   const [occurredOn, setOccurredOn] = useState(toISODate());
   const [description, setDescription] = useState('');
+  const through = useReceivingAccount(accounts, isWithdrawal ? 'out' : 'in');
 
-  const isWithdrawal = type === 'withdrawal';
   const available = availableBalance ?? picked?.savings_balance ?? 0;
   const exceeds = isWithdrawal && !!amount && amount > Number(available);
 
@@ -63,7 +70,10 @@ export function CashMovementForm({
             },
           ]
         : []),
-      { label: 'Payment method', value: PAYMENT_METHOD_LABELS[method] },
+      { label: isWithdrawal ? PAYING_LABEL : RECEIVING_LABEL, value: through.label },
+      ...(through.reference.trim()
+        ? [{ label: 'Reference', value: through.reference.trim() }]
+        : []),
       { label: 'Date', value: formatDate(occurredOn) },
       ...(description ? [{ label: 'Note', value: description }] : []),
     ];
@@ -71,7 +81,7 @@ export function CashMovementForm({
 
   return (
     <FinancialForm
-      action={recordCashMovement}
+      action={recordMemberCollection}
       idempotencyPrefix={type}
       submitLabel={isWithdrawal ? 'Record withdrawal' : 'Record deposit'}
       pendingLabel="Recording…"
@@ -83,7 +93,7 @@ export function CashMovementForm({
       }
       amount={() => amount}
       summary={summary}
-      canConfirm={!!picked && !!amount && !exceeds}
+      canConfirm={!!picked && !!amount && !exceeds && !!through.accountId}
       doneHref={doneHref}
       doneLabel="Back"
       receiptHref={(r) => (r.transaction_id ? `/staff/transactions/${r.transaction_id}` : null)}
@@ -94,10 +104,10 @@ export function CashMovementForm({
           return `The member's available savings balance is ${formatUGX(
             available,
           )}. Share capital cannot be withdrawn.`;
-        return null;
+        return through.validate();
       }}
     >
-      <input type="hidden" name="type" value={type} />
+      <input type="hidden" name="collection_type" value={type} />
 
       <div className="flex flex-col gap-5">
         {lockMember && picked ? (
@@ -147,25 +157,16 @@ export function CashMovementForm({
           </button>
         ) : null}
 
-        <Field label="Payment method" htmlFor="method" required>
-          <Select
-            id="method"
-            name="method"
-            value={method}
-            onChange={(e) => setMethod(e.target.value as PaymentMethod)}
-          >
-            {METHODS.map((m) => (
-              <option key={m} value={m}>
-                {PAYMENT_METHOD_LABELS[m]}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        <ReceivingAccountFields
+          state={through}
+          idPrefix={type}
+          direction={isWithdrawal ? 'out' : 'in'}
+        />
 
         <Field label="Date" htmlFor="occurred_on" required>
           <Input
             id="occurred_on"
-            name="occurred_on"
+            name="paid_on"
             type="date"
             value={occurredOn}
             max={toISODate()}

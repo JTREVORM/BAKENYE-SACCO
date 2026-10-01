@@ -6,7 +6,9 @@ import { FinancialForm, type FinancialSummaryLine } from '@/components/forms/Fin
 import { MemberPicker, type PickedMember } from '@/components/forms/MemberPicker';
 import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/form';
 import { formatUGX } from '@/lib/money';
-import { toISODate, PAYMENT_METHOD_LABELS } from '@/lib/format';
+import { toISODate } from '@/lib/format';
+import { ACCOUNT_TYPES } from '@/lib/treasury-format';
+import { RECEIVING_LABEL } from '@/lib/receiving-accounts';
 import { AccountSelect, AccountSummary, defaultAccountId, type AccountOption } from '../AccountSelect';
 import { BankMethodSelect, RecordedBy, beforeAfter, dateLine, methodForAccountType } from './fields';
 import type { CategoryRow, PaymentMethod } from '@/types/db';
@@ -49,8 +51,8 @@ export function OtherReceiptForm({
       { label: 'Received from', value: member ? `${member.full_name} (${member.member_no})` : payer || '—' },
       { label: 'Category', value: options.find((c) => c.id === categoryId)?.name ?? '—' },
       { label: 'Amount', value: formatUGX(amount), emphasis: true },
-      { label: `Into: ${account?.name ?? '—'}`, value: beforeAfter(balance, balance + (amount ?? 0)) },
-      { label: 'Method', value: PAYMENT_METHOD_LABELS[method] },
+      { label: RECEIVING_LABEL, value: account?.name ?? '—' },
+      { label: 'Account balance', value: beforeAfter(balance, balance + (amount ?? 0)) },
       { label: 'Date', value: dateLine(date) },
       ...(reference.trim() ? [{ label: 'Reference', value: reference.trim() }] : []),
       { label: 'Recorded by', value: recorderName },
@@ -105,8 +107,8 @@ export function OtherReceiptForm({
           <MoneyInput id="receipt-amount" name="amount" value={amount ?? ''} onValueChange={setAmount} required />
         </Field>
 
-        <AccountSelect id="receipt-account" name="account_id" label="Received into" accounts={accounts}
-          types={['bank', 'cash', 'merchant']} value={accountId} onChange={setAccountId} />
+        <AccountSelect id="receipt-account" name="account_id" label={RECEIVING_LABEL} accounts={accounts}
+          types={ACCOUNT_TYPES} value={accountId} onChange={setAccountId} />
         <AccountSummary account={account} />
         {account?.account_type === 'bank' ? <BankMethodSelect value={bankMethod} onChange={setBankMethod} /> : null}
 

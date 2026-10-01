@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { recordSavings } from '@/app/actions/financial';
+import { recordMemberCollection } from '@/app/actions/treasury';
 import { FinancialForm, type FinancialSummaryLine } from './FinancialForm';
 import { MemberPicker, type PickedMember } from './MemberPicker';
-import { Field, MoneyInput, Select, Input } from '@/components/ui/form';
+import { ReceivingAccountFields, useReceivingAccount } from './ReceivingAccountField';
+import { Field, MoneyInput, Input } from '@/components/ui/form';
 import { formatUGX } from '@/lib/money';
-import { formatDate, PAYMENT_METHOD_LABELS, toISODate } from '@/lib/format';
-import type { PaymentMethod } from '@/types/db';
-
-const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheque'];
+import { formatDate, toISODate } from '@/lib/format';
+import { RECEIVING_LABEL } from '@/lib/receiving-accounts';
+import type { CollectionAccount } from '@/types/access';
 
 /**
  * Record a monthly savings contribution.
@@ -22,40 +22,49 @@ const METHODS: PaymentMethod[] = ['cash', 'mobile_money', 'bank_transfer', 'cheq
  * The month is derived from the payment date on the server
  * (`savings_period_bounds`), so a cashier catching up on the 2nd for last
  * month's collection books it against the right month rather than this one.
+ *
+ * Where the money went is not a method but an account: the cashier picks one of
+ * the SACCO's own active accounts and the ledger credits that exact account.
  */
 export function RecordSavingsForm({
   member,
   lockMember = false,
+  accounts,
   doneHref,
 }: {
   member?: PickedMember | null;
   lockMember?: boolean;
+  /** The SACCO's active receiving accounts, from `collection_accounts()`. */
+  accounts: CollectionAccount[];
   doneHref?: string;
 }) {
   const [picked, setPicked] = useState<PickedMember | null>(member ?? null);
   const [amount, setAmount] = useState<number | null>(null);
-  const [method, setMethod] = useState<PaymentMethod>('cash');
   const [paidOn, setPaidOn] = useState(toISODate());
+  const into = useReceivingAccount(accounts);
 
   function summary(): FinancialSummaryLine[] {
     return [
       { label: 'Member', value: picked ? `${picked.full_name} (${picked.member_no})` : '—' },
       { label: 'Amount', value: formatUGX(amount), emphasis: true },
-      { label: 'Payment method', value: PAYMENT_METHOD_LABELS[method] },
+      { label: RECEIVING_LABEL, value: into.label },
+      ...(into.reference.trim()
+        ? [{ label: 'Reference', value: into.reference.trim() }]
+        : []),
       { label: 'Payment date', value: formatDate(paidOn) },
     ];
   }
 
   return (
     <FinancialForm
-      action={recordSavings}
+      action={recordMemberCollection}
       idempotencyPrefix="savings"
       submitLabel="Record savings"
       pendingLabel="Recording…"
       successTitle="Savings recorded"
       amount={() => amount}
       summary={summary}
-      canConfirm={!!picked && !!amount}
+      canConfirm={!!picked && !!amount && !!into.accountId}
       doneHref={doneHref}
       doneLabel="Back"
       receiptHref={(r) =>
@@ -66,9 +75,11 @@ export function RecordSavingsForm({
       validate={() => {
         if (!picked) return 'Choose the member this payment is for.';
         if (!amount || amount <= 0) return 'Enter the amount received.';
-        return null;
+        return into.validate();
       }}
     >
+      <input type="hidden" name="collection_type" value="savings" />
+
       <div className="flex flex-col gap-5">
         {lockMember && picked ? (
           <input type="hidden" name="member_id" value={picked.id} />
@@ -79,7 +90,7 @@ export function RecordSavingsForm({
         {/* Savings are monthly. The cadence is no longer a choice at the
             counter: `weekly` survives only on records raised before the rules
             changed. */}
-        <input type="hidden" name="kind" value="monthly" />
+        <input type="hidden" name="savings_kind" value="monthly" />
 
         <Field
           label="Amount received"
@@ -97,20 +108,7 @@ export function RecordSavingsForm({
           />
         </Field>
 
-        <Field label="Payment method" htmlFor="method" required>
-          <Select
-            id="method"
-            name="method"
-            value={method}
-            onChange={(e) => setMethod(e.target.value as PaymentMethod)}
-          >
-            {METHODS.map((m) => (
-              <option key={m} value={m}>
-                {PAYMENT_METHOD_LABELS[m]}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        <ReceivingAccountFields state={into} idPrefix="savings" />
 
         <Field
           label="Payment date"

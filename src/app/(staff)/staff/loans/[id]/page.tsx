@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { getLoanDetail } from '@/lib/loan-query';
+import { getCollectionAccounts } from '@/lib/access-queries';
 import { can } from '@/lib/rbac';
 import { PageTitle } from '@/components/ui/primitives';
 import { LoanDetail } from '@/components/LoanDetail';
@@ -13,7 +14,7 @@ export const metadata: Metadata = { title: 'Loan' };
 export default async function StaffLoanPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requirePermission('loans.view');
   const { id } = await params;
-  const data = await getLoanDetail(id);
+  const [data, accounts] = await Promise.all([getLoanDetail(id), getCollectionAccounts()]);
 
   if (!data) notFound();
 
@@ -34,11 +35,13 @@ export default async function StaffLoanPage({ params }: { params: Promise<{ id: 
           <LoanActions
             loanId={data.loan.id}
             loanNo={data.loan.loan_no}
+            memberId={data.loan.member_id}
             status={data.loan.status}
             principal={toNumber(data.loan.principal)}
             processingFee={toNumber(data.loan.processing_fee)}
             netDisbursed={netDisbursed}
             memberName={data.memberName}
+            accounts={accounts}
             guarantorsPending={pendingGuarantors}
             canAssess={can(user, 'loans.assess')}
             canApprove={can(user, 'loans.approve')}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
+import { getCollectionAccounts } from '@/lib/access-queries';
 import { getPickedMember } from '@/lib/picked-member';
 import { PageTitle } from '@/components/ui/primitives';
 import { RecordSavingsForm } from '@/components/forms/RecordSavingsForm';
@@ -24,7 +25,12 @@ export default async function RecordSavingsPage({
 }) {
   await requirePermission('savings.record');
   const sp = await searchParams;
-  const member = await getPickedMember(sp.member);
+  // The accounts money may be received into come from Finance, never from a
+  // list in this file.
+  const [member, accounts] = await Promise.all([
+    getPickedMember(sp.member),
+    getCollectionAccounts(),
+  ]);
 
   return (
     <div className="mx-auto max-w-xl">
@@ -35,6 +41,7 @@ export default async function RecordSavingsPage({
       <RecordSavingsForm
         member={member}
         lockMember={!!member}
+        accounts={accounts}
         doneHref={member ? `/staff/members/${member.id}` : '/staff/savings/collect'}
       />
     </div>

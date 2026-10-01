@@ -9,6 +9,7 @@ import { Button, Field, Input, MoneyInput, Select, SubmitButton, Textarea } from
 import { toISODate } from '@/lib/format';
 import { formatUGX } from '@/lib/money';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
+import { RECEIVING_LABEL, methodForAccount, receivingAccountLabel } from '@/lib/receiving-accounts';
 import type { CollectionAccount, FeePaymentResult } from '@/types/access';
 
 /**
@@ -86,19 +87,9 @@ export function CollectMembershipFeeDialog({
         <input type="hidden" name="member_id" value={memberId} />
         <input type="hidden" name="account_id" value={accountId} />
         <input type="hidden" name="idempotency_key" value={key.current} />
-        <input
-          type="hidden"
-          name="method"
-          value={
-            account?.account_type === 'cash'
-              ? 'cash'
-              : account?.account_type === 'merchant'
-                ? 'mobile_money'
-                : account
-                  ? 'bank_transfer'
-                  : ''
-          }
-        />
+        {/* Derived from the chosen account by the one shared rule, never asked
+            for separately. */}
+        <input type="hidden" name="method" value={methodForAccount(account)} />
         {err && !['amount', 'reference', 'account_id'].includes(err.field ?? '') ? (
           <Alert tone="error">{err.error}</Alert>
         ) : null}
@@ -147,7 +138,7 @@ export function CollectMembershipFeeDialog({
           </Alert>
         ) : (
           <Field
-            label="Received into"
+            label={RECEIVING_LABEL}
             htmlFor="memfee-account"
             required
             error={err?.field === 'account_id' ? err.error : null}
@@ -159,12 +150,7 @@ export function CollectMembershipFeeDialog({
             >
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.name}
-                  {a.account_type === 'merchant'
-                    ? ' (mobile money)'
-                    : a.account_type === 'bank'
-                      ? ' (bank)'
-                      : ' (cash)'}
+                  {receivingAccountLabel(a)}
                 </option>
               ))}
             </Select>

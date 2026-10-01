@@ -91,7 +91,11 @@ export const config = {
     /*
      * Everything except static assets and images - those must not pay for an
      * auth round trip on a slow connection.
+     *
+     * `sw.js` and the manifest are listed because a browser fetches them before
+     * anyone has signed in. Sending either to /login would stop the app ever
+     * being installable.
      */
-    '/((?!_next/static|_next/image|favicon.ico|brand|avatars|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|brand|avatars|icons|manifest.webmanifest|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)',
   ],
 };

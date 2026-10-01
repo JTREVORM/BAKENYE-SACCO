@@ -34,7 +34,29 @@ export type MovementClass =
   | 'reversal';
 
 /** What a member is paying for on the Record Collection form. */
-export type CollectionType = 'savings' | 'shares' | 'loan_repayment' | 'deposit' | 'fee';
+/**
+ * What a member's money movement is for. The first five are money the SACCO
+ * receives; the last two are money it pays out. All seven go through the one
+ * function, `record_member_collection()`, so the account a person chooses is the
+ * account the ledger posts against, in either direction.
+ */
+export type CollectionType =
+  | 'savings'
+  | 'shares'
+  | 'loan_repayment'
+  | 'deposit'
+  | 'fee'
+  | 'withdrawal'
+  | 'loan_disbursement';
+
+/** The five that bring money in. Everything else pays money out. */
+export const INCOMING_COLLECTION_TYPES = [
+  'savings',
+  'shares',
+  'loan_repayment',
+  'deposit',
+  'fee',
+] as const satisfies readonly CollectionType[];
 
 export type FinancialAccountRow = {
   id: string;
@@ -408,18 +430,47 @@ export type ReceiptsAndPayments = {
   transfers: { kind: TransferKind; entries: number; total: number }[];
 };
 
+/**
+ * What `record_member_collection()` gives back: the account fields it owns,
+ * merged over the payload of the member-side function that did the work - so a
+ * savings collection still carries `period_label` and `period_total`, a share
+ * sale its `quantity`, a repayment its `outstanding`, and a disbursement its
+ * `loan_no`.
+ */
 export type MemberCollectionResult = {
   transaction_id: string;
   reference: string;
   receipt_no: string | null;
   account_id: string;
   account_name: string;
+  account_type: FinanceAccountType;
   account_balance: number;
+  method: PaymentMethod;
+  member_id: string;
   member_name: string;
   member_no: string;
   collection_type: CollectionType;
+  direction: 'in' | 'out';
   amount: number;
   duplicate: boolean;
+
+  /* Savings */
+  period_id?: string;
+  period_label?: string;
+  period_total?: number;
+  paid?: number;
+  status?: string;
+  /* Shares */
+  quantity?: number;
+  unit_price?: number;
+  total_value?: number;
+  /* Loans */
+  loan_id?: string;
+  loan_no?: string;
+  outstanding?: number;
+  completed?: boolean;
+  first_due_on?: string;
+  installments?: number;
 };
 
 export type OtherReceiptResult = {
@@ -509,6 +560,8 @@ export type TreasuryFunctions = {
       p_loan_id?: string | null;
       p_income_category_id?: string | null;
       p_idempotency_key?: string | null;
+      p_period_id?: string | null;
+      p_quantity?: number | null;
     };
     Returns: MemberCollectionResult;
   };

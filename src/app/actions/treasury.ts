@@ -4,10 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth';
-import { can, canAny } from '@/lib/rbac';
+import { can, type Permission } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
 import { formatUGX } from '@/lib/money';
 import type {
+  CollectionType,
   FinanceDocumentRow,
   MemberCollectionResult,
   OtherReceiptResult,
@@ -161,12 +162,54 @@ async function attachDocument(
  * Member collections
  * ======================================================================== */
 
+/**
+ * What each kind of money movement needs the operator to be allowed to do.
+ *
+ * The same mapping `record_member_collection()` checks in the database, where it
+ * is authoritative; this copy only refuses earlier, with the message the rest of
+ * the application uses. A role that may record repayments but not savings - a
+ * Loan Officer - is allowed through here exactly as the database allows it.
+ */
+const COLLECTION_PERMISSION: Record<CollectionType, Permission> = {
+  savings: 'savings.record',
+  shares: 'shares.sell',
+  loan_repayment: 'loans.repay',
+  deposit: 'cash.movement',
+  withdrawal: 'cash.movement',
+  loan_disbursement: 'loans.disburse',
+  fee: 'finance.record',
+};
+
+const COLLECTION_NOUN: Record<CollectionType, string> = {
+  savings: 'savings',
+  shares: 'share purchases',
+  loan_repayment: 'loan repayments',
+  deposit: 'deposits',
+  withdrawal: 'withdrawals',
+  loan_disbursement: 'loan disbursements',
+  fee: 'fee collections',
+};
+
 const collectionSchema = z.object({
   member_id: uuid,
-  collection_type: z.enum(['savings', 'shares', 'loan_repayment', 'deposit', 'fee'], {
-    errorMap: () => ({ message: 'Choose what the member is paying for.' }),
-  }),
+  collection_type: z.enum(
+    [
+      'savings',
+      'shares',
+      'loan_repayment',
+      'deposit',
+      'fee',
+      'withdrawal',
+      'loan_disbursement',
+    ],
+    { errorMap: () => ({ message: 'Choose what the member is paying for.' }) },
+  ),
   amount: money,
+  /**
+   * The account the money goes into, or out of. Chosen from the SACCO's own
+   * active accounts - there is no "payment method" list anywhere in the
+   * application any more.
+   */
   account_id: z.string().uuid('Choose the account the money was received into.'),
   paid_on: isoDate,
   method,
@@ -180,24 +223,52 @@ const collectionSchema = z.object({
     .transform((v) => (v ? v : undefined)),
   loan_id: optionalUuid,
   income_category_id: optionalUuid,
+  /** A savings collection screen settles a named month and passes it. */
+  period_id: optionalUuid,
+  /** What the share counter showed, so a price that moved mid-sale refuses it. */
+  quantity: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(100_000)
+    .optional()
+    .or(z.literal(''))
+    .transform((v) => (v === '' || v === undefined ? undefined : Number(v))),
   idempotency_key: idempotencyKey,
 });
 
+/**
+ * Every shilling a member hands over, and every shilling handed back.
+ *
+ * One server action behind every counter screen - savings, shares, membership
+ * and other fees, loan repayments, deposits, withdrawals and disbursements - so
+ * none of them can grow its own idea of where money goes. The member side is
+ * done by the function that has always done it; what this adds is the account,
+ * and the account is a row the SACCO configured, not an option typed into a
+ * form.
+ */
 export async function recordMemberCollection(
   _prev: ActionResult<MemberCollectionResult> | null,
   formData: FormData,
 ): Promise<ActionResult<MemberCollectionResult>> {
   const user = await requireUser();
-  if (!canAny(user, 'finance.record', 'savings.record')) {
-    return { ok: false, error: 'You do not have permission to record collections.' };
-  }
 
   const parsed = collectionSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return firstIssue(parsed.error);
   const d = parsed.data;
 
+  if (!can(user, COLLECTION_PERMISSION[d.collection_type])) {
+    return {
+      ok: false,
+      error: `You do not have permission to record ${COLLECTION_NOUN[d.collection_type]}.`,
+    };
+  }
+
   if (d.collection_type === 'fee' && !d.income_category_id) {
     return { ok: false, error: 'Choose what the fee is for.', field: 'income_category_id' };
+  }
+  if (d.collection_type === 'loan_disbursement' && !d.loan_id) {
+    return { ok: false, error: 'Name the loan being disbursed.', field: 'loan_id' };
   }
 
   const supabase = await createClient();
@@ -215,20 +286,38 @@ export async function recordMemberCollection(
     p_loan_id: d.loan_id ?? null,
     p_income_category_id: d.income_category_id ?? null,
     p_idempotency_key: d.idempotency_key,
+    p_period_id: d.period_id ?? null,
+    p_quantity: d.quantity ?? null,
   });
 
   if (error) return fail(error, 'amount');
 
   const result = data as unknown as MemberCollectionResult;
   refreshFinance();
+  revalidatePath('/', 'layout');
   revalidatePath(`/staff/members/${d.member_id}`);
   revalidatePath('/staff/savings', 'layout');
+  revalidatePath('/staff/shares');
   revalidatePath('/staff/loans', 'layout');
+  revalidatePath('/staff/membership-fees');
+  if (d.loan_id) revalidatePath(`/staff/loans/${d.loan_id}`);
+  // The member's own portal reads the same ledger.
+  revalidatePath('/savings');
+  revalidatePath('/shares');
+  revalidatePath('/loans', 'layout');
+  revalidatePath('/transactions');
 
-  return succeed(
-    result,
-    `${formatUGX(result.amount)} received from ${result.member_name} into ${result.account_name}.` +
-      (result.receipt_no ? ` Receipt ${result.receipt_no}.` : ''),
+  return succeed(result, collectionMessage(result));
+}
+
+/** Plain English for what just happened, in the direction it happened. */
+function collectionMessage(r: MemberCollectionResult): string {
+  const receipt = r.receipt_no ? ` Receipt ${r.receipt_no}.` : '';
+  if (r.direction === 'out') {
+    return `${formatUGX(r.amount)} paid to ${r.member_name} out of ${r.account_name}.${receipt}`;
+  }
+  return (
+    `${formatUGX(r.amount)} received from ${r.member_name} into ${r.account_name}.` + receipt
   );
 }
 

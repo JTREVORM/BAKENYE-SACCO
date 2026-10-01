@@ -14,6 +14,7 @@ import { getRules } from '@/lib/settings';
 import { getSessionUser } from '@/lib/auth';
 import { landingPath, type Access, type Dashboard, type RoleKind } from '@/lib/rbac';
 import { isInternalEmail } from '@/lib/accounts';
+import { siteUrl } from '@/lib/site';
 import type { LoginResolution, SessionPayload } from '@/types/access';
 
 /*
@@ -285,8 +286,12 @@ export async function requestPasswordReset(
   const resolution = data as LoginResolution | null;
   if (!resolution || resolution.locked) return done;
 
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ?? (await headers()).get('origin') ?? 'http://localhost:3000';
+  // The reset link must be absolute and must point at this deployment. The
+  // request's own origin is preferred over the configured one so that a member
+  // who reached a preview deployment gets a link back to it; `siteUrl()` is the
+  // fallback, and knows the production domain. No hard-coded localhost: a
+  // production reset e-mail containing one is a dead link.
+  const origin = (await headers()).get('origin') ?? siteUrl();
   const supabase = await createClient();
 
   for (const c of resolution.candidates) {

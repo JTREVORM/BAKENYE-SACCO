@@ -3,8 +3,24 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Icon } from '@/components/ui/primitives';
 import type { IconName } from '@/lib/icons';
+import { PUBLIC_ROBOTS } from '@/lib/site';
 
-export const metadata: Metadata = { title: 'Help signing in' };
+/**
+ * One of the two pages offered to search engines (see lib/site.ts). It is
+ * genuinely public - the people who need it are locked out by definition - and
+ * it contains nothing about any member.
+ */
+export const metadata: Metadata = {
+  title: 'Help signing in',
+  description:
+    'How to sign in to the SACCO: what to use as your username, what to do about a forgotten or ' +
+    'temporary password, and who to ask if your account is unavailable.',
+  alternates: { canonical: '/help' },
+  robots: PUBLIC_ROBOTS,
+  // Only the address differs from the layout's; the card art and site name are
+  // inherited.
+  openGraph: { url: '/help', title: 'Help signing in' },
+};
 
 /**
  * Sign-in help.

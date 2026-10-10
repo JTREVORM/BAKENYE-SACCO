@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { expenseCategoryLabel } from '@/lib/expenses';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
@@ -305,7 +306,7 @@ async function ExpenseLedger({
             <li key={r.id} className={clsx('bg-surface shadow-card rounded-xl border p-4', r.approval === 'pending' ? 'border-secondary-container' : 'border-outline-variant')}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-body-md font-body-md text-on-surface truncate font-semibold">{r.expense_categories?.name ?? 'Expense'}</p>
+                  <p className="text-body-md font-body-md text-on-surface break-words font-semibold">{expenseCategoryLabel(r.expense_categories?.name ?? 'Expense', r.custom_expense)}</p>
                   <p className="text-body-md font-body-md text-on-surface-variant break-words">{r.description}</p>
                   <p className="text-label-md font-label-md text-on-surface-variant/70 mt-1 normal-case">
                     {r.payment_no ? `${r.payment_no} · ` : ''}

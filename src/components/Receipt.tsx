@@ -112,6 +112,7 @@ export function Receipt({
           <Line label="Member" value={t.member_name ?? '—'} />
           <Line label="Member number" value={t.member_no ?? '—'} mono />
           <Line label="Transaction type" value={TXN_LABELS[t.type]} />
+          {t.expense_category_label ? <Line label="Expense category" value={t.expense_category_label} /> : null}
           <Line label="Amount" value={formatUGX(t.amount)} emphasis />
           <Line label="Payment method" value={PAYMENT_METHOD_LABELS[t.method]} />
           {payload.external_ref ? (

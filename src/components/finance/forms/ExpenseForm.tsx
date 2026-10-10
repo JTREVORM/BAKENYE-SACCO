@@ -6,6 +6,7 @@ import { FinancialForm, type FinancialSummaryLine } from '@/components/forms/Fin
 import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/form';
 import { Alert } from '@/components/ui/states';
 import { formatUGX } from '@/lib/money';
+import { CUSTOM_EXPENSE_MAX_LENGTH, expenseCategoryLabel, isOtherExpenseCategory } from '@/lib/expenses';
 import { toISODate, PAYMENT_METHOD_LABELS } from '@/lib/format';
 import { AccountSelect, AccountSummary, defaultAccountId, type AccountOption } from '../AccountSelect';
 import { BankMethodSelect, DocumentField, RecordedBy, dateLine, methodForAccountType } from './fields';
@@ -31,6 +32,7 @@ export function ExpenseForm({
   doneHref: string;
 }) {
   const [categoryId, setCategoryId] = useState('');
+  const [customExpense, setCustomExpense] = useState('');
   const [amount, setAmount] = useState<number | null>(null);
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(toISODate());
@@ -41,13 +43,15 @@ export function ExpenseForm({
   const [notes, setNotes] = useState('');
 
   const account = accounts.find((a) => a.id === accountId);
+  const category = categories.find((c) => c.id === categoryId);
+  const isOther = isOtherExpenseCategory(category?.name);
   const method = methodForAccountType(account?.account_type, bankMethod);
   const balance = Number(account?.balance ?? 0);
   const exceeds = !!amount && !!account && amount > balance;
 
   function summary(): FinancialSummaryLine[] {
     return [
-      { label: 'Category', value: categories.find((c) => c.id === categoryId)?.name ?? '—' },
+      { label: 'Category', value: expenseCategoryLabel(category?.name ?? '—', isOther ? customExpense : null) },
       { label: 'Amount', value: formatUGX(amount), emphasis: true },
       { label: 'To be paid from', value: account ? `${account.name} (holds ${formatUGX(balance)})` : '—' },
       { label: 'Method', value: PAYMENT_METHOD_LABELS[method] },
@@ -71,9 +75,10 @@ export function ExpenseForm({
       summary={summary}
       doneHref={doneHref}
       doneLabel="Back to expenses"
-      canConfirm={!!categoryId && !!amount && !!accountId}
+      canConfirm={!!categoryId && !!amount && !!accountId && (!isOther || !!customExpense.trim())}
       validate={() => {
         if (!categoryId) return 'Choose an expense category.';
+        if (isOther && !customExpense.trim()) return 'Specify expense when choosing Other.';
         if (!amount || amount <= 0) return 'Enter the amount.';
         if (!accountId) return 'Choose the account this expense is paid from.';
         if (description.trim().length < 3) return 'Describe this expense.';
@@ -83,7 +88,10 @@ export function ExpenseForm({
       <input type="hidden" name="method" value={method} />
       <div className="flex flex-col gap-5">
         <Field label="Expense category" htmlFor="expense-category" required>
-          <Select id="expense-category" name="category_id" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+          <Select id="expense-category" name="category_id" value={categoryId} onChange={(e) => {
+            setCategoryId(e.target.value);
+            setCustomExpense('');
+          }}>
             <option value="" disabled>
               Choose a category…
             </option>
@@ -94,6 +102,14 @@ export function ExpenseForm({
             ))}
           </Select>
         </Field>
+
+        {isOther ? (
+          <Field label="Specify expense" htmlFor="expense-custom" required>
+            <Input id="expense-custom" name="custom_expense" value={customExpense}
+              onChange={(e) => setCustomExpense(e.target.value)} required maxLength={CUSTOM_EXPENSE_MAX_LENGTH}
+              placeholder="Enter the expense type or description" />
+          </Field>
+        ) : null}
 
         <Field label="Amount" htmlFor="expense-amount" required>
           <MoneyInput id="expense-amount" name="amount" value={amount ?? ''} onValueChange={setAmount} required />

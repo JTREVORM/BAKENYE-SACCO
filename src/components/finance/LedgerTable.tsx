@@ -6,6 +6,7 @@ import { ACCOUNT_TYPE_META, MOVEMENT_LABELS } from '@/lib/treasury-format';
 import { formatDate, TXN_LABELS } from '@/lib/format';
 import { formatAmount, formatUGX, toNumber } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
+import { expenseCategoryLabel } from '@/lib/expenses';
 import type { AccountMovementRow } from '@/types/treasury';
 
 /**
@@ -52,7 +53,7 @@ export function LedgerTable({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-body-md font-semibold text-on-surface">
-                      {r.member_name ?? r.category_label}
+                      {r.member_name ?? expenseCategoryLabel(r.category_label, r.custom_expense)}
                     </p>
                     <p className="tabular truncate text-label-md font-normal text-on-surface-variant">
                       {r.reference} · {formatDate(r.entry_date)}
@@ -137,6 +138,9 @@ export function LedgerTable({
                 </span>
               </td>
               <td className="min-w-[200px] max-w-[320px]">
+                {r.custom_expense ? (
+                  <span className="block break-words font-semibold">{expenseCategoryLabel(r.category_label, r.custom_expense)}</span>
+                ) : null}
                 <span className="line-clamp-2">
                   {r.member_name ? `${r.member_name} (${r.member_no}) · ` : ''}
                   {r.description ?? r.category_label}

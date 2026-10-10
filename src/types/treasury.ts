@@ -134,6 +134,7 @@ export type AccountMovementRow = {
   movement_class: MovementClass;
   category_label: string;
   running_balance: number;
+  custom_expense: string | null;
 };
 
 export type ReceiptRow = {
@@ -272,6 +273,7 @@ export type PaymentRegisterRow = {
   member_id: string | null;
   category_id: string;
   category: string;
+  custom_expense: string | null;
   is_expense: boolean;
   amount: number;
   payment_date: string;

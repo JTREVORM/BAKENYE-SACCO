@@ -14,6 +14,7 @@ import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead
 import { ACCOUNT_TYPE_META, ACCOUNT_TYPES, TRANSFER_KIND_META } from '@/lib/treasury-format';
 import { addDaysISO, formatDate, monthStart, toISODate } from '@/lib/format';
 import { formatAmount, formatUGX, toNumber } from '@/lib/money';
+import { expenseCategoryLabel } from '@/lib/expenses';
 import type { AccountMovementRow } from '@/types/treasury';
 
 export const metadata: Metadata = { title: 'Finance Reports' };
@@ -260,10 +261,10 @@ async function Statement({ from, to, accountId, by }: { from: string; to: string
   const totalOut = list.reduce((s, r) => s + toNumber(r.money_out), 0);
 
   const csv: (string | number)[][] = [
-    ['Date', 'Reference', 'Description', 'Money in', 'Money out', 'Balance'],
-    ['', '', 'Opening balance', '', '', toNumber(opening)],
-    ...list.map((r) => [r.entry_date, r.reference, r.description ?? r.category_label, toNumber(r.money_in), toNumber(r.money_out), toNumber(r.running_balance)]),
-    ['', '', 'Closing balance', totalIn, totalOut, toNumber(closing)],
+    ['Date', 'Reference', 'Category', 'Expense type', 'Description', 'Money in', 'Money out', 'Balance'],
+    ['', '', '', '', 'Opening balance', '', '', toNumber(opening)],
+    ...list.map((r) => [r.entry_date, r.reference, r.category_label, r.txn_type === 'expense' ? expenseCategoryLabel(r.category_label, r.custom_expense) : '', r.description ?? r.category_label, toNumber(r.money_in), toNumber(r.money_out), toNumber(r.running_balance)]),
+    ['', '', '', '', 'Closing balance', totalIn, totalOut, toNumber(closing)],
   ];
 
   return (

@@ -55,7 +55,7 @@ export function TransactionRow({
 
       <div className="min-w-0 flex-1">
         <h4 className="text-body-md font-body-md text-on-surface truncate font-semibold">
-          {TXN_LABELS[txn.type]}
+          {txn.expense_category_label ?? TXN_LABELS[txn.type]}
         </h4>
         <p className="text-label-md font-label-md text-on-surface-variant truncate normal-case">
           {showMember && txn.member_name ? `${txn.member_name} · ` : ''}

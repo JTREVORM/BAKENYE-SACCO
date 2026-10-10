@@ -7,6 +7,7 @@ import { requireUser } from '@/lib/auth';
 import { can, type Permission } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
 import { formatUGX } from '@/lib/money';
+import { CUSTOM_EXPENSE_MAX_LENGTH, isOtherExpenseCategory } from '@/lib/expenses';
 import type {
   CollectionType,
   FinanceDocumentRow,
@@ -696,6 +697,7 @@ export async function submitPayment(
 
 const expenseSchema = z.object({
   category_id: z.string().uuid('Choose an expense category.'),
+  custom_expense: optionalText(CUSTOM_EXPENSE_MAX_LENGTH),
   amount: money,
   description: z.string().trim().min(3, 'Describe this expense.').max(500),
   spent_on: isoDate,
@@ -726,6 +728,15 @@ export async function recordExpenseRequest(
   const d = parsed.data;
 
   const supabase = await createClient();
+  // Resolve the category on the server; a submitted category name is untrusted.
+  const { data: category, error: categoryError } = await supabase
+    .from('expense_categories').select('name, is_active').eq('id', d.category_id).single();
+  if (categoryError) return fail(categoryError, 'category_id');
+  if (!category?.is_active) return { ok: false, error: 'Choose an expense category.', field: 'category_id' };
+  const customExpense = isOtherExpenseCategory(category.name) ? d.custom_expense : undefined;
+  if (isOtherExpenseCategory(category.name) && !customExpense) {
+    return { ok: false, error: 'Specify expense when choosing Other.', field: 'custom_expense' };
+  }
   const { data, error } = await supabase.rpc('record_expense', {
     p_category_id: d.category_id,
     p_amount: d.amount,
@@ -738,6 +749,7 @@ export async function recordExpenseRequest(
     p_payee: d.payee ?? null,
     p_reference: d.reference ?? null,
     p_notes: d.notes ?? null,
+    p_custom_expense: customExpense ?? null,
   });
   if (error) return fail(error, 'amount');
 

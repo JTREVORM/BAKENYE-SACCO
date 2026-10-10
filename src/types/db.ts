@@ -476,6 +476,8 @@ export type IncomeEntryRow = {
 export type ExpenseEntryRow = {
   id: string;
   category_id: string;
+  /** Required for new Other requests; null on historical expenses. */
+  custom_expense: string | null;
   amount: number;
   description: string | null;
   spent_on: string;
@@ -747,6 +749,8 @@ export type TransactionFeedRow = {
   recorded_by: string | null;
   recorded_by_name: string | null;
   direction: 'debit' | 'credit';
+  /** Expense type, including the specified Other type; absent in old fixtures. */
+  expense_category_label?: string | null;
 };
 
 export type DashboardMetrics = {
@@ -1297,6 +1301,7 @@ export type Database = {
           p_payee?: string | null;
           p_reference?: string | null;
           p_notes?: string | null;
+          p_custom_expense?: string | null;
         };
         Returns: {
           expense_id: string;

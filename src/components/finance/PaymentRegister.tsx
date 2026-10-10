@@ -14,6 +14,7 @@ import { FilterChips, SearchBox } from './SearchBox';
 import { ExportButtons } from '@/components/ExportButtons';
 import { formatDate, PAYMENT_METHOD_LABELS } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
+import { expenseCategoryLabel } from '@/lib/expenses';
 import type { FinanceDocumentRow, PaymentRegisterRow } from '@/types/treasury';
 
 const PAGE_SIZE = 20;
@@ -25,6 +26,7 @@ export type PaymentRegisterParams = {
   to?: string;
   q?: string;
   page?: string;
+  category?: string;
 };
 
 /**
@@ -64,12 +66,25 @@ export function PaymentRegister({
             ]}
           />
         )}
+        {onlyExpenses ? (
+          <Suspense fallback={null}><ExpenseCategoryFilters /></Suspense>
+        ) : null}
       </div>
       <Suspense key={JSON.stringify(sp)} fallback={<TableSkeleton rows={8} cols={6} />}>
         <Rows sp={sp} user={user} onlyExpenses={onlyExpenses} />
       </Suspense>
     </>
   );
+}
+
+async function ExpenseCategoryFilters() {
+  const supabase = await createClient();
+  // Include inactive categories so historical expenses remain filterable.
+  const { data } = await supabase.from('expense_categories').select('name').order('name');
+  return <FilterChips param="category" options={[
+    { value: '', label: 'All categories' },
+    ...(data ?? []).map((c) => ({ value: c.name, label: c.name })),
+  ]} />;
 }
 
 async function Rows({
@@ -92,6 +107,7 @@ async function Rows({
 
   const source = onlyExpenses ? 'expense' : sp.source;
   if (source === 'payment' || source === 'expense') q = q.eq('source', source);
+  if (onlyExpenses && sp.category) q = q.eq('category', sp.category);
   if (sp.status && ['submitted', 'draft', 'completed', 'rejected', 'cancelled', 'reversed'].includes(sp.status)) {
     q = q.eq('status', sp.status as PaymentRegisterRow['status']);
   }
@@ -99,7 +115,7 @@ async function Rows({
   if (isIsoDate(sp.to)) q = q.lte('payment_date', sp.to);
   if (sp.q?.trim()) {
     const term = `%${sp.q.trim().replace(/[,()*%]/g, ' ').trim()}%`;
-    q = q.or(`payment_no.ilike.${term},payee.ilike.${term},reference.ilike.${term},description.ilike.${term},category.ilike.${term}`);
+    q = q.or(`payment_no.ilike.${term},payee.ilike.${term},reference.ilike.${term},description.ilike.${term},category.ilike.${term},custom_expense.ilike.${term}`);
   }
 
   const { data, count, error } = await q.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
@@ -115,9 +131,10 @@ async function Rows({
   const canRecord = can(user, 'finance.record');
 
   const csv: (string | number)[][] = [
-    ['Payment no', 'Date', 'Kind', 'Payee', 'Category', 'Paid from', 'Method', 'Reference', 'Amount', 'Status', 'Recorded by', 'Approved by'],
+    ['Payment no', 'Date', 'Kind', 'Payee', 'Category', 'Expense type', 'Paid from', 'Method', 'Reference', 'Amount', 'Status', 'Recorded by', 'Approved by'],
     ...rows.map((r) => [
       r.payment_no ?? '', r.payment_date, r.is_expense ? 'Expense' : 'Payment', r.payee ?? '', r.category,
+      r.is_expense ? expenseCategoryLabel(r.category, r.custom_expense) : '',
       r.payment_account_name ?? '', PAYMENT_METHOD_LABELS[r.method], r.reference ?? '', toNumber(r.amount), r.status,
       r.created_by_name ?? '', r.approved_by_name ?? '',
     ]),
@@ -154,12 +171,12 @@ async function Rows({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-body-md font-semibold text-on-surface">{r.payee ?? r.category}</span>
+                      <span className="text-body-md font-semibold text-on-surface">{r.payee ?? expenseCategoryLabel(r.category, r.custom_expense)}</span>
                       <Badge tone={r.is_expense ? 'error' : 'accent'}>{r.is_expense ? 'Expense' : 'Payment'}</Badge>
                       <DocStatusBadge status={r.status} />
                     </div>
                     <p className="tabular text-label-md font-normal text-on-surface-variant">
-                      {r.payment_no ?? '—'} · {formatDate(r.payment_date)} · {r.category}
+                      {r.payment_no ?? '—'} · {formatDate(r.payment_date)} · {expenseCategoryLabel(r.category, r.custom_expense)}
                     </p>
                     <p className="text-label-md font-normal text-on-surface-variant">
                       {r.payment_account_name ? `From ${r.payment_account_name}` : 'No account named'} · {PAYMENT_METHOD_LABELS[r.method]}

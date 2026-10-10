@@ -16,7 +16,7 @@ import type { Cashbook } from '@/types/db';
 
 export const metadata: Metadata = { title: 'Expenses' };
 
-type SP = { status?: string; from?: string; to?: string; q?: string; page?: string };
+type SP = { status?: string; from?: string; to?: string; q?: string; page?: string; category?: string };
 
 /**
  * Operating expenses. Filing one is a request against the account it will be

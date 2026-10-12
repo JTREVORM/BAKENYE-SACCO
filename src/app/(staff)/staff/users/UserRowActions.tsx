@@ -6,6 +6,7 @@ import { IssuePasswordButton } from '@/components/accounts/TemporaryPassword';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, PhoneInput, Select, SubmitButton, Textarea } from '@/components/ui/form';
+import { PHONE_HINT } from '@/lib/phone';
 import type { ActionResult } from '@/lib/errors';
 
 type RoleOption = { key: string; name: string; description: string | null };
@@ -311,7 +312,7 @@ function PhoneDialog({
         <form action={action} className="flex flex-col gap-5" noValidate>
           <input type="hidden" name="user_id" value={userId} />
           {err && !err.field ? <Alert tone="error">{err.error}</Alert> : null}
-          <Field label="Phone number" htmlFor="user-phone" error={err?.field === 'phone' ? err.error : null}>
+          <Field label="Phone number" htmlFor="user-phone" error={err?.field === 'phone' ? err.error : null} hint={PHONE_HINT}>
             <PhoneInput id="user-phone" name="phone" defaultValue={phone ?? ''} invalid={err?.field === 'phone'} />
           </Field>
           <Field

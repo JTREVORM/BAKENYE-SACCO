@@ -65,8 +65,8 @@ if ((await superAdminCount()) > 0) {
 
 let normalisedPhone = null;
 if (phone) {
-  const { data, error } = await admin.rpc('normalize_ug_phone', { p: phone });
-  if (error || !data) die('That is not a valid Ugandan mobile number (07XXXXXXXX or +2567XXXXXXXX).');
+  const { data, error } = await admin.rpc('normalize_phone', { p: phone });
+  if (error || !data) die('Enter a valid Uganda number or an international number starting with + and its country code.');
   normalisedPhone = data;
 }
 

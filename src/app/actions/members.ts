@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireUser } from '@/lib/auth';
 import { can } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
-import { normaliseUgandanMobile } from '@/lib/format';
+import { normalisePhone, PHONE_ERROR } from '@/lib/phone';
 import { provisionMemberLogin, staffAuthEmail, temporaryPassword } from '@/lib/accounts';
 import type { RegistrationResult, TemporaryPassword } from '@/types/access';
 
@@ -41,28 +41,28 @@ const optionalDate = z
   .transform((v) => (v ? v : null))
   .refine((v) => v === null || /^\d{4}-\d{2}-\d{2}$/.test(v), 'Enter a valid date.');
 
-const ugPhone = z
+const phoneNumber = z
   .string()
   .trim()
   .min(1, 'Enter the member’s phone number. It is how they sign in.')
   .transform((v, ctx) => {
-    const n = normaliseUgandanMobile(v);
+    const n = normalisePhone(v);
     if (!n) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Enter a valid Ugandan mobile number, e.g. 0772 123 456.' });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: PHONE_ERROR });
       return z.NEVER;
     }
     return n;
   });
 
-const optionalUgPhone = z
+const optionalPhoneNumber = z
   .string()
   .trim()
   .optional()
   .transform((v, ctx) => {
     if (!v) return null;
-    const n = normaliseUgandanMobile(v);
+    const n = normalisePhone(v);
     if (!n) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Enter a valid Ugandan mobile number.' });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: PHONE_ERROR });
       return z.NEVER;
     }
     return n;
@@ -76,7 +76,7 @@ const profileFields = {
     .min(3, 'Enter the member’s full name.')
     .max(120)
     .refine((v) => v.split(/\s+/).length >= 2, 'Enter both a first and a last name.'),
-  phone: ugPhone,
+  phone: phoneNumber,
   email: z
     .string()
     .trim()
@@ -92,7 +92,7 @@ const profileFields = {
   address: text(300),
   occupation: text(120),
   next_of_kin_name: text(120),
-  next_of_kin_phone: optionalUgPhone,
+  next_of_kin_phone: optionalPhoneNumber,
   next_of_kin_relation: text(60),
   joined_on: optionalDate,
 };
@@ -326,8 +326,8 @@ export async function setUserPhone(
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return firstIssue(parsed.error);
 
-  if (parsed.data.phone && !normaliseUgandanMobile(parsed.data.phone)) {
-    return { ok: false, error: 'Enter a valid Ugandan mobile number, e.g. 0772 123 456.', field: 'phone' };
+  if (parsed.data.phone && !normalisePhone(parsed.data.phone)) {
+    return { ok: false, error: PHONE_ERROR, field: 'phone' };
   }
 
   const supabase = await createClient();

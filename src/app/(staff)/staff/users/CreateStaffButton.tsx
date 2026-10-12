@@ -5,6 +5,7 @@ import { createStaffUser } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, PhoneInput, Select, SubmitButton } from '@/components/ui/form';
+import { PHONE_HINT } from '@/lib/phone';
 import { TemporaryPasswordCard } from '@/components/accounts/TemporaryPassword';
 import type { ActionResult } from '@/lib/errors';
 import type { TemporaryPassword } from '@/types/access';
@@ -80,7 +81,7 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
             <Field
               label="Phone number"
               htmlFor="staff-phone"
-              hint="They can sign in with this number."
+              hint={`They can sign in with this number. ${PHONE_HINT}`}
               error={err?.field === 'phone' ? err.error : null}
             >
               <PhoneInput id="staff-phone" name="phone" invalid={err?.field === 'phone'} />

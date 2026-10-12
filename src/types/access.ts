@@ -302,6 +302,9 @@ type FeePayload = {
 };
 
 export type AccessFunctions = {
+  normalize_phone: { Args: { p: string | null }; Returns: string | null };
+  valid_e164_phone: { Args: { p: string | null }; Returns: boolean };
+  format_phone: { Args: { p: string | null }; Returns: string | null };
   my_session: { Args: Record<PropertyKey, never>; Returns: SessionPayload | null };
   log_logout: { Args: Record<PropertyKey, never>; Returns: undefined };
   log_password_changed: { Args: Record<PropertyKey, never>; Returns: undefined };

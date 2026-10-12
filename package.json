@@ -13,11 +13,14 @@
     "db:reset": "supabase db reset",
     "db:exec": "node scripts/db-exec.mjs",
     "test:db": "node scripts/test-db.mjs",
+    "test:phone": "node --test scripts/phone.test.mjs",
+    "test:phone:db": "node scripts/phone-metadata-check.mjs",
     "bootstrap:admin": "node scripts/bootstrap-admin.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.45.4",
+    "libphonenumber-js": "1.13.15",
     "next": "^15.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

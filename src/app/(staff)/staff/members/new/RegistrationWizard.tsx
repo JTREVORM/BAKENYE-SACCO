@@ -16,7 +16,8 @@ import {
   SubmitButton,
   Textarea,
 } from '@/components/ui/form';
-import { formatDate, formatPhone, normaliseUgandanMobile, toISODate } from '@/lib/format';
+import { formatDate, formatPhone, toISODate } from '@/lib/format';
+import { normalisePhone, PHONE_HINT, PHONE_ERROR } from '@/lib/phone';
 import { formatUGX } from '@/lib/money';
 import { clsx } from '@/lib/clsx';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
@@ -160,7 +161,7 @@ export function RegistrationWizard({
       const name = v.full_name.trim().replace(/\s+/g, ' ');
       if (name.length < 3 || name.split(' ').length < 2) e.full_name = 'Enter the member’s full name - at least a first and a last name.';
       if (!v.phone.trim()) e.phone = 'Enter the member’s phone number. It is how they sign in.';
-      else if (!normaliseUgandanMobile(v.phone)) e.phone = 'Enter a valid Ugandan mobile number, e.g. 0772 123 456.';
+      else if (!normalisePhone(v.phone)) e.phone = PHONE_ERROR;
       if (v.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email.trim())) e.email = 'Enter a valid email address, or leave it blank.';
       if (rules.requireNationalId && !v.national_id.trim()) e.national_id = 'Enter the member’s National ID number.';
       if (rules.requireDateOfBirth && !v.date_of_birth) e.date_of_birth = 'Enter the member’s date of birth.';
@@ -177,7 +178,7 @@ export function RegistrationWizard({
         if (!v.next_of_kin_relation.trim()) e.next_of_kin_relation = 'Enter the relationship.';
         if (!v.next_of_kin_phone.trim()) e.next_of_kin_phone = 'Enter the next of kin’s phone number.';
       }
-      if (v.next_of_kin_phone.trim() && !normaliseUgandanMobile(v.next_of_kin_phone)) e.next_of_kin_phone = 'Enter a valid Ugandan mobile number.';
+      if (v.next_of_kin_phone.trim() && !normalisePhone(v.next_of_kin_phone)) e.next_of_kin_phone = PHONE_ERROR;
       if (v.joined_on && v.joined_on > toISODate()) e.joined_on = 'The membership date cannot be in the future.';
       if (v.allow_shared_phone && v.override_reason.trim().length < 5) e.override_reason = 'Give a reason for letting two members share this number.';
     }
@@ -261,7 +262,7 @@ export function RegistrationWizard({
               <Field label="Full name" htmlFor="full_name" required error={errors.full_name} hint="As written on the National ID.">
                 <Input id="full_name" value={v.full_name} onChange={(e) => set('full_name', e.target.value)} autoComplete="off" autoCapitalize="words" invalid={!!errors.full_name} placeholder="e.g. John Bakenye" />
               </Field>
-              <Field label="Phone number" htmlFor="phone" required error={errors.phone} hint="The member can sign in with this number or their member number, and a password they choose. 07XXXXXXXX or +2567XXXXXXXX.">
+              <Field label="Phone number" htmlFor="phone" required error={errors.phone} hint={`The member can sign in with this number or their member number. ${PHONE_HINT}`}>
                 <PhoneInput id="phone" value={v.phone} onChange={(e) => { set('phone', e.target.value); setPhoneClash(false); set('allow_shared_phone', false); }} invalid={!!errors.phone} />
               </Field>
 
@@ -320,7 +321,7 @@ export function RegistrationWizard({
                 <Field label="Relationship" htmlFor="next_of_kin_relation" required={rules.requireNextOfKin} error={errors.next_of_kin_relation}>
                   <Input id="next_of_kin_relation" maxLength={60} value={v.next_of_kin_relation} onChange={(e) => set('next_of_kin_relation', e.target.value)} placeholder="e.g. Spouse" invalid={!!errors.next_of_kin_relation} />
                 </Field>
-                <Field label="Phone number" htmlFor="next_of_kin_phone" required={rules.requireNextOfKin} error={errors.next_of_kin_phone}>
+                <Field label="Phone number" htmlFor="next_of_kin_phone" required={rules.requireNextOfKin} error={errors.next_of_kin_phone} hint={PHONE_HINT}>
                   <PhoneInput id="next_of_kin_phone" value={v.next_of_kin_phone} onChange={(e) => set('next_of_kin_phone', e.target.value)} invalid={!!errors.next_of_kin_phone} />
                 </Field>
               </div>
@@ -493,7 +494,7 @@ export function RegistrationWizard({
             <Section title="Check before registering" icon="fact_check">
               <dl className="divide-outline-variant/70 divide-y">
                 <Row label="Full name" value={v.full_name.trim().replace(/\s+/g, ' ')} onEdit={() => setStep(0)} />
-                <Row label="Phone" value={formatPhone(normaliseUgandanMobile(v.phone) ?? v.phone)} onEdit={() => setStep(0)} />
+                <Row label="Phone" value={formatPhone(normalisePhone(v.phone) ?? v.phone)} onEdit={() => setStep(0)} />
                 {v.email ? <Row label="Email" value={v.email} onEdit={() => setStep(0)} /> : null}
                 {v.national_id ? <Row label="National ID" value={v.national_id.toUpperCase()} onEdit={() => setStep(0)} /> : null}
                 <Row label="Membership date" value={formatDate(v.joined_on)} onEdit={() => setStep(0)} />

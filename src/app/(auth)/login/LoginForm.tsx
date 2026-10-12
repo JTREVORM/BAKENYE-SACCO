@@ -128,6 +128,7 @@ export function LoginForm({
         emphasis
         required
         error={error?.field === 'identifier' ? error.error : null}
+        hint="For international phone numbers, include + and the country code."
       >
         <IconWell icon="person">
           <Input

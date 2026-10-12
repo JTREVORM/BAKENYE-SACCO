@@ -286,31 +286,4 @@ export function initials(name: string | null | undefined): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-/** Ugandan numbers display as 0772 123 456 but are stored as +256772123456. */
-export function formatPhone(phone: string | null | undefined): string {
-  if (!phone) return '—';
-  const digits = phone.replace(/\D/g, '');
-  const local = digits.startsWith('256') ? `0${digits.slice(3)}` : digits;
-  if (local.length === 10) return `${local.slice(0, 4)} ${local.slice(4, 7)} ${local.slice(7)}`;
-  return phone;
-}
-
-/** Normalise a typed phone number to E.164 for storage. */
-export function normalisePhone(phone: string): string {
-  return normaliseUgandanMobile(phone) ?? `+${phone.replace(/\D/g, '')}`;
-}
-
-/**
- * A Ugandan mobile number in its one stored form, +2567XXXXXXXX, or null if
- * it is not one. Accepts 07XXXXXXXX, 7XXXXXXXX, 2567XXXXXXXX, +2567XXXXXXXX and
- * 002567XXXXXXXX with any spaces or dashes - the same rules as the database's
- * `normalize_ug_phone()`, which has the final say.
- */
-export function normaliseUgandanMobile(phone: string | null | undefined): string | null {
-  let d = (phone ?? '').replace(/\D/g, '');
-  if (!d) return null;
-  if (d.startsWith('00256')) d = d.slice(2);
-  if (d.startsWith('256')) d = d.slice(3);
-  else if (d.startsWith('0')) d = d.slice(1);
-  return /^7\d{8}$/.test(d) ? `+256${d}` : null;
-}
+export { formatPhone, normalisePhone, normaliseUgandanMobile } from './phone';

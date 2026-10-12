@@ -408,7 +408,7 @@ export function MoneyInput({
 }
 
 /* ---------------------------------------------------------------------------
- * PhoneInput — numeric keypad, Ugandan format hint.
+ * PhoneInput — telephone keypad supporting local and international numbers.
  * ------------------------------------------------------------------------- */
 export function PhoneInput({
   className,

@@ -7,6 +7,7 @@ import { Alert } from '@/components/ui/states';
 import { Icon } from '@/components/ui/primitives';
 import { Field, Input, PhoneInput, Select, StickyActions, SubmitButton, Textarea } from '@/components/ui/form';
 import { formatPhone, toISODate } from '@/lib/format';
+import { PHONE_HINT } from '@/lib/phone';
 import type { ActionResult } from '@/lib/errors';
 import type { MemberFinancialsRow } from '@/types/db';
 
@@ -74,7 +75,7 @@ export function EditMemberForm({
             htmlFor="phone"
             required
             error={fieldError('phone')}
-            hint="The member signs in with this number. A change takes effect at once; the old number stops working."
+            hint={`The member signs in with this number. A change takes effect at once; the old number stops working. ${PHONE_HINT}`}
           >
             <PhoneInput id="phone" name="phone" defaultValue={formatPhone(member.phone)} invalid={!!fieldError('phone')} />
           </Field>
@@ -127,7 +128,7 @@ export function EditMemberForm({
             <Field label="Relationship" htmlFor="next_of_kin_relation">
               <Input id="next_of_kin_relation" name="next_of_kin_relation" maxLength={60} defaultValue={member.next_of_kin_relation ?? ''} />
             </Field>
-            <Field label="Phone number" htmlFor="next_of_kin_phone" error={fieldError('next_of_kin_phone')}>
+            <Field label="Phone number" htmlFor="next_of_kin_phone" error={fieldError('next_of_kin_phone')} hint={PHONE_HINT}>
               <PhoneInput id="next_of_kin_phone" name="next_of_kin_phone" defaultValue={member.next_of_kin_phone ? formatPhone(member.next_of_kin_phone) : ''} />
             </Field>
           </div>

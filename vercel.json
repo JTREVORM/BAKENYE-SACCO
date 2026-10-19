@@ -3,7 +3,8 @@
   "git": {
     "deploymentEnabled": {
       "feat/login-page-redesign": false,
-      "main": false
+      "main": false,
+      "claude/cool-mendel-3ey330": false
     }
   }
 }

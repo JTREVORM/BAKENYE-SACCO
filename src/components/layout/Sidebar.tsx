@@ -72,7 +72,7 @@ export function Sidebar({
         className={clsx('space-y-0.5 py-5', tight ? 'px-2.5' : 'px-3')}
       >
         {items.map((item) => {
-          const active = isActive(item.href);
+          const active = isActive(item.href) || (pathname === '/staff' && item.label === 'Dashboard');
           const children = item.children ?? [];
 
           return (

@@ -11,7 +11,6 @@ import {
   Avatar,
   Panel,
   KpiCard,
-  KpiCardFeature,
   MiniStat,
   QuickAction,
   ViewAllLink,
@@ -64,22 +63,16 @@ export default async function StaffDashboard({
   const seesFinance = can(user, 'finance.view');
 
   return (
-    <div className="space-y-gutter">
+    <div data-admin-dashboard data-overview-dashboard className="space-y-gutter">
       <Hero saccoName={brand.legalName} roleName={user.roleName} />
 
       <Suspense fallback={<StatGridSkeleton />}>
         <Metrics />
       </Suspense>
 
-      {seesFinance ? (
-        <Suspense fallback={<StatGridSkeleton />}>
-          <FundsStrip />
-        </Suspense>
-      ) : null}
-
       {/* The register and the month's shape, side by side — the two things a
           manager opens this page to read. */}
-      <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
+      <div data-admin-panels className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
         <div className="min-w-0 xl:col-span-2">
           <Suspense fallback={<PanelSkeleton height="h-80" />}>
             <RecentTransactions />
@@ -88,11 +81,21 @@ export default async function StaffDashboard({
         {seesFinance ? (
           <div className="min-w-0">
             <Suspense fallback={<PanelSkeleton height="h-80" />}>
-              <FinancialActivity months={flowMonths} baseHref="/staff" />
+              <FinancialActivity compact months={flowMonths} baseHref="/staff" />
             </Suspense>
           </div>
         ) : null}
       </div>
+
+      {seesFinance ? (
+        <Suspense fallback={<StatGridSkeleton />}>
+          <FundsStrip fullAmounts />
+        </Suspense>
+      ) : null}
+
+      <Suspense fallback={<StatGridSkeleton />}>
+        <ContextFigures />
+      </Suspense>
 
       <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
         <div className="min-w-0 space-y-gutter xl:col-span-2">
@@ -210,8 +213,7 @@ async function Metrics() {
   }
 
   return (
-    <>
-      <section className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
+    <section data-overview-metrics aria-label="SACCO overview" className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
         <KpiCard
           icon="group"
           tone="primary"
@@ -226,10 +228,9 @@ async function Metrics() {
           href="/staff/members"
         />
 
-        {/* Share capital is the one high-contrast tile — the single figure the
-            board asks for first. */}
-        <KpiCardFeature
+        <KpiCard
           icon="pie_chart"
+          tone="primary"
           label="Share Capital"
           value={<Money value={m.share_capital} compact />}
           footnote="Member equity held"
@@ -258,8 +259,16 @@ async function Metrics() {
           }`}
           href="/staff/loans"
         />
-      </section>
+    </section>
+  );
+}
 
+/** Supporting balances and actionable alerts remain available below the overview. */
+async function ContextFigures() {
+  const m = await getDashboardMetrics();
+  if (!m) return null;
+  return (
+    <>
       {/* Secondary figures. Grouped in one strip rather than four more cards:
           they are context for the row above, not headline numbers. */}
       <section className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-2xl bg-surface p-5 shadow-neu md:grid-cols-4">

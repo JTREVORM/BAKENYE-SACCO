@@ -1,0 +1,107 @@
+/* Reuse the approved chrome and surfaces without changing the Super Admin CSS. */
+.overview {
+  composes: dashboard from './SuperAdminDashboard.module.css';
+}
+
+.overview :global([data-overview-dashboard] > [data-hero] > img) {
+  width: 100% !important;
+  object-position: center 44%;
+  filter: brightness(1.08);
+}
+.overview :global([data-overview-dashboard] > [data-hero] > div:nth-child(2)) {
+  background: linear-gradient(90deg, #08264f 0%, #09254ce8 28%, #0a254c55 58%, #0a19352b);
+}
+.overview :global([data-overview-dashboard] > [data-hero] > div:last-child) {
+  min-height: 240px;
+  padding: 17px 38px;
+  align-items: center;
+}
+.overview :global([data-overview-dashboard] > [data-hero] h1) {
+  max-width: 650px;
+  font-size: 36px;
+  line-height: 1.18;
+  margin-top: 9px;
+}
+.overview :global([data-overview-dashboard] > [data-hero] p:first-child) {
+  font-size: 14px;
+  letter-spacing: .08em;
+}
+.overview :global([data-overview-dashboard] > [data-hero] p:last-of-type) {
+  max-width: 470px;
+  margin-top: 10px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: #d8e2f4;
+}
+.overview :global([data-overview-dashboard] > [data-hero] .bg-gold-gradient) {
+  width: 54px;
+  height: 4px;
+  margin-top: 9px;
+}
+.overview :global([data-overview-dashboard] > [data-hero] dl) {
+  width: 390px;
+  min-width: 0;
+  border-radius: 20px;
+  padding: 8px 22px;
+  background: linear-gradient(125deg, #7b8da65c, #24314eeb);
+  border-color: #d2ddf62e;
+  box-shadow: inset 0 1px 2px #ffffff20, 0 6px 18px #0002;
+}
+.overview :global([data-overview-dashboard] > [data-hero] dl > div + div) {
+  margin-top: 0;
+  border-top: 1px solid #ffffff12;
+}
+.overview :global([data-overview-dashboard] > [data-hero] dl a) {
+  background: none;
+  border: none;
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 6px 8px;
+  backdrop-filter: none;
+}
+.overview :global([data-overview-dashboard] > [data-hero] dl a:hover) { background: #ffffff12; }
+.overview :global([data-overview-dashboard] > [data-hero] dl dd) { font-size: 20px; }
+.overview :global([data-overview-dashboard] > [data-hero] dl dt) { font-size: 13px; color: #d2d9e7; }
+.overview :global([data-overview-dashboard] > [data-hero] dl a > span:first-child) { width: 46px; height: 46px; border-radius: 50%; }
+
+.overview :global([data-overview-metrics] [data-kpi]) { min-height: 116px; padding: 16px 18px; }
+.overview :global([data-overview-metrics] [data-kpi] > div:first-child) { gap: 20px; }
+.overview :global([data-overview-metrics] [data-kpi] > div:first-child > span:first-child) { width: 48px; height: 48px; }
+.overview :global([data-overview-metrics] [data-kpi]:nth-child(2) > div:first-child > span:first-child) { background: linear-gradient(135deg, #2168d9, #0045b1); color: white; box-shadow: 0 3px 10px #2565cc35; }
+.overview :global([data-overview-metrics] [data-kpi] p .material-symbols-outlined) { color: #0eaa65; }
+.overview :global([data-overview-metrics] [data-kpi] > div:last-child) { margin-top: -18px; padding-left: 72px; }
+.overview :global([data-overview-metrics] [data-kpi] > div:last-child > div > div) { font-size: 28px; line-height: 34px; }
+.overview :global([data-overview-metrics] [data-kpi]:first-child > div:last-child > div > div) { font-size: 30px; }
+.overview :global([data-overview-metrics] [data-kpi] .tabular > span:first-child) { font-size: 1em; font-weight: 700; opacity: 1; }
+.overview :global([data-overview-metrics] [data-kpi] > div:last-child > span[aria-hidden]) { position: absolute; right: 18px; bottom: 16px; width: 64px; height: 42px; opacity: .5; }
+.overview :global([data-overview-metrics] [data-kpi] > div:last-child:has(> span[aria-hidden]) > div) { padding-right: 52px; }
+.overview :global([data-overview-dashboard] > [aria-label='SACCO funds'] [data-kpi]) { min-height: 115px; padding-top: 16px; padding-bottom: 16px; }
+.overview :global([data-overview-dashboard] > [data-admin-panels] tbody > tr > td) { padding-top: 5px; padding-bottom: 5px; font-size: 12.5px; line-height: 18px; }
+.overview :global([data-overview-dashboard] > [data-admin-panels] thead > tr > th) { padding-top: 6px; padding-bottom: 6px; }
+.overview :global([data-overview-dashboard] > [data-admin-panels] td:last-child a) { height: 20px; }
+
+@media (min-width: 1500px) {
+  .overview :global(main .md\:p-container-margin-desktop) { padding-top: 10px; padding-left: 22px; }
+  .overview :global([data-overview-dashboard] > [data-overview-metrics]) { gap: 20px; }
+  .overview :global([data-overview-dashboard] > [data-admin-panels] > div > section) { min-height: 232px; }
+  .overview :global([data-overview-dashboard] > [data-admin-panels] > div:last-child > section > div) { padding-top: 8px; padding-bottom: 12px; }
+  .overview :global([data-overview-dashboard] > [data-admin-panels] figure svg) { height: 130px; max-height: 130px; }
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .overview :global([data-overview-dashboard] > [data-hero] > div:last-child) { align-items: flex-start; flex-direction: column; gap: 20px; }
+  .overview :global([data-overview-dashboard] > [data-hero] dl) { width: 100%; }
+}
+@media (max-width: 767px) {
+  .overview :global([data-overview-dashboard] > [data-hero] > div:last-child) { padding: 22px; align-items: stretch; gap: 20px; }
+  .overview :global([data-overview-dashboard] > [data-hero] h1) { font-size: 25px; }
+  .overview :global([data-overview-dashboard] > [data-hero] p:last-of-type) { font-size: 14px; }
+  .overview :global([data-overview-dashboard] > [data-hero] dl) { width: 100%; padding: 8px; }
+  .overview :global([data-overview-dashboard] > [data-hero] dl dd) { font-size: 17px; }
+  .overview :global([data-overview-metrics] [data-kpi] > div:first-child) { gap: 8px; }
+  .overview :global([data-overview-metrics] [data-kpi] > div:last-child) { margin-top: 8px; padding-left: 0; }
+  .overview :global([data-overview-metrics] [data-kpi] > div:last-child > div > div) { font-size: clamp(18px, 5.6vw, 22px); line-height: 28px; }
+  .overview :global([data-overview-metrics] [data-kpi]:first-child > div:last-child > div > div) { font-size: 26px; }
+  .overview :global([data-overview-metrics] [data-kpi] .tabular.flex) { flex-wrap: wrap; }
+  .overview :global([data-overview-metrics] [data-kpi] > div:last-child > span[aria-hidden]) { display: none; }
+  .overview :global([data-overview-metrics] [data-kpi] > div:last-child:has(> span[aria-hidden]) > div) { padding-right: 0; }
+}

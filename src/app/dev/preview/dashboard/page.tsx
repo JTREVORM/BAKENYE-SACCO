@@ -10,6 +10,7 @@ import { STAFF_NAV } from '@/lib/rbac';
 import { FIXTURE_MONTHLY_FLOW, FIXTURE_TRANSACTIONS, FIXTURE_TREND } from '@/lib/fixtures';
 import { formatUGX } from '@/lib/money';
 import dashboardStyles from '@/components/staff/SuperAdminDashboard.module.css';
+import overviewStyles from '@/components/staff/OverviewDashboard.module.css';
 
 export const metadata: Metadata = { title: 'Dashboard preview', robots: { index: false } };
 
@@ -41,14 +42,53 @@ export default async function DashboardPreview({
   const savings = FIXTURE_TREND.map((t) => t.savings);
   const shares = FIXTURE_TREND.map((t) => t.shares);
 
+  const funds = (
+    <section
+      aria-label="SACCO funds"
+      className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4"
+    >
+      <KpiCardFeature
+        icon="wallet"
+        label="Total SACCO funds"
+        value={<Money value={6730000} />}
+        footnote="As at 19 Oct 2026"
+        href="/staff/finance"
+      />
+      <KpiCard
+        icon="smartphone"
+        tone="accent"
+        label="Cash at Merchant"
+        value={<Money value={485000} />}
+        footnote="As at 19 Oct 2026"
+        href="/staff/finance/merchant"
+      />
+      <KpiCard
+        icon="account_balance"
+        tone="primary"
+        label="Cash at Bank"
+        value={<Money value={4145000} />}
+        footnote="As at 19 Oct 2026"
+        href="/staff/finance/bank"
+      />
+      <KpiCard
+        icon="payments"
+        tone="success"
+        label="Cash at Hand"
+        value={<Money value={2100000} />}
+        footnote="As at 19 Oct 2026"
+        href="/staff/finance/cash"
+      />
+    </section>
+  );
+
   return (
-    <div className={admin ? dashboardStyles.dashboard : undefined}>
+    <div className={admin ? dashboardStyles.dashboard : overviewStyles.overview}>
     <StaffShell
       user={{ fullName: 'MWESIGWA TREVOR JOSEPH', roleName: 'Super Admin', photoUrl: null }}
-      nav={admin ? STAFF_NAV.map(item => item.label === 'Dashboard' ? { ...item, href: '/dev/preview/dashboard' } : item) : STAFF_NAV}
+      nav={STAFF_NAV.map(item => item.label === 'Dashboard' ? { ...item, href: '/dev/preview/dashboard' } : item)}
       unreadCount={3}
     >
-      <div data-admin-dashboard={admin || undefined} className="space-y-gutter">
+      <div data-admin-dashboard data-overview-dashboard={!admin || undefined} className="space-y-gutter">
         {admin ? (
           <WelcomeHero
             roleName="Super Admin"
@@ -115,7 +155,7 @@ export default async function DashboardPreview({
             />
           </section>
         ) : (
-          <section className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
+          <section data-overview-metrics aria-label="SACCO overview" className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
             <KpiCard
               icon="group"
               tone="primary"
@@ -125,8 +165,9 @@ export default async function DashboardPreview({
               trend="up"
               href="/staff/members"
             />
-            <KpiCardFeature
+            <KpiCard
               icon="pie_chart"
+              tone="primary"
               label="Share Capital"
               value={<Money value={4300000} compact />}
               footnote="Member equity held"
@@ -154,56 +195,22 @@ export default async function DashboardPreview({
           </section>
         )}
 
-        <section
-          aria-label="SACCO funds"
-          className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4"
-        >
-          <KpiCardFeature
-            icon="wallet"
-            label="Total SACCO funds"
-            value={<Money value={6730000} compact={!admin} />}
-            footnote="As at 19 Oct 2026"
-            href="/staff/finance"
-          />
-          <KpiCard
-            icon="smartphone"
-            tone="accent"
-            label="Cash at Merchant"
-            value={<Money value={485000} compact={!admin} />}
-            footnote="As at 19 Oct 2026"
-            href="/staff/finance/merchant"
-          />
-          <KpiCard
-            icon="account_balance"
-            tone="primary"
-            label="Cash at Bank"
-            value={<Money value={4145000} compact={!admin} />}
-            footnote="As at 19 Oct 2026"
-            href="/staff/finance/bank"
-          />
-          <KpiCard
-            icon="payments"
-            tone="success"
-            label="Cash at Hand"
-            value={<Money value={2100000} compact={!admin} />}
-            footnote="As at 19 Oct 2026"
-            href="/staff/finance/cash"
-          />
-        </section>
+        {admin ? funds : null}
 
-        <div data-admin-panels={admin || undefined} className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
+        <div data-admin-panels className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
           <div className="min-w-0 xl:col-span-2">
             <TransactionsPanel rows={FIXTURE_TRANSACTIONS} />
           </div>
           <div className="min-w-0">
             <ActivityPanel
-              compact={admin}
+              compact
               series={FIXTURE_MONTHLY_FLOW}
               months={6}
               baseHref="/dev/preview/dashboard"
             />
           </div>
         </div>
+        {!admin ? funds : null}
       </div>
     </StaffShell>
     </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import dashboardStyles from '@/components/staff/SuperAdminDashboard.module.css';
+import overviewStyles from '@/components/staff/OverviewDashboard.module.css';
 import { Sidebar } from './Sidebar';
 import { ScrollArea } from '@/components/ui/scroll';
 import { clsx } from '@/lib/clsx';
@@ -43,6 +44,7 @@ export function StaffShell({
     <div className={clsx(
       'flex h-[100dvh] overflow-hidden bg-background text-on-background',
       superAdminDashboard && dashboardStyles.dashboard,
+      pathname === '/staff' && overviewStyles.overview,
     )}>
       <Sidebar
         items={nav}

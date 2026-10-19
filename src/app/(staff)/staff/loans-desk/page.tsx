@@ -41,7 +41,7 @@ export default async function LoansDesk() {
   ].filter(Boolean) as { href: string; icon: string; label: string; tone: 'primary' | 'accent' | 'neutral' }[];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-gutter">
       <DashboardHeader roleName={user.roleName} fullName={user.fullName} subtitle="Applications, repayments and arrears" />
 
       <Suspense fallback={<StatGridSkeleton />}>

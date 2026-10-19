@@ -55,21 +55,26 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
   /* A fixed viewBox scaled by CSS: crisp at 320px and at 1920px, with no
    * resize listener and no layout thrash. `preserveAspectRatio` is left at the
    * default so the bars keep their proportions instead of being stretched. */
-  const W = 320;
-  const H = 150;
-  const PAD_L = 44;
-  const PAD_B = 20;
+  // The panel this sits in is two-thirds of a dashboard grid — wide and not
+  // very tall. A 320x150 viewBox letterboxes in it, leaving the chart marooned
+  // in the middle of a white field; these proportions fill the panel.
+  const W = 600;
+  const H = 190;
+  const PAD_L = 52;
+  const PAD_B = 24;
   const plotW = W - PAD_L;
   const plotH = H - PAD_B;
 
   const slot = plotW / series.length;
-  const barW = Math.min(34, slot * 0.54);
+  const barW = Math.min(54, slot * 0.5);
 
   return (
     <figure className="w-full">
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="h-52 w-full overflow-visible"
+        /* Width-driven: the height follows the viewBox's ratio, so the chart
+           fills the panel instead of being letterboxed in the middle of it. */
+        className="h-auto w-full overflow-visible"
         role="img"
         aria-label={`Collections over the last ${series.length} months, peaking at ${formatUGX(peak)}`}
       >
@@ -83,16 +88,16 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
                 x2={W}
                 y1={y}
                 y2={y}
-                stroke="#dbe1ec"
+                stroke="#e3e9f3"
                 strokeWidth="1"
                 strokeDasharray={i === 0 ? undefined : '3 3'}
               />
               <text
-                x={PAD_L - 8}
-                y={y + 3.5}
+                x={PAD_L - 10}
+                y={y + 4}
                 textAnchor="end"
-                fontSize="9"
-                fill="#5b647a"
+                fontSize="11"
+                fill="#5a6782"
                 fontWeight="600"
               >
                 {t === 0 ? '0' : compactAxis(t)}
@@ -146,15 +151,15 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
               {/* An empty month still gets a baseline tick, so a gap reads as
                   "nothing collected" rather than "chart is broken". */}
               {s.total === 0 ? (
-                <rect x={x} y={plotH - 2} width={barW} height={2} fill="#dbe1ec" rx={1} />
+                <rect x={x} y={plotH - 2} width={barW} height={2} fill="#d9e1ee" rx={1} />
               ) : null}
 
               <text
                 x={x + barW / 2}
-                y={H - 6}
+                y={H - 7}
                 textAnchor="middle"
-                fontSize="9"
-                fill="#5b647a"
+                fontSize="11"
+                fill="#5a6782"
                 fontWeight="600"
               >
                 {s.label}

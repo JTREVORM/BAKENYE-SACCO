@@ -110,7 +110,20 @@ function useScrollEdges<T extends HTMLElement>(axis: Axis) {
     });
     mutate.observe(el, { childList: true, subtree: true });
 
+    // One more measurement once the webfont has swapped in. Until then the
+    // table is laid out in the fallback face, which is wider: a table that fits
+    // perfectly in Inter measures as overflowing in the fallback, and the arrow
+    // that puts over the header row never goes away, because the element's own
+    // box never changes size afterwards and nothing else asks again.
+    let cancelled = false;
+    if (typeof document !== 'undefined' && document.fonts) {
+      document.fonts.ready.then(() => {
+        if (!cancelled) schedule();
+      });
+    }
+
     return () => {
+      cancelled = true;
       if (frame !== null) cancelAnimationFrame(frame);
       el.removeEventListener('scroll', schedule);
       resize.disconnect();

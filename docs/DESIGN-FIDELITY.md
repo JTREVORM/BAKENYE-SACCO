@@ -113,3 +113,75 @@ Now: Tailwind compiles at build time from the identical config, Inter is self-ho
 ([`src/lib/icons.ts`](../src/lib/icons.ts)) — about 15 KB instead of ~350 KB.
 
 Same pixels. Considerably less to download.
+
+---
+
+## The 2026 dashboard redesign
+
+Two approved reference images — the Super Admin overview and the administration dashboard — replace
+the Stitch dashboards as the visual source of truth for every role's landing screen. They are a
+specification, not inspiration: the navy-and-gold rail, the scenic hero banner, the stat tiles with
+their small bar charts, the Recent Transactions register and the Monthly Financial Activity panel
+are reproduced as drawn.
+
+### What changed, and where
+
+| Piece | Where it lives |
+| --- | --- |
+| Surfaces, elevation, gold gradient | [`tailwind.config.ts`](../tailwind.config.ts), [`globals.css`](../src/app/globals.css) |
+| Navigation rail (staff + member) | [`Sidebar.tsx`](../src/components/layout/Sidebar.tsx), [`MemberDesktopRail.tsx`](../src/components/layout/MemberDesktopRail.tsx), [`RailBackdrop.tsx`](../src/components/layout/RailBackdrop.tsx) |
+| Command bar | [`StaffShell.tsx`](../src/components/layout/StaffShell.tsx) |
+| Hero banners | [`Hero.tsx`](../src/components/layout/Hero.tsx) |
+| Stat tiles, panels, tables | [`primitives.tsx`](../src/components/ui/primitives.tsx) |
+| Recent Transactions | [`RecentTransactions.tsx`](../src/components/staff/RecentTransactions.tsx) |
+| Monthly Financial Activity | [`FinancialActivity.tsx`](../src/components/staff/FinancialActivity.tsx) |
+
+The token *names* did not change, so the ~270 files that reference `shadow-neu`, `bg-surface` and
+their neighbours were not touched. What changed is what those tokens mean: `surface` is now white
+on a cool grey page, and every raised shadow carries a hairline ring that draws the card's edge
+without adding a pixel to its box.
+
+### Where the figures come from
+
+Nothing on a dashboard is decoration pretending to be data.
+
+**The small bar charts on the stat tiles are measured series.** `KpiCard` draws one only when the
+caller passes `series`, and the only callers that do are the ones with a real history behind the
+figure: savings and share purchases, from `collections_trend()`. Active members has no series,
+because nothing counts members month by month. Active loans has none either — the figure is a
+balance, and a chart of repayments under it would be a chart of something else.
+
+**The funds cards carry no growth percentage.** The references show "+12% from last month" under
+each balance. `treasury_summary()` returns a position, not a comparison, so the caption is the date
+the balance was computed at, which is a fact the function does return.
+
+**Monthly Financial Activity is `treasury_monthly_flow()`** — money in, money out and the net
+between them, the same function the finance screens chart, with internal transfers excluded. It is
+labelled as what it is rather than as "Income / Expenses", which is the cashbook's narrower
+question.
+
+**The "6 months" control is a real control.** It is a `<details>` disclosure holding two links that
+set `?flow=`, not a decorative dropdown.
+
+### Layout by container, not by viewport
+
+The Recent Transactions panel is two-thirds of a dashboard grid on one screen and the whole width
+of a phone on another, so the viewport says very little about how much room its columns have — at
+1280px, with the grid in three columns, there is *less* room for it than at 1100px. It uses a
+container query (`@[45rem]`) to choose between the table and the card list, and another
+(`@[64rem]`) to decide whether the description column fits.
+
+### One fix the redesign surfaced
+
+A scroller measured in the fallback font before Inter swapped in, and nothing asked it again
+afterwards, because the element's own box never changed size. On a table that fitted exactly, the
+"scroll right" arrow sat over the header row forever. `useScrollEdges` now re-measures on
+`document.fonts.ready`.
+
+### Checking it
+
+`/dev/preview/dashboard` renders the real chrome and the real dashboard components against
+[`fixtures.ts`](../src/lib/fixtures.ts) — no database, no sign-in — and
+[`scripts/preview-shots.mjs`](../scripts/preview-shots.mjs) screenshots it at 320, 390, 834, 1440
+and 1920, failing on any width that scrolls sideways. `?variant=admin` renders the administration
+banner. Both 404 outside development.

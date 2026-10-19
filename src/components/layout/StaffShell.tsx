@@ -31,19 +31,43 @@ export function StaffShell({
   children: React.ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  // Desktop only. The rail collapses to an icon column so a wide register —
+  // the ledger, the audit log — can have the 190px back. State lives on the
+  // layout, so it survives moving between pages.
+  const [railCollapsed, setRailCollapsed] = useState(false);
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-background text-on-background">
-      <Sidebar items={nav} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <Sidebar
+        items={nav}
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        collapsed={railCollapsed}
+      />
 
       <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-        <header data-app-header className="bg-surface z-30 shrink-0 shadow-neu-sm">
-          <div className="mx-auto flex h-16 w-full max-w-content items-center gap-2 px-container-margin-mobile md:h-[72px] md:gap-4 md:px-container-margin-desktop">
+        <header
+          data-app-header
+          className="z-30 shrink-0 border-b border-outline-variant bg-surface"
+        >
+          <div className="mx-auto flex h-16 w-full max-w-content items-center gap-2 px-container-margin-mobile md:h-[76px] md:gap-4 md:px-container-margin-desktop">
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
-              className="-ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-shadow hover:bg-surface hover:shadow-neu-sm active:shadow-neu-pressed md:hidden"
+              className="-ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface md:hidden"
+            >
+              <Icon name="menu" size={22} />
+            </button>
+
+            {/* The same control on desktop collapses the rail rather than
+                opening a drawer there is no room for. */}
+            <button
+              type="button"
+              onClick={() => setRailCollapsed((v) => !v)}
+              aria-label={railCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+              aria-pressed={railCollapsed}
+              className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface md:flex"
             >
               <Icon name="menu" size={22} />
             </button>
@@ -66,10 +90,10 @@ export function StaffShell({
               <GlobalSearch />
             </div>
 
-            <div className="ml-auto flex shrink-0 items-center gap-1 md:gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-1 md:gap-2.5">
               <Link
                 href="/staff/savings/record"
-                className="hidden items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-button-text text-white shadow-neu-dark-sm transition-colors hover:bg-ink-soft lg:inline-flex"
+                className="hidden items-center gap-2 rounded-full bg-ink px-5 py-3 text-button-text text-white shadow-neu-dark transition-colors hover:bg-ink-soft lg:inline-flex"
               >
                 <Icon name="add" size={18} />
                 Record saving
@@ -80,7 +104,7 @@ export function StaffShell({
                 aria-label={
                   unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
                 }
-                className="relative flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-shadow hover:bg-surface hover:shadow-neu-sm active:shadow-neu-pressed"
+                className="relative flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
               >
                 <Icon name="notifications" size={22} filled={false} />
                 {unreadCount > 0 ? (
@@ -147,16 +171,16 @@ function AccountMenu({
         aria-expanded={open}
         aria-haspopup="menu"
         className={clsx(
-          'flex items-center gap-2.5 rounded-full p-1.5 transition-shadow md:pr-3',
-          open ? 'bg-surface shadow-neu-pressed' : 'hover:bg-surface hover:shadow-neu-sm',
+          'flex items-center gap-2.5 rounded-full p-1 transition-colors md:pr-3',
+          open ? 'bg-surface-container-high' : 'hover:bg-surface-container-high',
         )}
       >
-        <Avatar name={user.fullName} src={user.photoUrl} size={36} />
-        <span className="hidden text-left lg:block">
-          <span className="block text-button-text leading-tight text-on-surface">
+        <Avatar name={user.fullName} src={user.photoUrl} size={40} />
+        <span className="hidden max-w-[260px] text-left lg:block xl:max-w-[320px]">
+          <span className="block truncate text-button-text font-bold uppercase leading-tight tracking-[0.01em] text-on-surface">
             {user.fullName}
           </span>
-          <span className="block text-label-md font-normal text-on-surface-variant">
+          <span className="block truncate text-label-md font-normal text-on-surface-variant">
             {user.roleName}
           </span>
         </span>
@@ -243,7 +267,7 @@ function GlobalSearch() {
       <Icon
         name="search"
         size={19}
-        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant"
+        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
         filled={false}
       />
       <input
@@ -252,7 +276,7 @@ function GlobalSearch() {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search members by name, ID, or phone…"
-        className="h-11 w-full rounded-full border-0 bg-surface-container py-2 pl-11 pr-4 text-body-md text-on-surface shadow-neu-inset outline-none transition-shadow placeholder:text-on-surface-variant/80 focus:ring-2 focus:ring-primary/40"
+        className="h-12 w-full rounded-full border-0 bg-surface-container py-2 pl-12 pr-4 text-body-md text-on-surface shadow-neu-inset-sm outline-none transition-shadow placeholder:text-on-surface-variant/80 focus:ring-2 focus:ring-primary/40"
       />
     </form>
   );

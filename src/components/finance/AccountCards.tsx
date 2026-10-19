@@ -38,7 +38,7 @@ export function AccountTypeCard({
 
       <div className="flex items-start justify-between gap-3 pl-1.5">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface text-on-surface shadow-neu-sm">
+          <span className="bg-primary-fixed text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full">
             <Icon name={meta.icon} size={22} />
           </span>
           <div className="min-w-0">
@@ -65,7 +65,7 @@ export function AccountTypeCard({
           {setupHref ? (
             <Link
               href={setupHref}
-              className="inline-flex h-touch-target-min items-center gap-2 self-start rounded-full bg-surface px-4 text-button-text font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card"
+              className="bg-primary-fixed text-primary hover:bg-primary hover:text-on-primary inline-flex h-touch-target-min items-center gap-2 self-start rounded-full px-4 text-button-text font-semibold transition-colors"
             >
               <Icon name="add" size={18} />
               Set up a {meta.noun}
@@ -139,7 +139,7 @@ export function TotalFundsCard({
         className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10 blur-2xl"
       />
       <div className="relative z-10 flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 ring-1 ring-inset ring-white/20">
           <Icon name="wallet" size={22} />
         </span>
         <div>

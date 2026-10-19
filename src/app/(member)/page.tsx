@@ -8,6 +8,7 @@ import {
   getUnreadCount,
 } from '@/lib/queries';
 import { MemberShell } from '@/components/layout/MemberShell';
+import { MemberHero } from '@/components/layout/Hero';
 import { Icon, Money, SectionHeader } from '@/components/ui/primitives';
 import { MemberStatusBadge } from '@/components/ui/status';
 import { getMemberFees } from '@/lib/access-queries';
@@ -23,11 +24,11 @@ export const metadata: Metadata = { title: 'Home' };
 /**
  * Member dashboard.
  *
- * This is `member_dashboard_mobile/code.html` with the hardcoded figures
- * replaced by the signed-in member's own. Every class, every card, every
- * gradient blob is the one Stitch exported — the greeting, the royal-blue
- * savings hero, the two-up Shares / Loan Balance grid, the Next Payment strip,
- * the 3x2 quick-action grid, and the recent-transaction stack.
+ * The Stitch composition — savings hero, two-up Shares / Loan Balance, the
+ * saved-this-month strip, Next Payment, the 3x2 action grid and the
+ * transaction stack — carried into the 2026 design system, so the portal and
+ * the back office are visibly one product. Every figure is the signed-in
+ * member's own; nothing on this page is typed in.
  */
 export default async function MemberDashboard() {
   const user = await requireMember();
@@ -35,16 +36,13 @@ export default async function MemberDashboard() {
 
   return (
     <MemberShell unreadCount={unread}>
-      {/* Greeting */}
-      <section className="py-4">
-        <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">
-          Welcome, {user.fullName.split(' ')[0]}
-        </h2>
-        <div className="mt-1 flex flex-wrap items-center gap-2">
-          <span className="text-body-md text-on-surface-variant tabular font-mono">{user.memberNo}</span>
-          {user.memberStatus ? <MemberStatusBadge status={user.memberStatus} /> : null}
-        </div>
-      </section>
+      <div className="pb-5 pt-4 md:pt-0">
+        <MemberHero
+          fullName={user.fullName}
+          memberNo={user.memberNo}
+          status={user.memberStatus ? <MemberStatusBadge status={user.memberStatus} /> : null}
+        />
+      </div>
 
       {user.memberStatus === 'pending' ? (
         <Suspense fallback={null}>
@@ -88,8 +86,8 @@ async function Balances({ memberId }: { memberId: string }) {
     <>
       <section className="gap-unit mb-6 flex flex-col">
         {/* Total Savings — the royal-blue hero card. */}
-        <div className="bg-primary text-on-primary shadow-pop relative flex h-32 flex-col justify-between overflow-hidden rounded-xl p-4">
-          <div className="pointer-events-none absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white opacity-5 blur-xl" />
+        <div className="bg-brand-gradient text-on-primary shadow-brand relative flex h-36 flex-col justify-between overflow-hidden rounded-2xl p-5">
+          <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
           <div>
             <p className="text-body-md font-body-md opacity-90">Total Savings</p>
             <Money
@@ -109,7 +107,7 @@ async function Balances({ memberId }: { memberId: string }) {
         <div className="gap-unit grid grid-cols-2">
           <Link
             href="/shares"
-            className="bg-surface-container-high border-surface-container-highest shadow-card rounded-xl border p-4"
+            className="bg-surface shadow-neu card-interactive rounded-2xl p-4"
           >
             <p className="text-label-md font-label-md text-on-surface-variant">Shares</p>
             <Money
@@ -123,7 +121,7 @@ async function Balances({ memberId }: { memberId: string }) {
 
           <Link
             href="/loans"
-            className="bg-surface-container-high border-surface-container-highest shadow-card rounded-xl border p-4"
+            className="bg-surface shadow-neu card-interactive rounded-2xl p-4"
           >
             <p className="text-label-md font-label-md text-on-surface-variant">Loan Balance</p>
             <Money
@@ -147,7 +145,7 @@ async function Balances({ memberId }: { memberId: string }) {
       <section className="mb-4">
         <Link
           href="/savings"
-          className="border-outline-variant bg-surface shadow-card flex items-center justify-between rounded-xl border p-4"
+          className="bg-surface shadow-neu card-interactive flex items-center justify-between gap-4 rounded-2xl p-4"
         >
           <div className="min-w-0">
             <h4 className="text-button-text font-button-text text-on-surface flex items-center gap-1.5">
@@ -173,8 +171,10 @@ async function Balances({ memberId }: { memberId: string }) {
         <section className="mb-6">
           <div
             className={clsx(
-              'shadow-card flex items-center justify-between rounded-xl border p-4',
-              overdue ? 'border-error bg-error-container' : 'border-outline-variant bg-surface',
+              'flex items-center justify-between gap-4 rounded-2xl p-4',
+              overdue
+                ? 'bg-error-container ring-error/25 shadow-neu ring-1 ring-inset'
+                : 'bg-surface shadow-neu',
             )}
           >
             <div className="min-w-0">
@@ -215,8 +215,8 @@ function BalancesFallback() {
     <div className="gap-unit mb-6 flex flex-col">
       <BalanceCardSkeleton />
       <div className="gap-unit grid grid-cols-2">
-        <div className="bg-surface-container-high h-24 rounded-xl" />
-        <div className="bg-surface-container-high h-24 rounded-xl" />
+        <div className="bg-surface-container-high h-24 rounded-2xl" />
+        <div className="bg-surface-container-high h-24 rounded-2xl" />
       </div>
     </div>
   );
@@ -246,7 +246,7 @@ function QuickActions({ canApply }: { canApply: boolean }) {
           <Link
             key={a.href}
             href={a.href}
-            className="bg-surface-container hover:bg-surface-container-highest flex h-24 flex-col items-center justify-center gap-2 rounded-lg p-3 transition-colors"
+            className="bg-surface shadow-neu card-interactive flex h-24 flex-col items-center justify-center gap-2 rounded-2xl p-3"
           >
             <span className={clsx('flex h-10 w-10 items-center justify-center rounded-full', a.tone)}>
               <Icon name={a.icon} />
@@ -268,7 +268,7 @@ async function RecentTransactions({ memberId }: { memberId: string }) {
 
   if (rows.length === 0) {
     return (
-      <div className="bg-surface rounded-xl shadow-neu-sm">
+      <div className="bg-surface rounded-2xl shadow-neu">
         <EmptyState
           icon="receipt_long"
           title="No transactions yet"
@@ -298,7 +298,7 @@ async function PendingNotice({ memberId }: { memberId: string }) {
   const total = owed.reduce((sum, f) => sum + Number(f.amount), 0);
 
   return (
-    <section className="bg-primary-fixed text-on-primary-fixed-variant mb-6 flex items-start gap-3 rounded-xl p-4">
+    <section className="bg-primary-fixed text-on-primary-fixed-variant mb-6 flex items-start gap-3 rounded-2xl p-4">
       <Icon name="pending_actions" size={22} className="mt-0.5 shrink-0" />
       <div className="min-w-0">
         <p className="text-button-text">Your membership is pending</p>

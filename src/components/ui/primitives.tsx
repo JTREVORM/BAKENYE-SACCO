@@ -135,23 +135,25 @@ export function Panel({
       id={id}
       className={clsx('flex flex-col overflow-hidden rounded-2xl bg-surface shadow-neu', className)}
     >
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/70 px-5 py-4">
-        <div className="flex min-w-0 items-center gap-2.5">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant px-5 py-4">
+        <div className="flex min-w-0 items-center gap-3">
           {icon ? (
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface text-primary shadow-neu-sm">
-              <Icon name={icon} size={18} />
+            <span className="bg-primary-fixed text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+              <Icon name={icon} size={19} />
             </span>
           ) : null}
           <div className="min-w-0">
-            <h3 className="truncate text-title-md text-on-surface">{title}</h3>
+            <h3 className="text-title-md text-on-surface leading-tight">{title}</h3>
             {subtitle ? (
-              <p className="truncate text-label-md font-normal text-on-surface-variant">
+              <p className="text-label-md text-on-surface-variant font-normal leading-snug">
                 {subtitle}
               </p>
             ) : null}
           </div>
         </div>
-        {action ? <div className="shrink-0">{action}</div> : null}
+        {/* `ml-auto` keeps the action at the right-hand end of the header even
+            when a narrow panel wraps it onto a line of its own. */}
+        {action ? <div className="ml-auto shrink-0">{action}</div> : null}
       </header>
       <div className={clsx(padded && 'p-5', 'min-w-0 flex-1', bodyClassName)}>{children}</div>
     </section>
@@ -171,6 +173,8 @@ export function KpiCard({
   tone = 'neutral',
   delta,
   footnote,
+  trend,
+  series,
   href,
   className,
 }: {
@@ -181,13 +185,19 @@ export function KpiCard({
   tone?: 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'accent';
   delta?: { value: number; label?: string } | null;
   footnote?: React.ReactNode;
+  /** Colours the footnote and gives it a direction arrow. */
+  trend?: 'up' | 'down' | 'flat';
+  /**
+   * A real measured series behind the figure, oldest first, drawn as the small
+   * bar chart in the corner. Never pass a shape that is not data: the chart is
+   * read as history, and a decorative one is a lie about the SACCO's money.
+   */
+  series?: readonly number[];
   href?: string;
   className?: string;
 }) {
-  // The chip is its own small raised object on the card, so a tile reads as
-  // two moulded pieces rather than as a coloured square printed on a panel.
   const chip = {
-    neutral: 'bg-surface-container-low text-on-surface-variant',
+    neutral: 'bg-surface-container-high text-on-surface-variant',
     primary: 'bg-primary-fixed text-primary',
     success: 'bg-tertiary-fixed text-tertiary',
     warning: 'bg-warning-container text-warning',
@@ -195,33 +205,75 @@ export function KpiCard({
     accent: 'bg-secondary-fixed text-on-secondary-fixed-variant',
   }[tone];
 
+  const bars = {
+    neutral: '#8d97ac',
+    primary: '#2f5ba8',
+    success: '#12965a',
+    warning: '#a35a00',
+    danger: '#c02a2a',
+    accent: '#e8b800',
+  }[tone];
+
+  const footnoteTone =
+    trend === 'up' ? 'text-tertiary' : trend === 'down' ? 'text-error' : 'text-on-surface-variant';
+
   const body = (
     <>
-      <div className="mb-3 flex items-start justify-between gap-2 sm:mb-4">
+      {/* `flex-wrap` plus a minimum width on the label is what keeps a long
+          label readable on a 320px phone: when there is not room for it beside
+          the icon it takes a line of its own rather than being squeezed to two
+          clipped characters. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span
           className={clsx(
-            'flex h-9 w-9 items-center justify-center rounded-2xl shadow-neu-sm sm:h-10 sm:w-10',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11',
             chip,
           )}
         >
-          <Icon name={icon} size={19} />
+          <Icon name={icon} size={20} />
         </span>
+        <p className="text-label-md text-on-surface-variant min-w-[7rem] flex-1 font-semibold">
+          {label}
+        </p>
         {delta ? <DeltaPill value={delta.value} label={delta.label} /> : null}
+        {href && !delta ? (
+          <Icon
+            name="chevron_right"
+            size={18}
+            className="shrink-0 text-outline transition-colors group-hover:text-primary"
+          />
+        ) : null}
       </div>
-      <p className="text-label-md font-semibold text-on-surface-variant">{label}</p>
-      {/* The figure steps down on a phone so a nine-digit total still fits a
-          half-width card without truncating. */}
-      <div className="mt-1 text-[24px] font-bold leading-8 tracking-tight text-on-surface sm:text-display-currency sm:font-display-currency">
-        {value}
+
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          {/* The figure steps down on a phone so a nine-digit total still fits
+              a half-width card without truncating. */}
+          <div className="text-[24px] font-bold leading-8 tracking-tight text-on-surface sm:text-display-currency sm:font-display-currency">
+            {value}
+          </div>
+          {footnote ? (
+            <p
+              className={clsx(
+                'mt-1.5 flex items-center gap-1 text-label-md font-medium',
+                footnoteTone,
+              )}
+            >
+              {trend === 'up' || trend === 'down' ? (
+                <Icon
+                  name={trend === 'up' ? 'arrow_upward' : 'arrow_downward'}
+                  size={14}
+                  className="shrink-0"
+                />
+              ) : null}
+              <span className="min-w-0">{footnote}</span>
+            </p>
+          ) : null}
+        </div>
+        {series && series.length > 1 ? (
+          <MiniBars values={series} colour={bars} className="shrink-0" />
+        ) : null}
       </div>
-      {footnote ? (
-        <p className="mt-2 text-label-md font-normal text-on-surface-variant">{footnote}</p>
-      ) : null}
-      {href ? (
-        <span className="mt-3 hidden items-center gap-1 text-label-md font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100 lg:inline-flex">
-          View <Icon name="arrow_forward" size={14} />
-        </span>
-      ) : null}
     </>
   );
 
@@ -240,12 +292,55 @@ export function KpiCard({
   );
 }
 
+/**
+ * The small bar chart in the corner of a stat card.
+ *
+ * Decoration is not what it is for: the caller passes a measured series and the
+ * bars are its shape, tallest = largest. `aria-hidden`, because the figure and
+ * its footnote beside it already say what the card means; the chart is the
+ * glance, not the fact.
+ */
+export function MiniBars({
+  values,
+  colour,
+  className,
+}: {
+  values: readonly number[];
+  colour: string;
+  className?: string;
+}) {
+  const max = Math.max(...values.map((v) => Math.abs(v)), 0);
+  const last = values.length - 1;
+
+  return (
+    <span
+      aria-hidden="true"
+      className={clsx('flex h-9 items-end gap-[3px] sm:h-10 sm:gap-1', className)}
+    >
+      {values.map((v, i) => {
+        // A measured zero still gets a visible stub, so an empty month reads as
+        // "nothing came in" rather than as a hole in the chart.
+        const pct = max > 0 ? Math.max(12, (Math.abs(v) / max) * 100) : 12;
+        return (
+          <span
+            key={i}
+            style={{ height: `${pct}%`, backgroundColor: colour, opacity: i === last ? 1 : 0.38 }}
+            className="w-1.5 rounded-sm sm:w-2"
+          />
+        );
+      })}
+    </span>
+  );
+}
+
 /** The high-contrast counterpart to KpiCard — one per dashboard, at most. */
 export function KpiCardFeature({
   icon,
   label,
   value,
   footnote,
+  trend,
+  series,
   href,
   className,
 }: {
@@ -253,6 +348,9 @@ export function KpiCardFeature({
   label: string;
   value: React.ReactNode;
   footnote?: React.ReactNode;
+  trend?: 'up' | 'down' | 'flat';
+  /** A measured series, oldest first — never a decorative shape. */
+  series?: readonly number[];
   href?: string;
   className?: string;
 }) {
@@ -262,20 +360,49 @@ export function KpiCardFeature({
         aria-hidden="true"
         className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"
       />
-      <div className="relative z-10 mb-3 flex items-start justify-between sm:mb-4">
-        <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/15 text-white shadow-[inset_-2px_-2px_6px_rgba(255,255,255,0.18),inset_2px_2px_6px_rgba(4,15,35,0.35)] sm:h-10 sm:w-10">
-          <Icon name={icon} size={19} />
+      <div className="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-inset ring-white/20 sm:h-11 sm:w-11">
+          <Icon name={icon} size={20} />
         </span>
-      </div>
-      <p className="relative z-10 text-label-md font-semibold text-primary-fixed-dim">{label}</p>
-      <div className="relative z-10 mt-1 text-[24px] font-bold leading-8 tracking-tight text-white sm:text-display-currency sm:font-display-currency">
-        {value}
-      </div>
-      {footnote ? (
-        <p className="relative z-10 mt-2 text-label-md font-normal text-primary-fixed-dim">
-          {footnote}
+        <p className="text-label-md text-primary-fixed-dim min-w-[7rem] flex-1 font-semibold">
+          {label}
         </p>
-      ) : null}
+        {href ? (
+          <Icon name="chevron_right" size={18} className="shrink-0 text-white/50" />
+        ) : null}
+      </div>
+
+      <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[24px] font-bold leading-8 tracking-tight text-white sm:text-display-currency sm:font-display-currency">
+            {value}
+          </div>
+          {footnote ? (
+            <p
+              className={clsx(
+                'mt-1.5 flex items-center gap-1 text-label-md font-medium',
+                trend === 'up'
+                  ? 'text-tertiary-fixed-dim'
+                  : trend === 'down'
+                    ? 'text-secondary-fixed-dim'
+                    : 'text-primary-fixed-dim',
+              )}
+            >
+              {trend === 'up' || trend === 'down' ? (
+                <Icon
+                  name={trend === 'up' ? 'arrow_upward' : 'arrow_downward'}
+                  size={14}
+                  className="shrink-0"
+                />
+              ) : null}
+              <span className="min-w-0">{footnote}</span>
+            </p>
+          ) : null}
+        </div>
+        {series && series.length > 1 ? (
+          <MiniBars values={series} colour="#ffffff" className="shrink-0 opacity-90" />
+        ) : null}
+      </div>
     </>
   );
 
@@ -425,7 +552,7 @@ export function Avatar({
         width={size}
         height={size}
         style={dim}
-        className={clsx('shrink-0 rounded-full object-cover shadow-neu-sm', className)}
+        className={clsx('shrink-0 rounded-full object-cover ring-1 ring-outline-variant', className)}
       />
     );
   }
@@ -434,7 +561,7 @@ export function Avatar({
     <span
       style={{ ...dim, fontSize: Math.max(10, Math.round(size * 0.36)) }}
       className={clsx(
-        'flex shrink-0 items-center justify-center rounded-full bg-surface font-bold text-primary shadow-neu-sm',
+        'bg-primary-fixed text-primary flex shrink-0 items-center justify-center rounded-full font-bold',
         className,
       )}
       aria-hidden="true"
@@ -476,10 +603,9 @@ export function ViewAllLink({ href, children = 'View all' }: { href: string; chi
   return (
     <Link
       href={href}
-      className="inline-flex h-9 items-center gap-1 rounded-full bg-surface px-3.5 text-label-md font-semibold text-primary shadow-neu-sm transition-shadow hover:shadow-card active:shadow-neu-pressed"
+      className="text-primary hover:text-primary-container inline-flex min-h-[36px] items-center gap-1 rounded-lg px-1 text-label-md font-semibold transition-colors hover:underline"
     >
       {children}
-      <Icon name="arrow_forward" size={15} />
     </Link>
   );
 }
@@ -568,7 +694,7 @@ export function PageTitle({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           {icon ? (
-            <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface text-primary shadow-neu sm:flex">
+            <span className="bg-primary-fixed text-primary hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl sm:flex">
               <Icon name={icon} size={22} />
             </span>
           ) : null}
@@ -775,7 +901,7 @@ export function Toolbar({
   return (
     <div
       className={clsx(
-        'mb-4 flex flex-wrap items-center gap-3 rounded-3xl bg-surface p-3 shadow-neu',
+        'mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-surface p-3 shadow-neu',
         className,
       )}
     >

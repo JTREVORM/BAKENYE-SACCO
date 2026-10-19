@@ -34,7 +34,7 @@ export default async function CashierDesk() {
   ].filter(Boolean) as { href: string; icon: string; label: string; tone: 'primary' | 'success' | 'accent' | 'neutral' }[];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-gutter">
       <DashboardHeader roleName={user.roleName} fullName={user.fullName} subtitle="The counter" />
 
       <Suspense fallback={<StatGridSkeleton />}>

@@ -531,3 +531,17 @@ export const FIXTURE_COLLECTION_ACCOUNTS: CollectionAccount[] = [
     account_number: null,
   },
 ];
+
+/**
+ * Six months of account movement, for the Monthly Financial Activity panel in
+ * the design harness. July is deliberately flat and August runs a deficit: the
+ * chart has to draw an empty month and a negative net without breaking.
+ */
+export const FIXTURE_MONTHLY_FLOW = [
+  { label: 'Mar', in: 12500000, out: 7400000, net: 5100000 },
+  { label: 'Apr', in: 14100000, out: 8200000, net: 5900000 },
+  { label: 'May', in: 11600000, out: 9050000, net: 2550000 },
+  { label: 'Jun', in: 16250000, out: 10400000, net: 5850000 },
+  { label: 'Jul', in: 0, out: 0, net: 0 },
+  { label: 'Aug', in: 9800000, out: 12450000, net: -2650000 },
+];

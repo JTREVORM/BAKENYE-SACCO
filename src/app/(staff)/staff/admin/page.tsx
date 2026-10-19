@@ -6,6 +6,8 @@ import { can } from '@/lib/rbac';
 import { createClient } from '@/lib/supabase/server';
 import { getDashboardMetrics } from '@/lib/queries';
 import { DashboardHeader } from '@/components/staff/DashboardHeader';
+import { RecentTransactions } from '@/components/staff/RecentTransactions';
+import { FinancialActivity } from '@/components/staff/FinancialActivity';
 import { FundsStrip } from '@/components/finance/FundsStrip';
 import { KpiCard, Panel, QuickAction, Badge, Icon } from '@/components/ui/primitives';
 import { EmptyState, PanelSkeleton, StatGridSkeleton } from '@/components/ui/states';
@@ -24,8 +26,15 @@ export const metadata: Metadata = { title: 'Administration' };
  * Every block asks for its own permission, so a custom role pointed at this
  * dashboard sees only what it may.
  */
-export default async function AdministrationDashboard() {
+export default async function AdministrationDashboard({
+  searchParams,
+}: {
+  searchParams?: Promise<{ flow?: string }>;
+}) {
   const user = await requirePermission('dashboard.staff');
+  const sp = (await searchParams) ?? {};
+  const flowMonths = sp.flow === '12' ? 12 : 6;
+  const seesFinance = can(user, 'finance.view');
 
   const shortcuts = [
     can(user, 'users.manage') && { href: '/staff/users', icon: 'manage_accounts', label: 'Staff accounts', tone: 'primary' as const },
@@ -37,7 +46,7 @@ export default async function AdministrationDashboard() {
   ].filter(Boolean) as { href: string; icon: string; label: string; tone: 'primary' | 'accent' | 'success' | 'neutral' }[];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-gutter">
       <DashboardHeader
         roleName={user.roleName}
         fullName={user.fullName}
@@ -52,10 +61,29 @@ export default async function AdministrationDashboard() {
 
       {/* Where the money is: Cash at Merchant, Bank and Hand, and their total,
           straight from the account ledger. */}
-      {can(user, 'finance.view') ? (
+      {seesFinance ? (
         <Suspense fallback={<StatGridSkeleton />}>
           <FundsStrip />
         </Suspense>
+      ) : null}
+
+      {can(user, 'transactions.view') || seesFinance ? (
+        <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
+          {can(user, 'transactions.view') ? (
+            <div className="min-w-0 xl:col-span-2">
+              <Suspense fallback={<PanelSkeleton height="h-80" />}>
+                <RecentTransactions />
+              </Suspense>
+            </div>
+          ) : null}
+          {seesFinance ? (
+            <div className="min-w-0">
+              <Suspense fallback={<PanelSkeleton height="h-80" />}>
+                <FinancialActivity months={flowMonths} baseHref="/staff/admin" />
+              </Suspense>
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       <Suspense fallback={<StatGridSkeleton />}>
@@ -63,7 +91,7 @@ export default async function AdministrationDashboard() {
       </Suspense>
 
       <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
-        <div className="xl:col-span-2">
+        <div className="min-w-0 xl:col-span-2">
           {can(user, 'audit.view') ? (
             <Suspense fallback={<PanelSkeleton height="h-64" />}>
               <SecurityActivity />
@@ -112,7 +140,7 @@ async function SecurityFigures() {
         label="On a temporary password"
         value={s.must_change}
         tone={s.must_change > 0 ? 'warning' : 'neutral'}
-        footnote="Must choose their own at next sign-in"
+        footnote={"Must choose their own at next sign\u2011in"}
       />
       <KpiCard
         icon="login"
@@ -141,9 +169,20 @@ async function SaccoFigures() {
   if (!m) return null;
   return (
     <section aria-label="The SACCO" className="grid grid-cols-2 gap-gutter lg:grid-cols-4">
-      <KpiCard icon="group" label="Active members" value={m.total_members} href="/staff/members" footnote={`${m.members_this_month} joined this month`} />
-      <KpiCard icon="savings" label="Total savings" value={formatUGX(m.total_savings)} tone="success" />
-      <KpiCard icon="payments" label="Loans outstanding" value={formatUGX(m.outstanding_loans)} tone="accent" footnote={`${m.active_loan_count} active`} />
+      <KpiCard
+        icon="group"
+        label="Active members"
+        value={m.total_members}
+        href="/staff/members"
+        footnote={
+          m.members_this_month > 0
+            ? `${m.members_this_month} joined this month`
+            : 'No new members this month'
+        }
+        trend={m.members_this_month > 0 ? 'up' : 'flat'}
+      />
+      <KpiCard icon="savings" label="Total savings" value={formatUGX(m.total_savings)} tone="success" href="/staff/savings" />
+      <KpiCard icon="payments" label="Loans outstanding" value={formatUGX(m.outstanding_loans)} tone="accent" footnote={`${m.active_loan_count} active`} href="/staff/loans" />
       <KpiCard
         icon="pending_actions"
         label="Loans awaiting a decision"

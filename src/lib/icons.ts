@@ -51,6 +51,9 @@ export const ICON_NAMES = [
   'smartphone', 'local_atm', 'storefront', 'task_alt', 'cancel', 'balance',
   'hourglass_top', 'draft', 'list_alt', 'call_made', 'call_received',
   'donut_large', 'bar_chart', 'open_in_new', 'price_check', 'send', 'sync_alt',
+  // 2026 dashboard redesign: the counter's member count and the gold leaf
+  // motif the navigation rail signs off with.
+  'group_add', 'eco',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

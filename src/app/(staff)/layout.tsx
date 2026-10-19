@@ -31,7 +31,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
   return (
     <StaffShell
-      user={{ fullName: user.fullName, roleName: user.roleName, photoUrl: user.photoUrl }}
+      user={{ fullName: user.fullName, roleName: user.roleName, role: user.role, photoUrl: user.photoUrl }}
       nav={nav}
       unreadCount={unread}
     >

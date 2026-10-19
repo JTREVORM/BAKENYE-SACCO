@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import dashboardStyles from '@/components/staff/SuperAdminDashboard.module.css';
 import { Sidebar } from './Sidebar';
 import { ScrollArea } from '@/components/ui/scroll';
 import { clsx } from '@/lib/clsx';
@@ -25,11 +26,13 @@ export function StaffShell({
   unreadCount = 0,
   children,
 }: {
-  user: { fullName: string; roleName: string; photoUrl: string | null };
+  user: { fullName: string; roleName: string; photoUrl: string | null; role?: string };
   nav: readonly NavItem[];
   unreadCount?: number;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const superAdminDashboard = user.role === 'super_admin' && pathname === '/staff/admin';
   const [menuOpen, setMenuOpen] = useState(false);
   // Desktop only. The rail collapses to an icon column so a wide register —
   // the ledger, the audit log — can have the 190px back. State lives on the
@@ -37,7 +40,10 @@ export function StaffShell({
   const [railCollapsed, setRailCollapsed] = useState(false);
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-background text-on-background">
+    <div className={clsx(
+      'flex h-[100dvh] overflow-hidden bg-background text-on-background',
+      superAdminDashboard && dashboardStyles.dashboard,
+    )}>
       <Sidebar
         items={nav}
         open={menuOpen}

@@ -12,7 +12,7 @@ import { formatDate } from '@/lib/format';
  * the balance was computed at — `treasury_summary()` says so, and it is the one
  * honest thing to put there. No card carries a movement it has not measured.
  */
-export async function FundsStrip() {
+export async function FundsStrip({ fullAmounts = false }: { fullAmounts?: boolean } = {}) {
   const s = await getTreasurySummary();
   if (!s) return null;
 
@@ -23,7 +23,7 @@ export async function FundsStrip() {
       <KpiCardFeature
         icon="wallet"
         label="Total SACCO funds"
-        value={<Money value={s.totals.total} compact />}
+        value={<Money value={s.totals.total} compact={!fullAmounts} />}
         footnote={asAt}
         href="/staff/finance"
       />
@@ -32,7 +32,7 @@ export async function FundsStrip() {
           key={t}
           icon={ACCOUNT_TYPE_META[t].icon}
           label={ACCOUNT_TYPE_META[t].label}
-          value={<Money value={s.totals[t]} compact />}
+          value={<Money value={s.totals[t]} compact={!fullAmounts} />}
           footnote={asAt}
           tone={t === 'merchant' ? 'accent' : t === 'bank' ? 'primary' : 'success'}
           href={ACCOUNT_TYPE_META[t].href}

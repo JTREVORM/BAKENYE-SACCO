@@ -159,6 +159,7 @@ export function Sidebar({
       {/* Desktop: always present. */}
       <aside
         data-sidebar
+        data-collapsed={collapsed}
         className={clsx(
           'bg-ink-gradient relative isolate z-40 hidden h-full shrink-0 flex-col transition-[width] duration-200 md:flex',
           collapsed ? 'w-[76px]' : 'w-sidebar',

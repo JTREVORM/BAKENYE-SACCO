@@ -284,11 +284,11 @@ export function KpiCard({
   );
 
   return href ? (
-    <Link href={href} className={shell}>
+    <Link data-kpi href={href} className={shell}>
       {body}
     </Link>
   ) : (
-    <div className={shell}>{body}</div>
+    <div data-kpi className={shell}>{body}</div>
   );
 }
 
@@ -413,11 +413,11 @@ export function KpiCardFeature({
   );
 
   return href ? (
-    <Link href={href} className={shell}>
+    <Link data-kpi href={href} className={shell}>
       {body}
     </Link>
   ) : (
-    <div className={shell}>{body}</div>
+    <div data-kpi className={shell}>{body}</div>
   );
 }
 

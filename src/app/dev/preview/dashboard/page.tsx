@@ -9,6 +9,7 @@ import { KpiCard, KpiCardFeature, Money } from '@/components/ui/primitives';
 import { STAFF_NAV } from '@/lib/rbac';
 import { FIXTURE_MONTHLY_FLOW, FIXTURE_TRANSACTIONS, FIXTURE_TREND } from '@/lib/fixtures';
 import { formatUGX } from '@/lib/money';
+import dashboardStyles from '@/components/staff/SuperAdminDashboard.module.css';
 
 export const metadata: Metadata = { title: 'Dashboard preview', robots: { index: false } };
 
@@ -41,12 +42,13 @@ export default async function DashboardPreview({
   const shares = FIXTURE_TREND.map((t) => t.shares);
 
   return (
+    <div className={admin ? dashboardStyles.dashboard : undefined}>
     <StaffShell
       user={{ fullName: 'MWESIGWA TREVOR JOSEPH', roleName: 'Super Admin', photoUrl: null }}
-      nav={STAFF_NAV}
+      nav={admin ? STAFF_NAV.map(item => item.label === 'Dashboard' ? { ...item, href: '/dev/preview/dashboard' } : item) : STAFF_NAV}
       unreadCount={3}
     >
-      <div className="space-y-gutter">
+      <div data-admin-dashboard={admin || undefined} className="space-y-gutter">
         {admin ? (
           <WelcomeHero
             roleName="Super Admin"
@@ -82,7 +84,7 @@ export default async function DashboardPreview({
         )}
 
         {admin ? (
-          <section className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
+          <section aria-label="Accounts and sign-in" className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
             <KpiCard
               icon="manage_accounts"
               tone="primary"
@@ -159,7 +161,7 @@ export default async function DashboardPreview({
           <KpiCardFeature
             icon="wallet"
             label="Total SACCO funds"
-            value={<Money value={6730000} compact />}
+            value={<Money value={6730000} compact={!admin} />}
             footnote="As at 19 Oct 2026"
             href="/staff/finance"
           />
@@ -167,7 +169,7 @@ export default async function DashboardPreview({
             icon="smartphone"
             tone="accent"
             label="Cash at Merchant"
-            value={<Money value={485000} compact />}
+            value={<Money value={485000} compact={!admin} />}
             footnote="As at 19 Oct 2026"
             href="/staff/finance/merchant"
           />
@@ -175,7 +177,7 @@ export default async function DashboardPreview({
             icon="account_balance"
             tone="primary"
             label="Cash at Bank"
-            value={<Money value={4145000} compact />}
+            value={<Money value={4145000} compact={!admin} />}
             footnote="As at 19 Oct 2026"
             href="/staff/finance/bank"
           />
@@ -183,18 +185,19 @@ export default async function DashboardPreview({
             icon="payments"
             tone="success"
             label="Cash at Hand"
-            value={<Money value={2100000} compact />}
+            value={<Money value={2100000} compact={!admin} />}
             footnote="As at 19 Oct 2026"
             href="/staff/finance/cash"
           />
         </section>
 
-        <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
+        <div data-admin-panels={admin || undefined} className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
           <div className="min-w-0 xl:col-span-2">
             <TransactionsPanel rows={FIXTURE_TRANSACTIONS} />
           </div>
           <div className="min-w-0">
             <ActivityPanel
+              compact={admin}
               series={FIXTURE_MONTHLY_FLOW}
               months={6}
               baseHref="/dev/preview/dashboard"
@@ -203,5 +206,6 @@ export default async function DashboardPreview({
         </div>
       </div>
     </StaffShell>
+    </div>
   );
 }

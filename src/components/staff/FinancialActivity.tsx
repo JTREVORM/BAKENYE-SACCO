@@ -33,8 +33,10 @@ const RANGES = [
 export async function FinancialActivity({
   months = 6,
   baseHref,
+  compact = false,
 }: {
   months?: number;
+  compact?: boolean;
   /** The dashboard this panel sits on, so the range links come back to it. */
   baseHref: string;
 }) {
@@ -42,6 +44,7 @@ export async function FinancialActivity({
 
   return (
     <ActivityPanel
+      compact={compact}
       months={months}
       baseHref={baseHref}
       series={
@@ -66,9 +69,11 @@ export function ActivityPanel({
   series,
   months,
   baseHref,
+  compact = false,
 }: {
   series: Bucket[] | null;
   months: number;
+  compact?: boolean;
   baseHref: string;
 }) {
   return (
@@ -87,7 +92,7 @@ export function ActivityPanel({
           description="Once money moves through the merchant account, the bank or the cash box, its monthly shape appears here."
         />
       ) : (
-        <ActivityChart series={series} />
+        <ActivityChart series={series} compact={compact} />
       )}
     </Panel>
   );
@@ -133,7 +138,7 @@ function RangePicker({ months, baseHref }: { months: number; baseHref: string })
 
 export type Bucket = { label: string; in: number; out: number; net: number };
 
-function ActivityChart({ series }: { series: Bucket[] }) {
+function ActivityChart({ series, compact }: { series: Bucket[]; compact: boolean }) {
   const values = series.flatMap((s) => [s.in, s.out, s.net]);
   // One step size for the whole axis, with both ends snapped to a multiple of
   // it. Quartiles of an arbitrary maximum give gridlines labelled 13.8M, which
@@ -167,6 +172,7 @@ function ActivityChart({ series }: { series: Bucket[] }) {
     // the chart takes the slack and the legend stays on the floor.
     <figure className="flex w-full flex-1 flex-col justify-between">
       <svg
+        preserveAspectRatio={compact ? 'none' : undefined}
         viewBox={`0 0 ${W} ${H}`}
         className="my-auto h-auto max-h-[22rem] w-full overflow-visible"
         role="img"

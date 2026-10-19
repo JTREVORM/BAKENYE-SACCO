@@ -46,7 +46,7 @@ export default async function AdministrationDashboard({
   ].filter(Boolean) as { href: string; icon: string; label: string; tone: 'primary' | 'accent' | 'success' | 'neutral' }[];
 
   return (
-    <div className="space-y-gutter">
+    <div data-admin-dashboard className="space-y-gutter">
       <DashboardHeader
         roleName={user.roleName}
         fullName={user.fullName}
@@ -63,12 +63,12 @@ export default async function AdministrationDashboard({
           straight from the account ledger. */}
       {seesFinance ? (
         <Suspense fallback={<StatGridSkeleton />}>
-          <FundsStrip />
+          <FundsStrip fullAmounts={user.role === 'super_admin'} />
         </Suspense>
       ) : null}
 
       {can(user, 'transactions.view') || seesFinance ? (
-        <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
+        <div data-admin-panels className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
           {can(user, 'transactions.view') ? (
             <div className="min-w-0 xl:col-span-2">
               <Suspense fallback={<PanelSkeleton height="h-80" />}>
@@ -79,7 +79,7 @@ export default async function AdministrationDashboard({
           {seesFinance ? (
             <div className="min-w-0">
               <Suspense fallback={<PanelSkeleton height="h-80" />}>
-                <FinancialActivity months={flowMonths} baseHref="/staff/admin" />
+                <FinancialActivity compact={user.role === 'super_admin'} months={flowMonths} baseHref="/staff/admin" />
               </Suspense>
             </div>
           ) : null}

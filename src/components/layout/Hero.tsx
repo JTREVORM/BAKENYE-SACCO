@@ -46,7 +46,7 @@ export function HeroShell({
   priority?: boolean;
 }) {
   return (
-    <section className="bg-ink relative isolate overflow-hidden rounded-2xl shadow-brand">
+    <section data-hero className="bg-ink relative isolate overflow-hidden rounded-2xl shadow-brand">
       <Image
         src={ARTWORK[artwork].src}
         alt=""

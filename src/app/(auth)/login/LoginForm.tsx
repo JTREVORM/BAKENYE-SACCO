@@ -8,6 +8,7 @@ import { Alert } from '@/components/ui/states';
 import { Icon } from '@/components/ui/primitives';
 import type { IconName } from '@/lib/icons';
 import type { ActionResult } from '@/lib/errors';
+import styles from './login.module.css';
 
 /**
  * The field shape from the reference: a recessed capsule with a small raised
@@ -99,7 +100,7 @@ export function LoginForm({
   const error = state && !state.ok ? state : null;
 
   return (
-    <form action={action} className="mt-6 flex flex-col gap-4 sm:gap-5" noValidate>
+    <form action={action} className={styles.form} noValidate>
       {!state && notice === 'reset' ? (
         <Alert tone="success" title="Password changed">
           Sign in with your new password.
@@ -122,32 +123,38 @@ export function LoginForm({
 
       <input type="hidden" name="next" value={next ?? ''} />
 
-      <Field
-        label="Member Number or Phone Number"
-        htmlFor="identifier"
-        emphasis
-        required
-        error={error?.field === 'identifier' ? error.error : null}
-        hint="For international phone numbers, include + and the country code."
-      >
-        <IconWell icon="person">
-          <Input
-            id="identifier"
-            name="identifier"
-            type="text"
-            autoComplete="username"
-            autoCapitalize="characters"
-            autoCorrect="off"
-            spellCheck={false}
-            enterKeyHint="next"
-            required
-            invalid={error?.field === 'identifier'}
-            placeholder="Member Number or Phone Number"
-            className="pl-14"
-          />
-        </IconWell>
-      </Field>
-
+      <div className={styles.identifierGroup}>
+        <Field
+          label="Member Number or Phone Number"
+          htmlFor="identifier"
+          emphasis
+          required
+          error={error?.field === 'identifier' ? error.error : null}
+          className={styles.identifier}
+        >
+          <IconWell icon="person">
+            <Input
+              id="identifier"
+              name="identifier"
+              type="text"
+              autoComplete="username"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="next"
+              required
+              invalid={error?.field === 'identifier'}
+              placeholder="Enter member number or phone number"
+              aria-describedby="identifier-guidance"
+              className="pl-14"
+            />
+          </IconWell>
+        </Field>
+        <p id="identifier-guidance" className={styles.guidance}>
+          For international phone numbers, include + and the country code.
+          <span>Example: +256 700 123456</span>
+        </p>
+      </div>
       <PasswordField
         id="password"
         name="password"
@@ -157,7 +164,7 @@ export function LoginForm({
         invalid={error?.field === 'password'}
       />
 
-      <div className="-mt-2 flex justify-end">
+      <div className={styles.recovery}>
         <Link
           href="/forgot-password"
           className="text-primary h-touch-target-min inline-flex items-center rounded-full px-2 text-[13px] font-semibold hover:bg-surface hover:shadow-neu-sm"
@@ -166,7 +173,7 @@ export function LoginForm({
         </Link>
       </div>
 
-      <SubmitButton size="lg" block pendingLabel="Signing in...">
+      <SubmitButton size="lg" block pendingLabel="Signing in..." iconEnd="arrow_forward" className={styles.submit}>
         Sign In
       </SubmitButton>
     </form>

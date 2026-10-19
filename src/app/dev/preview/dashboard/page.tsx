@@ -97,7 +97,7 @@ export default async function DashboardPreview({
           />
         ) : (
           <BrandHero
-            eyebrow="Super Admin Dashboard"
+            eyebrow="SACCO Overview · Super Admin"
             nameTop="BAKENYE UNITY AND"
             nameBottom="DEVELOPMENT SACCO"
             description="Your savings, our priority. Together we build a stronger and more prosperous community."

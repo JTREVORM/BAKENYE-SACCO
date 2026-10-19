@@ -97,11 +97,35 @@
   .overview :global([data-overview-dashboard] > [data-hero] p:last-of-type) { font-size: 14px; }
   .overview :global([data-overview-dashboard] > [data-hero] dl) { width: 100%; padding: 8px; }
   .overview :global([data-overview-dashboard] > [data-hero] dl dd) { font-size: 17px; }
-  .overview :global([data-overview-metrics] [data-kpi] > div:first-child) { gap: 8px; }
-  .overview :global([data-overview-metrics] [data-kpi] > div:last-child) { margin-top: 8px; padding-left: 0; }
-  .overview :global([data-overview-metrics] [data-kpi] > div:last-child > div > div) { font-size: clamp(18px, 5.6vw, 22px); line-height: 28px; }
+  /* Give headings and chevrons dedicated columns instead of wrapping flex items. */
+  .overview :global([data-overview-metrics] [data-kpi]),
+  .overview :global([data-overview-dashboard] > [aria-label='SACCO funds'] [data-kpi]) { padding: 16px; }
+  .overview :global([data-overview-metrics] [data-kpi] > div:first-child),
+  .overview :global([aria-label='SACCO funds'] [data-kpi] > div:not([aria-hidden]):first-of-type),
+  .overview :global([aria-label='SACCO funds'] [data-kpi] > div[aria-hidden] + div) {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 18px;
+    gap: 12px;
+  }
+  .overview :global([data-overview-metrics] [data-kpi] > div:first-child > span:first-child),
+  .overview :global([aria-label='SACCO funds'] [data-kpi] > div > span:first-child) { width: 40px; height: 40px; }
+  .overview :global([data-overview-metrics] [data-kpi] > div:last-child),
+  .overview :global([aria-label='SACCO funds'] [data-kpi] > div:last-child) { margin-top: 6px; padding-left: 52px; }
+  .overview :global([data-overview-metrics] [data-kpi] > div:last-child > div > div) { font-size: 22px; line-height: 28px; }
   .overview :global([data-overview-metrics] [data-kpi]:first-child > div:last-child > div > div) { font-size: 26px; }
-  .overview :global([data-overview-metrics] [data-kpi] .tabular.flex) { flex-wrap: wrap; }
+  .overview :global([data-overview-metrics] [data-kpi] .tabular.flex) { flex-wrap: nowrap; white-space: nowrap; }
   .overview :global([data-overview-metrics] [data-kpi] > div:last-child > span[aria-hidden]) { display: none; }
   .overview :global([data-overview-metrics] [data-kpi] > div:last-child:has(> span[aria-hidden]) > div) { padding-right: 0; }
+  .overview :global([data-overview-dashboard] > [aria-label='SACCO funds']) { grid-template-columns: minmax(0, 1fr); }
+  .overview :global([aria-label='SACCO funds'] [data-kpi] > div > p) { white-space: nowrap; }
+  .overview :global([aria-label='SACCO funds'] [data-kpi] > div:last-child > div > div) { font-size: 22px; line-height: 30px; }
+  .overview :global([aria-label='SACCO funds'] [data-kpi] .tabular) { white-space: nowrap; }
+  /* Keep the month labels readable on phones without compressing their spacing. */
+  .overview :global([data-admin-panels] figure) { padding: 8px 0 4px; }
+  .overview :global([data-admin-panels] figure svg) { height: 190px; max-height: none; }
+  .overview :global([data-admin-panels] figure svg text) { font-size: 13px; }
+  .overview :global([data-admin-panels] figure figcaption) { gap: 16px; margin-top: 16px; }
+}
+@media (max-width: 479px) {
+  .overview :global([data-overview-metrics]) { grid-template-columns: minmax(0, 1fr); }
 }

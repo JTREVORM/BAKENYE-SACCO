@@ -145,7 +145,7 @@ function Hero({ saccoName, roleName }: { saccoName: string; roleName: string }) 
 
   return (
     <BrandHero
-      eyebrow={`${roleName} Dashboard`}
+      eyebrow={`SACCO Overview · ${roleName}`}
       nameTop={heroNameTop}
       nameBottom={heroNameBottom}
       description="Your savings, our priority. Together we build a stronger and more prosperous community."

@@ -3,8 +3,9 @@
  * CHROMIUM_PATH optionally selects a system Chromium installation.
  */
 import assert from 'node:assert/strict';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import ts from 'typescript';
 
 const base = process.argv[2] ?? 'http://localhost:3000';
 const out = 'work/overview-review';
@@ -15,7 +16,7 @@ const browser = await chromium.launch({
   proxy: process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: 'localhost,127.0.0.1' } : undefined,
 });
 try {
-  for (const width of [1855, 1440, 1280, 768, 390, 320]) {
+  for (const width of [1855, 1440, 1280, 768, 767, 600, 480, 390, 360, 320]) {
     const page = await browser.newPage({ viewport: { width, height: 950 } });
     if (process.env.HTTPS_PROXY) {
       // Node trusts the managed proxy's CA; Chromium has a separate trust store.
@@ -33,6 +34,7 @@ try {
       await document.fonts.ready;
     });
     const hero = page.locator('[data-hero]');
+    assert.equal(await hero.locator('p').first().textContent(), 'SACCO Overview · Super Admin');
     assert.match(await hero.locator('h1').innerText(), /BAKENYE UNITY AND\s+DEVELOPMENT SACCO/);
     assert.match(await hero.locator('img').getAttribute('src'), /fisherman/);
     assert.equal(await hero.locator('dl dd').count(), 3);
@@ -47,6 +49,38 @@ try {
     assert.equal(await funds.locator('[data-kpi]').count(), 4);
     for (const amount of ['UGX 6,730,000', 'UGX 485,000', 'UGX 4,145,000', 'UGX 2,100,000']) {
       assert.ok((await funds.innerText()).includes(amount));
+    }
+    if (width < 768) {
+      const cards = page.locator('[data-overview-metrics] [data-kpi], [aria-label="SACCO funds"] [data-kpi]');
+      for (const card of await cards.all()) {
+        const layout = await card.evaluate(el => {
+          const header = el.querySelector(':scope > div:not([aria-hidden])');
+          const label = header.querySelector('p');
+          const chevron = header.lastElementChild.getBoundingClientRect();
+          const icon = header.firstElementChild.getBoundingClientRect();
+          const value = el.querySelector(':scope > div:last-child > div > div');
+          const labelBox = label.getBoundingClientRect();
+          const money = value.querySelector('.tabular');
+          return {
+            label: label.textContent,
+            chevronCentered: Math.abs((icon.y + icon.height / 2) - (chevron.y + chevron.height / 2)) < 1,
+            labelClear: labelBox.right + 8 <= chevron.left,
+            valueFits: value.scrollWidth <= value.clientWidth + 1,
+            moneyOneLine: !money || money.getBoundingClientRect().height <= parseFloat(getComputedStyle(value).lineHeight) + 1,
+          };
+        });
+        assert.ok(layout.chevronCentered && layout.labelClear, `Heading and chevron alignment: ${width}px ${layout.label}`);
+        assert.ok(layout.valueFits && layout.moneyOneLine, `Full currency value fits: ${width}px ${layout.label}`);
+      }
+      const fundBoxes = await funds.locator('[data-kpi]').evaluateAll(cards => cards.map(el => el.getBoundingClientRect().x));
+      assert.equal(new Set(fundBoxes).size, 1, 'Treasury cards have a full readable row on mobile');
+      const monthBoxes = await page.locator('figure svg > g:has(title) > text').evaluateAll(labels => labels.map(el => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, height: r.height };
+      }));
+      for (let i = 1; i < monthBoxes.length; i++) assert.ok(monthBoxes[i].left - monthBoxes[i - 1].right >= 4, 'Chart month labels remain separated');
+      assert.ok(monthBoxes.every(b => b.height >= 12), 'Chart labels have readable mobile height');
+      assert.equal(await page.locator('figure').evaluate(el => el.scrollWidth > el.clientWidth + 1), false, 'All chart periods fit without scrolling');
     }
     const boxes = await Promise.all([hero, page.locator('[data-overview-metrics]'), page.locator('[data-admin-panels]'), funds].map(el => el.boundingBox()));
     for (let i = 1; i < boxes.length; i++) assert.ok(boxes[i].y >= boxes[i - 1].y + boxes[i - 1].height, 'Reference section order is preserved');
@@ -89,10 +123,20 @@ try {
     await page.close();
   }
   const page = await browser.newPage();
+  await page.goto(`${base}/dev/preview/dashboard?variant=admin`, { waitUntil: 'networkidle' });
+  assert.equal(await page.getByRole('link', { name: 'SACCO overview', exact: true }).getAttribute('href'), '/staff');
   await page.goto(`${base}/staff`, { waitUntil: 'domcontentloaded' });
   assert.match(page.url(), /\/login/);
+  await page.goto(`${base}/staff/admin`, { waitUntil: 'domcontentloaded' });
+  assert.match(page.url(), /\/login/);
   await page.close();
-  console.log('PASS signed-out Overview redirects to login');
+  // Verify the existing role-specific destination used by the staff sidebar.
+  const rbac = ts.transpileModule(await readFile('src/lib/rbac.ts', 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.ESNext },
+  }).outputText;
+  const { landingPath } = await import(`data:text/javascript;base64,${Buffer.from(rbac).toString('base64')}`);
+  assert.equal(landingPath({ roleKind: 'staff', dashboard: 'administration', permissions: ['dashboard.staff'] }), '/staff/admin');
+  console.log('PASS existing Overview/admin navigation destinations and both signed-out route guards');
 } finally {
   await browser.close();
 }

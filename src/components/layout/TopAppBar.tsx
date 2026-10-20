@@ -22,12 +22,14 @@ export async function TopAppBar({
   backHref,
   unreadCount = 0,
   action,
+  homeActive = false,
 }: {
   /** When set, replaces the wordmark — used on detail and wizard screens. */
   title?: string;
   backHref?: string;
   unreadCount?: number;
   action?: React.ReactNode;
+  homeActive?: boolean;
 }) {
   // The wordmark falls back to the SACCO's short name, from the organisation
   // record rather than a literal.
@@ -43,7 +45,7 @@ export async function TopAppBar({
       )}
     >
       <div className="flex min-w-0 items-center gap-1.5">
-        <MemberDrawer unreadCount={unreadCount} />
+        <MemberDrawer unreadCount={unreadCount} homeActive={homeActive} />
 
         {backHref ? (
           <Link

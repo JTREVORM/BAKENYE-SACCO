@@ -20,12 +20,12 @@ import { splitName } from '@/lib/sacco-brand';
  * treatment as the staff sidebar, just at the member's smaller nav surface.
  * Invisible below `md`, where the drawer behind the menu button is in charge.
  */
-export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number }) {
+export function MemberDesktopRail({ unreadCount = 0, homeActive = false }: { unreadCount?: number; homeActive?: boolean }) {
   const brand = useBrand();
   const [nameTop, nameBottom] = splitName(brand.legalName);
   const pathname = usePathname();
   function isActive(href: string) {
-    if (href === '/') return pathname === '/';
+    if (href === '/') return homeActive || pathname === '/';
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 

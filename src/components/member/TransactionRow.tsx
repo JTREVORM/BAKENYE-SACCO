@@ -33,11 +33,14 @@ export function TransactionRow({
   txn,
   href,
   showMember = false,
+  detailed = false,
 }: {
   txn: TransactionFeedRow;
   href?: string;
   /** Staff lists show whose transaction it is. */
   showMember?: boolean;
+  /** The home dashboard exposes the complete description and reference. */
+  detailed?: boolean;
 }) {
   const incoming = txn.direction === 'credit';
   const reversed = txn.status !== 'posted';
@@ -54,14 +57,15 @@ export function TransactionRow({
       </div>
 
       <div className="min-w-0 flex-1">
-        <h4 className="text-body-md font-body-md text-on-surface truncate font-semibold">
+        <h4 className={clsx('text-body-md font-body-md text-on-surface font-semibold', !detailed && 'truncate')}>
           {txn.expense_category_label ?? TXN_LABELS[txn.type]}
         </h4>
-        <p className="text-label-md font-label-md text-on-surface-variant truncate normal-case">
+        <p className={clsx('text-label-md font-label-md text-on-surface-variant normal-case', !detailed && 'truncate')}>
           {showMember && txn.member_name ? `${txn.member_name} · ` : ''}
           {formatRelativeDay(txn.created_at)}
         </p>
-        <p className="text-label-md font-label-md text-on-surface-variant/70 tabular truncate normal-case">
+        {detailed && txn.description ? <p className="mt-1 break-words text-body-md text-on-surface-variant">{txn.description}</p> : null}
+        <p className={clsx('text-label-md font-label-md text-on-surface-variant/70 tabular normal-case', detailed ? 'break-all' : 'truncate')}>
           {txn.reference}
         </p>
       </div>

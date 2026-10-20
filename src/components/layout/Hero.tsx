@@ -219,11 +219,13 @@ export function MemberHero({
   fullName,
   memberNo,
   status,
+  description,
 }: {
   fullName: string;
   memberNo: string | null;
   /** The member's status badge, rendered by the caller. */
   status?: React.ReactNode;
+  description?: string;
 }) {
   const first = fullName.trim().split(/\s+/)[0];
 
@@ -243,6 +245,7 @@ export function MemberHero({
         ) : null}
         {status}
       </div>
+      {description ? <p className="mt-4 text-body-lg text-white/85">{description}</p> : null}
       <GoldRule className="mt-4" />
     </HeroShell>
   );

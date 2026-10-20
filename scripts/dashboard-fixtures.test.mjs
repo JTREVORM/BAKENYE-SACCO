@@ -75,3 +75,24 @@ test('rolling collection labels match dates at month/year/leap-day boundaries', 
     assert.ok(members.every(m => !m.last_saved_on || m.last_saved_on <= date));
   }
 });
+
+test('Finance QA movements reconcile by account and use the source payment method', () => {
+  const rows = fixtures.fixtureFinanceLedger();
+  const balances = { ...fixtures.FIXTURE_FINANCE_OPENING };
+  for (const r of [...rows].reverse()) {
+    const t = fixtures.FIXTURE_TRANSACTIONS.find(t => t.id === r.transaction_id);
+    assert.equal(t.status, 'posted', 'Unpaired reversed samples are not modelled as posted ledger entries');
+    assert.equal(r.account_type, t.method === 'cash' ? 'cash' : 'merchant');
+    assert.equal(r.movement_class, t.direction === 'credit' ? 'payment' : 'collection');
+    assert.equal(r.money_in, t.direction === 'debit' ? t.amount : 0);
+    assert.equal(r.money_out, t.direction === 'credit' ? t.amount : 0);
+    balances[r.account_type] += r.money_in - r.money_out;
+    assert.equal(r.running_balance, balances[r.account_type]);
+    assert.equal(r.balance_after, r.running_balance);
+  }
+  for (const type of ['cash', 'merchant', 'bank']) assert.equal(balances[type], fixtures.FIXTURE_FINANCE_TOTALS[type]);
+  assert.equal(Object.values(balances).reduce((a,b) => a+b,0), fixtures.FIXTURE_FINANCE_TOTALS.total);
+  assert.equal(rows.find(r => r.txn_type === 'loan_disbursement').running_balance, 2050000);
+  assert.equal(rows.find(r => r.txn_type === 'loan_repayment').running_balance, 485000);
+  assert.deepEqual(rows.map(r => r.entry_date), ['2026-08-30','2026-08-29','2026-08-20']);
+});

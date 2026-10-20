@@ -11,7 +11,7 @@ import type {
   TransactionFeedRow,
 } from '@/types/db';
 import type { CollectionAccount } from '@/types/access';
-import type { ReceiptRegisterRow } from '@/types/treasury';
+import type { AccountMovementRow, ReceiptRegisterRow } from '@/types/treasury';
 
 /**
  * Fixture data for the design QA harness at `/dev/preview`.
@@ -574,6 +574,43 @@ export const FIXTURE_COLLECTION_ACCOUNTS: CollectionAccount[] = [
     account_number: null,
   },
 ];
+
+/** Development treasury snapshot. Opening balances and posted movements
+ * reconcile to the already-approved closing account figures below. */
+export const FIXTURE_FINANCE_TOTALS = { merchant: 485000, bank: 4145000, cash: 2100000, total: 6730000 };
+export const FIXTURE_FINANCE_OPENING = { cash: 7050000, merchant: 335000, bank: 4145000 };
+
+export function fixtureFinanceLedger(): AccountMovementRow[] {
+  const balances = { ...FIXTURE_FINANCE_OPENING };
+  // The reversed share fixture has no valid matching reversal ledger pair.
+  // Do not manufacture ledger entries for it or count it as current cash.
+  const posted = FIXTURE_TRANSACTIONS.filter(t => t.status === 'posted').sort((a, b) => a.occurred_on.localeCompare(b.occurred_on) || a.created_at.localeCompare(b.created_at));
+  const rows = posted.map((t, i): AccountMovementRow => {
+    if (t.method !== 'cash' && t.method !== 'mobile_money') throw new Error('Finance QA needs a matching sample receiving account');
+    const kind = t.method === 'cash' ? 'cash' : 'merchant';
+    const account = FIXTURE_COLLECTION_ACCOUNTS.find(a => a.account_type === kind);
+    if (!account) throw new Error('Finance QA sample account is missing');
+    const moneyIn = t.direction === 'debit' ? t.amount : 0;
+    const moneyOut = t.direction === 'credit' ? t.amount : 0;
+    balances[kind] += moneyIn - moneyOut;
+    return {
+      entry_id: i + 1, transaction_id: t.id, account_id: account.id,
+      account_code: account.code, account_name: account.name, account_type: kind,
+      entry_date: t.occurred_on, money_in: moneyIn, money_out: moneyOut,
+      balance_after: balances[kind], running_balance: balances[kind],
+      created_at: t.created_at, reference: t.reference, txn_type: t.type,
+      txn_status: t.status, method: t.method, description: t.description,
+      external_ref: null, member_id: t.member_id, member_no: t.member_no,
+      member_name: t.member_name, recorded_by: t.recorded_by,
+      recorded_by_name: t.recorded_by_name, reverses_id: t.reverses_id,
+      reversed_by_id: t.reversed_by_id, counter_account_type: null,
+      counter_account_name: null, movement_class: moneyOut > 0 ? 'payment' : 'collection',
+      category_label: t.type === 'loan_disbursement' ? 'Loan disbursement' : t.type === 'loan_repayment' ? 'Loan repayment' : 'Savings',
+      custom_expense: null,
+    };
+  });
+  return rows.reverse();
+}
 
 /** Receipt-date filtering for QA only, matching the cashier route's date
  * boundary. A backdated receipt created today is still a historical receipt. */

@@ -23,6 +23,8 @@ export function MemberShell({
   headerAction,
   /** Set on screens that supply their own full-bleed background (receipts). */
   bare = false,
+  dashboard = false,
+  desktopHeader,
 }: {
   children: React.ReactNode;
   title?: string;
@@ -30,17 +32,22 @@ export function MemberShell({
   unreadCount?: number;
   headerAction?: React.ReactNode;
   bare?: boolean;
+  /** The home dashboard has a wider composition; other portal pages retain theirs. */
+  dashboard?: boolean;
+  desktopHeader?: React.ReactNode;
 }) {
   return (
-    <div className="bg-background text-on-background flex h-[100dvh] overflow-hidden">
-      <MemberDesktopRail unreadCount={unreadCount} />
+    <div data-member-shell={dashboard || undefined} className="bg-background text-on-background flex h-[100dvh] overflow-hidden">
+      <MemberDesktopRail unreadCount={unreadCount} homeActive={dashboard} />
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {desktopHeader ? <div className="hidden md:block">{desktopHeader}</div> : null}
         <TopAppBar
           title={title}
           backHref={backHref}
           unreadCount={unreadCount}
           action={headerAction}
+          homeActive={dashboard}
         />
 
         {/* `<main>` stays the landmark; the scrolling itself happens one level
@@ -55,11 +62,11 @@ export function MemberShell({
               // Desktop has the rail instead of the fixed top bar, so it needs no
               // top offset. Utilities layer after components, so these override
               // safe-pt/safe-pb.
-              'md:pb-8 md:pt-8',
+              dashboard ? 'md:py-6' : 'md:pb-8 md:pt-8',
               !bare && 'px-container-margin-mobile md:px-8',
             )}
           >
-            <div className={clsx(!bare && 'mx-auto w-full max-w-2xl')}>{children}</div>
+            <div className={clsx(!bare && 'mx-auto w-full', !bare && (dashboard ? 'max-w-[1440px]' : 'max-w-2xl'))}>{children}</div>
           </ScrollArea>
         </main>
       </div>

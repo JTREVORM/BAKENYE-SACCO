@@ -16,10 +16,9 @@ import { KpiCard, KpiCardFeature, Money, Panel, QuickAction, ViewAllLink } from 
 import { EmptyState } from '@/components/ui/states';
 import { STAFF_NAV, can, visibleNav, type Access, type Permission } from '@/lib/rbac';
 import { ACCOUNT_TYPE_META, ACCOUNT_TYPES } from '@/lib/treasury-format';
-import { FIXTURE_COLLECTION_ACCOUNTS, FIXTURE_LOAN_BALANCE, FIXTURE_MEMBERS, FIXTURE_MONTHLY_FLOW, FIXTURE_PORTFOLIO, FIXTURE_TRANSACTIONS, fixtureCollectionForDate, fixtureReceiptsForDate } from '@/lib/fixtures';
-import { toISODate } from '@/lib/format';
+import { FIXTURE_COLLECTION_ACCOUNTS, FIXTURE_FINANCE_TOTALS, FIXTURE_LOAN_BALANCE, FIXTURE_MEMBERS, FIXTURE_MONTHLY_FLOW, FIXTURE_PORTFOLIO, FIXTURE_TRANSACTIONS, fixtureCollectionForDate, fixtureFinanceLedger, fixtureReceiptsForDate } from '@/lib/fixtures';
+import { formatDate, toISODate } from '@/lib/format';
 import { toNumber } from '@/lib/money';
-import type { AccountMovementRow } from '@/types/treasury';
 import styles from '@/components/staff/StaffDashboard.module.css';
 
 export const metadata: Metadata = { title: 'Staff dashboard review', robots: { index: false } };
@@ -34,7 +33,7 @@ const contexts = {
 
 // These treasury and security values are the existing approved dashboard QA
 // scenario. All other values below are adapted from src/lib/fixtures.ts.
-const totals = { merchant: 485000, bank: 4145000, cash: 2100000, total: 6730000 };
+const totals = FIXTURE_FINANCE_TOTALS;
 const security = { staff_accounts: 4, member_logins: 56, must_change: 17, signins_24h: 8, failures_24h: 1, paused_now: 0, members_without_login: 0 };
 const metrics = {
   total_members: FIXTURE_MEMBERS.filter(m => m.status === 'active').length,
@@ -123,7 +122,7 @@ export default async function StaffDashboardPreview({ params, searchParams }: {
             <div className="min-w-0 space-y-gutter">{quickActions}<LoansDuePanel rows={[]} names={names} /></div>
           </div>
         </> : null}
-        {dashboard === 'finance' ? <FinancePreview canRecord={can(access, 'finance.record')} /> : null}
+        {dashboard === 'finance' ? <FinancePreview canRecord={can(access, 'finance.record')} today={today} /> : null}
         {dashboard === 'collections' ? <div className="grid grid-cols-1 gap-gutter lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
           <div className="lg:sticky lg:top-4 lg:self-start"><CollectSearch query={sp.q ?? 'Nakabugo'} results={collection.members} selectedId={sp.member ?? collection.view.member.id} /></div>
           <div className="min-w-0"><MemberCollectionPanel view={collection.view} canRecord={can(access, 'savings.record')} accounts={FIXTURE_COLLECTION_ACCOUNTS} /></div>
@@ -140,16 +139,14 @@ function PreviewFunds({ compact = false }: { compact?: boolean }) {
   </section>;
 }
 
-function FinancePreview({ canRecord }: { canRecord: boolean }) {
-  const ledger: AccountMovementRow[] = FIXTURE_TRANSACTIONS.map((t, i) => ({
-    entry_id: i, transaction_id: t.id, account_id: FIXTURE_COLLECTION_ACCOUNTS[0].id, account_code: FIXTURE_COLLECTION_ACCOUNTS[0].code, account_name: FIXTURE_COLLECTION_ACCOUNTS[0].name, account_type: 'cash', entry_date: t.occurred_on, money_in: t.direction === 'debit' ? toNumber(t.amount) : 0, money_out: t.direction === 'credit' ? toNumber(t.amount) : 0, balance_after: totals.cash, created_at: t.created_at, reference: t.reference, txn_type: t.type, txn_status: t.status, method: t.method, description: t.description, external_ref: null, member_id: t.member_id, member_no: t.member_no, member_name: t.member_name, recorded_by: null, recorded_by_name: t.recorded_by_name, reverses_id: t.reverses_id, reversed_by_id: t.reversed_by_id, counter_account_type: null, counter_account_name: null, movement_class: 'collection', category_label: t.description ?? '', running_balance: totals.cash, custom_expense: null,
-  }));
+function FinancePreview({ canRecord, today }: { canRecord: boolean; today: string }) {
+  const ledger = fixtureFinanceLedger();
   return <>
     <div className="flex flex-col gap-gutter">
       <div className="order-2 grid grid-cols-1 gap-gutter lg:order-1 lg:grid-cols-3">
         {ACCOUNT_TYPES.map(t => <AccountTypeCard key={t} type={t} balance={totals[t]} accounts={1} lines={(t === 'merchant' ? ["Today's collections", "Today's transfers to bank"] : t === 'bank' ? ["Today's deposits", "Today's withdrawals"] : ["Today's cash received", "Today's cash deposits", "Today's cash payments"]).map(label => ({ label, value: 0 }))} />)}
       </div>
-      <div className="order-1 lg:order-2"><TotalFundsCard totals={totals} asOf="19 Oct 2026" /></div>
+      <div className="order-1 lg:order-2"><TotalFundsCard totals={totals} asOf={formatDate(today)} /></div>
     </div>
     {canRecord ? <section aria-label="Quick actions" className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
       <QuickAction href="/staff/finance/new/collection" icon="point_of_sale" label="Record Collection" tone="success" />
@@ -163,7 +160,7 @@ function FinancePreview({ canRecord }: { canRecord: boolean }) {
     </section> : null}
     <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
       <div className="min-w-0 space-y-gutter xl:col-span-2">
-        <Panel title="Today's activity" subtitle="19 Oct 2026" icon="today"><EmptyState compact icon="today" title="Nothing recorded today" description="Collections, transfers, deposits and payments recorded today will be listed here." /></Panel>
+        <Panel title="Today's activity" subtitle={formatDate(today)} icon="today"><EmptyState compact icon="today" title="Nothing recorded today" description="Collections, transfers, deposits and payments recorded today will be listed here." /></Panel>
         <Panel title="Monthly cash flow" subtitle="Money received against money paid out, six months. Internal transfers are excluded." icon="insights"><PairedBars points={FIXTURE_MONTHLY_FLOW.map(p => ({ label: p.label, a: p.in, b: p.out }))} a={{ label: 'Money received', colour: IN_COLOUR }} b={{ label: 'Money paid out', colour: OUT_COLOUR }} emptyTitle="No money has moved yet" emptyBody="Money received and paid out will be charted month by month here." /></Panel>
         <section><div className="mb-3 flex items-end justify-between gap-3"><h2 className="text-title-md">Recent transactions</h2><ViewAllLink href="/staff/finance/ledger" /></div><LedgerTable rows={ledger} readable /></section>
       </div>

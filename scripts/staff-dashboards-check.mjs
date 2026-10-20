@@ -53,6 +53,21 @@ try {
       assert.equal(await receipts.locator('li').count(), 0);
       assert.equal(await page.getByRole('link', { name: 'Register member', exact: true }).count(), 0);
     }
+    if (dashboard === 'finance') {
+      const today = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Kampala' }).format(new Date());
+      const activity = page.locator('section').filter({ has: page.getByRole('heading', { name: "Today's activity", exact: true }) });
+      assert.ok((await activity.innerText()).includes(today), 'Today’s activity uses today in Uganda');
+      assert.ok((await page.locator('[aria-labelledby="total-funds"]').innerText()).includes(today), 'Treasury snapshot uses the same QA date');
+      const ledger = page.getByRole('region', { name: 'Account ledger', exact: true });
+      const payout = ledger.getByRole('row').filter({ hasText: 'LDS260820001' });
+      assert.match(await payout.innerText(), /Payment/);
+      assert.doesNotMatch(await payout.innerText(), /Member collection/);
+      assert.ok((await payout.innerText()).includes('2,050,000'));
+      const repayment = ledger.getByRole('row').filter({ hasText: 'LRP260829002' });
+      assert.ok((await repayment.innerText()).includes('Airtel Collections'));
+      assert.ok((await repayment.innerText()).includes('485,000'));
+      assert.equal(await ledger.getByRole('row').filter({ hasText: 'SHR260812001' }).count(), 0, 'Unpaired reversed sample is not fabricated as a posted ledger entry');
+    }
     for (const width of widths) {
       await page.setViewportSize({ width, height: 1100 });
       await page.waitForTimeout(200);

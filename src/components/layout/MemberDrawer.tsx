@@ -31,7 +31,7 @@ import { splitName } from '@/lib/sacco-brand';
  * inline `fixed inset-0` drawer would be clipped to the 56px bar instead of
  * covering the screen.
  */
-export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
+export function MemberDrawer({ unreadCount = 0, homeActive = false }: { unreadCount?: number; homeActive?: boolean }) {
   const brand = useBrand();
   const [nameTop, nameBottom] = splitName(brand.legalName);
   const [open, setOpen] = useState(false);
@@ -43,7 +43,7 @@ export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
   useEffect(() => setMounted(true), []);
 
   function isActive(href: string) {
-    if (href === '/') return pathname === '/';
+    if (href === '/') return homeActive || pathname === '/';
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 

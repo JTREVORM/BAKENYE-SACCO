@@ -1,7 +1,7 @@
 import { requireStaff } from '@/lib/auth';
 import { getBrand } from '@/lib/brand';
 import { getUnreadCount } from '@/lib/queries';
-import { STAFF_NAV, landingPath, visibleNav } from '@/lib/rbac';
+import { STAFF_NAV, can, landingPath, visibleNav } from '@/lib/rbac';
 import { StaffShell } from '@/components/layout/StaffShell';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 
@@ -34,6 +34,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
       user={{ fullName: user.fullName, roleName: user.roleName, role: user.role, photoUrl: user.photoUrl }}
       nav={nav}
       unreadCount={unread}
+      showRecordSaving={can(user, 'savings.record')}
     >
       {children}
       <InstallPrompt appName={brand.shortName} legalName={brand.legalName} />

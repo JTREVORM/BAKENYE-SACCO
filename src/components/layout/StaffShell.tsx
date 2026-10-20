@@ -26,11 +26,13 @@ export function StaffShell({
   user,
   nav,
   unreadCount = 0,
+  showRecordSaving = true,
   children,
 }: {
   user: { fullName: string; roleName: string; photoUrl: string | null; role?: string };
   nav: readonly NavItem[];
   unreadCount?: number;
+  showRecordSaving?: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -103,13 +105,13 @@ export function StaffShell({
             </div>
 
             <div className="ml-auto flex shrink-0 items-center gap-1 md:gap-2.5">
-              <Link
+              {showRecordSaving ? <Link
                 href="/staff/savings/record"
                 className="hidden items-center gap-2 rounded-full bg-ink px-5 py-3 text-button-text text-white shadow-neu-dark transition-colors hover:bg-ink-soft lg:inline-flex"
               >
                 <Icon name="add" size={18} />
                 Record saving
-              </Link>
+              </Link> : null}
 
               <Link
                 href="/staff/notifications"

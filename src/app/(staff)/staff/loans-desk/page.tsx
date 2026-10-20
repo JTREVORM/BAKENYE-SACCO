@@ -27,7 +27,7 @@ export default async function LoansDesk() {
     can(user, 'loans.assess') && { href: '/staff/members', icon: 'request_quote', label: 'New application', tone: 'primary' as const },
     { href: '/staff/loans', icon: 'payments', label: 'All loans', tone: 'neutral' as const },
     { href: '/staff/loans/products', icon: 'inventory_2', label: 'Loan products', tone: 'neutral' as const },
-    can(user, 'reports.member') && { href: '/staff/reports', icon: 'summarize', label: 'Reports', tone: 'accent' as const },
+    can(user, 'reports.view') && { href: '/staff/reports', icon: 'summarize', label: 'Reports', tone: 'accent' as const },
   ].filter(Boolean) as { href: string; icon: string; label: string; tone: 'primary' | 'accent' | 'neutral' }[];
 
   return (

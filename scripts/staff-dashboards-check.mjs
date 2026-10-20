@@ -24,7 +24,7 @@ const browser = await chromium.launch({
   proxy: process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: 'localhost,127.0.0.1' } : undefined,
 });
 try {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const fonts = new Map();
   if (process.env.HTTPS_PROXY) await context.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, async route => {
     const url = route.request().url();
@@ -46,6 +46,13 @@ try {
     assert.equal(await page.getByRole('link', { name: 'SACCO overview', exact: true }).getAttribute('href'), '/staff');
     assert.ok((await page.locator('[data-staff-dashboard]').innerText()).includes(spec.heading), `The ${dashboard} content is present`);
     assert.equal(await page.locator('a[href="#"]').count(), 0, 'No placeholder links');
+    assert.equal(await page.locator('[data-app-header] a[href="/staff/savings/record"]').count(), ['administration', 'cashier', 'collections'].includes(dashboard) ? 1 : 0, 'Header action matches the existing savings.record permission');
+    if (dashboard === 'cashier') {
+      const receipts = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Receipts you issued today', exact: true }) });
+      assert.ok((await receipts.innerText()).includes('No receipts yet today'), 'Historical fixture transactions are not shown as today’s receipts');
+      assert.equal(await receipts.locator('li').count(), 0);
+      assert.equal(await page.getByRole('link', { name: 'Register member', exact: true }).count(), 0);
+    }
     for (const width of widths) {
       await page.setViewportSize({ width, height: 1100 });
       await page.waitForTimeout(200);
@@ -78,8 +85,31 @@ try {
         assert.equal(await page.locator('svg[aria-label="Money received and Money paid out by month"]').count(), 1);
         const monthLabels = await page.locator('figure svg > g:has(title) > text').evaluateAll(labels => labels.map(el => { const b = el.getBoundingClientRect(); return { left: b.left, right: b.right }; }));
         for (let i = 1; i < monthLabels.length; i++) assert.ok(monthLabels[i].left > monthLabels[i - 1].right + 2, 'Financial chart month labels remain separate');
-        const truncated = await page.locator('td:nth-child(5) .truncate').evaluateAll(items => items.filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.textContent));
-        assert.deepEqual(truncated, [], 'Complete ledger descriptions remain readable');
+        if (width >= 768) {
+          const region = page.getByRole('region', { name: 'Account ledger', exact: true });
+          assert.ok(await region.isVisible());
+          assert.equal(await region.getAttribute('tabindex'), '0');
+          const description = region.locator('[data-ledger-description] > span:last-child').first();
+          const text = await description.textContent();
+          await description.evaluate(el => { el.textContent = Array(6).fill(el.textContent).join(' '); });
+          assert.ok(await description.evaluate(el => el.clientHeight >= el.scrollHeight - 1), 'Long transaction descriptions are fully expanded');
+          await description.evaluate((el, original) => { el.textContent = original; }, text);
+          const right = page.getByRole('button', { name: 'Account ledger: scroll right', exact: true });
+          for (let i = 0; i < 10 && await right.isEnabled(); i++) { await right.click(); await page.waitForTimeout(100); }
+          assert.ok(await right.isDisabled(), 'Ledger end is reachable using visible controls');
+          const balance = region.getByRole('columnheader', { name: 'Balance (UGX)', exact: true });
+          const r = await region.boundingBox(), b = await balance.boundingBox();
+          assert.ok(b.x >= r.x - 1 && b.x + b.width <= r.x + r.width + 1, 'Balance column is fully visible at the ledger end');
+          const end = await region.evaluate(el => el.scrollLeft);
+          await region.focus(); await region.press('ArrowLeft'); await page.waitForTimeout(100);
+          assert.ok(await region.evaluate(el => el.scrollLeft) < end, 'The ledger also scrolls with the keyboard');
+          if (width === 1855) {
+            await region.evaluate(el => { el.scrollLeft = el.scrollWidth; el.blur(); });
+            await page.waitForTimeout(100);
+            await region.locator('..').screenshot({ path: `${out}/finance-ledger-end.png` });
+          }
+          await region.evaluate(el => { el.scrollLeft = 0; });
+        }
       }
       if (dashboard === 'collections') {
         assert.match(await page.locator('[data-staff-dashboard]').innerText(), /Nakabugo Christine Ssemakula/);
@@ -87,6 +117,22 @@ try {
         assert.deepEqual(stats, [], `${width}px: collection financial figures are readable`);
         const amounts = await page.locator('[data-staff-dashboard] table td.tabular').evaluateAll(items => items.filter(el => getComputedStyle(el).whiteSpace !== 'nowrap').map(el => el.textContent));
         assert.deepEqual(amounts, [], 'Savings table figures stay together');
+        if (width < 768) {
+          const months = page.getByRole('list', { name: 'Savings by month', exact: true });
+          assert.ok(await months.isVisible());
+          for (const row of await months.locator(':scope > li').all()) {
+            assert.ok(await row.getByText('Last deposit', { exact: true }).isVisible());
+            const action = row.getByRole('button');
+            assert.ok(await action.isVisible());
+            assert.ok((await action.boundingBox()).height >= 44);
+            assert.equal(await row.evaluate(el => el.scrollWidth > el.clientWidth + 1), false);
+          }
+          const month = months.locator(':scope > li').nth(1);
+          const cycle = await month.locator('h3').innerText();
+          await month.getByRole('button').click();
+          assert.ok((await page.getByRole('dialog').innerText()).includes(cycle), 'Month-specific action opens the correct period');
+          await page.keyboard.press('Escape');
+        }
         await page.getByRole('button', { name: 'Record savings', exact: true }).click();
         assert.ok(await page.getByRole('dialog').isVisible());
         await page.keyboard.press('Escape');
@@ -116,7 +162,11 @@ try {
       assert.equal(await page.getByRole('link', { name: 'Staff accounts', exact: true }).count(), 0);
     }
     if (dashboard === 'finance') assert.equal(await page.locator('section[aria-label="Quick actions"]').count(), 0);
-    if (dashboard === 'collections') assert.ok(await page.getByRole('button', { name: 'Record savings', exact: true }).isDisabled());
+    assert.equal(await page.locator('[data-app-header] a[href="/staff/savings/record"]').count(), 0);
+    if (dashboard === 'collections') {
+      assert.ok(await page.getByRole('button', { name: 'Record savings', exact: true }).isDisabled());
+      assert.equal(await page.getByRole('button', { name: /^Record savings for / }).count(), 0);
+    }
     await page.goto(`${base}${spec.route}`, { waitUntil: 'domcontentloaded' });
     assert.match(page.url(), /\/login/, `${spec.route} still requires authentication`);
   }

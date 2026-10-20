@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { clsx } from '@/lib/clsx';
 import { Icon } from './icon';
 
@@ -337,6 +337,7 @@ export function ScrollRow({
   wrapperClassName,
   arrows = 'flank',
   label,
+  hint,
   ...rest
 }: {
   children: React.ReactNode;
@@ -347,8 +348,11 @@ export function ScrollRow({
   arrows?: 'flank' | 'overlay' | 'none';
   /** Names the scrollable region for assistive technology. */
   label?: string;
+  /** Opt-in, visible controls below a wide table, also usable by keyboard. */
+  hint?: string;
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
   const { ref, scrollable, atStart, atEnd } = useScrollEdges<HTMLDivElement>('x');
+  const hintId = useId();
 
   // A region that can scroll must be reachable and announced. `tabindex=0` on
   // an overflowing scroller is what lets a keyboard user scroll it with the
@@ -359,6 +363,7 @@ export function ScrollRow({
       ref={ref}
       role={scrollable ? 'region' : undefined}
       aria-label={scrollable ? label : undefined}
+      aria-describedby={scrollable && hint ? hintId : undefined}
       tabIndex={scrollable ? 0 : undefined}
       className={clsx('min-w-0 flex-1 overflow-x-auto', className)}
       {...rest}
@@ -366,6 +371,33 @@ export function ScrollRow({
       {children}
     </div>
   );
+
+  if (hint) {
+    return (
+      <div className={clsx('min-w-0', wrapperClassName)}>
+        {viewport}
+        {scrollable ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant bg-surface-container-low px-4 py-2 print:hidden">
+            <p id={hintId} className="min-w-0 flex-1 text-label-md font-normal text-on-surface-variant">{hint}</p>
+            <div className="flex shrink-0 gap-2">
+              {([-1, 1] as const).map(direction => (
+                <button
+                  key={direction}
+                  type="button"
+                  aria-label={`${label ?? 'Table'}: scroll ${direction === -1 ? 'left' : 'right'}`}
+                  disabled={direction === -1 ? atStart : atEnd}
+                  onClick={() => page(ref.current, 'x', direction)}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant bg-surface text-primary shadow-neu-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-35"
+                >
+                  <Icon name={direction === -1 ? 'chevron_left' : 'chevron_right'} size={20} />
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   if (arrows === 'none') {
     return <div className={clsx('min-w-0', wrapperClassName)}>{viewport}</div>;

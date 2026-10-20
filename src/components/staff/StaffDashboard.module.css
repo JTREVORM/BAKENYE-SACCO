@@ -2,6 +2,8 @@
    remaining staff dashboards, including Administration for non-Super-Admins. */
 .workspace { composes: dashboard from './SuperAdminDashboard.module.css'; }
 .workspace :global([data-staff-dashboard]) { --staff-line: #e5ebf4; }
+.workspace :global([data-app-header] > div > div:last-child:not(:has(a[href='/staff/savings/record']))) { justify-content: flex-end; }
+.workspace :global([data-app-header] > div > div:last-child > a[href='/staff/notifications']:first-child) { margin: 0; font-size: inherit; }
 .workspace :global([data-staff-dashboard] > [data-hero] > div:last-child) { min-height: 182px; align-items: flex-end; }
 .workspace :global([data-staff-dashboard] > [data-hero] h1) { font-size: clamp(28px, 2.5vw, 38px); }
 .workspace :global([data-staff-dashboard] > [data-hero] p:last-of-type) { max-width: 760px; line-height: 1.6; }
@@ -58,8 +60,8 @@
 .workspace :global([data-staff-dashboard='finance'] figure:has(svg circle) figcaption > div > span:nth-child(2)) { white-space: normal; overflow: visible; }
 .workspace :global([data-staff-dashboard='finance'] figure:has(svg circle) figcaption > div > span:nth-child(3)) { grid-column: 2; }
 .workspace :global([data-staff-dashboard='finance'] figure:has(svg circle) figcaption > div > span:last-child) { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
-.workspace :global([data-staff-dashboard='finance'] td:nth-child(5)) { min-width: 14rem; }
-.workspace :global([data-staff-dashboard='finance'] td:nth-child(5) .truncate) { white-space: normal; overflow: visible; text-overflow: clip; max-width: none; overflow-wrap: anywhere; }
+.workspace :global([data-staff-dashboard='finance'] [data-ledger-readable] table) { min-width: 1440px; }
+.workspace :global([data-staff-dashboard='finance'] [data-ledger-readable] [data-ledger-description]) { min-width: 320px; max-width: 420px; overflow-wrap: anywhere; }
 .workspace :global([data-staff-dashboard='collections'] section.bg-surface),
 .workspace :global([data-staff-dashboard='collections'] .bg-surface:has(> .text-on-surface-variant)) { border-radius: 21px; box-shadow: 0 5px 22px #193f6c07; }
 .workspace :global([data-staff-dashboard='collections'] section dl) { gap: 20px; }
@@ -89,6 +91,7 @@
   .workspace :global([data-staff-dashboard='finance'] section[aria-labelledby='total-funds'] > dl) { grid-column: 1 / -1; margin-top: 0; padding-top: 14px; }
 }
 @media (max-width: 767px) {
+  .workspace :global([data-staff-dashboard='collections'] [data-collection-months] dd) { font-size: 16px; }
   .workspace :global([data-staff-dashboard] > [data-hero] > div:last-child) { padding: 22px; align-items: flex-start; gap: 22px; }
   .workspace :global([data-staff-dashboard] > [data-hero] h1) { font-size: 28px; }
   .workspace :global([data-staff-dashboard] > [data-hero] p:first-child) { font-size: 13px; }

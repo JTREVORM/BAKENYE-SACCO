@@ -452,7 +452,7 @@ async function RecentPanel() {
         </div>
         <ViewAllLink href="/staff/finance/ledger" />
       </div>
-      <LedgerTable rows={rows} />
+      <LedgerTable rows={rows} readable />
     </section>
   );
 }

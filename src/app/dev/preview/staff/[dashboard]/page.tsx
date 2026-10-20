@@ -16,7 +16,8 @@ import { KpiCard, KpiCardFeature, Money, Panel, QuickAction, ViewAllLink } from 
 import { EmptyState } from '@/components/ui/states';
 import { STAFF_NAV, can, visibleNav, type Access, type Permission } from '@/lib/rbac';
 import { ACCOUNT_TYPE_META, ACCOUNT_TYPES } from '@/lib/treasury-format';
-import { FIXTURE_COLLECTION_ACCOUNTS, FIXTURE_COLLECTION_VIEW, FIXTURE_LOAN_BALANCE, FIXTURE_MEMBERS, FIXTURE_MONTHLY_FLOW, FIXTURE_PORTFOLIO, FIXTURE_TRANSACTIONS } from '@/lib/fixtures';
+import { FIXTURE_COLLECTION_ACCOUNTS, FIXTURE_LOAN_BALANCE, FIXTURE_MEMBERS, FIXTURE_MONTHLY_FLOW, FIXTURE_PORTFOLIO, FIXTURE_TRANSACTIONS, fixtureCollectionForDate, fixtureReceiptsForDate } from '@/lib/fixtures';
+import { toISODate } from '@/lib/format';
 import { toNumber } from '@/lib/money';
 import type { AccountMovementRow } from '@/types/treasury';
 import styles from '@/components/staff/StaffDashboard.module.css';
@@ -24,9 +25,9 @@ import styles from '@/components/staff/StaffDashboard.module.css';
 export const metadata: Metadata = { title: 'Staff dashboard review', robots: { index: false } };
 
 const contexts = {
-  administration: { roleName: 'Admin', role: 'admin', subtitle: 'Accounts, security and configuration', permissions: ['finance.view', 'users.manage', 'audit.view', 'settings.view', 'members.create'] },
+  administration: { roleName: 'Admin', role: 'admin', subtitle: 'Accounts, security and configuration', permissions: ['finance.view', 'users.manage', 'audit.view', 'settings.view', 'members.create', 'savings.record'] },
   cashier: { roleName: 'Cashier / Teller', role: 'cashier', subtitle: 'The counter', permissions: ['finance.view', 'finance.record', 'savings.record', 'shares.sell'] },
-  loans: { roleName: 'Loan Officer', role: 'loan_officer', subtitle: 'Applications, repayments and arrears', permissions: ['loans.view', 'loans.assess', 'reports.member'] },
+  loans: { roleName: 'Loan Officer', role: 'loan_officer', subtitle: 'Applications, repayments and arrears', permissions: ['loans.view', 'loans.assess', 'reports.view', 'reports.member'] },
   finance: { roleName: 'Accountant', role: 'accountant', subtitle: 'Cash at Merchant, Bank and Hand, and the books', permissions: ['finance.view', 'finance.record', 'finance.reconcile', 'reports.member'] },
   collections: { roleName: 'Field Officer', role: 'field_officer', subtitle: 'Find a member and record what they bring', permissions: ['savings.record'] },
 } as const;
@@ -41,7 +42,6 @@ const metrics = {
   total_savings: FIXTURE_MEMBERS.reduce((s, m) => s + toNumber(m.savings_balance), 0),
   savings_this_month: FIXTURE_MEMBERS.reduce((s, m) => s + toNumber(m.savings_this_month), 0),
   savers_this_month: FIXTURE_MEMBERS.filter(m => toNumber(m.savings_this_month) > 0).length,
-  todays_collections: FIXTURE_TRANSACTIONS.filter(t => t.status === 'posted' && t.direction === 'debit').reduce((s, t) => s + toNumber(t.amount), 0),
   outstanding_loans: FIXTURE_LOAN_BALANCE.outstanding,
   active_loan_count: 1,
   pending_loans: FIXTURE_PORTFOLIO.filter(l => l.status === 'under_review' || l.status === 'applied').length,
@@ -58,6 +58,10 @@ export default async function StaffDashboardPreview({ params, searchParams }: {
   if (!Object.hasOwn(contexts, dashboard)) notFound();
   const context = contexts[dashboard as keyof typeof contexts];
   const sp = await searchParams;
+  const today = toISODate();
+  const collection = fixtureCollectionForDate(today);
+  const receiptsToday = fixtureReceiptsForDate(today);
+  const receiptTotalToday = receiptsToday.filter(r => r.status === 'posted').reduce((sum, r) => sum + toNumber(r.amount), 0);
   const requiredRead = dashboard === 'finance' ? ['finance.view'] : dashboard === 'loans' ? ['loans.view'] : [];
   const permissions = ['dashboard.staff', 'members.view', 'savings.view', 'transactions.view', ...requiredRead, ...(sp.limited ? [] : context.permissions)] as Permission[];
   const access: Access = { role: context.role, roleKind: 'staff', permissions };
@@ -74,13 +78,13 @@ export default async function StaffDashboardPreview({ params, searchParams }: {
     ...(can(access, 'loans.assess') ? [{ href: '/staff/members', icon: 'request_quote', label: 'New application', tone: 'primary' as const }] : []),
     { href: '/staff/loans', icon: 'payments', label: 'All loans', tone: 'neutral' as const },
     { href: '/staff/loans/products', icon: 'inventory_2', label: 'Loan products', tone: 'neutral' as const },
-    ...(can(access, 'reports.member') ? [{ href: '/staff/reports', icon: 'summarize', label: 'Reports', tone: 'accent' as const }] : []),
+    ...(can(access, 'reports.view') ? [{ href: '/staff/reports', icon: 'summarize', label: 'Reports', tone: 'accent' as const }] : []),
   ] : [];
   const quickActions = <Panel title="Quick actions" icon="bolt"><div className="grid grid-cols-2 gap-2">{actions.map(a => <QuickAction key={a.href} {...a} />)}</div></Panel>;
   const names = new Map(FIXTURE_MEMBERS.map(m => [m.id, { full_name: m.full_name, member_no: m.member_no }]));
 
   return <div className={styles.workspace}>
-    <StaffShell user={user} nav={nav} unreadCount={3}>
+    <StaffShell user={user} nav={nav} unreadCount={3} showRecordSaving={can(access, 'savings.record')}>
       <div data-staff-dashboard={dashboard} data-admin-dashboard={dashboard === 'administration' || undefined} className="space-y-gutter">
         <DashboardHeader roleName={context.roleName} fullName={user.fullName} subtitle={context.subtitle} />
         {dashboard === 'administration' ? <>
@@ -102,11 +106,11 @@ export default async function StaffDashboardPreview({ params, searchParams }: {
           </div>
         </> : null}
         {dashboard === 'cashier' ? <>
-          <CashierFigures m={metrics} />
+          <CashierFigures m={{ ...metrics, todays_collections: receiptTotalToday }} />
           {can(access, 'finance.view') ? <PreviewFunds /> : null}
           <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
             {quickActions}
-            <div className="min-w-0 xl:col-span-2">{can(access, 'finance.view') ? <CashierReceiptsPanel rows={FIXTURE_TRANSACTIONS.filter(t => t.direction === 'debit').map(t => ({ id: t.id, receipt_no: t.reference, transaction_id: t.id, amount: t.amount, payer: t.member_name, category: t.description ?? '', receiving_account_name: FIXTURE_COLLECTION_ACCOUNTS[0].name, created_at: t.created_at, status: t.status }))} total={metrics.todays_collections} /> : <Panel title="Receipts you issued today" icon="receipt_long"><EmptyState compact icon="receipt_long" title="Receipts are part of the books" description="Your role does not include viewing finance." /></Panel>}</div>
+            <div className="min-w-0 xl:col-span-2">{can(access, 'finance.view') ? <CashierReceiptsPanel rows={receiptsToday} total={receiptTotalToday} /> : <Panel title="Receipts you issued today" icon="receipt_long"><EmptyState compact icon="receipt_long" title="Receipts are part of the books" description="Your role does not include viewing finance." /></Panel>}</div>
           </div>
         </> : null}
         {dashboard === 'loans' ? <>
@@ -121,8 +125,8 @@ export default async function StaffDashboardPreview({ params, searchParams }: {
         </> : null}
         {dashboard === 'finance' ? <FinancePreview canRecord={can(access, 'finance.record')} /> : null}
         {dashboard === 'collections' ? <div className="grid grid-cols-1 gap-gutter lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-          <div className="lg:sticky lg:top-4 lg:self-start"><CollectSearch query={sp.q ?? 'Nakabugo'} results={FIXTURE_MEMBERS} selectedId={sp.member ?? FIXTURE_MEMBERS[0].id} /></div>
-          <div className="min-w-0"><MemberCollectionPanel view={FIXTURE_COLLECTION_VIEW} canRecord={can(access, 'savings.record')} accounts={FIXTURE_COLLECTION_ACCOUNTS} /></div>
+          <div className="lg:sticky lg:top-4 lg:self-start"><CollectSearch query={sp.q ?? 'Nakabugo'} results={collection.members} selectedId={sp.member ?? collection.view.member.id} /></div>
+          <div className="min-w-0"><MemberCollectionPanel view={collection.view} canRecord={can(access, 'savings.record')} accounts={FIXTURE_COLLECTION_ACCOUNTS} /></div>
         </div> : null}
       </div>
     </StaffShell>
@@ -161,7 +165,7 @@ function FinancePreview({ canRecord }: { canRecord: boolean }) {
       <div className="min-w-0 space-y-gutter xl:col-span-2">
         <Panel title="Today's activity" subtitle="19 Oct 2026" icon="today"><EmptyState compact icon="today" title="Nothing recorded today" description="Collections, transfers, deposits and payments recorded today will be listed here." /></Panel>
         <Panel title="Monthly cash flow" subtitle="Money received against money paid out, six months. Internal transfers are excluded." icon="insights"><PairedBars points={FIXTURE_MONTHLY_FLOW.map(p => ({ label: p.label, a: p.in, b: p.out }))} a={{ label: 'Money received', colour: IN_COLOUR }} b={{ label: 'Money paid out', colour: OUT_COLOUR }} emptyTitle="No money has moved yet" emptyBody="Money received and paid out will be charted month by month here." /></Panel>
-        <section><div className="mb-3 flex items-end justify-between gap-3"><h2 className="text-title-md">Recent transactions</h2><ViewAllLink href="/staff/finance/ledger" /></div><LedgerTable rows={ledger} /></section>
+        <section><div className="mb-3 flex items-end justify-between gap-3"><h2 className="text-title-md">Recent transactions</h2><ViewAllLink href="/staff/finance/ledger" /></div><LedgerTable rows={ledger} readable /></section>
       </div>
       <div className="min-w-0 space-y-gutter">
         <Panel title="Money distribution" subtitle="Where the funds are held right now" icon="donut_large"><MoneyDistribution slices={ACCOUNT_TYPES.map(t => ({ key: t, label: ACCOUNT_TYPE_META[t].label, value: totals[t], colour: ACCOUNT_TYPE_META[t].colour }))} /></Panel>

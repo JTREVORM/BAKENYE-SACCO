@@ -848,11 +848,15 @@ export function DataTable({
   children,
   className,
   dense = false,
+  scrollLabel = 'Table, scrolls sideways',
+  scrollHint,
 }: {
   head: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   dense?: boolean;
+  scrollLabel?: string;
+  scrollHint?: string;
 }) {
   return (
     <div className={clsx('overflow-hidden rounded-2xl bg-surface shadow-neu', className)}>
@@ -860,7 +864,7 @@ export function DataTable({
           pair of full-height button columns either side would cost 70px of the
           width the columns are already fighting over. They stay invisible
           until the pointer is over the table. */}
-      <ScrollRow arrows="overlay" label="Table, scrolls sideways">
+      <ScrollRow arrows="overlay" label={scrollLabel} hint={scrollHint}>
         <table className="w-full min-w-full border-collapse text-left">
           <thead className="border-b border-outline-variant bg-surface-container-low">
             <tr

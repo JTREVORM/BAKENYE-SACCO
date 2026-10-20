@@ -1,5 +1,5 @@
 {
-  "applicationBase": "c6a07aa",
+  "applicationBase": "ca83791",
   "productionAssessment": {
     "date": "2026-10-20",
     "scope": "Read-only pg_proc function definition and execution privileges; no function invocation or account data reads",
@@ -27,9 +27,22 @@
     "limit": "No claim about the precise internal Next.js scheduler cause; the failure is localized to client navigation rather than chart data or search parameter parsing."
   },
   "notificationInvestigation": {
-    "baselineComponent": "MarkAllRead: await markNotificationsRead(); router.refresh()",
-    "serverAction": "Already revalidates /notifications and the root layout",
-    "baselineTrace": [
+    "scope": "Instrumented real isolated Auth sessions against unchanged and candidate production builds; all writes synthetic",
+    "baselineComponent": "MarkAllRead: useTransition pending drives the button; await markNotificationsRead(); router.refresh() inside the same transition",
+    "baselineReproduction": {
+      "build": "ca83791 unchanged",
+      "attempts": 10,
+      "pass": 6,
+      "fail": 4,
+      "viewport": "390x900",
+      "actors": [
+        "member_a",
+        "cashier"
+      ],
+      "everyFailure": "ownRead=true, peerUnread=true; aria-busy stayed true past 45 seconds",
+      "finding": "The action POST returned HTTP 200 within 110-155ms and the client reached router.refresh() 2-6ms later, so the action promise always resolved. The transition stayed pending because the router update it was bound to never committed."
+    },
+    "earlierBaselineTrace": [
       {
         "attempt": 1,
         "passed": false,
@@ -121,12 +134,130 @@
         ]
       }
     ],
-    "correction": "No notification application change retained. BKC-03 remains an unresolved UI stability blocker; full certification stays HOLD.",
-    "regression": "Repeated member and staff native browser actions with visible completion, persistence and peer isolation; each attempt independently reported.",
-    "candidateResult": {
+    "earlierCandidateResult": {
       "pass": 8,
       "fail": 2,
       "detail": "Removing the explicit client refresh did not resolve the intermittent member timeout. The speculative component change was reverted."
+    },
+    "isolation": [
+      {
+        "change": "Component-owned busy state; router.refresh() outside the transition",
+        "member": "9/10",
+        "staff": "0/10",
+        "note": "aria-busy was released after about 290ms in every attempt, so the control no longer hangs; the staff page content still did not update."
+      },
+      {
+        "change": "Component-owned busy state; server revalidation only, no client refresh",
+        "member": "16/16",
+        "staff": "1/16"
+      },
+      {
+        "change": "Added revalidatePath('/staff/notifications') to the action",
+        "member": "6/6",
+        "staff": "0/6",
+        "note": "Revalidation path coverage is not the cause."
+      },
+      {
+        "change": "Removed both revalidatePath calls; router.refresh() only",
+        "member": "6/6",
+        "staff": "0/6"
+      },
+      {
+        "change": "Removed the staff loading boundary",
+        "staff": "0/4",
+        "note": "The Suspense boundary is not the cause."
+      },
+      {
+        "change": "Plain router.refresh() with the read state changed directly in the database and no server action involved",
+        "staff": "not applied",
+        "note": "Removes the server action, transitions and revalidation from the question entirely."
+      },
+      {
+        "change": "Plain router.refresh() on a probe route under the same staff layout",
+        "staff": "applied every attempt",
+        "note": "The client router and the staff route tree are healthy."
+      },
+      {
+        "change": "Notifications page content moved onto the probe route",
+        "staff": "reproduced"
+      },
+      {
+        "change": "Same page without the notification list",
+        "staff": "applied"
+      },
+      {
+        "change": "List restored as a bare title list",
+        "staff": "reproduced",
+        "note": "Isolates the defect to the size of the rendered list rather than Icon, Link or relative times."
+      }
+    ],
+    "listLengthSweep": {
+      "items": [
+        1,
+        5,
+        10,
+        20,
+        30,
+        40,
+        45,
+        50
+      ],
+      "applied": [
+        1,
+        20
+      ],
+      "notApplied": [
+        5,
+        10,
+        30,
+        40,
+        45,
+        50
+      ],
+      "finding": "Correlated with payload size, with no clean threshold; the failure is intermittent rather than deterministic."
+    },
+    "serverResponse": {
+      "checked": "Action POST response body captured and replayed",
+      "staffBytes": 74429,
+      "memberBytes": 61791,
+      "containsMarkAllRead": false,
+      "containsCaughtUp": true,
+      "finding": "The server returned the corrected tree on every attempt, including attempts the client did not apply. Reloading the page always showed the saved state."
+    },
+    "mechanismComparison": {
+      "list": "50 items",
+      "attempts": 6,
+      "router.refresh()": "1/6",
+      "router.replace(same route)": "1/6",
+      "both together": "2/6",
+      "native document navigation": "6/6"
+    },
+    "cause": "The button was disabled and busy for as long as the React transition stayed pending, and the transition was bound to a client router update that the Next 15.5.24 app router applies only intermittently on the notifications routes - most often on the staff route, whose rendered list is larger. The database write, its ownership checks and the server response were correct in every observed failure.",
+    "correction": "The control now owns its busy state and settles it on the action result, refuses a second request while one is open, reports a failure and allows a retry, and shows the saved state through a native navigation. The server action, the RPC, revalidation and permissions are unchanged.",
+    "limit": "No claim is made about the internal Next.js cause. The defect is localized to the client application of refreshed trees, and is the same client-navigation defect the dashboard chart ranges navigate around.",
+    "verification": {
+      "suite": "scripts/certification/notification-check.mjs",
+      "interactionsPerRun": 54,
+      "runs": "3 independent runs on the final production build of the clean stack",
+      "result": "54/54, 54/54, 54/54",
+      "completionMs": "229-299",
+      "retainedFailedRun": "notification-order-results.json (44/54)"
     }
+  },
+  "passwordFormFinding": {
+    "scope": "Real browser submissions of the signed-in change-password form at 390x900, staff /staff/profile and member /profile",
+    "attempts": 16,
+    "errorShown": 5,
+    "errorAbsent": 11,
+    "breakdown": "Two independent runs of eight attempts: 4/8 and 1/8 displayed the error",
+    "serverBehaviour": "Correct in all 16 attempts: the action POST returned HTTP 200, the auth.password_changed audit count was unchanged and the new password never became valid",
+    "clientBehaviour": "The attempts that displayed \"Your current password is incorrect.\" were the ones where a tree update followed the POST response; in the others no error was displayed at all",
+    "finding": "The same intermittent client tree-update defect behind BKC-03 also suppresses this form’s validation errors, so a wrong current password usually produces no visible feedback. The error text and selectors are correct; the previous certification attributed these two browser failures to an icon-prefixed selector mistake, which this run does not reproduce — the broad run and the documented focused recheck both fail.",
+    "scopeNote": "Outside BKC-03 and not changed in this branch: the form is part of the BKC-01 security remediation, so a remedy needs its own review. A native navigation cannot carry a transient validation message, so the likely remedy is to verify the current password without relying on a server-action tree update.",
+    "evidence": [
+      "browser-results.json",
+      "browser-sessions-profile-password-form-results.json",
+      "baseline/change-password-error-display.json"
+    ]
   }
 }

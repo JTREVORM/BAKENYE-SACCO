@@ -24,12 +24,20 @@ Chart review (12 months, all twelve buckets retained):
 | Super Admin | [JPG](screenshots/chart-super_admin-1440-12.jpg) | [JPG](screenshots/chart-super_admin-390-12.jpg) | [JPG](screenshots/chart-super_admin-320-12.jpg) |
 | Overview | [JPG](screenshots/chart-manager-1440-12.jpg) | [JPG](screenshots/chart-manager-390-12.jpg) | [JPG](screenshots/chart-manager-320-12.jpg) |
 
-Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [password security](password-results.json), [notification stability — FAIL/HOLD](notification-results.json), [blocker investigation](blocker-investigation.json), [preview/accessibility suites](preview-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
+Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [password security](password-results.json), notification stability [run 1](notification-results.json) / [run 2](notification-repeat-results.json) / [run 3](notification-recheck-results.json), [blocker investigation](blocker-investigation.json), [preview/accessibility suites](preview-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
 
 Focused browser retries are included separately. Failed previous attempts are retained in merged results; they are not erased. The report distinguishes confirmed failures from remaining coverage limits.
 
-This directory was regenerated from the current clean database run. Older run
-artifacts remain in Git history at `c6a07aa`; stale focused retry files were removed.
-The 209 latest browser snapshots include successful focused rechecks and retain
-failed previous attempts. They do not override the separate repeated notification
-suite: four of its ten final attempts failed, so certification remains on HOLD.
+This directory was regenerated from the current clean database run. The 209
+latest browser snapshots include the focused rechecks and retain failed previous
+attempts; two of them — the staff and member profile password forms — still fail,
+which is the open BKC-04 blocker and why certification remains on HOLD.
+
+`baseline/` holds records the per-run exporter does not regenerate and must not
+clear: the [pre-fix BKC-03 reproduction](baseline/bkc-03-baseline-trace.json)
+(6/10), the previous certification's focused notification retries including its
+[failed attempt](baseline/browser-sessions-member-notifications-stability-two-results.json),
+and the [BKC-04 measurements](baseline/change-password-error-display.json).
+The repeated notification suite itself now passes 54/54 in each of three runs;
+its retained [ordering failure](notification-order-results.json) is kept beside
+them.

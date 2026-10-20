@@ -5,7 +5,7 @@
 > eslint . --ignore-pattern work/**
 
 
-/workspace/BAKENYE-SACCO/src/components/staff/FinancialActivity.tsx
+/home/user/BAKENYE-SACCO/src/components/staff/FinancialActivity.tsx
   1:10  warning  'Icon' is defined but never used  @typescript-eslint/no-unused-vars
 
 ✖ 1 problem (0 errors, 1 warning)
@@ -23,13 +23,12 @@
 > next build
 
    ▲ Next.js 15.5.24
-   - Environments: .env.local
    - Experiments (use with caution):
      · serverActions
      · optimizePackageImports
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 20.7s
+ ✓ Compiled successfully in 6.7s
    Linting and checking validity of types ...
 
 ./src/components/staff/FinancialActivity.tsx
@@ -52,85 +51,85 @@ Route (app)                                 Size  First Load JS
 ├ ƒ /auth/callback                         151 B         103 kB
 ├ ƒ /auth/signout                          151 B         103 kB
 ├ ƒ /change-password                     2.81 kB         171 kB
-├ ƒ /dev/preview                         1.67 kB         182 kB
-├ ƒ /dev/preview/certification             214 B         174 kB
+├ ƒ /dev/preview                         1.68 kB         182 kB
+├ ƒ /dev/preview/certification             213 B         174 kB
 ├ ƒ /dev/preview/dashboard               2.13 kB         172 kB
 ├ ƒ /dev/preview/member                    746 B         170 kB
 ├ ƒ /dev/preview/staff/[dashboard]       2.96 kB         183 kB
-├ ƒ /forgot-password                      1.2 kB         170 kB
+├ ƒ /forgot-password                     1.21 kB         170 kB
 ├ ƒ /guarantees                          1.25 kB         174 kB
 ├ ƒ /help                                2.51 kB         114 kB
-├ ƒ /loans                                 214 B         170 kB
-├ ƒ /loans/[id]                            204 B         170 kB
-├ ƒ /loans/apply                           221 B         249 kB
+├ ƒ /loans                                 215 B         170 kB
+├ ƒ /loans/[id]                            206 B         170 kB
+├ ƒ /loans/apply                           220 B         249 kB
 ├ ƒ /loans/repay                           710 B         170 kB
-├ ƒ /login                               2.34 kB         171 kB
+├ ƒ /login                               2.33 kB         171 kB
 ├ ƒ /maintenance-bypass                    151 B         103 kB
 ├ ƒ /manifest.webmanifest                  151 B         103 kB
 ├ ƒ /more                                2.84 kB         172 kB
 ├ ƒ /no-member-record                    2.82 kB         168 kB
-├ ƒ /notifications                         211 B         173 kB
+├ ƒ /notifications                         210 B         173 kB
 ├ ƒ /profile                              1.3 kB         174 kB
-├ ƒ /reports                               214 B         170 kB
+├ ƒ /reports                               215 B         170 kB
 ├ ƒ /reset-password                      1.46 kB         170 kB
-├ ƒ /savings                               214 B         170 kB
+├ ƒ /savings                               215 B         170 kB
 ├ ƒ /savings/deposit                       710 B         170 kB
-├ ƒ /shares                                214 B         170 kB
+├ ƒ /shares                                215 B         170 kB
 ├ ƒ /shares/buy                            710 B         170 kB
 ├ ƒ /staff                               3.02 kB         114 kB
 ├ ƒ /staff/admin                         3.01 kB         114 kB
 ├ ƒ /staff/audit                         3.96 kB         164 kB
 ├ ƒ /staff/desk                          2.51 kB         114 kB
-├ ƒ /staff/finance                       1.95 kB         170 kB
+├ ƒ /staff/finance                       1.96 kB         170 kB
 ├ ƒ /staff/finance/[type]                1.05 kB         166 kB
-├ ƒ /staff/finance/accounts              5.74 kB         169 kB
+├ ƒ /staff/finance/accounts              5.69 kB         169 kB
 ├ ƒ /staff/finance/documents/[id]          151 B         103 kB
-├ ƒ /staff/finance/expenses              5.94 kB         169 kB
+├ ƒ /staff/finance/expenses              5.93 kB         169 kB
 ├ ƒ /staff/finance/income-expenses       2.29 kB         166 kB
 ├ ƒ /staff/finance/ledger                1.02 kB         166 kB
-├ ƒ /staff/finance/new/collection        4.75 kB         242 kB
+├ ƒ /staff/finance/new/collection        4.74 kB         242 kB
 ├ ƒ /staff/finance/new/expense           2.05 kB         171 kB
 ├ ƒ /staff/finance/new/payment           3.64 kB         241 kB
-├ ƒ /staff/finance/new/receipt           3.28 kB         240 kB
+├ ƒ /staff/finance/new/receipt           3.27 kB         240 kB
 ├ ƒ /staff/finance/new/transfer          2.24 kB         171 kB
 ├ ƒ /staff/finance/payments                138 B         169 kB
 ├ ƒ /staff/finance/receipts              4.53 kB         165 kB
-├ ƒ /staff/finance/reconciliation        2.99 kB         166 kB
+├ ƒ /staff/finance/reconciliation        2.98 kB         166 kB
 ├ ƒ /staff/finance/reconciliation/new    1.82 kB         171 kB
-├ ƒ /staff/finance/reports               3.95 kB         164 kB
-├ ƒ /staff/finance/transfers               137 B         169 kB
+├ ƒ /staff/finance/reports               3.96 kB         164 kB
+├ ƒ /staff/finance/transfers               138 B         169 kB
 ├ ƒ /staff/loans                           647 B         166 kB
 ├ ƒ /staff/loans-desk                    2.51 kB         114 kB
-├ ƒ /staff/loans/[id]                    5.22 kB         168 kB
-├ ƒ /staff/loans/[id]/repay              2.91 kB         169 kB
+├ ƒ /staff/loans/[id]                    5.23 kB         168 kB
+├ ƒ /staff/loans/[id]/repay              2.92 kB         169 kB
 ├ ƒ /staff/loans/new                       199 B         240 kB
 ├ ƒ /staff/loans/products                2.33 kB         166 kB
 ├ ƒ /staff/loans/products/[id]             191 B         170 kB
-├ ƒ /staff/loans/products/new              191 B         170 kB
+├ ƒ /staff/loans/products/new              193 B         170 kB
 ├ ƒ /staff/members                         873 B         167 kB
-├ ƒ /staff/members/[id]                  5.77 kB         169 kB
+├ ƒ /staff/members/[id]                   5.8 kB         169 kB
 ├ ƒ /staff/members/[id]/edit             2.56 kB         166 kB
-├ ƒ /staff/members/[id]/ledger           3.95 kB         164 kB
+├ ƒ /staff/members/[id]/ledger           3.94 kB         164 kB
 ├ ƒ /staff/members/new                   9.84 kB         173 kB
 ├ ƒ /staff/membership-fees               5.66 kB         169 kB
-├ ƒ /staff/notifications                   296 B         163 kB
-├ ƒ /staff/profile                       1.27 kB         165 kB
+├ ƒ /staff/notifications                   189 B         163 kB
+├ ƒ /staff/profile                       1.28 kB         165 kB
 ├ ƒ /staff/reports                       2.49 kB         108 kB
 ├ ƒ /staff/reports/members               3.31 kB         164 kB
 ├ ƒ /staff/reports/statement             2.27 kB         239 kB
-├ ƒ /staff/roles                         5.06 kB         168 kB
+├ ƒ /staff/roles                          5.1 kB         168 kB
 ├ ƒ /staff/savings                       3.31 kB         164 kB
 ├ ƒ /staff/savings/collect               1.32 kB         177 kB
-├ ƒ /staff/savings/performance              4 kB         164 kB
+├ ƒ /staff/savings/performance           3.99 kB         164 kB
 ├ ƒ /staff/savings/record                3.74 kB         238 kB
 ├ ƒ /staff/savings/records               3.32 kB         167 kB
-├ ƒ /staff/settings                      8.56 kB         172 kB
+├ ƒ /staff/settings                      8.55 kB         172 kB
 ├ ƒ /staff/shares                        2.49 kB         108 kB
-├ ƒ /staff/shares/sell                   4.31 kB         239 kB
+├ ƒ /staff/shares/sell                   4.32 kB         239 kB
 ├ ƒ /staff/transactions                  2.49 kB         166 kB
 ├ ƒ /staff/transactions/[id]             3.09 kB         172 kB
-├ ƒ /staff/transactions/cash             4.28 kB         238 kB
-├ ƒ /staff/users                         4.54 kB         168 kB
+├ ƒ /staff/transactions/cash             4.27 kB         238 kB
+├ ƒ /staff/users                         4.53 kB         168 kB
 ├ ƒ /statements                            217 B         173 kB
 ├ ƒ /transactions                        2.45 kB         175 kB
 └ ƒ /transactions/[id]                   3.37 kB         173 kB
@@ -146,91 +145,334 @@ Route (app)                                 Size  First Load JS
 
 
 ## Dashboard invariants
-✔ seeded dashboard assignments and landing paths remain consistent (4.65057ms)
-✔ custom Owner, Secretary and Treasurer assignments use the existing dashboard mapping (0.371622ms)
-✔ navigation follows explicit permissions, never a display name or role-key shortcut (1.742965ms)
-✔ UGX display keeps complete numeric values and Uganda date boundaries (1.108191ms)
-✔ every development preview page guards production before reading fixtures (138.27956ms)
-ℹ tests 5
-ℹ suites 0
-ℹ pass 5
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 153.610335
+TAP version 13
+# Subtest: seeded dashboard assignments and landing paths remain consistent
+ok 1 - seeded dashboard assignments and landing paths remain consistent
+  ---
+  duration_ms: 3.674595
+  type: 'test'
+  ...
+# Subtest: custom Owner, Secretary and Treasurer assignments use the existing dashboard mapping
+ok 2 - custom Owner, Secretary and Treasurer assignments use the existing dashboard mapping
+  ---
+  duration_ms: 0.34867
+  type: 'test'
+  ...
+# Subtest: navigation follows explicit permissions, never a display name or role-key shortcut
+ok 3 - navigation follows explicit permissions, never a display name or role-key shortcut
+  ---
+  duration_ms: 1.23246
+  type: 'test'
+  ...
+# Subtest: UGX display keeps complete numeric values and Uganda date boundaries
+ok 4 - UGX display keeps complete numeric values and Uganda date boundaries
+  ---
+  duration_ms: 0.455412
+  type: 'test'
+  ...
+# Subtest: every development preview page guards production before reading fixtures
+ok 5 - every development preview page guards production before reading fixtures
+  ---
+  duration_ms: 113.687494
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 124.114664
 
 ## Fixture arithmetic
-✔ member share figures and equity agree with the fixture share price (1.154348ms)
-✔ collection months, dates and history describe the selected member (1.409057ms)
-✔ cashier receipts use receipt date, excluding other dates and outgoing money (1.301612ms)
-✔ rolling collection labels match dates at month/year/leap-day boundaries (5.308807ms)
-✔ Finance QA movements reconcile by account and use the source payment method (2.195655ms)
-ℹ tests 5
-ℹ suites 0
-ℹ pass 5
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 20.930708
+TAP version 13
+# Subtest: member share figures and equity agree with the fixture share price
+ok 1 - member share figures and equity agree with the fixture share price
+  ---
+  duration_ms: 0.565934
+  type: 'test'
+  ...
+# Subtest: collection months, dates and history describe the selected member
+ok 2 - collection months, dates and history describe the selected member
+  ---
+  duration_ms: 0.910911
+  type: 'test'
+  ...
+# Subtest: cashier receipts use receipt date, excluding other dates and outgoing money
+ok 3 - cashier receipts use receipt date, excluding other dates and outgoing money
+  ---
+  duration_ms: 1.228884
+  type: 'test'
+  ...
+# Subtest: rolling collection labels match dates at month/year/leap-day boundaries
+ok 4 - rolling collection labels match dates at month/year/leap-day boundaries
+  ---
+  duration_ms: 2.263655
+  type: 'test'
+  ...
+# Subtest: Finance QA movements reconcile by account and use the source payment method
+ok 5 - Finance QA movements reconcile by account and use the source payment method
+  ---
+  duration_ms: 1.099568
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13.368754
 
 ## Phone validation
-✔ Uganda keeps its existing format: 0772123456 (3.152212ms)
-✔ Uganda keeps its existing format: 0772 123 456 (0.484702ms)
-✔ Uganda keeps its existing format: (0772) 123-456 (0.201602ms)
-✔ Uganda keeps its existing format: 772123456 (0.159413ms)
-✔ Uganda keeps its existing format: 256772123456 (0.345461ms)
-✔ Uganda keeps its existing format: +256 772 123 456 (0.232086ms)
-✔ Uganda keeps its existing format: 00256772123456 (0.142092ms)
-✔ Canada retains its international code and is idempotent (6.414539ms)
-✔ UK retains its international code and is idempotent (2.493843ms)
-✔ Kenya retains its international code and is idempotent (1.37443ms)
-✔ Russia retains its international code and is idempotent (0.98297ms)
-✔ Uganda landline retains its international code and is idempotent (1.183448ms)
-✔ Saint Helena (short international number) retains its international code and is idempotent (1.735966ms)
-✔ invalid phone is rejected: null (0.878626ms)
-✔ invalid phone is rejected: undefined (0.153059ms)
-✔ invalid phone is rejected: "" (0.101486ms)
-✔ invalid phone is rejected: " \t " (0.206891ms)
-✔ invalid phone is rejected: "123" (0.090316ms)
-✔ invalid phone is rejected: "4165550123" (0.057252ms)
-✔ invalid phone is rejected: "00442079460958" (1.894523ms)
-✔ invalid phone is rejected: "+999123456789" (0.800466ms)
-✔ invalid phone is rejected: "+1416" (1.334891ms)
-✔ invalid phone is rejected: "+10125550123" (0.328752ms)
-✔ invalid phone is rejected: "+1416555012345678" (0.061645ms)
-✔ invalid phone is rejected: "+4402079460958" (0.75011ms)
-✔ invalid phone is rejected: "+254012345678" (0.453799ms)
-✔ invalid phone is rejected: "+2560712123456" (0.414933ms)
-✔ invalid phone is rejected: "+772123456" (0.222415ms)
-✔ invalid phone is rejected: "++14165550123" (0.080431ms)
-✔ invalid phone is rejected: "+1+4165550123" (0.182869ms)
-✔ invalid phone is rejected: "call 0772123456" (0.091391ms)
-✔ invalid phone is rejected: "+14165550123 ext 9" (0.036301ms)
-✔ Unicode whitespace is trimmed consistently (0.724681ms)
-✔ Uganda display remains local (0.797584ms)
-✔ international display never loses the plus or resembles a Uganda local number (0.384802ms)
-✔ missing phone display remains unchanged (0.188209ms)
-ℹ tests 36
-ℹ suites 0
-ℹ pass 36
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 60.546468
+TAP version 13
+# Subtest: Uganda keeps its existing format: 0772123456
+ok 1 - Uganda keeps its existing format: 0772123456
+  ---
+  duration_ms: 1.139306
+  type: 'test'
+  ...
+# Subtest: Uganda keeps its existing format: 0772 123 456
+ok 2 - Uganda keeps its existing format: 0772 123 456
+  ---
+  duration_ms: 0.141339
+  type: 'test'
+  ...
+# Subtest: Uganda keeps its existing format: (0772) 123-456
+ok 3 - Uganda keeps its existing format: (0772) 123-456
+  ---
+  duration_ms: 0.061226
+  type: 'test'
+  ...
+# Subtest: Uganda keeps its existing format: 772123456
+ok 4 - Uganda keeps its existing format: 772123456
+  ---
+  duration_ms: 0.058113
+  type: 'test'
+  ...
+# Subtest: Uganda keeps its existing format: 256772123456
+ok 5 - Uganda keeps its existing format: 256772123456
+  ---
+  duration_ms: 0.106204
+  type: 'test'
+  ...
+# Subtest: Uganda keeps its existing format: +256 772 123 456
+ok 6 - Uganda keeps its existing format: +256 772 123 456
+  ---
+  duration_ms: 0.098002
+  type: 'test'
+  ...
+# Subtest: Uganda keeps its existing format: 00256772123456
+ok 7 - Uganda keeps its existing format: 00256772123456
+  ---
+  duration_ms: 2.012592
+  type: 'test'
+  ...
+# Subtest: Canada retains its international code and is idempotent
+ok 8 - Canada retains its international code and is idempotent
+  ---
+  duration_ms: 3.0955
+  type: 'test'
+  ...
+# Subtest: UK retains its international code and is idempotent
+ok 9 - UK retains its international code and is idempotent
+  ---
+  duration_ms: 1.286392
+  type: 'test'
+  ...
+# Subtest: Kenya retains its international code and is idempotent
+ok 10 - Kenya retains its international code and is idempotent
+  ---
+  duration_ms: 0.554456
+  type: 'test'
+  ...
+# Subtest: Russia retains its international code and is idempotent
+ok 11 - Russia retains its international code and is idempotent
+  ---
+  duration_ms: 0.342005
+  type: 'test'
+  ...
+# Subtest: Uganda landline retains its international code and is idempotent
+ok 12 - Uganda landline retains its international code and is idempotent
+  ---
+  duration_ms: 0.431862
+  type: 'test'
+  ...
+# Subtest: Saint Helena (short international number) retains its international code and is idempotent
+ok 13 - Saint Helena (short international number) retains its international code and is idempotent
+  ---
+  duration_ms: 0.227773
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: null
+ok 14 - invalid phone is rejected: null
+  ---
+  duration_ms: 0.070151
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: undefined
+ok 15 - invalid phone is rejected: undefined
+  ---
+  duration_ms: 0.028102
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: ""
+ok 16 - invalid phone is rejected: ""
+  ---
+  duration_ms: 0.024986
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: " \\t "
+ok 17 - invalid phone is rejected: " \\t "
+  ---
+  duration_ms: 0.02345
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "123"
+ok 18 - invalid phone is rejected: "123"
+  ---
+  duration_ms: 0.027789
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "4165550123"
+ok 19 - invalid phone is rejected: "4165550123"
+  ---
+  duration_ms: 0.02305
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "00442079460958"
+ok 20 - invalid phone is rejected: "00442079460958"
+  ---
+  duration_ms: 0.02444
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+999123456789"
+ok 21 - invalid phone is rejected: "+999123456789"
+  ---
+  duration_ms: 0.263571
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+1416"
+ok 22 - invalid phone is rejected: "+1416"
+  ---
+  duration_ms: 0.165469
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+10125550123"
+ok 23 - invalid phone is rejected: "+10125550123"
+  ---
+  duration_ms: 0.113075
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+1416555012345678"
+ok 24 - invalid phone is rejected: "+1416555012345678"
+  ---
+  duration_ms: 0.0294
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+4402079460958"
+ok 25 - invalid phone is rejected: "+4402079460958"
+  ---
+  duration_ms: 0.220548
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+254012345678"
+ok 26 - invalid phone is rejected: "+254012345678"
+  ---
+  duration_ms: 0.060035
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+2560712123456"
+ok 27 - invalid phone is rejected: "+2560712123456"
+  ---
+  duration_ms: 0.044612
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+772123456"
+ok 28 - invalid phone is rejected: "+772123456"
+  ---
+  duration_ms: 0.090964
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "++14165550123"
+ok 29 - invalid phone is rejected: "++14165550123"
+  ---
+  duration_ms: 0.025363
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+1+4165550123"
+ok 30 - invalid phone is rejected: "+1+4165550123"
+  ---
+  duration_ms: 0.023895
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "call 0772123456"
+ok 31 - invalid phone is rejected: "call 0772123456"
+  ---
+  duration_ms: 0.022607
+  type: 'test'
+  ...
+# Subtest: invalid phone is rejected: "+14165550123 ext 9"
+ok 32 - invalid phone is rejected: "+14165550123 ext 9"
+  ---
+  duration_ms: 0.022224
+  type: 'test'
+  ...
+# Subtest: Unicode whitespace is trimmed consistently
+ok 33 - Unicode whitespace is trimmed consistently
+  ---
+  duration_ms: 0.22371
+  type: 'test'
+  ...
+# Subtest: Uganda display remains local
+ok 34 - Uganda display remains local
+  ---
+  duration_ms: 0.116043
+  type: 'test'
+  ...
+# Subtest: international display never loses the plus or resembles a Uganda local number
+ok 35 - international display never loses the plus or resembles a Uganda local number
+  ---
+  duration_ms: 0.188065
+  type: 'test'
+  ...
+# Subtest: missing phone display remains unchanged
+ok 36 - missing phone display remains unchanged
+  ---
+  duration_ms: 0.051954
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 26.599779
 
 ## Target safety guard
-✔ mutation tooling refuses hosted or unrelated targets before opening a connection (806.564348ms)
-ℹ tests 1
-ℹ suites 0
-ℹ pass 1
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 1060.937117
+TAP version 13
+# Subtest: mutation tooling refuses hosted or unrelated targets before opening a connection
+ok 1 - mutation tooling refuses hosted or unrelated targets before opening a connection
+  ---
+  duration_ms: 298.72586
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 367.946873
 
 ## Compiled production previews
 PASS compiled production 404 before data access: .next/server/app/dev/preview/certification/page.js

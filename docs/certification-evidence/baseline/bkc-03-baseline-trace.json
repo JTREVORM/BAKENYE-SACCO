@@ -1,0 +1,589 @@
+{
+  "date": "2026-10-20T16:49:28.823Z",
+  "build": "ca83791 unchanged",
+  "component": "MarkAllRead with useTransition pending and router.refresh() inside the transition",
+  "viewport": "390x900",
+  "pass": 6,
+  "total": 10,
+  "note": "Retained pre-fix reproduction. hiddenMs null means the control was still present and busy when the attempt gave up; ownRead/peerUnread show the database write had committed and peer notifications were untouched.",
+  "results": [
+    {
+      "name": "member_a attempt 1",
+      "pass": false,
+      "completionMs": null,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/notifications",
+          "ms": 27
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 37
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/notifications",
+          "ms": 136
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 140
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 194
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/notifications",
+          "ms": 203
+        },
+        {
+          "event": "finished",
+          "method": "GET",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 241
+        }
+      ]
+    },
+    {
+      "name": "member_a attempt 2",
+      "pass": true,
+      "completionMs": 296,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/notifications",
+          "ms": 34
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 43
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/notifications",
+          "ms": 133
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 139
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 192
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/notifications",
+          "ms": 209
+        },
+        {
+          "event": "failed",
+          "method": "GET",
+          "reason": "net::ERR_ABORTED",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 271
+        }
+      ]
+    },
+    {
+      "name": "member_a attempt 3",
+      "pass": false,
+      "completionMs": null,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/notifications",
+          "ms": 33
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 42
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/notifications",
+          "ms": 133
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 138
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/notifications",
+          "ms": 175
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 192
+        },
+        {
+          "event": "finished",
+          "method": "GET",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 233
+        }
+      ]
+    },
+    {
+      "name": "member_a attempt 4",
+      "pass": true,
+      "completionMs": 294,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/notifications",
+          "ms": 35
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 41
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/notifications",
+          "ms": 133
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 138
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/notifications",
+          "ms": 187
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 197
+        },
+        {
+          "event": "failed",
+          "method": "GET",
+          "reason": "net::ERR_ABORTED",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 247
+        }
+      ]
+    },
+    {
+      "name": "member_a attempt 5",
+      "pass": true,
+      "completionMs": 303,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/notifications",
+          "ms": 42
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 50
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/notifications",
+          "ms": 146
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 147
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 197
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/notifications",
+          "ms": 212
+        },
+        {
+          "event": "failed",
+          "method": "GET",
+          "reason": "net::ERR_ABORTED",
+          "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+          "ms": 246
+        }
+      ]
+    },
+    {
+      "name": "cashier attempt 1",
+      "pass": true,
+      "completionMs": 298,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/staff/notifications",
+          "ms": 39
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 46
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/staff/notifications",
+          "ms": 138
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 145
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 195
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications",
+          "ms": 201
+        },
+        {
+          "event": "failed",
+          "method": "GET",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 248
+        }
+      ]
+    },
+    {
+      "name": "cashier attempt 2",
+      "pass": false,
+      "completionMs": null,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/staff/notifications",
+          "ms": 28
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 33
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/staff/notifications",
+          "ms": 119
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 128
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications",
+          "ms": 161
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 174
+        },
+        {
+          "event": "failed",
+          "method": "GET",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 215
+        }
+      ]
+    },
+    {
+      "name": "cashier attempt 3",
+      "pass": true,
+      "completionMs": 284,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/staff/notifications",
+          "ms": 25
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 31
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/staff/notifications",
+          "ms": 122
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 125
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 176
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications",
+          "ms": 189
+        },
+        {
+          "event": "failed",
+          "method": "GET",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 229
+        }
+      ]
+    },
+    {
+      "name": "cashier attempt 4",
+      "pass": true,
+      "completionMs": 289,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/staff/notifications",
+          "ms": 32
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 37
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/staff/notifications",
+          "ms": 123
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 127
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 174
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications",
+          "ms": 178
+        },
+        {
+          "event": "failed",
+          "method": "GET",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 255
+        }
+      ]
+    },
+    {
+      "name": "cashier attempt 5",
+      "pass": false,
+      "completionMs": null,
+      "ownRead": true,
+      "peerUnread": true,
+      "events": [
+        {
+          "event": "click",
+          "ms": 0
+        },
+        {
+          "event": "request",
+          "method": "POST",
+          "url": "/staff/notifications",
+          "ms": 26
+        },
+        {
+          "event": "aria-busy",
+          "ariaBusy": "true",
+          "ms": 32
+        },
+        {
+          "event": "response",
+          "method": "POST",
+          "status": 200,
+          "url": "/staff/notifications",
+          "ms": 119
+        },
+        {
+          "event": "request",
+          "method": "GET",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 124
+        },
+        {
+          "event": "response",
+          "method": "GET",
+          "status": 200,
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 173
+        },
+        {
+          "event": "failed",
+          "method": "POST",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications",
+          "ms": 181
+        },
+        {
+          "event": "failed",
+          "method": "GET",
+          "reason": "net::ERR_ABORTED",
+          "url": "/staff/notifications?_rsc=YHIrTOKT40Jv6WBh",
+          "ms": 212
+        }
+      ]
+    }
+  ]
+}

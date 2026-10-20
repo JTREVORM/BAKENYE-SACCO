@@ -1,0 +1,295 @@
+{
+  "date": "2026-10-20T19:02:26.535Z",
+  "results": [
+    {
+      "name": "member_a mobile: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 230
+    },
+    {
+      "name": "member_a mobile: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 256
+    },
+    {
+      "name": "member_a mobile: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 233
+    },
+    {
+      "name": "member_a mobile: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 254
+    },
+    {
+      "name": "member_a mobile: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 236
+    },
+    {
+      "name": "member_a desktop: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 256
+    },
+    {
+      "name": "member_a desktop: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 251
+    },
+    {
+      "name": "member_a desktop: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 251
+    },
+    {
+      "name": "member_a desktop: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 249
+    },
+    {
+      "name": "member_a desktop: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 266
+    },
+    {
+      "name": "member_b mobile: notification action 1/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b mobile: notification action 2/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b mobile: notification action 3/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b mobile: notification action 4/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b mobile: notification action 5/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b desktop: notification action 1/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b desktop: notification action 2/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b desktop: notification action 3/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b desktop: notification action 4/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "member_b desktop: notification action 5/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "ownRead": false,
+      "peerUnread": false
+    },
+    {
+      "name": "cashier mobile: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 244
+    },
+    {
+      "name": "cashier mobile: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 247
+    },
+    {
+      "name": "cashier mobile: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 241
+    },
+    {
+      "name": "cashier mobile: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 258
+    },
+    {
+      "name": "cashier mobile: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 299
+    },
+    {
+      "name": "cashier desktop: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 242
+    },
+    {
+      "name": "cashier desktop: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 249
+    },
+    {
+      "name": "cashier desktop: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 243
+    },
+    {
+      "name": "cashier desktop: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 256
+    },
+    {
+      "name": "cashier desktop: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 240
+    },
+    {
+      "name": "manager mobile: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 229
+    },
+    {
+      "name": "manager mobile: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 264
+    },
+    {
+      "name": "manager mobile: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 249
+    },
+    {
+      "name": "manager mobile: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 242
+    },
+    {
+      "name": "manager mobile: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 252
+    },
+    {
+      "name": "manager desktop: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 251
+    },
+    {
+      "name": "manager desktop: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 246
+    },
+    {
+      "name": "manager desktop: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 244
+    },
+    {
+      "name": "manager desktop: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 251
+    },
+    {
+      "name": "manager desktop: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 252
+    },
+    {
+      "name": "super_admin mobile: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 234
+    },
+    {
+      "name": "super_admin mobile: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 268
+    },
+    {
+      "name": "super_admin mobile: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 249
+    },
+    {
+      "name": "super_admin mobile: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 243
+    },
+    {
+      "name": "super_admin mobile: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 263
+    },
+    {
+      "name": "super_admin desktop: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 253
+    },
+    {
+      "name": "super_admin desktop: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 296
+    },
+    {
+      "name": "super_admin desktop: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 252
+    },
+    {
+      "name": "super_admin desktop: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 240
+    },
+    {
+      "name": "super_admin desktop: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 283
+    },
+    {
+      "name": "member_a: a second tap during the request posts no duplicate write",
+      "pass": true,
+      "posts": 1
+    },
+    {
+      "name": "cashier: a second tap during the request posts no duplicate write",
+      "pass": true,
+      "posts": 1
+    },
+    {
+      "name": "member_a: a dropped request releases the control and the retry succeeds",
+      "pass": true,
+      "message": "Something went wrong. Please try again."
+    },
+    {
+      "name": "cashier: a dropped request releases the control and the retry succeeds",
+      "pass": true,
+      "message": "Something went wrong. Please try again."
+    }
+  ]
+}

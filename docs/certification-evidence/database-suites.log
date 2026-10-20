@@ -454,7 +454,7 @@ Running as Certification super_admin (super_admin)
    ✔ a duplicate provider reference is refused — Reference mtn-test-0001 has already been recorded against another transaction.
    ✔ mobile money into a cash account is refused — TEST Till is a cash account and cannot handle a mobile money payment.
    ✔ a merchant collection without a reference is refused — Enter the mobile money transaction reference from the confirmation message.
-   ✔ step 3: a manager's transfer completes without waiting — {"id": "4538c991-a7ab-4693-ac6a-a220eda2b51d", "kind": "merchant_to_bank", "amount": 120000.00, "status": "completed", "duplicate": false, "transfer_no": "TRF261020001", "source_account": "TEST Merchant", "source_balance": 30000.00, "transaction_id": "6d50fbdb-b071-4179-819a-d3f964432bac", "requires_approval": false, "destination_account": "TEST Bank", "destination_balance": 120000.00}
+   ✔ step 3: a manager's transfer completes without waiting — {"id": "3f1e551d-2b9f-4976-a008-21e410c1133d", "kind": "merchant_to_bank", "amount": 120000.00, "status": "completed", "duplicate": false, "transfer_no": "TRF261020001", "source_account": "TEST Merchant", "source_balance": 30000.00, "transaction_id": "8974e19f-fc1d-4b1c-a619-c36ebbfb50c6", "requires_approval": false, "destination_account": "TEST Bank", "destination_balance": 120000.00}
    ✔ step 3: Cash at Merchant UGX 30,000, Cash at Bank UGX 120,000 — 30000.00 / 120000.00
    ✔ step 3: total SACCO funds unchanged
    ✔ step 3: the transfer is not income, not expense, not savings
@@ -481,7 +481,7 @@ Running as Certification super_admin (super_admin)
    ✔ nobody approves their own entry under four eyes — You recorded this entry, so a different person has to approve it.
    ✔ a waiting transfer can be cancelled, and no money moved
    ✔ a variance must be explained — The actual balance differs from the system balance by UGX -1,000. Explain the variance.
-   ✔ a variance is recorded, and the system balance is not adjusted — {"id": "00d537a6-5076-4f6b-8bcd-1af32aecab2e", "outcome": "variance", "variance": -1000.00, "actual_balance": 17000.00, "system_balance": 18000.00, "reconciliation_no": "REC261020001"}
+   ✔ a variance is recorded, and the system balance is not adjusted — {"id": "28d14752-71e4-4117-b252-00bba0296339", "outcome": "variance", "variance": -1000.00, "actual_balance": 17000.00, "system_balance": 18000.00, "reconciliation_no": "REC261020001"}
    ✔ the dashboard flags the variance
    ✔ a matching balance reconciles cleanly
    ✔ Cash & Bank report: opening + in - out = closing = ledger balance, for every account

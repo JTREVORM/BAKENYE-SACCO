@@ -1,11 +1,7 @@
 {
-  "date": "2026-10-20T16:00:02.156Z",
+  "date": "2026-10-20T19:18:14.296Z",
   "rechecks": [
     "browser-sessions-profile-password-form-results.json",
-    "browser-sessions-member-notifications-stability-one-results.json",
-    "browser-sessions-member-notifications-stability-two-results.json",
-    "browser-sessions-member-notifications-results.json",
-    "browser-sessions-member-notifications-stability-three-results.json",
     "browser-chart-results.json"
   ],
   "results": [
@@ -787,17 +783,7 @@
     },
     {
       "name": "member notifications persist read state without changing peer notifications",
-      "pass": true,
-      "previousAttempt": {
-        "name": "member notifications persist read state without changing peer notifications",
-        "pass": false,
-        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read' }) to be hidden\u001b[22m\n\u001b[2m    62 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n",
-        "previousAttempt": {
-          "name": "member notifications persist read state without changing peer notifications",
-          "pass": false,
-          "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read' }) to be hidden\u001b[22m\n\u001b[2m    63 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n"
-        }
-      }
+      "pass": true
     },
     {
       "name": "inactive and suspended accounts refused by actual login form",
@@ -809,20 +795,22 @@
     },
     {
       "name": "viewer: profile password form verifies current password and records native change",
-      "pass": true,
+      "pass": false,
+      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.') to be visible\u001b[22m\n",
       "previousAttempt": {
         "name": "viewer: profile password form verifies current password and records native change",
         "pass": false,
-        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.', { exact: true }) to be visible\u001b[22m\n"
+        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.') to be visible\u001b[22m\n"
       }
     },
     {
       "name": "member_b: profile password form verifies current password and records native change",
-      "pass": true,
+      "pass": false,
+      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.') to be visible\u001b[22m\n",
       "previousAttempt": {
         "name": "member_b: profile password form verifies current password and records native change",
         "pass": false,
-        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.', { exact: true }) to be visible\u001b[22m\n"
+        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.') to be visible\u001b[22m\n"
       }
     },
     {

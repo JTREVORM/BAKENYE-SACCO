@@ -41,7 +41,6 @@ node scripts/certification/metrics-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/browser-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/chart-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
-CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/restrictions-check.mjs
 NODE_ENV=production node scripts/dashboard-production-check.mjs http://localhost:3100
 
 # Stop the production app, run the existing fixture suites with the same local
@@ -54,6 +53,14 @@ node scripts/certification/standard-checks.mjs
 node scripts/certification/local-stack.mjs app run start -- -p 3100 # keep running
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/chart-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
+NOTIFICATION_RESULT_FILE=notification-repeat-results.json \
+  CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
+NOTIFICATION_RESULT_FILE=notification-recheck-results.json \
+  CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
+
+# The lockout suite leaves a member identifier paused, so it runs after every
+# suite that signs in:
+CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/restrictions-check.mjs
 node scripts/certification/export-evidence.mjs
 ```
 
@@ -66,6 +73,13 @@ results cannot silently enter the next certification. For a browser-only investi
 `up` default is a 3600-second JWT; `auth-tokens short|standard` can switch only
 the identity-checked, labelled local Auth service. Neither command changes app
 authentication or any hosted setting.
+
+`notification-check` performs **54 independent interactions**: a member and four
+staff roles, each at 390px and 1440px, five attempts apiece, plus a duplicate-tap
+refusal and a dropped-request recovery for each area. It never signs in as the
+peer account whose notifications it checks stay unread, so it is independent of
+the lockout suite. `NOTIFICATION_RESULT_FILE` names its result file, so repeat
+runs are kept beside the first rather than overwriting it.
 
 `restrictions-check` intentionally locks one synthetic identifier; run it last.
 For a targeted browser retry use, for example, `browser-check.mjs super_admin`.

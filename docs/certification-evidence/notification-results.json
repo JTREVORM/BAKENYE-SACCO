@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-20T15:59:37.248Z",
+  "results": [
+    {
+      "name": "member_a: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 920
+    },
+    {
+      "name": "member_a: notification action 2/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 894
+    },
+    {
+      "name": "member_a: notification action 3/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 950
+    },
+    {
+      "name": "member_a: notification action 4/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 886
+    },
+    {
+      "name": "member_a: notification action 5/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 980
+    },
+    {
+      "name": "cashier: notification action 1/5 completes and preserves peer unread state",
+      "pass": true,
+      "completionMs": 920
+    },
+    {
+      "name": "cashier: notification action 2/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read', exact: true }) to be hidden\u001b[22m\n\u001b[2m    59 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n",
+      "ownRead": true,
+      "peerUnread": true
+    },
+    {
+      "name": "cashier: notification action 3/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read', exact: true }) to be hidden\u001b[22m\n\u001b[2m    59 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n",
+      "ownRead": true,
+      "peerUnread": true
+    },
+    {
+      "name": "cashier: notification action 4/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read', exact: true }) to be hidden\u001b[22m\n\u001b[2m    58 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n",
+      "ownRead": true,
+      "peerUnread": true
+    },
+    {
+      "name": "cashier: notification action 5/5 completes and preserves peer unread state",
+      "pass": false,
+      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read', exact: true }) to be hidden\u001b[22m\n\u001b[2m    62 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n",
+      "ownRead": true,
+      "peerUnread": true
+    }
+  ]
+}

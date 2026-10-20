@@ -17,6 +17,19 @@
 
 [Certification report](../release-certification.md) · [Reproduction](../../scripts/certification/README.md)
 
-Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
+Chart review (12 months, all twelve buckets retained):
+
+| Chart | Desktop 1440px | Mobile 390px | Narrow mobile 320px |
+| --- | --- | --- | --- |
+| Super Admin | [JPG](screenshots/chart-super_admin-1440-12.jpg) | [JPG](screenshots/chart-super_admin-390-12.jpg) | [JPG](screenshots/chart-super_admin-320-12.jpg) |
+| Overview | [JPG](screenshots/chart-manager-1440-12.jpg) | [JPG](screenshots/chart-manager-390-12.jpg) | [JPG](screenshots/chart-manager-320-12.jpg) |
+
+Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [password security](password-results.json), [notification stability — FAIL/HOLD](notification-results.json), [blocker investigation](blocker-investigation.json), [preview/accessibility suites](preview-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
 
 Focused browser retries are included separately. Failed previous attempts are retained in merged results; they are not erased. The report distinguishes confirmed failures from remaining coverage limits.
+
+This directory was regenerated from the current clean database run. Older run
+artifacts remain in Git history at `c6a07aa`; stale focused retry files were removed.
+The 209 latest browser snapshots include successful focused rechecks and retain
+failed previous attempts. They do not override the separate repeated notification
+suite: four of its ten final attempts failed, so certification remains on HOLD.

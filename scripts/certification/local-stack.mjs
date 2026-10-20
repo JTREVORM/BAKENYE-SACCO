@@ -32,6 +32,7 @@ async function ready(url){for(let i=0;i<60;i++){try{const r=await fetch(url);if(
 const sign=(secret,role)=>{const b=o=>Buffer.from(JSON.stringify(o)).toString('base64url');const h=b({alg:'HS256',typ:'JWT'}),p=b({role,iss:'supabase-local-certification',iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+86400*30});return `${h}.${p}.${createHmac('sha256',secret).update(`${h}.${p}`).digest('base64url')}`;};
 async function up(){
  await mkdir(root,{recursive:true,mode:0o700});
+ if((await readdir(root)).length)throw new Error('Archive the previous private work/isolated-certification directory before starting a clean run; stale evidence must not be reused');
  for(const name of ['db','auth','rest']){
   const existing=docker(['ps','-a','--filter',`name=^/${prefix}-${name}$`,'--format','{{.Names}}']);
   if(existing)throw new Error('An existing certification container is present; inspect it or run the explicit down command first');
@@ -70,7 +71,10 @@ async function up(){
  await c.query(storage);
  const migrations=(await readdir('supabase/migrations')).filter(n=>n.endsWith('.sql')).sort();
  for(const name of migrations){await c.query(await readFile(`supabase/migrations/${name}`,'utf8'));console.log(`PASS clean migration ${name}`);}
- await c.query('grant all on all tables in schema public to service_role; grant all on all sequences in schema public to service_role; grant all on all functions in schema public to service_role');
+ // Keep each migration's explicit RPC revocations. Platform defaults above
+ // already grant service access on creation; a blanket re-grant here would
+ // undo security migrations (including retirement of log_password_changed).
+ await c.query('grant all on all tables in schema public to service_role; grant all on all sequences in schema public to service_role');
  await c.end();
  await writeFile(`${root}/rest.env`,`PGRST_DB_URI=postgres://authenticator:${password}@${prefix}-db:5432/bakenye_certification\nPGRST_DB_SCHEMAS=public\nPGRST_DB_ANON_ROLE=anon\nPGRST_JWT_SECRET=${secret}\nPGRST_SERVER_PORT=3000\n`,{mode:0o600});
  docker(['run','-d','--name',`${prefix}-rest`,'--label',label,'--network',`${prefix}-local`,'-p','127.0.0.1:54326:3000','--env-file',`${root}/rest.env`,'postgrest/postgrest:v13.0.7']);

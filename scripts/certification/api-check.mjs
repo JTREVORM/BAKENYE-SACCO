@@ -49,7 +49,7 @@ try{
  await test('temporary password cannot be bypassed by calling completion RPC',async()=>{
   const c=clients.temporary;
   try{
-   await c.rpc('log_password_changed');
+   assert.ok((await c.rpc('log_password_changed')).error,'retired RPC must deny client execution');
    assert.equal(value(await c.rpc('has_permission',{p_key:'dashboard.staff'})),false,'unchanged temporary password gained staff permissions');
   }finally{
    // Restore this disposable account so the browser independently verifies the real form.

@@ -4,9 +4,9 @@ import type { Database } from '@/types/db';
 /**
  * Service-role client. Bypasses RLS entirely.
  *
- * Only two things are allowed to use it: creating auth users during member
- * onboarding and staff provisioning, and assigning roles. Every call site must
- * do its own permission check first - see `requirePermission()` in `auth.ts`.
+ * Used by trusted server flows, including account provisioning and verified
+ * password-change completion. Every call site must authorize its operation;
+ * self-service password flows obtain the account ID from native Auth getUser().
  *
  * Importing this from a Client Component is a build error, because the key is
  * not a NEXT_PUBLIC_ variable and would be undefined in the browser.

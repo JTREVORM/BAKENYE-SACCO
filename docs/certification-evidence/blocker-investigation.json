@@ -1,0 +1,132 @@
+{
+  "applicationBase": "c6a07aa",
+  "productionAssessment": {
+    "date": "2026-10-20",
+    "scope": "Read-only pg_proc function definition and execution privileges; no function invocation or account data reads",
+    "function": "public.log_password_changed()",
+    "securityDefiner": true,
+    "owner": "postgres",
+    "searchPath": "public",
+    "anonExecute": false,
+    "authenticatedExecute": true,
+    "serviceExecute": true,
+    "finding": "Deployed body clears must_change_password based solely on auth.uid(); same confirmed vulnerable implementation",
+    "productionChanged": false
+  },
+  "chartInvestigation": {
+    "scope": "Instrumented unchanged production build with real isolated Auth sessions",
+    "request": "/staff?flow=12",
+    "httpStatus": 200,
+    "serverChart": "Money in, money out and the net for 12 months",
+    "bodyCompleted": true,
+    "responseBodyBytes": 102873,
+    "responseBodyMillisecondsAfterRequest": 314,
+    "browserUrlAfter15Seconds": "/staff",
+    "finding": "Intermittent Next client search-parameter transition stalls after the correct server response; also reproduced a 65-second timeout, and observed an aborted RSC request in another attempt. Both successful and stalled transitions occurred with standard 3600-second tokens. Neither changing token duration nor waiting for document load fixes it.",
+    "correction": "Only range links use native document navigation, anchored at the chart. A chart-control mount effect restores that anchor after streamed content arrives. Existing searchParams parsing, SVG rendering, RPC and calculations are unchanged. The twelve-month axis keeps six spaced labels, with all twelve data buckets and tooltips retained; the six-month view is unchanged.",
+    "limit": "No claim about the precise internal Next.js scheduler cause; the failure is localized to client navigation rather than chart data or search parameter parsing."
+  },
+  "notificationInvestigation": {
+    "baselineComponent": "MarkAllRead: await markNotificationsRead(); router.refresh()",
+    "serverAction": "Already revalidates /notifications and the root layout",
+    "baselineTrace": [
+      {
+        "attempt": 1,
+        "passed": false,
+        "events": [
+          {
+            "event": "request",
+            "method": "POST",
+            "url": "/notifications",
+            "ms": 6886
+          },
+          {
+            "event": "request",
+            "method": "GET",
+            "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+            "ms": 7128
+          },
+          {
+            "event": "failed",
+            "method": "POST",
+            "reason": "net::ERR_ABORTED",
+            "ms": 7313
+          },
+          {
+            "event": "failed",
+            "method": "GET",
+            "reason": "net::ERR_ABORTED",
+            "ms": 7387
+          }
+        ]
+      },
+      {
+        "attempt": 2,
+        "passed": true,
+        "events": [
+          {
+            "event": "request",
+            "method": "POST",
+            "url": "/notifications",
+            "ms": 5654
+          },
+          {
+            "event": "request",
+            "method": "GET",
+            "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+            "ms": 5898
+          },
+          {
+            "event": "failed",
+            "method": "POST",
+            "reason": "net::ERR_ABORTED",
+            "ms": 6042
+          },
+          {
+            "event": "failed",
+            "method": "GET",
+            "reason": "net::ERR_ABORTED",
+            "ms": 6147
+          }
+        ]
+      },
+      {
+        "attempt": 3,
+        "passed": true,
+        "events": [
+          {
+            "event": "request",
+            "method": "POST",
+            "url": "/notifications",
+            "ms": 5425
+          },
+          {
+            "event": "request",
+            "method": "GET",
+            "url": "/notifications?_rsc=sSSFWP09V3dTAY8t",
+            "ms": 5665
+          },
+          {
+            "event": "failed",
+            "method": "POST",
+            "reason": "net::ERR_ABORTED",
+            "ms": 5762
+          },
+          {
+            "event": "failed",
+            "method": "GET",
+            "reason": "net::ERR_ABORTED",
+            "ms": 5898
+          }
+        ]
+      }
+    ],
+    "correction": "No notification application change retained. BKC-03 remains an unresolved UI stability blocker; full certification stays HOLD.",
+    "regression": "Repeated member and staff native browser actions with visible completion, persistence and peer isolation; each attempt independently reported.",
+    "candidateResult": {
+      "pass": 8,
+      "fail": 2,
+      "detail": "Removing the explicit client refresh did not resolve the intermittent member timeout. The speculative component change was reverted."
+    }
+  }
+}

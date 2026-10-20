@@ -1,14 +1,12 @@
 {
-  "date": "2026-10-20T14:18:03.383Z",
+  "date": "2026-10-20T16:00:02.156Z",
   "rechecks": [
-    "browser-super_admin-results.json",
-    "browser-core-results.json",
-    "browser-viewer-member_a-member_b-results.json",
-    "browser-loan_officer-cashier-accountant-field_officer-results.json",
-    "browser-super_admin-admin-manager-results.json",
-    "browser-sessions-results.json",
-    "browser-chart-results.json",
-    "browser-logout-member_a-member_b-results.json"
+    "browser-sessions-profile-password-form-results.json",
+    "browser-sessions-member-notifications-stability-one-results.json",
+    "browser-sessions-member-notifications-stability-two-results.json",
+    "browser-sessions-member-notifications-results.json",
+    "browser-sessions-member-notifications-stability-three-results.json",
+    "browser-chart-results.json"
   ],
   "results": [
     {
@@ -97,22 +95,7 @@
     },
     {
       "name": "Super Admin: Overview / Administration navigation and financial range filter",
-      "pass": true,
-      "previousAttempt": {
-        "name": "Super Admin: Overview / Administration navigation and financial range filter",
-        "pass": false,
-        "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
-        "previousAttempt": {
-          "name": "Super Admin: Overview / Administration navigation and financial range filter",
-          "pass": false,
-          "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
-          "previousAttempt": {
-            "name": "Super Admin: Overview / Administration navigation and financial range filter",
-            "pass": false,
-            "detail": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: '12 months', exact: true })\u001b[22m\n"
-          }
-        }
-      }
+      "pass": true
     },
     {
       "name": "Super Admin: navigation /staff",
@@ -232,12 +215,7 @@
     },
     {
       "name": "admin: logout / Back / direct revisit clears access",
-      "pass": true,
-      "previousAttempt": {
-        "name": "admin: logout / Back / direct revisit clears access",
-        "pass": false,
-        "detail": "page.reload: net::ERR_ABORTED; maybe frame was detached?\nCall log:\n\u001b[2m  - waiting for navigation until \"networkidle\"\u001b[22m\n"
-      }
+      "pass": true
     },
     {
       "name": "manager: real form login lands on assigned dashboard",
@@ -260,308 +238,44 @@
       "pass": true
     },
     {
-      "name": "member notifications persist read state without changing peer notifications",
-      "pass": true,
-      "previousAttempt": {
-        "name": "member notifications persist read state without changing peer notifications",
-        "pass": false,
-        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read' }) to be hidden\u001b[22m\n\u001b[2m    62 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n"
-      }
-    },
-    {
-      "name": "inactive and suspended accounts refused by actual login form",
-      "pass": true
-    },
-    {
-      "name": "idle timeout redirects and clears real session cookies",
-      "pass": true
-    },
-    {
-      "name": "temporary password: redirects, required form change, old password rejected",
-      "pass": true,
-      "previousAttempt": {
-        "name": "temporary password: redirects, required form change, old password rejected",
-        "pass": false,
-        "detail": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('form[action=\"/auth/signout\"] button[type=\"submit\"]')\u001b[22m\n"
-      }
-    },
-    {
-      "name": "viewer: real form login lands on assigned dashboard",
-      "pass": true
-    },
-    {
-      "name": "viewer: authenticated 1440px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "viewer: authenticated 390px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "viewer: authenticated 320px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/users follows users.manage",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/roles follows roles.manage",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/settings follows settings.view",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/audit follows audit.view",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/finance follows finance.view",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/members follows members.view",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/loans-desk follows loans.view",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/savings/collect follows savings.view",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/reports follows reports.view",
-      "pass": true
-    },
-    {
-      "name": "viewer: direct /staff/transactions follows transactions.view",
-      "pass": true
-    },
-    {
-      "name": "viewer: logout / Back / direct revisit clears access",
-      "pass": true
-    },
-    {
-      "name": "member_a: real form login lands on assigned dashboard",
-      "pass": true
-    },
-    {
-      "name": "member_a: authenticated 1440px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "member_a: authenticated 390px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "member_a: authenticated 320px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/users follows users.manage",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/roles follows roles.manage",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/settings follows settings.view",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/audit follows audit.view",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/finance follows finance.view",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/members follows members.view",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/loans-desk follows loans.view",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/savings/collect follows savings.view",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/reports follows reports.view",
-      "pass": true
-    },
-    {
-      "name": "member_a: direct /staff/transactions follows transactions.view",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /profile",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /savings",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /shares",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /loans",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /transactions",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /statements",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /reports",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /guarantees",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /notifications",
-      "pass": true
-    },
-    {
-      "name": "member_a: authorized portal /more",
-      "pass": true
-    },
-    {
-      "name": "member_a: peer transaction direct URL denied",
-      "pass": true
-    },
-    {
-      "name": "member_a: logout / Back / direct revisit clears access",
-      "pass": true,
-      "previousAttempt": {
-        "name": "member_a: logout / Back / direct revisit clears access",
-        "pass": false,
-        "detail": "locator.click: Error: strict mode violation: locator('form[action=\"/auth/signout\"] button[type=\"submit\"]') resolved to 3 elements:\n    1) <button type=\"submit\" class=\"flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-button-text text-white/70 transition-colors hover:bg-white/10 hover:text-white\">…</button> aka getByRole('button', { name: 'Sign out' })\n    2) <button type=\"submit\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-touch-target-primary px-7 text-button-text rounded-full gap-2 bg-surface text-on-surface shadow-neu hover:bg-surface-bright hover:shadow-card-hover active:shadow-neu-pressed w-full text-error border-error/40 hover:bg-error-container\">…</button> aka getByRole('button', { name: 'Log Out' })\n    3) <button type=\"submit\" class=\"text-button-text flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white\">…</button> aka getByLabel('Navigation').getByText('logoutSign out')\n\nCall log:\n\u001b[2m  - waiting for locator('form[action=\"/auth/signout\"] button[type=\"submit\"]')\u001b[22m\n"
-      }
-    },
-    {
-      "name": "member_b: real form login lands on assigned dashboard",
-      "pass": true
-    },
-    {
-      "name": "member_b: authenticated 1440px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "member_b: authenticated 390px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "member_b: authenticated 320px dashboard and keyboard drawer",
-      "pass": true
-    },
-    {
-      "name": "member_b: direct /staff/users follows users.manage",
-      "pass": true
-    },
-    {
-      "name": "member_b: direct /staff/roles follows roles.manage",
-      "pass": true
-    },
-    {
-      "name": "member_b: direct /staff/settings follows settings.view",
-      "pass": true
-    },
-    {
-      "name": "member_b: direct /staff/audit follows audit.view",
-      "pass": true
-    },
-    {
-      "name": "member_b: direct /staff/finance follows finance.view",
+      "name": "manager: direct /staff/roles follows roles.manage",
       "pass": true
     },
     {
-      "name": "member_b: direct /staff/members follows members.view",
+      "name": "manager: direct /staff/settings follows settings.view",
       "pass": true
     },
     {
-      "name": "member_b: direct /staff/loans-desk follows loans.view",
+      "name": "manager: direct /staff/audit follows audit.view",
       "pass": true
     },
     {
-      "name": "member_b: direct /staff/savings/collect follows savings.view",
+      "name": "manager: direct /staff/finance follows finance.view",
       "pass": true
     },
     {
-      "name": "member_b: direct /staff/reports follows reports.view",
+      "name": "manager: direct /staff/members follows members.view",
       "pass": true
     },
     {
-      "name": "member_b: direct /staff/transactions follows transactions.view",
+      "name": "manager: direct /staff/loans-desk follows loans.view",
       "pass": true
     },
     {
-      "name": "member_b: authorized portal /profile",
+      "name": "manager: direct /staff/savings/collect follows savings.view",
       "pass": true
     },
     {
-      "name": "member_b: authorized portal /savings",
+      "name": "manager: direct /staff/reports follows reports.view",
       "pass": true
     },
     {
-      "name": "member_b: authorized portal /shares",
+      "name": "manager: direct /staff/transactions follows transactions.view",
       "pass": true
     },
     {
-      "name": "member_b: authorized portal /loans",
+      "name": "manager: logout / Back / direct revisit clears access",
       "pass": true
-    },
-    {
-      "name": "member_b: authorized portal /transactions",
-      "pass": true
-    },
-    {
-      "name": "member_b: authorized portal /statements",
-      "pass": true
-    },
-    {
-      "name": "member_b: authorized portal /reports",
-      "pass": true
-    },
-    {
-      "name": "member_b: authorized portal /guarantees",
-      "pass": true
-    },
-    {
-      "name": "member_b: authorized portal /notifications",
-      "pass": true
-    },
-    {
-      "name": "member_b: authorized portal /more",
-      "pass": true
-    },
-    {
-      "name": "member_b: peer transaction direct URL denied",
-      "pass": true
-    },
-    {
-      "name": "member_b: logout / Back / direct revisit clears access",
-      "pass": true,
-      "previousAttempt": {
-        "name": "member_b: logout / Back / direct revisit clears access",
-        "pass": false,
-        "detail": "locator.click: Error: strict mode violation: locator('form[action=\"/auth/signout\"] button[type=\"submit\"]') resolved to 3 elements:\n    1) <button type=\"submit\" class=\"flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-button-text text-white/70 transition-colors hover:bg-white/10 hover:text-white\">…</button> aka getByRole('button', { name: 'Sign out' })\n    2) <button type=\"submit\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-touch-target-primary px-7 text-button-text rounded-full gap-2 bg-surface text-on-surface shadow-neu hover:bg-surface-bright hover:shadow-card-hover active:shadow-neu-pressed w-full text-error border-error/40 hover:bg-error-container\">…</button> aka getByRole('button', { name: 'Log Out' })\n    3) <button type=\"submit\" class=\"text-button-text flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white\">…</button> aka getByLabel('Navigation').getByText('logoutSign out')\n\nCall log:\n\u001b[2m  - waiting for locator('form[action=\"/auth/signout\"] button[type=\"submit\"]')\u001b[22m\n"
-      }
     },
     {
       "name": "loan_officer: real form login lands on assigned dashboard",
@@ -804,49 +518,361 @@
       "pass": true
     },
     {
-      "name": "manager: direct /staff/roles follows roles.manage",
+      "name": "viewer: real form login lands on assigned dashboard",
       "pass": true
     },
     {
-      "name": "manager: direct /staff/settings follows settings.view",
+      "name": "viewer: authenticated 1440px dashboard and keyboard drawer",
       "pass": true
     },
     {
-      "name": "manager: direct /staff/audit follows audit.view",
+      "name": "viewer: authenticated 390px dashboard and keyboard drawer",
       "pass": true
     },
     {
-      "name": "manager: direct /staff/finance follows finance.view",
+      "name": "viewer: authenticated 320px dashboard and keyboard drawer",
       "pass": true
     },
     {
-      "name": "manager: direct /staff/members follows members.view",
+      "name": "viewer: direct /staff/users follows users.manage",
       "pass": true
     },
     {
-      "name": "manager: direct /staff/loans-desk follows loans.view",
+      "name": "viewer: direct /staff/roles follows roles.manage",
       "pass": true
     },
     {
-      "name": "manager: direct /staff/savings/collect follows savings.view",
+      "name": "viewer: direct /staff/settings follows settings.view",
       "pass": true
     },
     {
-      "name": "manager: direct /staff/reports follows reports.view",
+      "name": "viewer: direct /staff/audit follows audit.view",
       "pass": true
     },
     {
-      "name": "manager: direct /staff/transactions follows transactions.view",
+      "name": "viewer: direct /staff/finance follows finance.view",
       "pass": true
     },
     {
-      "name": "manager: logout / Back / direct revisit clears access",
+      "name": "viewer: direct /staff/members follows members.view",
       "pass": true
     },
     {
-      "name": "Overview: native financial range filter updates rendered selection",
-      "pass": false,
-      "detail": "page.waitForFunction: Timeout 30000ms exceeded.; final URL http://localhost:3100/staff"
+      "name": "viewer: direct /staff/loans-desk follows loans.view",
+      "pass": true
+    },
+    {
+      "name": "viewer: direct /staff/savings/collect follows savings.view",
+      "pass": true
+    },
+    {
+      "name": "viewer: direct /staff/reports follows reports.view",
+      "pass": true
+    },
+    {
+      "name": "viewer: direct /staff/transactions follows transactions.view",
+      "pass": true
+    },
+    {
+      "name": "viewer: logout / Back / direct revisit clears access",
+      "pass": true
+    },
+    {
+      "name": "member_a: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "member_a: authenticated 1440px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "member_a: authenticated 390px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "member_a: authenticated 320px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/users follows users.manage",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/roles follows roles.manage",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/settings follows settings.view",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/audit follows audit.view",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/finance follows finance.view",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/members follows members.view",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/loans-desk follows loans.view",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/savings/collect follows savings.view",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/reports follows reports.view",
+      "pass": true
+    },
+    {
+      "name": "member_a: direct /staff/transactions follows transactions.view",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /profile",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /savings",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /shares",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /loans",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /transactions",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /statements",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /reports",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /guarantees",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /notifications",
+      "pass": true
+    },
+    {
+      "name": "member_a: authorized portal /more",
+      "pass": true
+    },
+    {
+      "name": "member_a: peer transaction direct URL denied",
+      "pass": true
+    },
+    {
+      "name": "member_a: logout / Back / direct revisit clears access",
+      "pass": true
+    },
+    {
+      "name": "member_b: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "member_b: authenticated 1440px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "member_b: authenticated 390px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "member_b: authenticated 320px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/users follows users.manage",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/roles follows roles.manage",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/settings follows settings.view",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/audit follows audit.view",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/finance follows finance.view",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/members follows members.view",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/loans-desk follows loans.view",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/savings/collect follows savings.view",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/reports follows reports.view",
+      "pass": true
+    },
+    {
+      "name": "member_b: direct /staff/transactions follows transactions.view",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /profile",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /savings",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /shares",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /loans",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /transactions",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /statements",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /reports",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /guarantees",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /notifications",
+      "pass": true
+    },
+    {
+      "name": "member_b: authorized portal /more",
+      "pass": true
+    },
+    {
+      "name": "member_b: peer transaction direct URL denied",
+      "pass": true
+    },
+    {
+      "name": "member_b: logout / Back / direct revisit clears access",
+      "pass": true
+    },
+    {
+      "name": "member notifications persist read state without changing peer notifications",
+      "pass": true,
+      "previousAttempt": {
+        "name": "member notifications persist read state without changing peer notifications",
+        "pass": false,
+        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read' }) to be hidden\u001b[22m\n\u001b[2m    62 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n",
+        "previousAttempt": {
+          "name": "member notifications persist read state without changing peer notifications",
+          "pass": false,
+          "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read' }) to be hidden\u001b[22m\n\u001b[2m    63 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n"
+        }
+      }
+    },
+    {
+      "name": "inactive and suspended accounts refused by actual login form",
+      "pass": true
+    },
+    {
+      "name": "idle timeout redirects and clears real session cookies",
+      "pass": true
+    },
+    {
+      "name": "viewer: profile password form verifies current password and records native change",
+      "pass": true,
+      "previousAttempt": {
+        "name": "viewer: profile password form verifies current password and records native change",
+        "pass": false,
+        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.', { exact: true }) to be visible\u001b[22m\n"
+      }
+    },
+    {
+      "name": "member_b: profile password form verifies current password and records native change",
+      "pass": true,
+      "previousAttempt": {
+        "name": "member_b: profile password form verifies current password and records native change",
+        "pass": false,
+        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.', { exact: true }) to be visible\u001b[22m\n"
+      }
+    },
+    {
+      "name": "temporary password: redirects, required form change, old password rejected",
+      "pass": true
+    },
+    {
+      "name": "super_admin: 1440px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
+    },
+    {
+      "name": "super_admin: 390px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
+    },
+    {
+      "name": "super_admin: 320px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
+    },
+    {
+      "name": "admin: 1440px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
+    },
+    {
+      "name": "admin: 390px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
+    },
+    {
+      "name": "admin: 320px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
+    },
+    {
+      "name": "manager: 1440px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
+    },
+    {
+      "name": "manager: 390px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
+    },
+    {
+      "name": "manager: 320px chart switches 6/12/6/12/6 with real buckets",
+      "pass": true,
+      "transitions": 4
     }
   ]
 }

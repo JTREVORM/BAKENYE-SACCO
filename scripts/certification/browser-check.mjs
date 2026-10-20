@@ -12,11 +12,12 @@ const selected=process.argv.slice(2).find(v=>!v.startsWith('--'))?.split(',')??[
 const logoutOnly=process.argv.includes('--logout-only');
 const sessionsOnly=process.argv.includes('--sessions-only');
 const coreOnly=process.argv.includes('--core-only')||sessionsOnly;
+const testFilter=process.argv.find(v=>v.startsWith('--test='))?.slice(7);
 assert.ok(selected.every(k=>/^[a-z_]+$/.test(k)),'Role filter contains only role identifiers');
-const resultFile=`${root}/browser${sessionsOnly?'-sessions':coreOnly?'-core':logoutOnly?`-logout${selected.length?`-${selected.join('-')}`:''}`:selected.length?`-${selected.join('-')}`:''}-results.json`;
+const resultFile=`${root}/browser${sessionsOnly?'-sessions':coreOnly?'-core':logoutOnly?`-logout${selected.length?`-${selected.join('-')}`:''}`:selected.length?`-${selected.join('-')}`:''}${testFilter?`-${testFilter.toLowerCase().replace(/[^a-z]+/g,'-')}`:''}-results.json`;
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox'],proxy:process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY,bypass:'localhost,127.0.0.1'}:undefined});
-async function test(name,fn){try{await fn();results.push({name,pass:true});console.log(`PASS ${name}`);}catch(e){results.push({name,pass:false,detail:e.message});console.log(`FAIL ${name}: ${e.message}`);}await writeFile(resultFile,JSON.stringify({date:new Date().toISOString(),results},null,2));}
+async function test(name,fn){if(testFilter&&!name.includes(testFilter))return;try{await fn();results.push({name,pass:true});console.log(`PASS ${name}`);}catch(e){results.push({name,pass:false,detail:e.message});console.log(`FAIL ${name}: ${e.message}`);}await writeFile(resultFile,JSON.stringify({date:new Date().toISOString(),results},null,2));}
 async function context(width=1440){
  const c=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'}),fonts=new Map();
  if(process.env.HTTPS_PROXY)await c.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//,async route=>{
@@ -131,7 +132,7 @@ try{
    await test('Super Admin: Overview / Administration navigation and financial range filter',async()=>{
     await load(page,'/staff');assert.ok(await page.locator('[data-overview-dashboard]').count());
     await load(page,'/staff/admin');assert.ok(await page.locator('[data-admin-dashboard]').count());
-    await page.locator('details').filter({has:page.locator('a[href="/staff/admin?flow=12"]')}).locator('summary').click();
+    await page.locator('details').filter({has:page.locator('a[href^="/staff/admin?flow=12"]')}).locator('summary').click();
     await page.getByRole('link',{name:'12 months',exact:true}).click();await page.waitForFunction(()=>new URL(location.href).searchParams.get('flow')==='12');await settled(page);assert.equal(new URL(page.url()).searchParams.get('flow'),'12');
    });
    // Follow every configured first-level navigation destination in a real session.
@@ -177,6 +178,29 @@ try{
    await page.goto(s.app+'/staff',{waitUntil:'networkidle'});assert.equal(new URL(page.url()).pathname,'/login');
   }finally{await ctx.close();}
  });
+ for(const [key,path]of [['viewer','/staff/profile'],['member_b','/profile']])await test(`${key}: profile password form verifies current password and records native change`,async()=>{
+  const ctx=await context(390),page=await ctx.newPage();try{
+   assert.equal(await login(page,key),homes[key]);await load(page,path);assert.equal(new URL(page.url()).pathname,path);
+   const old=users[key].password,next=`Chosen!${randomBytes(12).toString('hex')}7z`;
+   const before=(await db.query("select count(*) n from audit_logs where actor_id=$1 and action='auth.password_changed'",[users[key].id])).rows[0].n;
+   await page.fill('input[name="current_password"]','Incorrect!7password');await page.fill('input[name="password"]',next);await page.fill('input[name="confirm"]',next);
+   await page.getByRole('button',{name:'Change password',exact:true}).click();
+   // The field error includes an aria-hidden Material icon before its text.
+   await page.getByText('Your current password is incorrect.').waitFor();
+   assert.equal((await db.query("select count(*) n from audit_logs where actor_id=$1 and action='auth.password_changed'",[users[key].id])).rows[0].n,before);
+   await page.fill('input[name="current_password"]',old);await page.fill('input[name="password"]',next);await page.fill('input[name="confirm"]',next);await page.getByRole('button',{name:'Change password',exact:true}).click();
+   // Save private credentials as soon as native Auth confirms the update, even
+   // if a later UI assertion fails, so focused retries use the actual password.
+   const verify=createClient(s.api,s.anon,{auth:{persistSession:false,autoRefreshToken:false}});
+   const deadline=Date.now()+30000;let signed;
+   do{signed=await verify.auth.signInWithPassword({email:users[key].email,password:next});if(!signed.error)break;await page.waitForTimeout(500);}while(Date.now()<deadline);
+   assert.equal(signed.error,null);users[key].password=next;await writeFile(`${root}/accounts.json`,JSON.stringify(users,null,2),{mode:0o600});
+   await page.getByText('Your password has been changed. Use the new one next time you sign in.',{exact:true}).waitFor();
+   assert.equal((await db.query("select count(*) n from audit_logs where actor_id=$1 and action='auth.password_changed'",[users[key].id])).rows[0].n,String(Number(before)+1));
+   assert.ok((await verify.auth.signInWithPassword({email:users[key].email,password:old})).error);
+   await logout(page);assert.equal(await login(page,key),homes[key]);
+  }finally{await ctx.close();}
+ });
  await test('temporary password: redirects, required form change, old password rejected',async()=>{
   const ctx=await context(390),page=await ctx.newPage();try{
    assert.equal(await login(page,'temporary'),'/change-password');
@@ -193,4 +217,4 @@ try{
 }finally{
  await browser.close();await db.end();await writeFile(resultFile,JSON.stringify({date:new Date().toISOString(),results},null,2));
 }
-console.log(`${results.filter(r=>r.pass).length} passed, ${results.filter(r=>!r.pass).length} failed`);process.exitCode=results.some(r=>!r.pass)?1:0;
+console.log(`${results.filter(r=>r.pass).length} passed, ${results.filter(r=>!r.pass).length} failed`);process.exitCode=!results.length||results.some(r=>!r.pass)?1:0;

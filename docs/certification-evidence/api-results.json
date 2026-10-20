@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-20T12:06:51.342Z",
+  "date": "2026-10-20T15:07:21.545Z",
   "results": [
     {
       "name": "super_admin: native Auth and authoritative session",
@@ -203,8 +203,7 @@
     },
     {
       "name": "temporary password cannot be bypassed by calling completion RPC",
-      "pass": false,
-      "detail": "unchanged temporary password gained staff permissions\n\ntrue !== false\n"
+      "pass": true
     },
     {
       "name": "member_a: suspended member loses existing-token data access",

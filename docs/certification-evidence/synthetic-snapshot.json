@@ -1,23 +1,32 @@
 {
-  "capturedAt": "2026-10-20T14:18:03.460Z",
+  "capturedAt": "2026-10-20T16:00:02.223Z",
   "members": [
     {
       "member_no": "BND26001",
       "full_name": "Certification Member Alpha",
-      "savings_balance": "190000.00",
+      "savings_balance": "103750.00",
       "shares_owned": 10,
       "share_value": "100000.00",
       "loan_balance": "86000.00",
-      "total_equity": "290000.00"
+      "total_equity": "203750.00"
     },
     {
       "member_no": "BND26002",
       "full_name": "Certification Member Beta",
       "savings_balance": "73500.00",
-      "shares_owned": 22,
-      "share_value": "220000.00",
+      "shares_owned": 12,
+      "share_value": "120000.00",
       "loan_balance": "0.00",
-      "total_equity": "293500.00"
+      "total_equity": "193500.00"
+    },
+    {
+      "member_no": "BND26003",
+      "full_name": "Certification Member Password Lifecycle",
+      "savings_balance": "0.00",
+      "shares_owned": 0,
+      "share_value": "0.00",
+      "loan_balance": "0.00",
+      "total_equity": "0.00"
     }
   ],
   "roles": [
@@ -80,17 +89,17 @@
     {
       "name": "Certification Merchant",
       "account_type": "merchant",
-      "balance": "25000.00"
+      "balance": "12500.00"
     },
     {
       "name": "Certification Bank",
       "account_type": "bank",
-      "balance": "80000.00"
+      "balance": "40000.00"
     },
     {
       "name": "Cash at Hand",
       "account_type": "cash",
-      "balance": "428500.00"
+      "balance": "302250.00"
     }
   ],
   "migrations": [
@@ -285,6 +294,10 @@
     {
       "file": "0048_international_member_phones.sql",
       "sha256": "f0875d34a02137d4f3b0195e4f8aa5ba20344c60b0048850a3e4f370e300fa01"
+    },
+    {
+      "file": "20261020144523_verified_password_changes.sql",
+      "sha256": "48821e6164d2587a45b49e0c64b187fa2f9e987e25361318184a33b8d383ca52"
     }
   ]
 }

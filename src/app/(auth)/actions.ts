@@ -334,13 +334,40 @@ export async function resetPassword(
     return { ok: false, error: 'This reset link has expired. Please request a new one.' };
   }
 
+  const changed = await updateVerifiedPassword(supabase, user.id, password);
+  if (!changed.ok) return changed;
+
+  jar.delete(RECOVERY_COOKIE);
+  revalidatePath('/', 'layout');
+  return succeed(null, 'Your password has been changed.');
+}
+
+/** Server-only completion: the database also verifies a one-use Auth hash change.
+ * The account ID always comes from getUser(), never a submitted form field. */
+async function updateVerifiedPassword(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  password: string,
+): Promise<ActionResult<null>> {
+  const admin = createAdminClient();
+  const { data: nonce, error: proofError } = await admin.rpc('begin_password_change', {
+    p_user_id: userId,
+  });
+  if (proofError || !nonce) {
+    return { ok: false, error: 'The password could not be changed just now. Please try again.' };
+  }
+
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return fail(error, 'password');
 
-  jar.delete(RECOVERY_COOKIE);
-  await supabase.rpc('log_password_changed');
-  revalidatePath('/', 'layout');
-  return succeed(null, 'Your password has been changed.');
+  const { error: completionError } = await admin.rpc('complete_password_change', {
+    p_user_id: userId,
+    p_nonce: nonce,
+  });
+  if (completionError) {
+    return { ok: false, error: 'Your password changed, but account access could not be restored. Sign in with your new password and try again.' };
+  }
+  return succeed(null);
 }
 
 /** Replace the signed-in person's password. Shared by both change-password forms. */
@@ -382,11 +409,8 @@ async function replacePassword(formData: FormData): Promise<ActionResult<null>> 
     return { ok: false, error: 'Your current password is incorrect.', field: 'current_password' };
   }
 
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) return fail(error, 'password');
-
-  // Records the change and lifts the temporary-password lock.
-  await supabase.rpc('log_password_changed');
+  const changed = await updateVerifiedPassword(supabase, user.id, password);
+  if (!changed.ok) return changed;
   return succeed(null, 'Your password has been changed. Use the new one next time you sign in.');
 }
 

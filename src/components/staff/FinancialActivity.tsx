@@ -1,9 +1,8 @@
-import Link from 'next/link';
 import { Icon, Panel } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/ui/states';
 import { getMonthlyFlow } from '@/lib/treasury';
 import { formatCompactUGX, formatUGX, toNumber } from '@/lib/money';
-import { clsx } from '@/lib/clsx';
+import { FinancialRangePicker } from './FinancialRangePicker';
 
 /**
  * Monthly financial activity — money in, money out and the net between them.
@@ -23,11 +22,6 @@ const SERIES = [
   { key: 'in', label: 'Money in', fill: '#12965a' },
   { key: 'out', label: 'Money out', fill: '#0a2148' },
   { key: 'net', label: 'Net', fill: '#7da5e3' },
-] as const;
-
-const RANGES = [
-  { months: 6, label: '6 months' },
-  { months: 12, label: '12 months' },
 ] as const;
 
 export async function FinancialActivity({
@@ -78,10 +72,11 @@ export function ActivityPanel({
 }) {
   return (
     <Panel
+      id="financial-activity"
       title="Monthly Financial Activity"
       icon="bar_chart"
       padded={false}
-      action={<RangePicker months={months} baseHref={baseHref} />}
+      action={<FinancialRangePicker months={months} baseHref={baseHref} />}
       bodyClassName="flex min-h-0 flex-col p-5"
     >
       {!series || series.length === 0 ? (
@@ -95,44 +90,6 @@ export function ActivityPanel({
         <ActivityChart series={series} compact={compact} />
       )}
     </Panel>
-  );
-}
-
-/**
- * The range control.
- *
- * A `<details>` disclosure rather than a `<select>`: it is two links to the
- * same page with a different range, which is what it actually is, and it needs
- * no JavaScript to open.
- */
-function RangePicker({ months, baseHref }: { months: number; baseHref: string }) {
-  const current = RANGES.find((r) => r.months === months) ?? RANGES[0];
-
-  return (
-    <details className="group relative">
-      <summary className="text-label-md text-on-surface-variant bg-surface-container hover:bg-surface-container-high flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-full px-3 font-semibold transition-colors [&::-webkit-details-marker]:hidden">
-        {current.label}
-        <Icon name="expand_more" size={16} className="transition-transform group-open:rotate-180" />
-      </summary>
-      <div className="bg-surface absolute right-0 z-20 mt-1.5 w-40 overflow-hidden rounded-xl p-1 shadow-pop">
-        {RANGES.map((r) => (
-          <Link
-            key={r.months}
-            href={`${baseHref}?flow=${r.months}`}
-            scroll={false}
-            className={clsx(
-              'text-body-md flex h-10 items-center gap-2 rounded-lg px-3 transition-colors',
-              r.months === months
-                ? 'text-primary bg-primary-fixed font-semibold'
-                : 'text-on-surface hover:bg-surface-container-high',
-            )}
-          >
-            {r.months === months ? <Icon name="check" size={16} /> : null}
-            {r.label}
-          </Link>
-        ))}
-      </div>
-    </details>
   );
 }
 
@@ -163,6 +120,13 @@ function ActivityChart({ series, compact }: { series: Bucket[]; compact: boolean
   const slot = plotW / series.length;
   const barW = Math.min(12, (slot * 0.74) / 3);
   const groupW = barW * 3 + 4;
+  // Twelve bars still carry twelve titles; keep the axis at six evenly spaced
+  // labels so the longer range is readable in the approved narrow panel.
+  const labeledMonths = new Set(
+    series.length > 6
+      ? Array.from({ length: 6 }, (_, i) => Math.round((i * (series.length - 1)) / 5))
+      : series.map((_, i) => i),
+  );
 
   const ticks: number[] = [];
   for (let t = bottom; t <= top + step / 2; t += step) ticks.push(t);
@@ -247,16 +211,18 @@ function ActivityChart({ series, compact }: { series: Bucket[]; compact: boolean
                   />
                 );
               })}
-              <text
-                x={groupX + groupW / 2}
-                y={H - 6}
-                textAnchor="middle"
-                fontSize="9"
-                fill="#5a6782"
-                fontWeight="600"
-              >
-                {s.label}
-              </text>
+              {labeledMonths.has(i) ? (
+                <text
+                  x={groupX + groupW / 2}
+                  y={H - 6}
+                  textAnchor="middle"
+                  fontSize="9"
+                  fill="#5a6782"
+                  fontWeight="600"
+                >
+                  {s.label}
+                </text>
+              ) : null}
             </g>
           );
         })}

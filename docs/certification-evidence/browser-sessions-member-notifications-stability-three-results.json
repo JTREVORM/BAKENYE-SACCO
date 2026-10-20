@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-20T15:37:42.525Z",
+  "results": [
+    {
+      "name": "member notifications persist read state without changing peer notifications",
+      "pass": true
+    }
+  ]
+}

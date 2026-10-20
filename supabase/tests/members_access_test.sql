@@ -295,7 +295,7 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- Sign-in: one identifier field (member number, phone or email) and a password
--- the account holder chose with a one-time setup code. These functions belong
+-- the account holder chose through verified Supabase Auth. These functions belong
 -- to the server and to Supabase Auth, so this block runs without the
 -- `authenticated` role.
 -- ---------------------------------------------------------------------------
@@ -312,6 +312,7 @@ declare
   v_user    app_users;
   v_err     text;
   v_admin   text := current_setting('request.jwt.claims', true);
+  v_nonce   uuid;
   i         integer;
 begin
   -- John's login, created the way Supabase Auth's admin API really does it:
@@ -405,7 +406,19 @@ begin
           current_member_id() is null and not has_permission('portal.view')
           and (my_session() ->> 'must_change_password')::boolean, null);
 
-  perform log_password_changed();
+  begin
+    perform log_password_changed();
+    insert into t_result (step, ok) values ('9k2 retired completion RPC denies bypass', false);
+  exception when insufficient_privilege then
+    insert into t_result (step, ok) values ('9k2 retired completion RPC denies bypass', true);
+  end;
+  -- SQL models the Auth write; native GoTrue lifecycle is tested separately.
+  update auth.users set encrypted_password = 'synthetic-initial-hash' where id = v_uid;
+  perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  v_nonce := begin_password_change(v_uid);
+  update auth.users set encrypted_password = 'synthetic-changed-hash' where id = v_uid;
+  perform complete_password_change(v_uid, v_nonce);
+  perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
   insert into t_result (step, ok, detail)
   values ('9l once they choose their own password, their records open up',
           current_member_id() = v_john_id and has_permission('portal.view')
@@ -420,8 +433,10 @@ begin
           (select must_change_password from app_users where id = v_uid)
           and exists (select 1 from audit_logs where action = 'account.password_reset' and record_id = v_uid::text), null);
 
-  perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
-  perform log_password_changed();
+  perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  v_nonce := begin_password_change(v_uid);
+  update auth.users set encrypted_password = 'synthetic-changed-again-hash' where id = v_uid;
+  perform complete_password_change(v_uid, v_nonce);
   perform set_config('request.jwt.claims', v_admin, true);
   insert into t_result (step, ok, detail)
   values ('9n there are no setup codes any more', to_regclass('public.account_setup_codes') is null

@@ -13,7 +13,12 @@ async function account(key,role,memberId=null,temporary=false){
  const data=check(await service.auth.admin.createUser({email,password,email_confirm:true,app_metadata:meta,user_metadata:{full_name:`Certification ${key}`}}),'create local account');
  const client=createClient(s.api,s.anon,options);
  check(await client.auth.signInWithPassword({email,password}),'native password sign-in');
- if(!temporary){password=`Chosen!${randomBytes(12).toString('hex')}7z`;check(await client.auth.updateUser({password}),'choose native Auth password');check(await client.rpc('log_password_changed'),'record fixture password chosen');}
+ if(!temporary){
+  const nonce=check(await service.rpc('begin_password_change',{p_user_id:data.user.id}),'begin verified password change');
+  password=`Chosen!${randomBytes(12).toString('hex')}7z`;
+  check(await client.auth.updateUser({password}),'choose native Auth password');
+  check(await service.rpc('complete_password_change',{p_user_id:data.user.id,p_nonce:nonce}),'complete verified password change');
+ }
  users[key]={id:data.user.id,email,password,role,memberId};
  return client;
 }

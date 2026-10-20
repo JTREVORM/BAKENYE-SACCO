@@ -1147,6 +1147,15 @@ export type Database = {
      * nobody.
      */
     Functions: {
+      /** Server-only, short-lived proof around a native Auth password update. */
+      begin_password_change: {
+        Args: { p_user_id: string };
+        Returns: string;
+      };
+      complete_password_change: {
+        Args: { p_user_id: string; p_nonce: string };
+        Returns: undefined;
+      };
       buy_shares: {
         Args: {
           p_member_id: string;

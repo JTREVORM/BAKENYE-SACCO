@@ -34,6 +34,9 @@ export async function TopAppBar({
   // The wordmark falls back to the SACCO's short name, from the organisation
   // record rather than a literal.
   const brand = await getBrand();
+  const mobileName = brand.shortName.trim().toUpperCase() === 'BUD-SACCO' && /\bbakenye\b/i.test(brand.legalName)
+    ? 'Bakenye SACCO'
+    : brand.shortName;
 
   return (
     <header
@@ -66,7 +69,7 @@ export async function TopAppBar({
           />
         )}
         <h1 className="ml-1 truncate text-title-md text-on-surface">
-          {title ?? brand.shortName}
+          {title ?? mobileName}
         </h1>
       </div>
 

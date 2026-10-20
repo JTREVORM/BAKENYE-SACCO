@@ -82,7 +82,8 @@ try {
       await page.getByRole('button', { name: 'Open menu', exact: true }).click();
       assert.equal(await page.getByRole('dialog', { name: 'Navigation' }).isVisible(), true);
       await page.keyboard.press('Escape');
-      assert.equal(await page.locator('[aria-label="Navigation"]').evaluate(el => el.parentElement.getAttribute('aria-hidden')), 'true');
+      assert.equal(await page.getByRole('dialog', { name: 'Navigation' }).count(), 0);
+      assert.equal(await page.locator('dialog[aria-label="Navigation"]').evaluate(el => el.open), false);
     }
     await page.locator('[data-app-header] button[aria-haspopup="menu"]').click();
     assert.equal(await page.getByRole('menu').isVisible(), true);

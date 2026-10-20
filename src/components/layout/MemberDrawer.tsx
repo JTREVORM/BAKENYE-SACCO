@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll';
 import { MEMBER_NAV, MEMBER_MORE_NAV } from '@/lib/rbac';
 import { useBrand } from '@/components/brand/BrandProvider';
 import { splitName } from '@/lib/sacco-brand';
+import { useMobileNavigationDialog } from '@/components/ui/useMobileNavigationDialog';
 
 /**
  * Mobile navigation for the member app: the menu button in the top bar and the
@@ -36,6 +37,7 @@ export function MemberDrawer({ unreadCount = 0, homeActive = false }: { unreadCo
   const [nameTop, nameBottom] = splitName(brand.legalName);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useMobileNavigationDialog(open);
   const pathname = usePathname();
 
   // There is no document to portal into until the client has taken over, and
@@ -53,30 +55,24 @@ export function MemberDrawer({ unreadCount = 0, homeActive = false }: { unreadCo
     setOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false);
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
-
   // "More" is the old bottom-bar overflow tab; the drawer lists its contents
   // directly, so there is nothing left for it to point at.
   const primary = MEMBER_NAV.filter((i) => i.href !== '/more');
 
   const overlay = (
-    <div
+    <dialog
+      ref={dialogRef}
+      aria-label="Navigation"
+      aria-modal="true"
+      onCancel={e => { e.preventDefault(); setOpen(false); }}
       className={clsx(
-        'fixed inset-0 z-[60] md:hidden',
+        'fixed inset-0 z-[60] m-0 h-[100dvh] max-h-none w-screen max-w-none border-0 bg-transparent p-0 backdrop:bg-transparent md:hidden',
         open ? 'pointer-events-auto' : 'pointer-events-none',
       )}
-      aria-hidden={!open}
     >
       <button
         type="button"
-        tabIndex={open ? 0 : -1}
+        tabIndex={-1}
         aria-label="Close menu"
         onClick={() => setOpen(false)}
         className={clsx(
@@ -86,9 +82,6 @@ export function MemberDrawer({ unreadCount = 0, homeActive = false }: { unreadCo
       />
 
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Navigation"
         className={clsx(
           'bg-ink-gradient shadow-pop absolute inset-y-0 left-0 isolate flex w-[300px] max-w-[86vw] flex-col transition-transform duration-200 ease-out',
           open ? 'translate-x-0' : '-translate-x-full',
@@ -166,7 +159,7 @@ export function MemberDrawer({ unreadCount = 0, homeActive = false }: { unreadCo
           </form>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 
   return (

@@ -128,7 +128,7 @@ export function StaffShell({
                 ) : null}
               </Link>
 
-              <AccountMenu user={user} />
+              <AccountMenu user={user} showSettings={nav.some(item => item.href === '/staff/settings')} />
             </div>
           </div>
         </header>
@@ -153,18 +153,30 @@ export function StaffShell({
 
 function AccountMenu({
   user,
+  showSettings,
 }: {
   user: { fullName: string; roleName: string; photoUrl: string | null };
+  showSettings: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
 
   // Close on Escape and on any click outside — a dropdown that can only be
   // closed by clicking the trigger again feels broken on touch.
   useEffect(() => {
     if (!open) return;
+    ref.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') { setOpen(false); trigger.current?.focus(); }
+      if (!ref.current?.contains(document.activeElement)) return;
+      if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
+      const items = Array.from(ref.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
+      if (!items.length) return;
+      e.preventDefault();
+      const index = items.indexOf(document.activeElement as HTMLElement);
+      const next = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : (index + (e.key === 'ArrowUp' ? -1 : 1) + items.length) % items.length;
+      items[next].focus();
     }
     function onDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -180,7 +192,9 @@ function AccountMenu({
   return (
     <div className="relative" ref={ref}>
       <button
+        ref={trigger}
         type="button"
+        aria-label="Account menu"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -225,7 +239,7 @@ function AccountMenu({
           <div className="p-1.5">
             <MenuLink href="/staff/profile" icon="person" label="My profile" />
             <MenuLink href="/staff/profile#password" icon="lock" label="Change password" />
-            <MenuLink href="/staff/settings" icon="settings" label="Settings" />
+            {showSettings ? <MenuLink href="/staff/settings" icon="settings" label="Settings" /> : null}
           </div>
           <div className="border-t border-outline-variant/70 p-1.5">
             {/* A form posting to the server action, so the shell never pulls

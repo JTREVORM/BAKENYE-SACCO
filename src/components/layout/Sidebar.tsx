@@ -11,6 +11,7 @@ import type { NavItem } from '@/lib/rbac';
 import { useBrand } from '@/components/brand/BrandProvider';
 import { RailBackdrop } from './RailBackdrop';
 import { splitName } from '@/lib/sacco-brand';
+import { useMobileNavigationDialog } from '@/components/ui/useMobileNavigationDialog';
 
 /**
  * The persistent navigation rail.
@@ -39,6 +40,7 @@ export function Sidebar({
   collapsed?: boolean;
 }) {
   const pathname = usePathname();
+  const dialogRef = useMobileNavigationDialog(open);
 
   function isActive(href: string) {
     if (href === '/staff') return pathname === '/staff';
@@ -49,15 +51,6 @@ export function Sidebar({
   useEffect(() => {
     onClose(); /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pathname]);
-
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
 
   function navList(tight: boolean) {
     return (
@@ -172,16 +165,19 @@ export function Sidebar({
       </aside>
 
       {/* Mobile: slide-in drawer. */}
-      <div
+      <dialog
+        ref={dialogRef}
+        aria-label="Navigation"
+        aria-modal="true"
+        onCancel={e => { e.preventDefault(); onClose(); }}
         className={clsx(
-          'fixed inset-0 z-50 md:hidden',
+          'fixed inset-0 z-50 m-0 h-[100dvh] max-h-none w-screen max-w-none border-0 bg-transparent p-0 backdrop:bg-transparent md:hidden',
           open ? 'pointer-events-auto' : 'pointer-events-none',
         )}
-        aria-hidden={!open}
       >
         <button
           type="button"
-          tabIndex={open ? 0 : -1}
+          tabIndex={-1}
           aria-label="Close menu"
           onClick={onClose}
           className={clsx(
@@ -190,9 +186,6 @@ export function Sidebar({
           )}
         />
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation"
           className={clsx(
             'bg-ink-gradient absolute inset-y-0 left-0 isolate flex w-[300px] max-w-[86vw] flex-col shadow-pop transition-transform duration-200 ease-out',
             open ? 'translate-x-0' : '-translate-x-full',
@@ -203,7 +196,7 @@ export function Sidebar({
           {navList(false)}
           <SidebarFooter />
         </div>
-      </div>
+      </dialog>
     </>
   );
 }

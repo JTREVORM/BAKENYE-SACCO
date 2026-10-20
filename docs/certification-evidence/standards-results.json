@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-20T14:14:27.134Z",
+  "results": [
+    {
+      "name": "Lint",
+      "pass": true,
+      "exitCode": 0
+    },
+    {
+      "name": "TypeScript",
+      "pass": true,
+      "exitCode": 0
+    },
+    {
+      "name": "Production build",
+      "pass": true,
+      "exitCode": 0
+    },
+    {
+      "name": "Dashboard invariants",
+      "pass": true,
+      "exitCode": 0
+    },
+    {
+      "name": "Fixture arithmetic",
+      "pass": true,
+      "exitCode": 0
+    },
+    {
+      "name": "Phone validation",
+      "pass": true,
+      "exitCode": 0
+    },
+    {
+      "name": "Target safety guard",
+      "pass": true,
+      "exitCode": 0
+    },
+    {
+      "name": "Compiled production previews",
+      "pass": true,
+      "exitCode": 0
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "date": "2026-10-20T13:52:18.859Z",
+  "results": [
+    {
+      "name": "super_admin: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "super_admin: authenticated 1440px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "super_admin: authenticated 390px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "super_admin: authenticated 320px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/users follows users.manage",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/roles follows roles.manage",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/settings follows settings.view",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/audit follows audit.view",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/finance follows finance.view",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/members follows members.view",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/loans-desk follows loans.view",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/savings/collect follows savings.view",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/reports follows reports.view",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct /staff/transactions follows transactions.view",
+      "pass": true
+    },
+    {
+      "name": "production preview /dev/preview: authenticated request reaches Not Found without fixtures",
+      "pass": true
+    },
+    {
+      "name": "production preview /dev/preview/dashboard: authenticated request reaches Not Found without fixtures",
+      "pass": true
+    },
+    {
+      "name": "production preview /dev/preview/member: authenticated request reaches Not Found without fixtures",
+      "pass": true
+    },
+    {
+      "name": "production preview /dev/preview/certification: authenticated request reaches Not Found without fixtures",
+      "pass": true
+    },
+    {
+      "name": "production preview /dev/preview/staff/finance: authenticated request reaches Not Found without fixtures",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: Overview / Administration navigation and financial range filter",
+      "pass": false,
+      "detail": "page.waitForURL: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================"
+    },
+    {
+      "name": "Super Admin: navigation /staff",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/admin",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/members",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/membership-fees",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/savings",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/shares",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/loans",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/transactions",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/finance",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/reports",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/users",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/roles",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/audit",
+      "pass": true
+    },
+    {
+      "name": "Super Admin: navigation /staff/settings",
+      "pass": true
+    },
+    {
+      "name": "super_admin: logout / Back / direct revisit clears access",
+      "pass": true
+    }
+  ]
+}

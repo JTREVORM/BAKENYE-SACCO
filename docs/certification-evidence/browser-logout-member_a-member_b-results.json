@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-20T14:10:59.698Z",
+  "results": [
+    {
+      "name": "member_a: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "member_a: logout / Back / direct revisit clears access",
+      "pass": true
+    },
+    {
+      "name": "member_b: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "member_b: logout / Back / direct revisit clears access",
+      "pass": true
+    }
+  ]
+}

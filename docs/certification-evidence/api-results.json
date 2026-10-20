@@ -1,0 +1,234 @@
+{
+  "date": "2026-10-20T12:06:51.342Z",
+  "results": [
+    {
+      "name": "super_admin: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "admin: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "manager: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "cashier: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "accountant: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "field_officer: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "viewer: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "member_a: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "member_b: native Auth and authoritative session",
+      "pass": true
+    },
+    {
+      "name": "member_a: RLS hides peer members",
+      "pass": true
+    },
+    {
+      "name": "member_a: RLS hides peer member_financials",
+      "pass": true
+    },
+    {
+      "name": "member_a: RLS hides peer member_share_progress",
+      "pass": true
+    },
+    {
+      "name": "member_a: RLS hides peer savings_payments",
+      "pass": true
+    },
+    {
+      "name": "member_a: RLS hides peer transactions",
+      "pass": true
+    },
+    {
+      "name": "member_a: RLS hides peer loans",
+      "pass": true
+    },
+    {
+      "name": "member_a: RLS hides peer payment_intents",
+      "pass": true
+    },
+    {
+      "name": "member_a: own financial values equal database",
+      "pass": true
+    },
+    {
+      "name": "member_a: no staff audit_logs",
+      "pass": true
+    },
+    {
+      "name": "member_a: no staff income_entries",
+      "pass": true
+    },
+    {
+      "name": "member_a: no staff account_ledger_entries",
+      "pass": true
+    },
+    {
+      "name": "member_a: no staff financial_account_balances",
+      "pass": true
+    },
+    {
+      "name": "member_a: peer statement denied",
+      "pass": true
+    },
+    {
+      "name": "member_a: own statement accessible",
+      "pass": true
+    },
+    {
+      "name": "member_a: cannot elevate role directly",
+      "pass": true
+    },
+    {
+      "name": "member_b: RLS hides peer members",
+      "pass": true
+    },
+    {
+      "name": "member_b: RLS hides peer member_financials",
+      "pass": true
+    },
+    {
+      "name": "member_b: RLS hides peer member_share_progress",
+      "pass": true
+    },
+    {
+      "name": "member_b: RLS hides peer savings_payments",
+      "pass": true
+    },
+    {
+      "name": "member_b: RLS hides peer transactions",
+      "pass": true
+    },
+    {
+      "name": "member_b: RLS hides peer loans",
+      "pass": true
+    },
+    {
+      "name": "member_b: RLS hides peer payment_intents",
+      "pass": true
+    },
+    {
+      "name": "member_b: own financial values equal database",
+      "pass": true
+    },
+    {
+      "name": "member_b: no staff audit_logs",
+      "pass": true
+    },
+    {
+      "name": "member_b: no staff income_entries",
+      "pass": true
+    },
+    {
+      "name": "member_b: no staff account_ledger_entries",
+      "pass": true
+    },
+    {
+      "name": "member_b: no staff financial_account_balances",
+      "pass": true
+    },
+    {
+      "name": "member_b: peer statement denied",
+      "pass": true
+    },
+    {
+      "name": "member_b: own statement accessible",
+      "pass": true
+    },
+    {
+      "name": "member_b: cannot elevate role directly",
+      "pass": true
+    },
+    {
+      "name": "viewer: unauthorized collection denied without mutation",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: unauthorized collection denied without mutation",
+      "pass": true
+    },
+    {
+      "name": "member_a: unauthorized collection denied without mutation",
+      "pass": true
+    },
+    {
+      "name": "member_b: unauthorized collection denied without mutation",
+      "pass": true
+    },
+    {
+      "name": "cashier: security overview denied",
+      "pass": true
+    },
+    {
+      "name": "field_officer: security overview denied",
+      "pass": true
+    },
+    {
+      "name": "viewer: security overview denied",
+      "pass": true
+    },
+    {
+      "name": "member_a: security overview denied",
+      "pass": true
+    },
+    {
+      "name": "inactive: native login does not grant data access",
+      "pass": true
+    },
+    {
+      "name": "temporary: native login does not grant data access",
+      "pass": true
+    },
+    {
+      "name": "temporary password cannot be bypassed by calling completion RPC",
+      "pass": false,
+      "detail": "unchanged temporary password gained staff permissions\n\ntrue !== false\n"
+    },
+    {
+      "name": "member_a: suspended member loses existing-token data access",
+      "pass": true
+    },
+    {
+      "name": "member_b: suspended member loses existing-token data access",
+      "pass": true
+    },
+    {
+      "name": "cashier collection, receipt, replay and reversal reconcile with ledger",
+      "pass": true
+    },
+    {
+      "name": "finance summary equals underlying account ledger",
+      "pass": true
+    },
+    {
+      "name": "native logout revokes refresh token",
+      "pass": true
+    },
+    {
+      "name": "native access-token expiry is enforced and refresh restores session",
+      "pass": true
+    }
+  ]
+}

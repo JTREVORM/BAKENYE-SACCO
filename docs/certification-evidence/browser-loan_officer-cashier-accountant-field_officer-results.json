@@ -1,0 +1,245 @@
+{
+  "date": "2026-10-20T14:09:25.604Z",
+  "results": [
+    {
+      "name": "loan_officer: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: authenticated 1440px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: authenticated 390px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: authenticated 320px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/users follows users.manage",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/roles follows roles.manage",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/settings follows settings.view",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/audit follows audit.view",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/finance follows finance.view",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/members follows members.view",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/loans-desk follows loans.view",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/savings/collect follows savings.view",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/reports follows reports.view",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct /staff/transactions follows transactions.view",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: logout / Back / direct revisit clears access",
+      "pass": true
+    },
+    {
+      "name": "cashier: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "cashier: authenticated 1440px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "cashier: authenticated 390px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "cashier: authenticated 320px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/users follows users.manage",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/roles follows roles.manage",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/settings follows settings.view",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/audit follows audit.view",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/finance follows finance.view",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/members follows members.view",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/loans-desk follows loans.view",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/savings/collect follows savings.view",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/reports follows reports.view",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct /staff/transactions follows transactions.view",
+      "pass": true
+    },
+    {
+      "name": "cashier: logout / Back / direct revisit clears access",
+      "pass": true
+    },
+    {
+      "name": "accountant: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "accountant: authenticated 1440px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "accountant: authenticated 390px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "accountant: authenticated 320px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/users follows users.manage",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/roles follows roles.manage",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/settings follows settings.view",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/audit follows audit.view",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/finance follows finance.view",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/members follows members.view",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/loans-desk follows loans.view",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/savings/collect follows savings.view",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/reports follows reports.view",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct /staff/transactions follows transactions.view",
+      "pass": true
+    },
+    {
+      "name": "accountant: logout / Back / direct revisit clears access",
+      "pass": true
+    },
+    {
+      "name": "field_officer: real form login lands on assigned dashboard",
+      "pass": true
+    },
+    {
+      "name": "field_officer: authenticated 1440px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "field_officer: authenticated 390px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "field_officer: authenticated 320px dashboard and keyboard drawer",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/users follows users.manage",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/roles follows roles.manage",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/settings follows settings.view",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/audit follows audit.view",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/finance follows finance.view",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/members follows members.view",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/loans-desk follows loans.view",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/savings/collect follows savings.view",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/reports follows reports.view",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct /staff/transactions follows transactions.view",
+      "pass": true
+    },
+    {
+      "name": "field_officer: logout / Back / direct revisit clears access",
+      "pass": true
+    }
+  ]
+}

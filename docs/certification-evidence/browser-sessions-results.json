@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-20T14:03:35.903Z",
+  "results": [
+    {
+      "name": "member notifications persist read state without changing peer notifications",
+      "pass": true
+    },
+    {
+      "name": "inactive and suspended accounts refused by actual login form",
+      "pass": true
+    },
+    {
+      "name": "idle timeout redirects and clears real session cookies",
+      "pass": true
+    },
+    {
+      "name": "temporary password: redirects, required form change, old password rejected",
+      "pass": true
+    }
+  ]
+}

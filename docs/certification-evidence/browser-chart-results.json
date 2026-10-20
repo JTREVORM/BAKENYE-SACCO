@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-20T14:08:24.699Z",
+  "results": [
+    {
+      "name": "Super Admin: Overview / Administration navigation and financial range filter",
+      "pass": true
+    },
+    {
+      "name": "Overview: native financial range filter updates rendered selection",
+      "pass": false,
+      "detail": "page.waitForFunction: Timeout 30000ms exceeded.; final URL http://localhost:3100/staff"
+    }
+  ]
+}

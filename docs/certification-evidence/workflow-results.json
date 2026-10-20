@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-20T13:37:34.703Z",
+  "results": [
+    {
+      "name": "create synthetic merchant and bank accounts through authorized setup RPC",
+      "pass": true
+    },
+    {
+      "name": "native roles: collection, member receipt ownership, transfer approval and conservation",
+      "pass": true
+    },
+    {
+      "name": "native roles: whole-share purchase increases authorized holdings by ten",
+      "pass": true
+    },
+    {
+      "name": "native roles: loan application, assessment, approval, disbursement and repayment",
+      "pass": true
+    },
+    {
+      "name": "native roles: expense approval, reversal and duplicate reversal refusal",
+      "pass": true
+    },
+    {
+      "name": "native roles: reconciliation and reports equal underlying ledger",
+      "pass": true
+    }
+  ]
+}

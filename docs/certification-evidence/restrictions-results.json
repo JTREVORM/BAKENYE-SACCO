@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-20T14:11:17.784Z",
+  "results": [
+    {
+      "name": "anonymous API cannot read member or financial records",
+      "pass": true
+    },
+    {
+      "name": "super_admin: direct finance API follows authoritative permission",
+      "pass": true
+    },
+    {
+      "name": "admin: direct finance API follows authoritative permission",
+      "pass": true
+    },
+    {
+      "name": "manager: direct finance API follows authoritative permission",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: direct finance API follows authoritative permission",
+      "pass": true
+    },
+    {
+      "name": "cashier: direct finance API follows authoritative permission",
+      "pass": true
+    },
+    {
+      "name": "accountant: direct finance API follows authoritative permission",
+      "pass": true
+    },
+    {
+      "name": "field_officer: direct finance API follows authoritative permission",
+      "pass": true
+    },
+    {
+      "name": "viewer: direct finance API follows authoritative permission",
+      "pass": true
+    },
+    {
+      "name": "existing-token member restriction: suspended",
+      "pass": true
+    },
+    {
+      "name": "existing-token member restriction: inactive",
+      "pass": true
+    },
+    {
+      "name": "existing-token member restriction: archived",
+      "pass": true
+    },
+    {
+      "name": "existing-token member restriction: exited",
+      "pass": true
+    },
+    {
+      "name": "real login form: generic credentials errors and configured lockout",
+      "pass": true
+    }
+  ]
+}

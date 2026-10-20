@@ -64,6 +64,13 @@ desktop.ini
 
 # Responsive-audit output. Regenerate with scripts/responsive-check.mjs.
 screenshots/
+/work/isolated-certification/
 # ...but the manual screenshots are a deliverable, not audit output.
 !documentation/screenshots/
 !documentation/screenshots/**
+
+# Sanitized certification evidence is a review deliverable.
+!docs/certification-evidence/screenshots/
+!docs/certification-evidence/screenshots/*.jpg
+!docs/certification-evidence/database-suites.log
+!docs/certification-evidence/standards-console.log

@@ -1,0 +1,230 @@
+
+## Lint
+
+> bud-sacco@1.0.0 lint
+> eslint . --ignore-pattern work/**
+
+
+## TypeScript
+
+> bud-sacco@1.0.0 typecheck
+> tsc --noEmit
+
+
+## Production build
+
+> bud-sacco@1.0.0 build
+> next build
+
+   ▲ Next.js 15.5.24
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · serverActions
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 23.1s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/77) ...
+   Generating static pages (19/77)
+   Generating static pages (38/77)
+   Generating static pages (57/77)
+ ✓ Generating static pages (77/77)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                      746 B         170 kB
+├ ƒ /_not-found                            151 B         103 kB
+├ ƒ /admin/[[...path]]                     151 B         103 kB
+├ ƒ /auth/callback                         151 B         103 kB
+├ ƒ /auth/signout                          151 B         103 kB
+├ ƒ /change-password                     2.81 kB         171 kB
+├ ƒ /dev/preview                         1.67 kB         182 kB
+├ ƒ /dev/preview/certification             214 B         174 kB
+├ ƒ /dev/preview/dashboard               1.51 kB         171 kB
+├ ƒ /dev/preview/member                    746 B         170 kB
+├ ƒ /dev/preview/staff/[dashboard]       2.44 kB         183 kB
+├ ƒ /forgot-password                      1.2 kB         170 kB
+├ ƒ /guarantees                          1.25 kB         174 kB
+├ ƒ /help                                2.51 kB         114 kB
+├ ƒ /loans                                 214 B         170 kB
+├ ƒ /loans/[id]                            204 B         170 kB
+├ ƒ /loans/apply                           221 B         249 kB
+├ ƒ /loans/repay                           710 B         170 kB
+├ ƒ /login                               2.34 kB         171 kB
+├ ƒ /maintenance-bypass                    151 B         103 kB
+├ ƒ /manifest.webmanifest                  151 B         103 kB
+├ ƒ /more                                2.84 kB         172 kB
+├ ƒ /no-member-record                    2.82 kB         168 kB
+├ ƒ /notifications                         211 B         173 kB
+├ ƒ /profile                              1.3 kB         174 kB
+├ ƒ /reports                               214 B         170 kB
+├ ƒ /reset-password                      1.46 kB         170 kB
+├ ƒ /savings                               214 B         170 kB
+├ ƒ /savings/deposit                       710 B         170 kB
+├ ƒ /shares                                214 B         170 kB
+├ ƒ /shares/buy                            710 B         170 kB
+├ ƒ /staff                                2.5 kB         114 kB
+├ ƒ /staff/admin                         2.51 kB         114 kB
+├ ƒ /staff/audit                         3.96 kB         164 kB
+├ ƒ /staff/desk                          2.51 kB         114 kB
+├ ƒ /staff/finance                       1.95 kB         170 kB
+├ ƒ /staff/finance/[type]                1.05 kB         166 kB
+├ ƒ /staff/finance/accounts              5.74 kB         169 kB
+├ ƒ /staff/finance/documents/[id]          151 B         103 kB
+├ ƒ /staff/finance/expenses              5.94 kB         169 kB
+├ ƒ /staff/finance/income-expenses       2.29 kB         166 kB
+├ ƒ /staff/finance/ledger                1.02 kB         166 kB
+├ ƒ /staff/finance/new/collection        4.74 kB         242 kB
+├ ƒ /staff/finance/new/expense           2.05 kB         171 kB
+├ ƒ /staff/finance/new/payment           3.63 kB         241 kB
+├ ƒ /staff/finance/new/receipt           3.27 kB         240 kB
+├ ƒ /staff/finance/new/transfer          2.24 kB         171 kB
+├ ƒ /staff/finance/payments                138 B         169 kB
+├ ƒ /staff/finance/receipts              4.53 kB         165 kB
+├ ƒ /staff/finance/reconciliation        2.99 kB         166 kB
+├ ƒ /staff/finance/reconciliation/new    1.82 kB         171 kB
+├ ƒ /staff/finance/reports               3.95 kB         164 kB
+├ ƒ /staff/finance/transfers               137 B         169 kB
+├ ƒ /staff/loans                           647 B         166 kB
+├ ƒ /staff/loans-desk                    2.51 kB         114 kB
+├ ƒ /staff/loans/[id]                    5.22 kB         168 kB
+├ ƒ /staff/loans/[id]/repay              2.91 kB         169 kB
+├ ƒ /staff/loans/new                       199 B         240 kB
+├ ƒ /staff/loans/products                2.33 kB         166 kB
+├ ƒ /staff/loans/products/[id]             191 B         170 kB
+├ ƒ /staff/loans/products/new              191 B         170 kB
+├ ƒ /staff/members                         873 B         167 kB
+├ ƒ /staff/members/[id]                  5.77 kB         169 kB
+├ ƒ /staff/members/[id]/edit             2.56 kB         166 kB
+├ ƒ /staff/members/[id]/ledger           3.95 kB         164 kB
+├ ƒ /staff/members/new                   9.84 kB         173 kB
+├ ƒ /staff/membership-fees               5.66 kB         169 kB
+├ ƒ /staff/notifications                   296 B         163 kB
+├ ƒ /staff/profile                       1.27 kB         165 kB
+├ ƒ /staff/reports                       2.49 kB         108 kB
+├ ƒ /staff/reports/members               3.31 kB         164 kB
+├ ƒ /staff/reports/statement             2.26 kB         239 kB
+├ ƒ /staff/roles                         5.06 kB         168 kB
+├ ƒ /staff/savings                       3.31 kB         164 kB
+├ ƒ /staff/savings/collect               1.32 kB         177 kB
+├ ƒ /staff/savings/performance              4 kB         164 kB
+├ ƒ /staff/savings/record                3.73 kB         238 kB
+├ ƒ /staff/savings/records               3.32 kB         167 kB
+├ ƒ /staff/settings                      8.56 kB         172 kB
+├ ƒ /staff/shares                        2.49 kB         108 kB
+├ ƒ /staff/shares/sell                   4.31 kB         239 kB
+├ ƒ /staff/transactions                  2.49 kB         166 kB
+├ ƒ /staff/transactions/[id]             3.09 kB         172 kB
+├ ƒ /staff/transactions/cash             4.27 kB         238 kB
+├ ƒ /staff/users                         4.54 kB         168 kB
+├ ƒ /statements                            217 B         173 kB
+├ ƒ /transactions                        2.45 kB         175 kB
+└ ƒ /transactions/[id]                   3.37 kB         173 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/1255-fc6c00ab2f765339.js      46.4 kB
+  ├ chunks/4bd1b696-f785427dddbba9fb.js  54.2 kB
+  └ other shared chunks (total)          1.96 kB
+
+
+ƒ Middleware                             95.5 kB
+
+ƒ  (Dynamic)  server-rendered on demand
+
+
+## Dashboard invariants
+✔ seeded dashboard assignments and landing paths remain consistent (4.634635ms)
+✔ custom Owner, Secretary and Treasurer assignments use the existing dashboard mapping (0.369301ms)
+✔ navigation follows explicit permissions, never a display name or role-key shortcut (1.996492ms)
+✔ UGX display keeps complete numeric values and Uganda date boundaries (1.067066ms)
+✔ every development preview page guards production before reading fixtures (195.853837ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 212.22852
+
+## Fixture arithmetic
+✔ member share figures and equity agree with the fixture share price (2.823795ms)
+✔ collection months, dates and history describe the selected member (5.229611ms)
+✔ cashier receipts use receipt date, excluding other dates and outgoing money (1.346398ms)
+✔ rolling collection labels match dates at month/year/leap-day boundaries (11.039725ms)
+✔ Finance QA movements reconcile by account and use the source payment method (6.560827ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.103397
+
+## Phone validation
+✔ Uganda keeps its existing format: 0772123456 (2.081291ms)
+✔ Uganda keeps its existing format: 0772 123 456 (0.25834ms)
+✔ Uganda keeps its existing format: (0772) 123-456 (0.10074ms)
+✔ Uganda keeps its existing format: 772123456 (0.089456ms)
+✔ Uganda keeps its existing format: 256772123456 (0.167392ms)
+✔ Uganda keeps its existing format: +256 772 123 456 (0.254356ms)
+✔ Uganda keeps its existing format: 00256772123456 (0.17294ms)
+✔ Canada retains its international code and is idempotent (10.200733ms)
+✔ UK retains its international code and is idempotent (3.200941ms)
+✔ Kenya retains its international code and is idempotent (1.385786ms)
+✔ Russia retains its international code and is idempotent (0.914229ms)
+✔ Uganda landline retains its international code and is idempotent (4.842833ms)
+✔ Saint Helena (short international number) retains its international code and is idempotent (1.331688ms)
+✔ invalid phone is rejected: null (0.120793ms)
+✔ invalid phone is rejected: undefined (0.638227ms)
+✔ invalid phone is rejected: "" (0.103307ms)
+✔ invalid phone is rejected: " \t " (0.080475ms)
+✔ invalid phone is rejected: "123" (0.051828ms)
+✔ invalid phone is rejected: "4165550123" (0.035364ms)
+✔ invalid phone is rejected: "00442079460958" (0.034183ms)
+✔ invalid phone is rejected: "+999123456789" (0.385703ms)
+✔ invalid phone is rejected: "+1416" (0.270621ms)
+✔ invalid phone is rejected: "+10125550123" (1.412711ms)
+✔ invalid phone is rejected: "+1416555012345678" (0.060668ms)
+✔ invalid phone is rejected: "+4402079460958" (0.340821ms)
+✔ invalid phone is rejected: "+254012345678" (0.09149ms)
+✔ invalid phone is rejected: "+2560712123456" (0.131727ms)
+✔ invalid phone is rejected: "+772123456" (0.118715ms)
+✔ invalid phone is rejected: "++14165550123" (0.069659ms)
+✔ invalid phone is rejected: "+1+4165550123" (0.033909ms)
+✔ invalid phone is rejected: "call 0772123456" (0.031605ms)
+✔ invalid phone is rejected: "+14165550123 ext 9" (0.031587ms)
+✔ Unicode whitespace is trimmed consistently (0.394727ms)
+✔ Uganda display remains local (1.178121ms)
+✔ international display never loses the plus or resembles a Uganda local number (0.202686ms)
+✔ missing phone display remains unchanged (0.125108ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 46.368739
+
+## Target safety guard
+✔ mutation tooling refuses hosted or unrelated targets before opening a connection (1061.93391ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1190.134137
+
+## Compiled production previews
+PASS compiled production 404 before data access: .next/server/app/dev/preview/certification/page.js
+PASS compiled production 404 before data access: .next/server/app/dev/preview/dashboard/page.js
+PASS compiled production 404 before data access: .next/server/app/dev/preview/member/page.js
+PASS compiled production 404 before data access: .next/server/app/dev/preview/page.js
+PASS compiled production 404 before data access: .next/server/app/dev/preview/staff/[dashboard]/page.js
+PASS public client bundles contain none of the checked development fixture markers

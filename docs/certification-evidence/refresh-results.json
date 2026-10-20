@@ -1,0 +1,4 @@
+{
+  "name": "Real browser session survives original JWT expiry through native SSR refresh",
+  "pass": true
+}

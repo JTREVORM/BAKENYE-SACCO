@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-20T13:55:43.208Z",
+  "results": [
+    {
+      "name": "Collections: real mobile review, post and receipt match the database",
+      "pass": true
+    },
+    {
+      "name": "Manager: real browser expense approval posts the pending entry once",
+      "pass": true
+    },
+    {
+      "name": "member notifications persist read state without changing peer notifications",
+      "pass": false,
+      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mark all read' }) to be hidden\u001b[22m\n\u001b[2m    62 × locator resolved to visible <button disabled type=\"button\" aria-busy=\"true\" class=\"inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-[background-color,box-shadow] duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none h-9 px-4 text-label-md rounded-full gap-1.5 bg-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface hover:shadow-neu-sm active:shadow-neu-pressed\">…</button>\u001b[22m\n"
+    },
+    {
+      "name": "inactive and suspended accounts refused by actual login form",
+      "pass": true
+    },
+    {
+      "name": "idle timeout redirects and clears real session cookies",
+      "pass": true
+    },
+    {
+      "name": "temporary password: redirects, required form change, old password rejected",
+      "pass": false,
+      "detail": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('form[action=\"/auth/signout\"] button[type=\"submit\"]')\u001b[22m\n"
+    }
+  ]
+}

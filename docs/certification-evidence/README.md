@@ -1,0 +1,22 @@
+# Certification evidence
+
+20 October 2026. All accounts and financial records shown here are synthetic, generated in the isolated local database. Screenshots show the real authenticated application, not preview fixtures. Height: 900px.
+
+| Dashboard / account | Desktop 1440px | Mobile 390px | Narrow mobile 320px |
+| --- | --- | --- | --- |
+| Super Admin | [JPG](screenshots/super_admin-1440.jpg) | [JPG](screenshots/super_admin-390.jpg) | [JPG](screenshots/super_admin-320.jpg) |
+| Admin | [JPG](screenshots/admin-1440.jpg) | [JPG](screenshots/admin-390.jpg) | [JPG](screenshots/admin-320.jpg) |
+| Manager / Overview | [JPG](screenshots/manager-1440.jpg) | [JPG](screenshots/manager-390.jpg) | [JPG](screenshots/manager-320.jpg) |
+| Loans Officer | [JPG](screenshots/loan_officer-1440.jpg) | [JPG](screenshots/loan_officer-390.jpg) | [JPG](screenshots/loan_officer-320.jpg) |
+| Cashier | [JPG](screenshots/cashier-1440.jpg) | [JPG](screenshots/cashier-390.jpg) | [JPG](screenshots/cashier-320.jpg) |
+| Accountant / Finance | [JPG](screenshots/accountant-1440.jpg) | [JPG](screenshots/accountant-390.jpg) | [JPG](screenshots/accountant-320.jpg) |
+| Collections | [JPG](screenshots/field_officer-1440.jpg) | [JPG](screenshots/field_officer-390.jpg) | [JPG](screenshots/field_officer-320.jpg) |
+| Viewer / Overview | [JPG](screenshots/viewer-1440.jpg) | [JPG](screenshots/viewer-390.jpg) | [JPG](screenshots/viewer-320.jpg) |
+| Member Alpha | [JPG](screenshots/member_a-1440.jpg) | [JPG](screenshots/member_a-390.jpg) | [JPG](screenshots/member_a-320.jpg) |
+| Member Beta | [JPG](screenshots/member_b-1440.jpg) | [JPG](screenshots/member_b-390.jpg) | [JPG](screenshots/member_b-320.jpg) |
+
+[Certification report](../release-certification.md) · [Reproduction](../../scripts/certification/README.md)
+
+Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
+
+Focused browser retries are included separately. Failed previous attempts are retained in merged results; they are not erased. The report distinguishes confirmed failures from remaining coverage limits.

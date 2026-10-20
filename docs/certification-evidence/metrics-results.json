@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-20T14:05:11.302Z",
+  "results": [
+    {
+      "name": "super_admin: seven dashboard metrics reconcile with member registers",
+      "pass": true
+    },
+    {
+      "name": "admin: seven dashboard metrics reconcile with member registers",
+      "pass": true
+    },
+    {
+      "name": "manager: seven dashboard metrics reconcile with member registers",
+      "pass": true
+    },
+    {
+      "name": "loan_officer: seven dashboard metrics reconcile with member registers",
+      "pass": true
+    },
+    {
+      "name": "cashier: seven dashboard metrics reconcile with member registers",
+      "pass": true
+    },
+    {
+      "name": "accountant: seven dashboard metrics reconcile with member registers",
+      "pass": true
+    },
+    {
+      "name": "field_officer: seven dashboard metrics reconcile with member registers",
+      "pass": true
+    },
+    {
+      "name": "viewer: seven dashboard metrics reconcile with member registers",
+      "pass": true
+    },
+    {
+      "name": "Administration: active staff, member logins and temporary-password counts equal account records",
+      "pass": true
+    },
+    {
+      "name": "Collections: selected member savings and shares equal authorized member records",
+      "pass": true
+    },
+    {
+      "name": "Finance: total and account-type dashboard balances equal account ledger registers",
+      "pass": true
+    }
+  ]
+}

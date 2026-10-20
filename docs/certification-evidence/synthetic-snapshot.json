@@ -1,0 +1,290 @@
+{
+  "capturedAt": "2026-10-20T14:18:03.460Z",
+  "members": [
+    {
+      "member_no": "BND26001",
+      "full_name": "Certification Member Alpha",
+      "savings_balance": "190000.00",
+      "shares_owned": 10,
+      "share_value": "100000.00",
+      "loan_balance": "86000.00",
+      "total_equity": "290000.00"
+    },
+    {
+      "member_no": "BND26002",
+      "full_name": "Certification Member Beta",
+      "savings_balance": "73500.00",
+      "shares_owned": 22,
+      "share_value": "220000.00",
+      "loan_balance": "0.00",
+      "total_equity": "293500.00"
+    }
+  ],
+  "roles": [
+    {
+      "key": "accountant",
+      "name": "Accountant",
+      "kind": "staff",
+      "dashboard": "finance"
+    },
+    {
+      "key": "admin",
+      "name": "Admin",
+      "kind": "staff",
+      "dashboard": "administration"
+    },
+    {
+      "key": "cashier",
+      "name": "Cashier / Teller",
+      "kind": "staff",
+      "dashboard": "cashier"
+    },
+    {
+      "key": "field_officer",
+      "name": "Field Officer",
+      "kind": "staff",
+      "dashboard": "collections"
+    },
+    {
+      "key": "loan_officer",
+      "name": "Loan Officer",
+      "kind": "staff",
+      "dashboard": "loans"
+    },
+    {
+      "key": "manager",
+      "name": "SACCO Manager",
+      "kind": "staff",
+      "dashboard": "overview"
+    },
+    {
+      "key": "member",
+      "name": "Member",
+      "kind": "member",
+      "dashboard": "portal"
+    },
+    {
+      "key": "super_admin",
+      "name": "Super Admin",
+      "kind": "staff",
+      "dashboard": "administration"
+    },
+    {
+      "key": "viewer",
+      "name": "Viewer",
+      "kind": "staff",
+      "dashboard": "overview"
+    }
+  ],
+  "balances": [
+    {
+      "name": "Certification Merchant",
+      "account_type": "merchant",
+      "balance": "25000.00"
+    },
+    {
+      "name": "Certification Bank",
+      "account_type": "bank",
+      "balance": "80000.00"
+    },
+    {
+      "name": "Cash at Hand",
+      "account_type": "cash",
+      "balance": "428500.00"
+    }
+  ],
+  "migrations": [
+    {
+      "file": "0001_schema.sql",
+      "sha256": "8687211d65cb7273565052847f2b8e77dac5def4dffbc960093e2113fad360b3"
+    },
+    {
+      "file": "0002_functions.sql",
+      "sha256": "29cc87cfa449bf4ec0ab0c2bf5523c9fdf1144f4d02a2c5670f309d0728a834c"
+    },
+    {
+      "file": "0003_views.sql",
+      "sha256": "5cb1cd51a3c5b6b50454151d8f8b584373e174905431dc7cec2482ed4058e587"
+    },
+    {
+      "file": "0004_rls.sql",
+      "sha256": "7860a66337069de75ac943230a7662e6e8976411289b0af7678f31da27c25682"
+    },
+    {
+      "file": "0005_seed.sql",
+      "sha256": "6193f9b31f4b98de902e6cc06b2174ae6550cfab2b1f0929bd6644a259ed14e6"
+    },
+    {
+      "file": "0006_app_support.sql",
+      "sha256": "ff921faca4b776d43d347aade4f4d0d0e44e29041e033380023b921cfb45939a"
+    },
+    {
+      "file": "0007_groups.sql",
+      "sha256": "3b59b9a80899b7d26a2d6f99aa9c4145e7194e9a535f3413352e7b2516c47822"
+    },
+    {
+      "file": "0008_group_views.sql",
+      "sha256": "628b266202aaf2608b6c9d9d3a74ad2aac6d16c543e7f4bb36a1d06b34160cea"
+    },
+    {
+      "file": "0009_group_functions.sql",
+      "sha256": "411af41bdab31abfad1dda84699ef389be0c5a24bd83e309479b7fe2d1187336"
+    },
+    {
+      "file": "0010_roles.sql",
+      "sha256": "b3188f0692e22d7edcbe3f4bace3b2574aa988ec573db528da77f25fd81a0638"
+    },
+    {
+      "file": "0011_rbac_and_rls.sql",
+      "sha256": "04fd0ae9da31c88754972f9cfb4b857d5a05b3daa07b66fad06e786dcdf65c9b"
+    },
+    {
+      "file": "0012_fix_loan_policy_recursion.sql",
+      "sha256": "2239decf6d7677b5b6661509263ab0137f98cc66600b6e8cba41a0fa1459c968"
+    },
+    {
+      "file": "0013_sacco_name.sql",
+      "sha256": "f3164a8474cfff599ed07a00a8a0c4078f67171595477c54dc127e9f58b3877a"
+    },
+    {
+      "file": "0014_settings_and_loan_products.sql",
+      "sha256": "9991bbc9f7abfdc93c1866f96dea43808afed6fd0b1e9b35f58cf95e14890f53"
+    },
+    {
+      "file": "0015_configuration.sql",
+      "sha256": "4aee322c010f3871fe3042b747543eb3545c38a361ce7a3e7018f2c344f40028"
+    },
+    {
+      "file": "0016_settings_writes.sql",
+      "sha256": "60b9e40876332573c1c6255b67fc0996fed350d97d4ad56fae75a30edc989ee8"
+    },
+    {
+      "file": "0017_loan_products.sql",
+      "sha256": "9ae2b2e3f6f5d0bcef98d9e7bcb44aacea4a81fa661c0871c17f21b2c57fc48c"
+    },
+    {
+      "file": "0018_loan_engine.sql",
+      "sha256": "fd4dc7c5087adfb404e492369459deecc28b19ae0004159f02e5b2d2553798f7"
+    },
+    {
+      "file": "0019_public_brand.sql",
+      "sha256": "6a6bf7ccadf301784474054fa4371ec5965a0660a2a1e525bd33a2a9f6153257"
+    },
+    {
+      "file": "0020_settings_enforcement.sql",
+      "sha256": "d409ea4c4877d0d7f4f602fddce18cd86cc89b2ef6bbe3a9f1e23c1053efa1fe"
+    },
+    {
+      "file": "0021_categories_replace_groups.sql",
+      "sha256": "d431a73e4aa40e5411c1906a7e5558da504569a07deff8f01f003e912298b7c6"
+    },
+    {
+      "file": "0022_category_views.sql",
+      "sha256": "e86f9f44e8aaee8a23b2ee922b12d0921e13d7242e4c60e76b48aae212f54a47"
+    },
+    {
+      "file": "0023_category_functions.sql",
+      "sha256": "819c34d510e2c1a9353138830bb23f186cb323452b1b20aca9340f6c465d15c2"
+    },
+    {
+      "file": "0024_category_reports.sql",
+      "sha256": "4dec12fe8d52f9c17bba6c6d87cfc6002c7359b0715cb2a65d613ea10bab4090"
+    },
+    {
+      "file": "0025_one_share_price.sql",
+      "sha256": "a58eeb588a9ff7c7975cad4018069958dc6ab362867451081521de5a30b29121"
+    },
+    {
+      "file": "0026_treasury_enums.sql",
+      "sha256": "1de782c6cefb87fcd9d80f45e7f455b9dadc220b400f31ec36abe464d91b4bf3"
+    },
+    {
+      "file": "0027_cash_and_bank.sql",
+      "sha256": "5a826279efeabf5c9c877276ce690ed6e3bd18de099980d814ee2043a24e019f"
+    },
+    {
+      "file": "0028_member_lifecycle_enums.sql",
+      "sha256": "a32f501a1a4a22a9d07bc39fffb4c3c8445877c106134d7b72981155de1d7082"
+    },
+    {
+      "file": "0029_roles_and_permissions.sql",
+      "sha256": "58a4a026ea991b178574ebe11896abcbaba7a4f27683d74166f8917c753fb5a7"
+    },
+    {
+      "file": "0030_member_registration_and_fees.sql",
+      "sha256": "50848402836765e4c0cd1231af54429d20f960f3bd5bd6ccc953c5ddc0ddfea9"
+    },
+    {
+      "file": "0031_collection_accounts.sql",
+      "sha256": "fada9c8d5d5f31c308608231ed5c2c7c53c496ba310ba6b997a8807e51c61495"
+    },
+    {
+      "file": "0032_unified_login.sql",
+      "sha256": "ce70aff71ad41c184340b6f5d8a147a53b6f52c14fbc147661d857266743e106"
+    },
+    {
+      "file": "0033_existing_passwords.sql",
+      "sha256": "6a9691e5cdc6c4926d4a465b0bdb85aaf292721f710f9b759af5234717797384"
+    },
+    {
+      "file": "0034_temporary_passwords.sql",
+      "sha256": "5357ed99cc9e4501c2d93c1652bd806881c844d6e492b5db0f5a506c20081433"
+    },
+    {
+      "file": "0035_provision_on_app_metadata.sql",
+      "sha256": "78c4a588dbc19d30d5fc3021023edb728bdf6bca6e5798359557a7e4b97211dd"
+    },
+    {
+      "file": "0036_production_audit_fixes.sql",
+      "sha256": "afc10a68dc00fca214416b151485da9a0d9e9e2bd1e6cbe88ba8c33b18489f3e"
+    },
+    {
+      "file": "0037_settings_enforced_or_removed.sql",
+      "sha256": "7281396b7876ea410cf67b9b22fe3a01637b34752a3313c31c19bb2ab33366ed"
+    },
+    {
+      "file": "0038_reference_numbering.sql",
+      "sha256": "483f14ef032a4e97a665ad6e6fbb1736d5fc0f53129f8de1b33de14a5673ae57"
+    },
+    {
+      "file": "0039_savings_period_recompute.sql",
+      "sha256": "0dd9062c9a01bd8f451293d31362414a78456bc1cc2112ef4c1f09ba6e2046e5"
+    },
+    {
+      "file": "0040_member_statement_reversals.sql",
+      "sha256": "a82bf81ee753efa4f3896bb383d04915fe97c657f0a00bd06edbcc7c332b0d3c"
+    },
+    {
+      "file": "0041_no_future_value_dates.sql",
+      "sha256": "72e4e17b02dd82c3fbd8ef40d6f3af9891fcb9b6f71453001e78d9d6048304f3"
+    },
+    {
+      "file": "0042_guarantor_sees_borrower.sql",
+      "sha256": "c133eb9f4eb24568426600da5523ae13c08d84a23381071587d6ec856ebfe97d"
+    },
+    {
+      "file": "0043_flexible_savings_and_flat_shares.sql",
+      "sha256": "fda57c16723472c51af779840023670022cb456385870a38e98ac41a698257fa"
+    },
+    {
+      "file": "0044_retire_savings_waivers.sql",
+      "sha256": "db8126ba46a05ae0b303eaaf5b6e39cbbf2830c2c17a5caa2cf828d41fd832aa"
+    },
+    {
+      "file": "0045_membership_fees_module.sql",
+      "sha256": "ed343ff57256961b04096a31b677590311550fbccb8860b109863bcad137b12b"
+    },
+    {
+      "file": "0046_receiving_accounts.sql",
+      "sha256": "58bb17f69de16cc98ac71e146ee603e5a95476f959db5af1b5201a04bf0f4253"
+    },
+    {
+      "file": "0047_expense_categories_and_other.sql",
+      "sha256": "585c03a29b2b6c2471fb39fb4d8600c64ce52973734d477804b34d328dd75ec2"
+    },
+    {
+      "file": "0048_international_member_phones.sql",
+      "sha256": "f0875d34a02137d4f3b0195e4f8aa5ba20344c60b0048850a3e4f370e300fa01"
+    }
+  ]
+}

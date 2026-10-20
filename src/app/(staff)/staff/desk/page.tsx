@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { can, type Access } from '@/lib/rbac';
@@ -7,11 +6,10 @@ import { createClient } from '@/lib/supabase/server';
 import { getDashboardMetrics } from '@/lib/queries';
 import { DashboardHeader } from '@/components/staff/DashboardHeader';
 import { FundsStrip } from '@/components/finance/FundsStrip';
-import { KpiCard, Money, Panel, QuickAction } from '@/components/ui/primitives';
+import { Panel, QuickAction } from '@/components/ui/primitives';
 import { EmptyState, ListSkeleton, StatGridSkeleton } from '@/components/ui/states';
-import { formatAgo, toISODate } from '@/lib/format';
-import { formatUGX } from '@/lib/money';
-import type { ReceiptRegisterRow } from '@/types/treasury';
+import { toISODate } from '@/lib/format';
+import { CashierFigures, CashierReceiptsPanel, type CashierReceipt } from '@/components/staff/CashierPanels';
 
 export const metadata: Metadata = { title: 'Cashier desk' };
 
@@ -34,7 +32,7 @@ export default async function CashierDesk() {
   ].filter(Boolean) as { href: string; icon: string; label: string; tone: 'primary' | 'success' | 'accent' | 'neutral' }[];
 
   return (
-    <div className="space-y-gutter">
+    <div data-staff-dashboard="cashier" className="space-y-gutter">
       <DashboardHeader roleName={user.roleName} fullName={user.fullName} subtitle="The counter" />
 
       <Suspense fallback={<StatGridSkeleton />}>
@@ -43,7 +41,7 @@ export default async function CashierDesk() {
 
       {can(user, 'finance.view') ? (
         <Suspense fallback={<StatGridSkeleton />}>
-          <FundsStrip />
+          <FundsStrip fullAmounts />
         </Suspense>
       ) : null}
 
@@ -69,26 +67,7 @@ export default async function CashierDesk() {
 async function TodayFigures() {
   const m = await getDashboardMetrics();
   if (!m) return null;
-  return (
-    <section aria-label="Today" className="grid grid-cols-2 gap-gutter lg:grid-cols-4">
-      <KpiCard icon="payments" label="Collected today" value={formatUGX(m.todays_collections)} tone="success" />
-      <KpiCard
-        icon="savings"
-        label="Saved this month"
-        value={formatUGX(m.savings_this_month)}
-        tone={Number(m.savings_this_month) > 0 ? 'primary' : 'neutral'}
-        href="/staff/savings/records"
-      />
-      <KpiCard
-        icon="group_add"
-        label="Members who saved"
-        value={m.savers_this_month}
-        tone="neutral"
-        href="/staff/savings/performance"
-      />
-      <KpiCard icon="group" label="Active members" value={m.total_members} href="/staff/members" />
-    </section>
-  );
+  return <CashierFigures m={m} />;
 }
 
 async function MyReceiptsToday({ user, userId }: { user: Access; userId: string }) {
@@ -108,39 +87,8 @@ async function MyReceiptsToday({ user, userId }: { user: Access; userId: string 
     .eq('receipt_date', toISODate())
     .order('created_at', { ascending: false })
     .limit(8);
-  const rows = (data ?? []) as Pick<ReceiptRegisterRow, 'id' | 'receipt_no' | 'transaction_id' | 'amount' | 'payer' | 'category' | 'receiving_account_name' | 'created_at' | 'status'>[];
+  const rows = (data ?? []) as CashierReceipt[];
   const total = rows.filter((r) => r.status === 'posted').reduce((s, r) => s + Number(r.amount), 0);
 
-  return (
-    <Panel
-      title="Receipts you issued today"
-      icon="receipt_long"
-      padded={false}
-      action={
-        rows.length ? (
-          <span className="text-label-md text-on-surface-variant font-semibold">{formatUGX(total)}</span>
-        ) : undefined
-      }
-    >
-      {rows.length === 0 ? (
-        <EmptyState compact icon="receipt_long" title="No receipts yet today" description="Everything you receive today is listed here, with its receipt." />
-      ) : (
-        <ul className="divide-outline-variant/70 divide-y">
-          {rows.map((r) => (
-            <li key={r.id}>
-              <Link href={`/staff/transactions/${r.transaction_id}`} className="hover:bg-surface-container-low flex items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="text-body-md text-on-surface truncate font-semibold">{r.payer ?? '—'}</p>
-                  <p className="text-label-md text-on-surface-variant font-normal">
-                    <span className="font-mono">{r.receipt_no}</span> · {r.category} · {r.receiving_account_name ?? '—'} · {formatAgo(r.created_at)}
-                  </p>
-                </div>
-                <Money value={r.amount} className="text-body-md text-on-surface shrink-0 font-semibold" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Panel>
-  );
+  return <CashierReceiptsPanel rows={rows} total={total} />;
 }

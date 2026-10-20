@@ -37,7 +37,7 @@ export default async function CollectSavingsPage({
   const memberId = sp.member ?? null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div data-staff-dashboard="collections" className="flex flex-col gap-6">
       {user.dashboard === 'collections' ? (
         <RoleDashboardBanner
           user={user}

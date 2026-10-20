@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import dashboardStyles from '@/components/staff/SuperAdminDashboard.module.css';
 import overviewStyles from '@/components/staff/OverviewDashboard.module.css';
+import staffStyles from '@/components/staff/StaffDashboard.module.css';
 import { Sidebar } from './Sidebar';
 import { ScrollArea } from '@/components/ui/scroll';
 import { clsx } from '@/lib/clsx';
@@ -34,6 +35,8 @@ export function StaffShell({
 }) {
   const pathname = usePathname();
   const superAdminDashboard = user.role === 'super_admin' && pathname === '/staff/admin';
+  const staffDashboard = (pathname === '/staff/admin' && !superAdminDashboard)
+    || ['/staff/desk', '/staff/loans-desk', '/staff/finance', '/staff/savings/collect'].includes(pathname);
   const [menuOpen, setMenuOpen] = useState(false);
   // Desktop only. The rail collapses to an icon column so a wide register —
   // the ledger, the audit log — can have the 190px back. State lives on the
@@ -45,6 +48,7 @@ export function StaffShell({
       'flex h-[100dvh] overflow-hidden bg-background text-on-background',
       superAdminDashboard && dashboardStyles.dashboard,
       pathname === '/staff' && overviewStyles.overview,
+      staffDashboard && staffStyles.workspace,
     )}>
       <Sidebar
         items={nav}

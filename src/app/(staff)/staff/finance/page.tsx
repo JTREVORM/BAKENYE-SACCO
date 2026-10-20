@@ -53,7 +53,7 @@ export default async function FinanceOverview({
   const user = await requirePermission('finance.view');
 
   return (
-    <div className="space-y-gutter">
+    <div data-staff-dashboard="finance" className="space-y-gutter">
       {user.dashboard === 'finance' ? (
         <RoleDashboardBanner
           user={user}

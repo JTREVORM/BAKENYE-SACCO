@@ -6,6 +6,7 @@ import { getMemberCollectionView } from '@/lib/queries';
 import { getCollectionAccounts } from '@/lib/access-queries';
 import { can } from '@/lib/rbac';
 import { PageTitle } from '@/components/ui/primitives';
+import { RoleDashboardBanner } from '@/components/staff/DashboardHeader';
 import { ErrorState, ListSkeleton, PanelSkeleton } from '@/components/ui/states';
 import { CollectSearch } from './CollectSearch';
 import { MemberCollectionPanel } from '@/components/collections/MemberCollectionPanel';
@@ -36,11 +37,19 @@ export default async function CollectSavingsPage({
   const memberId = sp.member ?? null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageTitle
-        title="Collect savings"
-        subtitle="Find a member and record whatever they want to save. Any amount, as often as they like."
-      />
+    <div data-staff-dashboard="collections" className="flex flex-col gap-6">
+      {user.dashboard === 'collections' ? (
+        <RoleDashboardBanner
+          user={user}
+          dashboard="collections"
+          subtitle="Find a member and record what they bring"
+        />
+      ) : (
+        <PageTitle
+          title="Collect savings"
+          subtitle="Find a member and record whatever they want to save. Any amount, as often as they like."
+        />
+      )}
 
       <div className="gap-gutter grid grid-cols-1 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         <div className="lg:sticky lg:top-4 lg:self-start">

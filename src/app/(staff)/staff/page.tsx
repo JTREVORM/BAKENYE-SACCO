@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Metadata } from 'next';
 import { requirePermission } from '@/lib/auth';
 import { getCollectionsTrend, getDashboardMetrics, getSavingsDashboard } from '@/lib/queries';
@@ -12,7 +11,6 @@ import {
   Avatar,
   Panel,
   KpiCard,
-  KpiCardFeature,
   MiniStat,
   QuickAction,
   ViewAllLink,
@@ -27,6 +25,9 @@ import {
   EmptyState,
 } from '@/components/ui/states';
 import { TrendChart } from '@/components/staff/TrendChart';
+import { BrandHero, HeroFigures } from '@/components/layout/Hero';
+import { RecentTransactions } from '@/components/staff/RecentTransactions';
+import { FinancialActivity } from '@/components/staff/FinancialActivity';
 import { FundsStrip } from '@/components/finance/FundsStrip';
 import { ScrollArea } from '@/components/ui/scroll';
 import { daysUntil, formatAgo, formatDate, toISODate, LOAN_STATUS_LABELS } from '@/lib/format';
@@ -50,26 +51,54 @@ export const metadata: Metadata = { title: 'Dashboard' };
  * Each block is its own `Suspense` boundary so a slow query — the six-month
  * trend, typically — never holds up the metrics a manager opened the page for.
  */
-export default async function StaffDashboard() {
+export default async function StaffDashboard({
+  searchParams,
+}: {
+  searchParams?: Promise<{ flow?: string }>;
+}) {
   const brand = await getBrand();
   const user = await requirePermission('dashboard.staff');
+  const sp = (await searchParams) ?? {};
+  const flowMonths = sp.flow === '12' ? 12 : 6;
+  const seesFinance = can(user, 'finance.view');
 
   return (
-    <div className="space-y-7">
-      <Hero name={user.fullName} saccoName={brand.legalName} roleName={user.roleName} />
+    <div data-admin-dashboard data-overview-dashboard className="space-y-gutter">
+      <Hero saccoName={brand.legalName} roleName={user.roleName} />
 
       <Suspense fallback={<StatGridSkeleton />}>
         <Metrics />
       </Suspense>
 
-      {can(user, 'finance.view') ? (
+      {/* The register and the month's shape, side by side — the two things a
+          manager opens this page to read. */}
+      <div data-admin-panels className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
+        <div className="min-w-0 xl:col-span-2">
+          <Suspense fallback={<PanelSkeleton height="h-80" />}>
+            <RecentTransactions />
+          </Suspense>
+        </div>
+        {seesFinance ? (
+          <div className="min-w-0">
+            <Suspense fallback={<PanelSkeleton height="h-80" />}>
+              <FinancialActivity compact months={flowMonths} baseHref="/staff" />
+            </Suspense>
+          </div>
+        ) : null}
+      </div>
+
+      {seesFinance ? (
         <Suspense fallback={<StatGridSkeleton />}>
-          <FundsStrip />
+          <FundsStrip fullAmounts />
         </Suspense>
       ) : null}
 
+      <Suspense fallback={<StatGridSkeleton />}>
+        <ContextFigures />
+      </Suspense>
+
       <div className="grid grid-cols-1 gap-gutter xl:grid-cols-3">
-        <div className="space-y-gutter xl:col-span-2">
+        <div className="min-w-0 space-y-gutter xl:col-span-2">
           <Suspense fallback={<PanelSkeleton height="h-40" />}>
             <SavingsThisMonth />
           </Suspense>
@@ -83,7 +112,7 @@ export default async function StaffDashboard() {
           </Suspense>
         </div>
 
-        <div className="space-y-gutter xl:col-span-1">
+        <div className="min-w-0 space-y-gutter xl:col-span-1">
           <QuickActions role={user} />
 
           <Suspense fallback={<PanelSkeleton height="h-56" />}>
@@ -111,77 +140,52 @@ export default async function StaffDashboard() {
  * every width and the image never has to be cropped to a shape it does not
  * suit. If the file is ever removed the gradient alone still reads correctly.
  */
-function Hero({ name, saccoName, roleName }: { name: string; saccoName: string; roleName: string }) {
-  const firstName = name.trim().split(/\s+/)[0];
+function Hero({ saccoName, roleName }: { saccoName: string; roleName: string }) {
   const [heroNameTop, heroNameBottom] = splitName(saccoName);
 
   return (
-    <section className="relative isolate overflow-hidden rounded-2xl bg-ink shadow-brand">
-      <Image
-        src="/brand/fisherman-at-sunset-stockcake.jpg"
-        alt=""
-        fill
-        priority
-        sizes="(max-width: 768px) 100vw, 1200px"
-        className="object-cover object-center opacity-45"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-r from-ink via-ink/92 to-ink/35"
-      />
-
-      <div className="relative z-10 flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
-        <div className="max-w-xl">
-          <p className="text-label-md font-semibold uppercase tracking-[0.14em] text-secondary-container">
-            {roleName} Dashboard · Welcome back, {firstName}
-          </p>
-          <h1 className="mt-2 text-[26px] font-bold uppercase leading-[1.15] tracking-tight text-white md:text-[34px]">
-            {heroNameTop}
-            <br />
-            {heroNameBottom}
-          </h1>
-          <span aria-hidden="true" className="mt-4 block h-1 w-16 rounded-full bg-secondary-container" />
-          <p className="mt-4 max-w-md text-body-lg text-white/75">
-            Your savings, our priority. Together we build a stronger and more prosperous
-            community.
-          </p>
-        </div>
-
-        <Suspense fallback={<div className="h-24 w-full max-w-xs md:w-72" />}>
-          <HeroFigures />
+    <BrandHero
+      eyebrow={`SACCO Overview · ${roleName}`}
+      nameTop={heroNameTop}
+      nameBottom={heroNameBottom}
+      description="Your savings, our priority. Together we build a stronger and more prosperous community."
+      figures={
+        <Suspense fallback={<div className="h-[168px] w-full md:w-[300px]" />}>
+          <SaccoFigures />
         </Suspense>
-      </div>
-    </section>
+      }
+    />
   );
 }
 
 /** The three headline figures, read from the same RPC the KPI grid uses. */
-async function HeroFigures() {
+async function SaccoFigures() {
   const m = await getDashboardMetrics();
   if (!m) return null;
 
-  const figures = [
-    { icon: 'group', label: 'Active Members', value: m.total_members.toLocaleString() },
-    { icon: 'savings', label: 'Total Savings', value: formatUGX(m.total_savings) },
-    { icon: 'payments', label: 'Loans Outstanding', value: formatUGX(m.outstanding_loans) },
-  ];
-
   return (
-    <dl className="w-full shrink-0 space-y-1 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md md:w-auto md:min-w-[280px]">
-      {figures.map((f) => (
-        <div key={f.label} className="flex items-center gap-3 py-1.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
-            <Icon name={f.icon} size={18} />
-          </span>
-          <div className="min-w-0">
-            <dd className="tabular text-button-text font-bold leading-tight text-white">
-              {f.value}
-            </dd>
-            <dt className="text-label-md font-medium text-white/65">{f.label}</dt>
-          </div>
-        </div>
-      ))}
-    </dl>
+    <HeroFigures
+      figures={[
+        {
+          icon: 'group',
+          label: 'Active Members',
+          value: m.total_members.toLocaleString(),
+          href: '/staff/members',
+        },
+        {
+          icon: 'savings',
+          label: 'Total Savings',
+          value: formatUGX(m.total_savings),
+          href: '/staff/savings',
+        },
+        {
+          icon: 'payments',
+          label: 'Loans Outstanding',
+          value: formatUGX(m.outstanding_loans),
+          href: '/staff/loans',
+        },
+      ]}
+    />
   );
 }
 
@@ -190,7 +194,14 @@ async function HeroFigures() {
  * ------------------------------------------------------------------------ */
 
 async function Metrics() {
-  const m = await getDashboardMetrics();
+  // The trend is fetched alongside the figures so the savings and shares tiles
+  // can carry their own measured history. The other two carry none: nothing
+  // counts members month by month, and a loan balance is a position rather than
+  // a flow, so there is no series that is honestly a history of it. A card with
+  // no series simply has no chart, rather than a shape someone invented.
+  const [m, trend] = await Promise.all([getDashboardMetrics(), getCollectionsTrend(6)]);
+  const savingsSeries = trend.map((t) => toNumber(t.savings));
+  const sharesSeries = trend.map((t) => toNumber(t.shares));
 
   if (!m) {
     return (
@@ -202,8 +213,7 @@ async function Metrics() {
   }
 
   return (
-    <>
-      <section className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
+    <section data-overview-metrics aria-label="SACCO overview" className="grid grid-cols-2 gap-3 sm:gap-gutter lg:grid-cols-4">
         <KpiCard
           icon="group"
           tone="primary"
@@ -211,19 +221,20 @@ async function Metrics() {
           value={m.total_members.toLocaleString()}
           footnote={
             m.members_this_month > 0
-              ? `+${m.members_this_month} joined this month`
+              ? `${m.members_this_month} joined this month`
               : 'No new members this month'
           }
+          trend={m.members_this_month > 0 ? 'up' : 'flat'}
           href="/staff/members"
         />
 
-        {/* Share capital is the one high-contrast tile — the single figure the
-            board asks for first. */}
-        <KpiCardFeature
+        <KpiCard
           icon="pie_chart"
+          tone="primary"
           label="Share Capital"
           value={<Money value={m.share_capital} compact />}
           footnote="Member equity held"
+          series={sharesSeries}
           href="/staff/shares"
         />
 
@@ -233,6 +244,8 @@ async function Metrics() {
           label="Total Savings"
           value={<Money value={m.total_savings} compact />}
           footnote={`${formatUGX(m.savings_this_month)} saved this month`}
+          trend={toNumber(m.savings_this_month) > 0 ? 'up' : 'flat'}
+          series={savingsSeries}
           href="/staff/savings"
         />
 
@@ -246,8 +259,16 @@ async function Metrics() {
           }`}
           href="/staff/loans"
         />
-      </section>
+    </section>
+  );
+}
 
+/** Supporting balances and actionable alerts remain available below the overview. */
+async function ContextFigures() {
+  const m = await getDashboardMetrics();
+  if (!m) return null;
+  return (
+    <>
       {/* Secondary figures. Grouped in one strip rather than four more cards:
           they are context for the row above, not headline numbers. */}
       <section className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-2xl bg-surface p-5 shadow-neu md:grid-cols-4">

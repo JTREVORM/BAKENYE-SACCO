@@ -236,12 +236,13 @@
     @apply shadow-neu-lg;
   }
 
-  /* --- Soft-UI surfaces --------------------------------------------------
-   * Three states, and everything moulded out of the page is one of them.
-   *   `.neu-raised`  — a panel or control standing proud of the page.
+  /* --- Surfaces ----------------------------------------------------------
+   * Three states, and every panel and control in the product is one of them.
+   *   `.neu-raised`  — a white card standing on the page: hairline edge, soft
+   *                    ambient shadow.
    *   `.neu-well`    — a recess: text fields, search bars, tracks, tab strips.
-   *   `.neu-flat`    — level with the page; the resting state of a soft button
-   *                    that rises on hover. */
+   *   `.neu-flat`    — level with the page; the resting state of a control
+   *                    that lifts on hover. */
   .neu-raised {
     @apply rounded-2xl bg-surface shadow-neu;
   }
@@ -260,10 +261,8 @@
   .card-interactive:hover {
     @apply -translate-y-px shadow-card-hover;
   }
-  /* Press pushes the surface into the page rather than shrinking it — the
-   * gesture soft UI is built around. */
   .card-interactive:active {
-    @apply translate-y-0 shadow-neu-pressed;
+    @apply translate-y-0 shadow-neu-sm;
   }
 
   .skeleton {
@@ -280,7 +279,7 @@
    * a shape rather than as text. */
   .accent-rule::after {
     content: '';
-    @apply mt-3 block h-1 w-14 rounded-full bg-secondary-container;
+    @apply bg-gold-gradient mt-3 block h-1 w-14 rounded-full;
   }
 
   /* Sticky form footer for mobile - keeps the primary action in the thumb

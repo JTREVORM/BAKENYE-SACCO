@@ -7,6 +7,7 @@ import { can, canAny, type Access } from '@/lib/rbac';
 import { createClient } from '@/lib/supabase/server';
 import { getMonthlyFlow, getTreasurySummary, queryLedger } from '@/lib/treasury';
 import { Icon, PageTitle, Panel, QuickAction, ViewAllLink } from '@/components/ui/primitives';
+import { RoleDashboardBanner } from '@/components/staff/DashboardHeader';
 import { EmptyState, ErrorState, ListSkeleton, PanelSkeleton, Skeleton } from '@/components/ui/states';
 import { AccountTypeCard, TotalFundsCard } from '@/components/finance/AccountCards';
 import { ActivityList } from '@/components/finance/ActivityList';
@@ -52,13 +53,21 @@ export default async function FinanceOverview({
   const user = await requirePermission('finance.view');
 
   return (
-    <div className="space-y-gutter">
-      <PageTitle
-        icon="account_balance"
-        title="Finance"
-        subtitle="Where the SACCO's money is right now. Every figure is computed from the ledger."
-        breadcrumb={[{ label: 'Staff', href: '/staff' }, { label: 'Finance' }]}
-      />
+    <div data-staff-dashboard="finance" className="space-y-gutter">
+      {user.dashboard === 'finance' ? (
+        <RoleDashboardBanner
+          user={user}
+          dashboard="finance"
+          subtitle="Cash at Merchant, Bank and Hand, and the books"
+        />
+      ) : (
+        <PageTitle
+          icon="account_balance"
+          title="Finance"
+          subtitle="Where the SACCO's money is right now. Every figure is computed from the ledger."
+          breadcrumb={[{ label: 'Staff', href: '/staff' }, { label: 'Finance' }]}
+        />
+      )}
 
       <Suspense fallback={<PositionSkeleton />}>
         <Position role={user} />
@@ -443,7 +452,7 @@ async function RecentPanel() {
         </div>
         <ViewAllLink href="/staff/finance/ledger" />
       </div>
-      <LedgerTable rows={rows} />
+      <LedgerTable rows={rows} readable />
     </section>
   );
 }

@@ -9,16 +9,19 @@ import { Icon } from '@/components/ui/primitives';
 import { ScrollArea } from '@/components/ui/scroll';
 import type { NavItem } from '@/lib/rbac';
 import { useBrand } from '@/components/brand/BrandProvider';
+import { RailBackdrop } from './RailBackdrop';
 import { splitName } from '@/lib/sacco-brand';
+import { useMobileNavigationDialog } from '@/components/ui/useMobileNavigationDialog';
 
 /**
  * The persistent navigation rail.
  *
- * Deep navy rather than a light panel: it pushes the chrome back so the white
- * content cards read as the subject of the screen, and it gives the product a
- * recognisable silhouette at a glance. The active item is a solid white-on-navy
- * pill with a gold edge marker — the marker is what survives when the pill is
- * hard to see on a dim outdoor phone screen.
+ * Deep navy, with the SACCO's own landscape photograph washed into the foot of
+ * it: the chrome recedes so the white content cards read as the subject of the
+ * screen, and the product keeps a recognisable silhouette at a glance. The
+ * active item is a lifted white-on-navy pill with a gold edge marker and a gold
+ * icon — the marker is what survives when the pill washes out on a dim outdoor
+ * phone screen.
  *
  * Below `md` the same list becomes a slide-in drawer, and it is the whole of
  * the mobile navigation. It never covers the whole screen: it is 300px wide
@@ -28,12 +31,16 @@ export function Sidebar({
   items,
   open,
   onClose,
+  collapsed = false,
 }: {
   items: readonly NavItem[];
   open: boolean;
   onClose: () => void;
+  /** Desktop only: the rail narrows to an icon column. The drawer ignores it. */
+  collapsed?: boolean;
 }) {
   const pathname = usePathname();
+  const dialogRef = useMobileNavigationDialog(open);
 
   function isActive(href: string) {
     if (href === '/staff') return pathname === '/staff';
@@ -45,16 +52,8 @@ export function Sidebar({
     onClose(); /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pathname]);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  const nav = (
+  function navList(tight: boolean) {
+    return (
     // Twelve sections with sub-items open under the active one will outrun a
     // 600px-tall laptop viewport, so the rail scrolls — with the dark-surface
     // scrollbar and a chevron at whichever end still has something on it.
@@ -63,10 +62,10 @@ export function Sidebar({
         controls="edge"
         tone="dark"
         wrapperClassName="flex-1"
-        className="space-y-0.5 px-3 py-5"
+        className={clsx('space-y-0.5 py-5', tight ? 'px-2.5' : 'px-3')}
       >
         {items.map((item) => {
-          const active = isActive(item.href);
+          const active = isActive(item.href) || (pathname === '/staff' && item.label === 'Dashboard');
           const children = item.children ?? [];
 
           return (
@@ -74,11 +73,13 @@ export function Sidebar({
               <Link
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
+                title={tight ? item.label : undefined}
                 className={clsx(
-                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-button-text transition-colors duration-150',
+                  'group relative flex min-h-[46px] items-center gap-3 overflow-hidden rounded-xl text-button-text transition-colors duration-150',
+                  tight ? 'justify-center px-0' : 'px-3.5',
                   active
-                    ? 'bg-white/15 text-white'
-                    : 'text-white/60 hover:bg-white/5 hover:text-white',
+                    ? 'bg-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]'
+                    : 'text-white/65 hover:bg-white/[0.07] hover:text-white',
                 )}
               >
                 {/* The gold rail marker: legible even where the translucent
@@ -86,7 +87,7 @@ export function Sidebar({
                 <span
                   aria-hidden="true"
                   className={clsx(
-                    'absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-secondary-container transition-opacity',
+                    'bg-gold-gradient absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-r-full transition-opacity',
                     active ? 'opacity-100' : 'opacity-0',
                   )}
                 />
@@ -95,16 +96,20 @@ export function Sidebar({
                   size={21}
                   filled={active}
                   className={clsx(
-                    'shrink-0',
-                    active ? 'text-secondary-container' : 'text-white/55 group-hover:text-white',
+                    'shrink-0 transition-colors',
+                    active ? 'text-secondary-fixed-dim' : 'text-white/55 group-hover:text-white',
                   )}
                 />
-                <span className="truncate">{item.label}</span>
+                {tight ? (
+                  <span className="sr-only">{item.label}</span>
+                ) : (
+                  <span className="truncate">{item.label}</span>
+                )}
               </Link>
 
               {/* Sub-sections appear only while their parent is the open section,
                 so the rail stays a scannable list. */}
-              {active && children.length > 0 ? (
+              {active && children.length > 0 && !tight ? (
                 <ul className="ml-6 mt-1 space-y-0.5 border-l border-white/15 pl-3">
                   {children.map((child) => {
                     // A child is current on its own page and on the pages under
@@ -122,8 +127,8 @@ export function Sidebar({
                           className={clsx(
                             'flex min-h-[38px] items-center gap-2 rounded-lg px-3 text-label-md transition-colors',
                             childActive
-                              ? 'text-secondary-container'
-                              : 'text-white/55 hover:bg-white/5 hover:text-white',
+                              ? 'text-secondary-fixed-dim'
+                              : 'text-white/55 hover:bg-white/[0.07] hover:text-white',
                           )}
                         >
                           <Icon name={child.icon} size={17} filled={childActive} />
@@ -139,31 +144,40 @@ export function Sidebar({
         })}
       </ScrollArea>
     </nav>
-  );
+    );
+  }
 
   return (
     <>
       {/* Desktop: always present. */}
       <aside
         data-sidebar
-        className="z-40 hidden h-full w-sidebar shrink-0 flex-col bg-ink-gradient md:flex"
+        data-collapsed={collapsed}
+        className={clsx(
+          'bg-ink-gradient relative isolate z-40 hidden h-full shrink-0 flex-col transition-[width] duration-200 md:flex',
+          collapsed ? 'w-[76px]' : 'w-sidebar',
+        )}
       >
-        <BrandLockup />
-        {nav}
-        <SidebarFooter />
+        <RailBackdrop />
+        <BrandLockup collapsed={collapsed} />
+        {navList(collapsed)}
+        <SidebarFooter collapsed={collapsed} />
       </aside>
 
       {/* Mobile: slide-in drawer. */}
-      <div
+      <dialog
+        ref={dialogRef}
+        aria-label="Navigation"
+        aria-modal="true"
+        onCancel={e => { e.preventDefault(); onClose(); }}
         className={clsx(
-          'fixed inset-0 z-50 md:hidden',
+          'fixed inset-0 z-50 m-0 h-[100dvh] max-h-none w-screen max-w-none border-0 bg-transparent p-0 backdrop:bg-transparent md:hidden',
           open ? 'pointer-events-auto' : 'pointer-events-none',
         )}
-        aria-hidden={!open}
       >
         <button
           type="button"
-          tabIndex={open ? 0 : -1}
+          tabIndex={-1}
           aria-label="Close menu"
           onClick={onClose}
           className={clsx(
@@ -172,38 +186,56 @@ export function Sidebar({
           )}
         />
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation"
           className={clsx(
-            'absolute inset-y-0 left-0 flex w-[300px] max-w-[86vw] flex-col bg-ink-gradient shadow-pop transition-transform duration-200 ease-out',
+            'bg-ink-gradient absolute inset-y-0 left-0 isolate flex w-[300px] max-w-[86vw] flex-col shadow-pop transition-transform duration-200 ease-out',
             open ? 'translate-x-0' : '-translate-x-full',
           )}
         >
+          <RailBackdrop />
           <BrandLockup onClose={onClose} />
-          {nav}
+          {navList(false)}
           <SidebarFooter />
         </div>
-      </div>
+      </dialog>
     </>
   );
 }
 
 /** Crest + the full organisation name, wrapped to two lines. */
-function BrandLockup({ onClose }: { onClose?: () => void }) {
+function BrandLockup({ onClose, collapsed = false }: { onClose?: () => void; collapsed?: boolean }) {
   const brand = useBrand();
   const [nameTop, nameBottom] = splitName(brand.legalName);
+
+  if (collapsed) {
+    return (
+      <div className="flex shrink-0 justify-center border-b border-white/10 px-2 py-4">
+        <Link href="/staff" title={brand.legalName} aria-label={brand.legalName}>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white p-0.5 shadow-[0_2px_10px_rgba(4,16,40,0.45)] ring-2 ring-secondary-fixed-dim/70">
+            <Image
+              src="/brand/bnd-logo.png"
+              alt=""
+              width={44}
+              height={44}
+              priority
+              className="h-full w-full rounded-full object-contain"
+            />
+          </span>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-4">
       <Link href="/staff" className="flex min-w-0 flex-1 items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-1">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-[0_2px_10px_rgba(4,16,40,0.45)] ring-2 ring-secondary-fixed-dim/70">
           <Image
             src="/brand/bnd-logo.png"
             alt=""
-            width={36}
-            height={36}
+            width={44}
+            height={44}
             priority
-            className="h-full w-full object-contain"
+            className="h-full w-full rounded-full object-contain"
           />
         </span>
         <span className="min-w-0">
@@ -212,7 +244,7 @@ function BrandLockup({ onClose }: { onClose?: () => void }) {
             <br />
             {nameBottom}
           </span>
-          <span className="mt-0.5 block truncate text-[10.5px] font-medium italic text-secondary-container/90">
+          <span className="text-secondary-fixed-dim mt-0.5 block text-[10.5px] font-medium italic leading-snug">
             {brand.motto}
           </span>
         </span>
@@ -232,19 +264,49 @@ function BrandLockup({ onClose }: { onClose?: () => void }) {
 }
 
 /**
- * The motto, as a quiet sign-off at the foot of the rail.
+ * The motto, as a signed-off plaque at the foot of the rail.
  *
  * `mt-auto` rather than absolute positioning so it never overlaps the nav list
  * when the list is long enough to scroll.
  */
-function SidebarFooter() {
+function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
+  if (collapsed) {
+    return (
+      <div className="mt-auto flex shrink-0 justify-center px-2 pb-4 pt-3">
+        <span
+          title="Stronger Members, Brighter Futures"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-secondary-fixed-dim/30 bg-white/[0.07]"
+        >
+          <Icon name="eco" size={20} className="text-secondary-fixed-dim/80" filled={false} />
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className="mt-auto shrink-0 border-t border-white/10 px-5 py-4">
-      <p className="text-[11px] font-medium leading-snug text-white/45">
-        Stronger Members
-        <br />
-        Brighter Futures
-      </p>
+    <div className="mt-auto shrink-0 px-3 pb-4 pt-3">
+      <div className="flex items-center gap-3 rounded-2xl border border-secondary-fixed-dim/30 bg-white/[0.07] px-3 py-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/95 p-0.5 ring-1 ring-secondary-fixed-dim/60">
+          <Image
+            src="/brand/bnd-logo.png"
+            alt=""
+            width={36}
+            height={36}
+            className="h-full w-full rounded-full object-contain"
+          />
+        </span>
+        <p className="min-w-0 flex-1 text-[11.5px] font-semibold leading-snug text-secondary-fixed">
+          Stronger Members
+          <br />
+          Brighter Futures
+        </p>
+        <Icon
+          name="eco"
+          size={20}
+          className="shrink-0 text-secondary-fixed-dim/80"
+          filled={false}
+        />
+      </div>
     </div>
   );
 }

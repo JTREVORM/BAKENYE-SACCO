@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll';
 import { MEMBER_NAV, MEMBER_MORE_NAV } from '@/lib/rbac';
 import { useBrand } from '@/components/brand/BrandProvider';
 import { splitName } from '@/lib/sacco-brand';
+import { useMobileNavigationDialog } from '@/components/ui/useMobileNavigationDialog';
 
 /**
  * Mobile navigation for the member app: the menu button in the top bar and the
@@ -31,11 +32,12 @@ import { splitName } from '@/lib/sacco-brand';
  * inline `fixed inset-0` drawer would be clipped to the 56px bar instead of
  * covering the screen.
  */
-export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
+export function MemberDrawer({ unreadCount = 0, homeActive = false }: { unreadCount?: number; homeActive?: boolean }) {
   const brand = useBrand();
   const [nameTop, nameBottom] = splitName(brand.legalName);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useMobileNavigationDialog(open);
   const pathname = usePathname();
 
   // There is no document to portal into until the client has taken over, and
@@ -43,7 +45,7 @@ export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
   useEffect(() => setMounted(true), []);
 
   function isActive(href: string) {
-    if (href === '/') return pathname === '/';
+    if (href === '/') return homeActive || pathname === '/';
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
@@ -53,30 +55,24 @@ export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
     setOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false);
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
-
   // "More" is the old bottom-bar overflow tab; the drawer lists its contents
   // directly, so there is nothing left for it to point at.
   const primary = MEMBER_NAV.filter((i) => i.href !== '/more');
 
   const overlay = (
-    <div
+    <dialog
+      ref={dialogRef}
+      aria-label="Navigation"
+      aria-modal="true"
+      onCancel={e => { e.preventDefault(); setOpen(false); }}
       className={clsx(
-        'fixed inset-0 z-[60] md:hidden',
+        'fixed inset-0 z-[60] m-0 h-[100dvh] max-h-none w-screen max-w-none border-0 bg-transparent p-0 backdrop:bg-transparent md:hidden',
         open ? 'pointer-events-auto' : 'pointer-events-none',
       )}
-      aria-hidden={!open}
     >
       <button
         type="button"
-        tabIndex={open ? 0 : -1}
+        tabIndex={-1}
         aria-label="Close menu"
         onClick={() => setOpen(false)}
         className={clsx(
@@ -86,23 +82,20 @@ export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
       />
 
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Navigation"
         className={clsx(
-          'bg-ink-gradient shadow-pop absolute inset-y-0 left-0 flex w-[300px] max-w-[86vw] flex-col transition-transform duration-200 ease-out',
+          'bg-ink-gradient shadow-pop absolute inset-y-0 left-0 isolate flex w-[300px] max-w-[86vw] flex-col transition-transform duration-200 ease-out',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-4">
           <Link href="/" className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-1">
+            <span className="ring-secondary-fixed-dim/70 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white p-0.5 ring-2">
               <Image
                 src="/brand/bnd-logo.png"
                 alt=""
-                width={36}
-                height={36}
-                className="h-full w-full object-contain"
+                width={44}
+                height={44}
+                className="h-full w-full rounded-full object-contain"
               />
             </span>
             <span className="min-w-0">
@@ -111,7 +104,7 @@ export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
                 <br />
                 {nameBottom}
               </span>
-              <span className="text-secondary-container/90 mt-0.5 block truncate text-[10.5px] font-medium italic">
+              <span className="text-secondary-fixed-dim mt-0.5 block text-[10.5px] font-medium italic leading-snug">
                 {brand.motto}
               </span>
             </span>
@@ -166,7 +159,7 @@ export function MemberDrawer({ unreadCount = 0 }: { unreadCount?: number }) {
           </form>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 
   return (
@@ -205,7 +198,9 @@ function DrawerLink({
       aria-current={active ? 'page' : undefined}
       className={clsx(
         'text-button-text group relative flex min-h-touch-target-min items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors duration-150',
-        active ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white',
+        active
+          ? 'bg-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]'
+          : 'text-white/65 hover:bg-white/[0.07] hover:text-white',
       )}
     >
       {/* The gold rail marker: legible even where the translucent active pill
@@ -213,7 +208,7 @@ function DrawerLink({
       <span
         aria-hidden="true"
         className={clsx(
-          'bg-secondary-container absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full transition-opacity',
+          'bg-gold-gradient absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-r-full transition-opacity',
           active ? 'opacity-100' : 'opacity-0',
         )}
       />
@@ -223,7 +218,7 @@ function DrawerLink({
         filled={active}
         className={clsx(
           'shrink-0',
-          active ? 'text-secondary-container' : 'text-white/55 group-hover:text-white',
+          active ? 'text-secondary-fixed-dim' : 'text-white/55 group-hover:text-white',
         )}
       />
       <span className="flex-1 truncate">{label}</span>

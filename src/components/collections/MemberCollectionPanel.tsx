@@ -170,7 +170,7 @@ export function MemberCollectionPanel({
       ) : null}
 
       {/* ------------------------------------------------- month by month */}
-      <section className="bg-surface shadow-card overflow-hidden rounded-xl">
+      <section data-collection-months className="bg-surface shadow-card overflow-hidden rounded-xl">
         <h2 className="text-button-text font-button-text text-on-surface border-outline-variant bg-surface-container-low border-b px-4 py-3">
           Savings by month
         </h2>
@@ -181,55 +181,93 @@ export function MemberCollectionPanel({
             description="Months appear here as savings are recorded."
           />
         ) : (
-          <ScrollRow arrows="overlay" label="Savings by month, scrolls sideways">
-            <table className="w-full border-collapse text-left">
-              <thead>
-                <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
-                  <th className="p-4 font-semibold">Month</th>
-                  <th className="p-4 text-right font-semibold">Deposits</th>
-                  <th className="p-4 text-right font-semibold">Saved</th>
-                  <th className="p-4 font-semibold">Last deposit</th>
-                  {canRecord ? <th className="p-4 text-center font-semibold">Action</th> : null}
-                </tr>
-              </thead>
-              <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
-                {schedules.map((s) => (
-                  <tr
-                    key={s.schedule_id}
-                    className={clsx(
-                      'transition-colors',
-                      s.schedule_id === current?.schedule_id
-                        ? 'bg-primary-fixed/40'
-                        : 'hover:bg-surface-container-low',
-                    )}
-                  >
-                    <td className="p-4 font-semibold">{s.cycle}</td>
-                    <td className="tabular text-on-surface-variant p-4 text-right">
-                      {toNumber(s.deposits)}
-                    </td>
-                    <td className="tabular text-tertiary p-4 text-right font-semibold">
-                      {formatUGX(s.saved_amount)}
-                    </td>
-                    <td className="text-on-surface-variant p-4 whitespace-nowrap">
-                      {s.last_paid_on ? formatDate(s.last_paid_on) : '—'}
-                    </td>
+          <>
+            <ul aria-label="Savings by month" className="divide-y divide-outline-variant md:hidden">
+              {schedules.map(s => (
+                <li key={s.schedule_id} className={clsx('space-y-3 p-4', s.schedule_id === current?.schedule_id && 'bg-primary-fixed/40')}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-body-md font-semibold text-on-surface">{s.cycle}</h3>
                     {canRecord ? (
-                      <td className="p-4 text-center">
-                        <button
-                          type="button"
-                          disabled={!active || s.status === 'waived'}
-                          onClick={() => setRecording(s)}
-                          className="bg-surface-container-high hover:bg-surface-container text-label-md font-label-md text-primary h-touch-target-min inline-flex items-center rounded-lg px-3 font-semibold shadow-neu-sm transition-colors disabled:opacity-40"
-                        >
-                          Record
-                        </button>
-                      </td>
+                      <button
+                        type="button"
+                        aria-label={`Record savings for ${s.cycle}`}
+                        disabled={!active || s.status === 'waived'}
+                        onClick={() => setRecording(s)}
+                        className="inline-flex min-h-11 items-center rounded-lg bg-surface-container-high px-4 text-label-md font-semibold text-primary shadow-neu-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40"
+                      >Record</button>
                     ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </ScrollRow>
+                  </div>
+                  <dl className="space-y-2">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <dt className="text-label-md text-on-surface-variant">Deposits</dt>
+                      <dd className="tabular font-semibold text-on-surface">{toNumber(s.deposits)}</dd>
+                    </div>
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <dt className="text-label-md text-on-surface-variant">Saved</dt>
+                      <dd className="tabular whitespace-nowrap font-semibold text-tertiary">{formatUGX(s.saved_amount)}</dd>
+                    </div>
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <dt className="text-label-md text-on-surface-variant">Last deposit</dt>
+                      <dd className="tabular whitespace-nowrap text-on-surface">{s.last_paid_on ? formatDate(s.last_paid_on) : '—'}</dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden md:block">
+              <ScrollRow arrows="overlay" label="Savings by month, scrolls sideways">
+                <table className="w-full border-collapse text-left">
+                  <caption className="sr-only">Monthly savings, last deposits and recording actions</caption>
+                  <thead>
+                    <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
+                      <th scope="col" className="p-4 font-semibold">Month</th>
+                      <th scope="col" className="p-4 text-right font-semibold">Deposits</th>
+                      <th scope="col" className="p-4 text-right font-semibold">Saved</th>
+                      <th scope="col" className="p-4 font-semibold">Last deposit</th>
+                      {canRecord ? <th scope="col" className="p-4 text-center font-semibold">Action</th> : null}
+                    </tr>
+                  </thead>
+                  <tbody className="text-body-md font-body-md text-on-surface divide-outline-variant/70 divide-y">
+                    {schedules.map((s) => (
+                      <tr
+                        key={s.schedule_id}
+                        className={clsx(
+                          'transition-colors',
+                          s.schedule_id === current?.schedule_id
+                            ? 'bg-primary-fixed/40'
+                            : 'hover:bg-surface-container-low',
+                        )}
+                      >
+                        <td className="p-4 font-semibold">{s.cycle}</td>
+                        <td className="tabular text-on-surface-variant p-4 text-right">
+                          {toNumber(s.deposits)}
+                        </td>
+                        <td className="tabular text-tertiary p-4 text-right font-semibold">
+                          {formatUGX(s.saved_amount)}
+                        </td>
+                        <td className="text-on-surface-variant p-4 whitespace-nowrap">
+                          {s.last_paid_on ? formatDate(s.last_paid_on) : '—'}
+                        </td>
+                        {canRecord ? (
+                          <td className="p-4 text-center">
+                            <button
+                              type="button"
+                              aria-label={`Record savings for ${s.cycle}`}
+                              disabled={!active || s.status === 'waived'}
+                              onClick={() => setRecording(s)}
+                              className="bg-surface-container-high hover:bg-surface-container text-label-md font-label-md text-primary h-touch-target-min inline-flex items-center rounded-lg px-3 font-semibold shadow-neu-sm transition-colors disabled:opacity-40"
+                            >
+                              Record
+                            </button>
+                          </td>
+                        ) : null}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </ScrollRow>
+            </div>
+          </>
         )}
       </section>
 

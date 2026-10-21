@@ -3,7 +3,8 @@
   "git": {
     "deploymentEnabled": {
       "feat/login-page-redesign": false,
-      "main": false
+      "main": false,
+      "release/dashboard-redesign": false
     }
   }
 }

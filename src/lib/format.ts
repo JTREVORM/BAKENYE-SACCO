@@ -57,6 +57,12 @@ export function formatDateTime(value: string | Date | null | undefined, fallback
   return d ? `${dayMonthYear.format(d)}, ${timeOnly.format(d)}` : fallback;
 }
 
+/** The clock time alone, in Uganda time — the second line of a date column. */
+export function formatTime(value: string | Date | null | undefined, fallback = '—'): string {
+  const d = asDate(value);
+  return d ? timeOnly.format(d) : fallback;
+}
+
 export function formatShortDate(value: string | Date | null | undefined, fallback = '—'): string {
   const d = asDate(value);
   return d ? dayMonth.format(d) : fallback;

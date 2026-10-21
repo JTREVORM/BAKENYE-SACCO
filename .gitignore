@@ -64,6 +64,10 @@ desktop.ini
 
 # Responsive-audit output. Regenerate with scripts/responsive-check.mjs.
 screenshots/
+# Scratch output of the dashboard review scripts (member-dashboard-check,
+# staff-dashboards-check, overview-check, super-admin-check and
+# dashboard-accessibility-check write their review PNGs under work/).
+/work/
 # ...but the manual screenshots are a deliverable, not audit output.
 !documentation/screenshots/
 !documentation/screenshots/**

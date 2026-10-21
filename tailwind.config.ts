@@ -47,40 +47,42 @@ const config: Config = {
         /* The navigation / hero navy, darker than `primary` so white text on it
          * clears AAA and the chrome recedes behind the content. */
         ink: '#0a2148',
-        'ink-soft': '#132f5e',
+        'ink-soft': '#13315f',
         'ink-line': '#1d3f74',
+        'ink-deep': '#06132e',
 
         /* --- Page and card surfaces ---------------------------------------
-         * The soft-UI ground. `background` is the page and `surface` is a card
-         * sitting a shade above it; the separation is carried by the paired
-         * light/dark shadows in `boxShadow` below rather than by a hard border,
-         * which is what makes a panel read as moulded out of the page.
+         * `background` is a cool, very light blue-grey page; `surface` is the
+         * white card that sits on it. The separation is carried by the hairline
+         * ring and the soft ambient shadow in `boxShadow` below — enough edge to
+         * survive a dim outdoor phone screen, not so much that a dashboard of
+         * twenty cards reads as twenty boxes.
          *
-         * They still differ, by design: an exact match is the neumorphism that
-         * disappears on a dim outdoor phone screen. A card is one step lighter
-         * than the page, and a recessed control one step darker. */
-        background: '#e4e9f2',
-        surface: '#eff2f8',
-        'surface-bright': '#f7f9fd',
-        'surface-container-lowest': '#f4f7fb',
-        'surface-container-low': '#eaeef6',
-        'surface-container': '#e4e9f2',
-        'surface-container-high': '#dce2ee',
-        'surface-container-highest': '#d2dae9',
-        'surface-variant': '#e4e9f2',
-        'surface-dim': '#d2dae9',
+         * `surface-container-low` is the quiet tint used for table headers and
+         * row hover; `surface-container` is the page tone again, for the wells
+         * (fields, tracks, tab strips) that have to read as recesses. */
+        background: '#eef2f9',
+        surface: '#ffffff',
+        'surface-bright': '#ffffff',
+        'surface-container-lowest': '#ffffff',
+        'surface-container-low': '#f5f8fc',
+        'surface-container': '#eef2f9',
+        'surface-container-high': '#e4eaf4',
+        'surface-container-highest': '#d9e1ee',
+        'surface-variant': '#eef2f9',
+        'surface-dim': '#dfe6f1',
         'inverse-surface': '#1b2537',
         'inverse-on-surface': '#f1f4f9',
 
         /* --- Text ---------------------------------------------------------- */
         'on-background': '#111827',
         'on-surface': '#111827',
-        'on-surface-variant': '#5b647a',
+        'on-surface-variant': '#5a6782',
         outline: '#8d97ac',
         /* Deliberately close to the surfaces it separates. Most chrome is now
          * drawn with shadow; where a border survives (tables, dividers) it is a
          * hairline that steadies the eye rather than a drawn box. */
-        'outline-variant': '#d7dee9',
+        'outline-variant': '#e3e9f3',
 
         /* --- Money in (green) ---------------------------------------------- */
         tertiary: '#0f7a4a',
@@ -209,34 +211,52 @@ const config: Config = {
        * `card` / `card-hover` / `pop` keep their names because ~160 files
        * already reference them; only the values are new. */
       boxShadow: {
-        card: '6px 6px 14px rgba(157, 171, 194, 0.40), -6px -6px 14px rgba(255, 255, 255, 0.92)',
+        /* Elevation, 2026 edition.
+         *
+         * Every raised surface carries the same three-part recipe: a hairline
+         * ring that draws the card's edge, a 1px contact shadow that sits it on
+         * the page, and a wide, very soft ambient shadow that gives it height.
+         * The ring is part of the shadow rather than a `border` so that ~270
+         * existing `shadow-neu` / `shadow-card` call sites gain the edge without
+         * a single one of them changing, and so a card's edge never adds a pixel
+         * to its box and shifts a grid.
+         *
+         * `card` / `card-hover` / `pop` and the `neu-*` family keep their names
+         * because the whole product references them; only the values are new. */
+        card: '0 0 0 1px rgba(17, 38, 76, 0.055), 0 1px 2px rgba(17, 38, 76, 0.05), 0 10px 26px -14px rgba(17, 38, 76, 0.22)',
         'card-hover':
-          '9px 9px 20px rgba(157, 171, 194, 0.44), -8px -8px 18px rgba(255, 255, 255, 0.95)',
-        pop: '16px 16px 36px rgba(140, 155, 180, 0.42), -10px -10px 26px rgba(255, 255, 255, 0.90)',
-        brand: '8px 8px 20px rgba(18, 58, 134, 0.28), -6px -6px 16px rgba(255, 255, 255, 0.55)',
+          '0 0 0 1px rgba(17, 38, 76, 0.08), 0 2px 5px rgba(17, 38, 76, 0.07), 0 18px 38px -16px rgba(17, 38, 76, 0.30)',
+        pop: '0 0 0 1px rgba(17, 38, 76, 0.06), 0 10px 20px -8px rgba(17, 38, 76, 0.16), 0 28px 60px -20px rgba(17, 38, 76, 0.32)',
+        brand:
+          '0 0 0 1px rgba(10, 33, 72, 0.35), 0 10px 24px -10px rgba(10, 33, 72, 0.45), 0 28px 54px -28px rgba(10, 33, 72, 0.55)',
 
-        /* Named directly for the places that need to say what they mean. */
-        neu: '6px 6px 14px rgba(157, 171, 194, 0.40), -6px -6px 14px rgba(255, 255, 255, 0.92)',
-        'neu-sm': '3px 3px 7px rgba(157, 171, 194, 0.38), -3px -3px 7px rgba(255, 255, 255, 0.90)',
+        /* Named for the places that need to say what they mean. */
+        neu: '0 0 0 1px rgba(17, 38, 76, 0.055), 0 1px 2px rgba(17, 38, 76, 0.05), 0 10px 26px -14px rgba(17, 38, 76, 0.22)',
+        'neu-sm':
+          '0 0 0 1px rgba(17, 38, 76, 0.06), 0 1px 2px rgba(17, 38, 76, 0.06), 0 4px 10px -6px rgba(17, 38, 76, 0.18)',
         'neu-lg':
-          '16px 16px 36px rgba(140, 155, 180, 0.42), -10px -10px 26px rgba(255, 255, 255, 0.90)',
-        /* Wells: text fields, search bars, track backgrounds. */
+          '0 0 0 1px rgba(17, 38, 76, 0.06), 0 10px 20px -8px rgba(17, 38, 76, 0.16), 0 28px 60px -20px rgba(17, 38, 76, 0.32)',
+        /* Wells: text fields, search bars, track backgrounds. The ring is what
+         * makes a field findable now that the surface it sits on is white. */
         'neu-inset':
-          'inset 4px 4px 9px rgba(157, 171, 194, 0.50), inset -4px -4px 9px rgba(255, 255, 255, 0.92)',
+          'inset 0 0 0 1px rgba(17, 38, 76, 0.11), inset 0 1px 2px rgba(17, 38, 76, 0.06)',
         'neu-inset-sm':
-          'inset 2px 2px 5px rgba(157, 171, 194, 0.45), inset -2px -2px 5px rgba(255, 255, 255, 0.90)',
+          'inset 0 0 0 1px rgba(17, 38, 76, 0.08), inset 0 1px 1px rgba(17, 38, 76, 0.04)',
         /* A raised control while it is held down. */
         'neu-pressed':
-          'inset 3px 3px 7px rgba(140, 155, 180, 0.55), inset -2px -2px 6px rgba(255, 255, 255, 0.80)',
-        /* Dark pills (the primary action) carry their own softer pair — a white
-         * highlight on navy would look like a smudge. */
-        'neu-dark': '6px 6px 14px rgba(10, 33, 72, 0.30), -4px -4px 12px rgba(255, 255, 255, 0.75)',
-        'neu-dark-sm': '3px 3px 8px rgba(10, 33, 72, 0.28), -2px -2px 7px rgba(255, 255, 255, 0.70)',
+          'inset 0 0 0 1px rgba(17, 38, 76, 0.12), inset 0 2px 5px rgba(17, 38, 76, 0.14)',
+        /* Dark pills (the primary action) carry their own pair - a light ring
+         * on navy would read as a halo. */
+        'neu-dark':
+          '0 1px 2px rgba(10, 33, 72, 0.25), 0 10px 22px -10px rgba(10, 33, 72, 0.55)',
+        'neu-dark-sm': '0 1px 2px rgba(10, 33, 72, 0.22), 0 6px 14px -8px rgba(10, 33, 72, 0.45)',
       },
 
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #123a86 0%, #0a2148 100%)',
-        'ink-gradient': 'linear-gradient(180deg, #0d2856 0%, #081b3c 100%)',
+        'brand-gradient': 'linear-gradient(135deg, #1a4a9c 0%, #0a2148 60%, #071a3a 100%)',
+        'ink-gradient': 'linear-gradient(180deg, #102e60 0%, #0a2148 55%, #061531 100%)',
+        /* The gold rule under a hero title and the rail's active marker. */
+        'gold-gradient': 'linear-gradient(90deg, #ffe375 0%, #e8b800 45%, #c67a06 100%)',
       },
 
       keyframes: {

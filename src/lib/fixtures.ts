@@ -11,6 +11,7 @@ import type {
   TransactionFeedRow,
 } from '@/types/db';
 import type { CollectionAccount } from '@/types/access';
+import type { AccountMovementRow, ReceiptRegisterRow } from '@/types/treasury';
 
 /**
  * Fixture data for the design QA harness at `/dev/preview`.
@@ -50,20 +51,20 @@ export const FIXTURE_MEMBERS: MemberFinancialsRow[] = [
     deposits_total: 400000,
     withdrawals_total: 190000,
     share_count: 10,
-    share_value: 200000,
+    share_value: 100000,
     loan_balance: 1200000,
     overdue_amount: 150000,
     active_loans: 1,
     pending_loans: 0,
     next_due_on: '2026-08-15',
     next_due_amount: 150000,
-    total_equity: 2650000,
+    total_equity: 2550000,
     shares_owned: 10,
     share_price: 10000,
     share_value_at_current_price: 100000,
     last_share_purchase_on: '2026-07-04',
     savings_this_month: 40000,
-    last_saved_on: '2026-09-12',
+    last_saved_on: '2026-09-06',
     savings_contributed: 1240000,
   },
   {
@@ -90,14 +91,14 @@ export const FIXTURE_MEMBERS: MemberFinancialsRow[] = [
     deposits_total: 0,
     withdrawals_total: 0,
     share_count: 1,
-    share_value: 20000,
+    share_value: 10000,
     loan_balance: 0,
     overdue_amount: 0,
     active_loans: 0,
     pending_loans: 1,
     next_due_on: null,
     next_due_amount: null,
-    total_equity: 207500,
+    total_equity: 197500,
     shares_owned: 1,
     share_price: 10000,
     share_value_at_current_price: 10000,
@@ -130,14 +131,14 @@ export const FIXTURE_MEMBERS: MemberFinancialsRow[] = [
     deposits_total: 500000,
     withdrawals_total: 500000,
     share_count: 240,
-    share_value: 12000000,
+    share_value: 2400000,
     loan_balance: 8750000,
     overdue_amount: 0,
     active_loans: 1,
     pending_loans: 0,
     next_due_on: '2026-09-01',
     next_due_amount: 729167,
-    total_equity: 24480000,
+    total_equity: 14880000,
     shares_owned: 240,
     share_price: 10000,
     share_value_at_current_price: 2400000,
@@ -166,7 +167,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
     reverses_id: null,
     reversed_by_id: null,
     reversal_reason: null,
-    created_at: new Date().toISOString(),
+    created_at: '2026-08-30T12:24:00Z',
     recorded_by: null,
     recorded_by_name: 'Kato Emmanuel',
     direction: 'debit',
@@ -188,7 +189,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
     reverses_id: null,
     reversed_by_id: null,
     reversal_reason: null,
-    created_at: new Date(Date.now() - 86_400_000).toISOString(),
+    created_at: '2026-08-29T09:12:00Z',
     recorded_by: null,
     recorded_by_name: 'Kato Emmanuel',
     direction: 'debit',
@@ -210,7 +211,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
     reverses_id: null,
     reversed_by_id: 'dddd4444-4444-4444-8444-444444444444',
     reversal_reason: 'Recorded against the wrong member; the payment belonged to BND24048.',
-    created_at: new Date(Date.now() - 18 * 86_400_000).toISOString(),
+    created_at: '2026-08-12T13:45:00Z',
     recorded_by: null,
     recorded_by_name: 'Aisha Namatovu',
     direction: 'debit',
@@ -232,7 +233,7 @@ export const FIXTURE_TRANSACTIONS: TransactionFeedRow[] = [
     reverses_id: null,
     reversed_by_id: null,
     reversal_reason: null,
-    created_at: new Date(Date.now() - 10 * 86_400_000).toISOString(),
+    created_at: '2026-08-20T11:05:00Z',
     recorded_by: null,
     recorded_by_name: 'Admin User',
     direction: 'credit',
@@ -332,7 +333,7 @@ export const FIXTURE_SAVINGS_PERFORMANCE: SavingsPerformanceRow[] = [
     deposits: 6,
     total_saved: 340000,
     first_saved_on: '2026-04-11',
-    last_saved_on: '2026-09-12',
+    last_saved_on: FIXTURE_MEMBERS[0].last_saved_on,
     savings_balance: FIXTURE_MEMBERS[0].savings_balance,
   },
   {
@@ -378,6 +379,9 @@ export const FIXTURE_TREND = [
  * exactly what the screens have to convey.
  * ======================================================================== */
 
+export const fixtureMonthLabel = (date: string): string =>
+  new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+
 const scheduleFor = (
   member: MemberFinancialsRow,
   extra: Partial<SavingsScheduleRow>,
@@ -393,8 +397,6 @@ const scheduleFor = (
   kind: 'monthly',
   period_start: '2026-09-01',
   period_end: '2026-09-30',
-  period_label: 'Sep 2026',
-  cycle: 'Sep 2026',
   saved_amount: 0,
   paid_amount: 0,
   status: 'pending',
@@ -406,6 +408,8 @@ const scheduleFor = (
   last_transaction_id: null,
   deposits: 0,
   ...extra,
+  period_label: fixtureMonthLabel(extra.period_start ?? '2026-09-01'),
+  cycle: fixtureMonthLabel(extra.period_start ?? '2026-09-01'),
 });
 
 export const FIXTURE_SCHEDULES: SavingsScheduleRow[] = [
@@ -418,23 +422,26 @@ export const FIXTURE_SCHEDULES: SavingsScheduleRow[] = [
     last_reference: 'MP2609.4471',
     last_paid_on: '2026-09-06',
   }),
-  scheduleFor(FIXTURE_MEMBERS[1], {
-    schedule_id: 'sched-aug-2026',
-    period_id: 'sched-aug-2026',
+  scheduleFor(FIXTURE_MEMBERS[0], {
+    schedule_id: 'sched-aug',
+    period_id: 'sched-aug',
     period_start: '2026-08-01',
     period_end: '2026-08-31',
-    period_label: 'Aug 2026',
-    cycle: 'Aug 2026',
-    saved_amount: 5000,
-    paid_amount: 5000,
+    saved_amount: 73500,
+    paid_amount: 73500,
     status: 'paid',
     deposits: 1,
     last_method: 'cash',
-    last_paid_on: '2026-08-21',
+    last_paid_on: '2026-08-29',
   }),
   // A month with nothing in it. Under open savings this is not a shortfall,
   // and no screen may present it as one.
-  scheduleFor(FIXTURE_MEMBERS[2], {}),
+  scheduleFor(FIXTURE_MEMBERS[0], {
+    schedule_id: 'sched-jul',
+    period_id: 'sched-jul',
+    period_start: '2026-07-01',
+    period_end: '2026-07-31',
+  }),
 ];
 
 export const FIXTURE_SHARE_PROGRESS: MemberShareProgressRow = {
@@ -454,10 +461,10 @@ export const FIXTURE_SAVINGS_TRANSACTIONS: SavingsTransactionRow[] = [
     member_name: FIXTURE_MEMBERS[0].full_name,
     schedule_id: `sched-${FIXTURE_MEMBERS[0].id}`,
     period_id: `sched-${FIXTURE_MEMBERS[0].id}`,
-    cycle: 'Sep 2026',
+    cycle: fixtureMonthLabel('2026-09-06'),
     amount: 40000,
     payment_method: 'mobile_money',
-    reference: 'SAV260830004',
+    reference: 'SAV260906004',
     external_ref: 'MP2609.4471',
     transaction_date: '2026-09-06',
     note: null,
@@ -473,7 +480,7 @@ export const FIXTURE_SAVINGS_TRANSACTIONS: SavingsTransactionRow[] = [
     member_name: FIXTURE_MEMBERS[0].full_name,
     schedule_id: 'sched-aug',
     period_id: 'sched-aug',
-    cycle: 'Aug 2026',
+    cycle: fixtureMonthLabel('2026-08-29'),
     amount: 73500,
     payment_method: 'cash',
     reference: 'SAV260829003',
@@ -497,6 +504,42 @@ export const FIXTURE_COLLECTION_VIEW: MemberCollectionView = {
   history: FIXTURE_SAVINGS_TRANSACTIONS,
   as_of: '2026-09-10',
 };
+
+/** Keep the staff preview's "this month" sample aligned with its actual QA
+ * date. Only sample dates move; savings, shares and production data do not. */
+export function fixtureCollectionForDate(date: string): { view: MemberCollectionView; members: MemberFinancialsRow[] } {
+  const [year, month, day] = date.split('-').map(Number);
+  const offset = (year - 2026) * 12 + month - 9;
+  const iso = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const shift = (value: string | null): string | null => {
+    if (!value) return null;
+    const [y, m, d] = value.split('-').map(Number);
+    const start = new Date(Date.UTC(y, m - 1 + offset, 1));
+    const sy = start.getUTCFullYear(), sm = start.getUTCMonth() + 1;
+    const end = new Date(Date.UTC(sy, sm, 0)).getUTCDate();
+    return iso(sy, sm, Math.min(d, end, sy === year && sm === month ? day : end));
+  };
+  const members = FIXTURE_MEMBERS.map(m => ({ ...m, last_saved_on: shift(m.last_saved_on) }));
+  const schedules = FIXTURE_SCHEDULES.map(s => {
+    const start = shift(s.period_start)!;
+    const [y, m] = start.split('-').map(Number);
+    return {
+      ...s,
+      period_start: start,
+      period_end: iso(y, m, new Date(Date.UTC(y, m, 0)).getUTCDate()),
+      cycle: fixtureMonthLabel(start),
+      period_label: fixtureMonthLabel(start),
+      last_paid_on: shift(s.last_paid_on),
+      created_at: `${start}T06:00:00Z`,
+      updated_at: `${shift(s.updated_at.slice(0, 10))}T06:00:00Z`,
+    };
+  });
+  const history = FIXTURE_SAVINGS_TRANSACTIONS.map(t => {
+    const paidOn = shift(t.transaction_date)!;
+    return { ...t, transaction_date: paidOn, cycle: fixtureMonthLabel(paidOn), created_at: `${paidOn}${t.created_at.slice(10)}` };
+  });
+  return { members, view: { ...FIXTURE_COLLECTION_VIEW, member: members[0], current: schedules[0], schedules, history, as_of: date } };
+}
 
 /**
  * The accounts the preview harness offers as receiving accounts: exactly the
@@ -530,4 +573,66 @@ export const FIXTURE_COLLECTION_ACCOUNTS: CollectionAccount[] = [
     branch: null,
     account_number: null,
   },
+];
+
+/** Development treasury snapshot. Opening balances and posted movements
+ * reconcile to the already-approved closing account figures below. */
+export const FIXTURE_FINANCE_TOTALS = { merchant: 485000, bank: 4145000, cash: 2100000, total: 6730000 };
+export const FIXTURE_FINANCE_OPENING = { cash: 7050000, merchant: 335000, bank: 4145000 };
+
+export function fixtureFinanceLedger(): AccountMovementRow[] {
+  const balances = { ...FIXTURE_FINANCE_OPENING };
+  // The reversed share fixture has no valid matching reversal ledger pair.
+  // Do not manufacture ledger entries for it or count it as current cash.
+  const posted = FIXTURE_TRANSACTIONS.filter(t => t.status === 'posted').sort((a, b) => a.occurred_on.localeCompare(b.occurred_on) || a.created_at.localeCompare(b.created_at));
+  const rows = posted.map((t, i): AccountMovementRow => {
+    if (t.method !== 'cash' && t.method !== 'mobile_money') throw new Error('Finance QA needs a matching sample receiving account');
+    const kind = t.method === 'cash' ? 'cash' : 'merchant';
+    const account = FIXTURE_COLLECTION_ACCOUNTS.find(a => a.account_type === kind);
+    if (!account) throw new Error('Finance QA sample account is missing');
+    const moneyIn = t.direction === 'debit' ? t.amount : 0;
+    const moneyOut = t.direction === 'credit' ? t.amount : 0;
+    balances[kind] += moneyIn - moneyOut;
+    return {
+      entry_id: i + 1, transaction_id: t.id, account_id: account.id,
+      account_code: account.code, account_name: account.name, account_type: kind,
+      entry_date: t.occurred_on, money_in: moneyIn, money_out: moneyOut,
+      balance_after: balances[kind], running_balance: balances[kind],
+      created_at: t.created_at, reference: t.reference, txn_type: t.type,
+      txn_status: t.status, method: t.method, description: t.description,
+      external_ref: null, member_id: t.member_id, member_no: t.member_no,
+      member_name: t.member_name, recorded_by: t.recorded_by,
+      recorded_by_name: t.recorded_by_name, reverses_id: t.reverses_id,
+      reversed_by_id: t.reversed_by_id, counter_account_type: null,
+      counter_account_name: null, movement_class: moneyOut > 0 ? 'payment' : 'collection',
+      category_label: t.type === 'loan_disbursement' ? 'Loan disbursement' : t.type === 'loan_repayment' ? 'Loan repayment' : 'Savings',
+      custom_expense: null,
+    };
+  });
+  return rows.reverse();
+}
+
+/** Receipt-date filtering for QA only, matching the cashier route's date
+ * boundary. A backdated receipt created today is still a historical receipt. */
+export function fixtureReceiptsForDate(date: string, transactions = FIXTURE_TRANSACTIONS): Pick<ReceiptRegisterRow, 'id' | 'receipt_no' | 'transaction_id' | 'amount' | 'payer' | 'category' | 'receiving_account_name' | 'created_at' | 'status' | 'receipt_date'>[] {
+  return transactions.filter(t => t.direction === 'debit' && t.occurred_on === date).map(t => ({
+    id: t.id, receipt_no: t.reference, transaction_id: t.id, amount: t.amount,
+    payer: t.member_name, category: t.description ?? '',
+    receiving_account_name: FIXTURE_COLLECTION_ACCOUNTS[0].name,
+    created_at: t.created_at, status: t.status, receipt_date: t.occurred_on,
+  }));
+}
+
+/**
+ * Six months of account movement, for the Monthly Financial Activity panel in
+ * the design harness. July is deliberately flat and August runs a deficit: the
+ * chart has to draw an empty month and a negative net without breaking.
+ */
+export const FIXTURE_MONTHLY_FLOW = [
+  { label: 'Mar', in: 12500000, out: 7400000, net: 5100000 },
+  { label: 'Apr', in: 14100000, out: 8200000, net: 5900000 },
+  { label: 'May', in: 11600000, out: 9050000, net: 2550000 },
+  { label: 'Jun', in: 16250000, out: 10400000, net: 5850000 },
+  { label: 'Jul', in: 0, out: 0, net: 0 },
+  { label: 'Aug', in: 9800000, out: 12450000, net: -2650000 },
 ];

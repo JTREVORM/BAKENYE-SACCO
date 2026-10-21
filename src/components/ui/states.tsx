@@ -6,8 +6,8 @@ import type { IconName } from '@/lib/icons';
  * Empty state
  *
  * Never a bare blank area — on a slow connection a blank area is
- * indistinguishable from a screen that has not loaded. The rings behind the
- * icon are pressed into the page rather than drawn as an image, so an empty
+ * indistinguishable from a screen that has not loaded. The disc behind the icon
+ * is drawn from the surface tokens rather than fetched as an image, so an empty
  * screen costs no extra request and still reads as part of the surface.
  * ------------------------------------------------------------------------- */
 export function EmptyState({
@@ -36,14 +36,10 @@ export function EmptyState({
       <div className="relative mb-5 flex items-center justify-center">
         <span
           aria-hidden="true"
-          className="absolute h-24 w-24 rounded-full bg-surface-container shadow-neu-inset-sm"
+          className="bg-surface-container absolute h-20 w-20 rounded-full"
         />
-        <span
-          aria-hidden="true"
-          className="absolute h-[68px] w-[68px] rounded-full bg-surface shadow-neu-sm"
-        />
-        <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-surface-container text-on-surface-variant shadow-neu-inset-sm">
-          <Icon name={icon} size={24} />
+        <span className="bg-surface-container-high text-on-surface-variant relative flex h-14 w-14 items-center justify-center rounded-full">
+          <Icon name={icon} size={26} />
         </span>
       </div>
       <h3 className="text-title-md text-on-surface">{title}</h3>
@@ -77,11 +73,11 @@ export function ErrorState({
     <div
       role="alert"
       className={clsx(
-        'flex flex-col items-center justify-center rounded-3xl bg-error-container/50 px-6 py-12 text-center shadow-neu-inset-sm',
+        'bg-error-container/50 ring-error/15 flex flex-col items-center justify-center rounded-2xl px-6 py-12 text-center ring-1 ring-inset',
         className,
       )}
     >
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-error-container text-on-error-container shadow-neu-sm">
+      <div className="bg-error-container text-on-error-container mb-4 flex h-14 w-14 items-center justify-center rounded-full">
         <Icon name="cloud_off" size={26} />
       </div>
       <h3 className="text-title-md text-on-surface">{title}</h3>

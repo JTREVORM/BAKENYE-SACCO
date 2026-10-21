@@ -24,15 +24,15 @@ Chart review (12 months, all twelve buckets retained):
 | Super Admin | [JPG](screenshots/chart-super_admin-1440-12.jpg) | [JPG](screenshots/chart-super_admin-390-12.jpg) | [JPG](screenshots/chart-super_admin-320-12.jpg) |
 | Overview | [JPG](screenshots/chart-manager-1440-12.jpg) | [JPG](screenshots/chart-manager-390-12.jpg) | [JPG](screenshots/chart-manager-320-12.jpg) |
 
-Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [password security](password-results.json), notification stability [run 1](notification-results.json) / [run 2](notification-repeat-results.json) / [run 3](notification-recheck-results.json), change-password form [run 1](password-form-results.json) / [run 2](password-form-repeat-results.json), [blocker investigation](blocker-investigation.json), [preview/accessibility suites](preview-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
+Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [password security](password-results.json), notification stability [run 1](notification-results.json) / [run 2](notification-repeat-results.json) / [run 3](notification-recheck-results.json), change-password form [run 1](password-form-results.json) / [run 2](password-form-repeat-results.json), savings collection [run](collection-results.json) / [repeat](collection-repeat-results.json), [blocker investigation](blocker-investigation.json), [preview/accessibility suites](preview-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
 
 Focused browser retries are included separately. Failed previous attempts are retained in merged results; they are not erased. The report distinguishes confirmed failures from remaining coverage limits.
 
 This directory was regenerated from a clean database run in which every suite
-passed: **209/209** browser snapshots, including the two profile password-form
-checks that previously failed. Certification is nonetheless still a HOLD, for
-BKC-05: the client tree-update defect behind BKC-02, BKC-03 and BKC-04 is itself
-unfixed and still reaches every other server-action form.
+passed, including **102/102** savings collections and **209/209** browser
+snapshots. Isolated certification is a PASS; production release remains on HOLD
+for the unremediated hosted password function and the unauthorized cash
+near-duplicate safeguard.
 
 `baseline/` holds records the per-run exporter does not regenerate and must not
 clear: the pre-fix reproductions for
@@ -41,14 +41,17 @@ clear: the pre-fix reproductions for
 the promise), the earlier
 [change-password measurements](baseline/change-password-error-display.json),
 the [collection-confirmation exposure](baseline/collection-confirmation-exposure.json)
-behind BKC-05, the previous certification's focused notification retries
-including its
+that opened BKC-05, the
+[operator-terminated collection run](baseline/collection-terminated-run.json)
+(82 verified passes; its twenty failures are all "browser has been closed" from
+the termination, not the application), the previous certification's focused
+notification retries including its
 [failed attempt](baseline/browser-sessions-member-notifications-stability-two-results.json),
 its retained [ordering failure](baseline/notification-order-results.json), and
 the previously failing
 [focused profile password recheck](baseline/browser-sessions-profile-password-form-results.json)
 (0/2), whose two checks now pass in the broad run.
 
-Repeated suites are the ones that can clear an intermittent defect: notifications
-run 54 interactions three times, and the change-password form runs 66 checks —
-50 of them wrong-password submissions — twice here and twice before this stack.
+Repeated suites are the ones that can clear an intermittent defect: savings
+collections run 102 and then 42, notifications 54 three times, and the
+change-password form 66 twice here and twice before this stack.

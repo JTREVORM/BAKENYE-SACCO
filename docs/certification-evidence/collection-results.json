@@ -1,0 +1,503 @@
+{
+  "date": "2026-10-21T09:25:54.212Z",
+  "results": [
+    {
+      "name": "field_officer mobile: collection 1/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021003"
+    },
+    {
+      "name": "field_officer mobile: collection 2/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021004"
+    },
+    {
+      "name": "field_officer mobile: collection 3/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021005"
+    },
+    {
+      "name": "field_officer mobile: collection 4/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021006"
+    },
+    {
+      "name": "field_officer mobile: collection 5/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021007"
+    },
+    {
+      "name": "field_officer mobile: collection 6/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021008"
+    },
+    {
+      "name": "field_officer mobile: collection 7/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021009"
+    },
+    {
+      "name": "field_officer mobile: collection 8/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021010"
+    },
+    {
+      "name": "field_officer mobile: collection 9/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021011"
+    },
+    {
+      "name": "field_officer mobile: collection 10/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021012"
+    },
+    {
+      "name": "field_officer mobile: collection 11/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021013"
+    },
+    {
+      "name": "field_officer mobile: collection 12/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021014"
+    },
+    {
+      "name": "field_officer mobile: collection 13/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021015"
+    },
+    {
+      "name": "field_officer mobile: collection 14/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021016"
+    },
+    {
+      "name": "field_officer mobile: collection 15/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021017"
+    },
+    {
+      "name": "field_officer desktop: collection 1/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021018"
+    },
+    {
+      "name": "field_officer desktop: collection 2/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021019"
+    },
+    {
+      "name": "field_officer desktop: collection 3/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021020"
+    },
+    {
+      "name": "field_officer desktop: collection 4/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021021"
+    },
+    {
+      "name": "field_officer desktop: collection 5/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021022"
+    },
+    {
+      "name": "field_officer desktop: collection 6/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021023"
+    },
+    {
+      "name": "field_officer desktop: collection 7/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021024"
+    },
+    {
+      "name": "field_officer desktop: collection 8/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021025"
+    },
+    {
+      "name": "field_officer desktop: collection 9/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021026"
+    },
+    {
+      "name": "field_officer desktop: collection 10/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021027"
+    },
+    {
+      "name": "field_officer desktop: collection 11/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021028"
+    },
+    {
+      "name": "field_officer desktop: collection 12/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021029"
+    },
+    {
+      "name": "field_officer desktop: collection 13/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021030"
+    },
+    {
+      "name": "field_officer desktop: collection 14/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021031"
+    },
+    {
+      "name": "field_officer desktop: collection 15/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021032"
+    },
+    {
+      "name": "cashier mobile: collection 1/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021033"
+    },
+    {
+      "name": "cashier mobile: collection 2/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021034"
+    },
+    {
+      "name": "cashier mobile: collection 3/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021035"
+    },
+    {
+      "name": "cashier mobile: collection 4/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021036"
+    },
+    {
+      "name": "cashier mobile: collection 5/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021037"
+    },
+    {
+      "name": "cashier mobile: collection 6/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021038"
+    },
+    {
+      "name": "cashier mobile: collection 7/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021039"
+    },
+    {
+      "name": "cashier mobile: collection 8/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021040"
+    },
+    {
+      "name": "cashier mobile: collection 9/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021041"
+    },
+    {
+      "name": "cashier mobile: collection 10/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021042"
+    },
+    {
+      "name": "cashier mobile: collection 11/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021043"
+    },
+    {
+      "name": "cashier mobile: collection 12/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021044"
+    },
+    {
+      "name": "cashier mobile: collection 13/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021045"
+    },
+    {
+      "name": "cashier mobile: collection 14/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021046"
+    },
+    {
+      "name": "cashier mobile: collection 15/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021047"
+    },
+    {
+      "name": "cashier desktop: collection 1/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021048"
+    },
+    {
+      "name": "cashier desktop: collection 2/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021049"
+    },
+    {
+      "name": "cashier desktop: collection 3/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021050"
+    },
+    {
+      "name": "cashier desktop: collection 4/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021051"
+    },
+    {
+      "name": "cashier desktop: collection 5/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021052"
+    },
+    {
+      "name": "cashier desktop: collection 6/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021053"
+    },
+    {
+      "name": "cashier desktop: collection 7/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021054"
+    },
+    {
+      "name": "cashier desktop: collection 8/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021055"
+    },
+    {
+      "name": "cashier desktop: collection 9/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021056"
+    },
+    {
+      "name": "cashier desktop: collection 10/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021057"
+    },
+    {
+      "name": "cashier desktop: collection 11/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021058"
+    },
+    {
+      "name": "cashier desktop: collection 12/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021059"
+    },
+    {
+      "name": "cashier desktop: collection 13/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021060"
+    },
+    {
+      "name": "cashier desktop: collection 14/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021061"
+    },
+    {
+      "name": "cashier desktop: collection 15/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021062"
+    },
+    {
+      "name": "manager mobile: collection 1/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021063"
+    },
+    {
+      "name": "manager mobile: collection 2/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021064"
+    },
+    {
+      "name": "manager mobile: collection 3/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021065"
+    },
+    {
+      "name": "manager mobile: collection 4/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021066"
+    },
+    {
+      "name": "manager mobile: collection 5/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021067"
+    },
+    {
+      "name": "manager mobile: collection 6/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021068"
+    },
+    {
+      "name": "manager mobile: collection 7/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021069"
+    },
+    {
+      "name": "manager mobile: collection 8/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021070"
+    },
+    {
+      "name": "manager mobile: collection 9/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021071"
+    },
+    {
+      "name": "manager mobile: collection 10/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021072"
+    },
+    {
+      "name": "manager mobile: collection 11/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021073"
+    },
+    {
+      "name": "manager mobile: collection 12/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021074"
+    },
+    {
+      "name": "manager mobile: collection 13/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021075"
+    },
+    {
+      "name": "manager mobile: collection 14/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021076"
+    },
+    {
+      "name": "manager mobile: collection 15/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021077"
+    },
+    {
+      "name": "manager desktop: collection 1/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021078"
+    },
+    {
+      "name": "manager desktop: collection 2/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021079"
+    },
+    {
+      "name": "manager desktop: collection 3/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021080"
+    },
+    {
+      "name": "manager desktop: collection 4/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021081"
+    },
+    {
+      "name": "manager desktop: collection 5/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021082"
+    },
+    {
+      "name": "manager desktop: collection 6/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021083"
+    },
+    {
+      "name": "manager desktop: collection 7/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021084"
+    },
+    {
+      "name": "manager desktop: collection 8/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021085"
+    },
+    {
+      "name": "manager desktop: collection 9/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021086"
+    },
+    {
+      "name": "manager desktop: collection 10/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021087"
+    },
+    {
+      "name": "manager desktop: collection 11/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021088"
+    },
+    {
+      "name": "manager desktop: collection 12/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021089"
+    },
+    {
+      "name": "manager desktop: collection 13/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021090"
+    },
+    {
+      "name": "manager desktop: collection 14/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021091"
+    },
+    {
+      "name": "manager desktop: collection 15/15 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021092"
+    },
+    {
+      "name": "field_officer mobile: a slow answer still confirms, and the control stays busy until it does",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: three clicks during one slow request post one row",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: a lost answer is never called a failure, and the recheck finds the posting",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: a lost answer for a request that never arrived records it once on recheck",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: a refusal states the reason and posts nothing",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: reloading after a confirmed collection does not post it again",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: a slow answer still confirms, and the control stays busy until it does",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: three clicks during one slow request post one row",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: a lost answer is never called a failure, and the recheck finds the posting",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: a lost answer for a request that never arrived records it once on recheck",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: a refusal states the reason and posts nothing",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: reloading after a confirmed collection does not post it again",
+      "pass": true
+    }
+  ]
+}

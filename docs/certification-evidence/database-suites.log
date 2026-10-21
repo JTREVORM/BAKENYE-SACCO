@@ -11,7 +11,7 @@ Running as Certification super_admin (super_admin)
    ✔ 5 with decision notices off, approving a loan notifies nobody — 0 notice(s)
    ✔ 6a the till pays out the loan less its fee — 198000.00
    ✔ 6b a disbursement with repayments on it cannot be reversed — Loan LN261021001 has repayments recorded against it. Reverse those first, then the disbursement.
-   ✔ 6c reversing the disbursement puts the till back exactly — 967000.00 vs 967000.00
+   ✔ 6c reversing the disbursement puts the till back exactly — 1070752.00 vs 1070752.00
    ✔ 6d the loan is Approved again — approved
    ✔ 6e its repayment schedule is gone — 0 row(s)
    ✔ 6f the fee taken at disbursement is reversed with it — 0 standing fee(s)
@@ -30,7 +30,7 @@ Running as Certification super_admin (super_admin)
    ✔ 2c a member can save UGX 20,000 — 25000.00
    ✔ 2d a member can save UGX 73,500 - no amount is rounded or refused — 98500.00
    ✔ 2e three deposits in one month are three transactions in one period — 3 deposit(s)
-   ✔ 2f every deposit is recorded by member, date, amount and reference — SAV261021003 5,000, SAV261021004 20,000, SAV261021005 73,500
+   ✔ 2f every deposit is recorded by member, date, amount and reference — SAV261021103 5,000, SAV261021104 20,000, SAV261021105 73,500
    ✔ 2g a member who saved nothing has no missed or partial period — 0 row(s)
    ✔ 2h no arrears, penalty or outstanding savings is raised against anyone — 0 period(s) expecting money
    ✔ 2m a monthly savings target cannot be set — Monthly savings are open: a member saves any amount they choose, so there is no savings target to set.
@@ -51,7 +51,7 @@ Running as Certification super_admin (super_admin)
    ✔ 4b members registered now carry no category
    ✔ 4c no read model exposes a savings or share category column
    ✔ 4d the dashboard reports no category and no savings arrears
-   ✔ 4e the savings dashboard reports what came in, not what was owed — 212000.00
+   ✔ 4e the savings dashboard reports what came in, not what was owed — 315752.00
    ✔ 4f the savings performance report counts deposits, not compliance
    ✔ 5a the savings balance equals the ledger — 98,500
    ✔ 5b the period totals equal the posted savings payments
@@ -64,7 +64,7 @@ Running as Certification super_admin (super_admin)
    ✔ 7a the statement lists every deposit and its reversal — 5
    ✔ 7b the statement closes at the member's real balance
    ✔ 7c the statement names no savings category or target
-   ✔ 8a no historical transaction was deleted or restated — 6 row(s) checked
+   ✔ 8a no historical transaction was deleted or restated — 106 row(s) checked
    ✔ 8b no historical share lot was deleted or repriced — 2 lot(s) checked
    ✔ 8c no historical savings period was deleted or rewritten — 2 period(s) checked
    ✔ 8e a savings waiver can no longer be created — waive_savings_schedule() no longer exists
@@ -213,7 +213,7 @@ Running as Certification super_admin (super_admin)
    ✔ 2d paid in full, so the member is active — active
    ✔ 2e Cash at Merchant rose by UGX 25,000 — 25000.00
    ✔ 2f one fee transaction of UGX 25,000 into the merchant account, with the MoMo reference — FEE261021003
-   ✔ 2g a receipt is issued — RCT261021007
+   ✔ 2g a receipt is issued — RCT261021107
    ✔ 2h the receipt carries both fee lines and the membership title
    ✔ 2i the SACCO books both fees as income, separately
    ✔ 2j the audit log records the registration, the payment and the activation
@@ -231,7 +231,7 @@ Running as Certification super_admin (super_admin)
    ✔ 5c the amount change is audited with before and after
    ✔ 6a the transfer completes — completed
    ✔ 6b Cash at Merchant fell by UGX 25,000 and Cash at Bank rose by UGX 25,000
-   ✔ 6c total SACCO funds did not change — 318500.00
+   ✔ 6c total SACCO funds did not change — 422252.00
    ✔ 7a an admin can change a member's phone
    ✔ 7b the change is recorded field by field, with the old and new values and the reason
    ✔ 7c and in the audit log as a phone number change
@@ -281,7 +281,7 @@ Running as Certification super_admin (super_admin)
    ✔ 1b a new member is charged the current fee at registration — 20,000
    ✔ 2a a fee paid in full reads Paid with nothing outstanding — 20,000 paid, 0 outstanding, status paid
    ✔ 2b paying the whole fee activates the member — active
-   ✔ 2c the payment produced a receipt — RCT261021007
+   ✔ 2c the payment produced a receipt — RCT261021107
    ✔ 3a paying 5,000 of the fee reads Partial — partial
    ✔ 3b the balance is measured against what the member was charged — 20,000 charged, 5,000 paid, 15,000 outstanding
    ✔ 3c a part payment does not activate the member — pending
@@ -351,12 +351,12 @@ Running as Certification super_admin (super_admin)
    ✔ 3a registering a member issues BND + YY + sequence — BND26903
    ✔ 3b every member number in the register is unique
    ✔ 3c a deposit is numbered DEP + YYMMDD + sequence — DEP261021001
-   ✔ 3d the receipt issued for it is RCT + YYMMDD + sequence — RCT261021007
-   ✔ 3e the printed receipt shows that number, not a UUID — RCT261021007
+   ✔ 3d the receipt issued for it is RCT + YYMMDD + sequence — RCT261021107
+   ✔ 3e the printed receipt shows that number, not a UUID — RCT261021107
    ✔ 3f nothing on the printed receipt is a UUID — DEP261021001
    ✔ 3g a reversal is its own document, REV + YYMMDD + sequence — REV261021001
    ✔ 3h no two ledger rows share a reference
-   ✔ 3i every ledger reference is in the new form — DEP261021001, FEE261021001, FEE261021002, REV261021001, SAV261021001, SAV261021002, SHR261021001, SHR261021002
+   ✔ 3i every ledger reference is in the new form — DEP261021001, FEE261021001, FEE261021002, REV261021001, SAV261021001, SAV261021002, SAV261021003, SAV261021004, SAV261021005, SAV261021006, SAV261021007, SAV261021008, SAV261021009, SAV261021010, SAV261021011, SAV261021012, SAV261021013, SAV261021014, SAV261021015, SAV261021016, SAV261021017, SAV261021018, SAV261021019, SAV261021020, SAV261021021, SAV261021022, SAV261021023, SAV261021024, SAV261021025, SAV261021026, SAV261021027, SAV261021028, SAV261021029, SAV261021030, SAV261021031, SAV261021032, SAV261021033, SAV261021034, SAV261021035, SAV261021036, SAV261021037, SAV261021038, SAV261021039, SAV261021040, SAV261021041, SAV261021042, SAV261021043, SAV261021044, SAV261021045, SAV261021046, SAV261021047, SAV261021048, SAV261021049, SAV261021050, SAV261021051, SAV261021052, SAV261021053, SAV261021054, SAV261021055, SAV261021056, SAV261021057, SAV261021058, SAV261021059, SAV261021060, SAV261021061, SAV261021062, SAV261021063, SAV261021064, SAV261021065, SAV261021066, SAV261021067, SAV261021068, SAV261021069, SAV261021070, SAV261021071, SAV261021072, SAV261021073, SAV261021074, SAV261021075, SAV261021076, SAV261021077, SAV261021078, SAV261021079, SAV261021080, SAV261021081, SAV261021082, SAV261021083, SAV261021084, SAV261021085, SAV261021086, SAV261021087, SAV261021088, SAV261021089, SAV261021090, SAV261021091, SAV261021092, SAV261021093, SAV261021094, SAV261021095, SAV261021096, SAV261021097, SAV261021098, SAV261021099, SAV261021100, SAV261021101, SAV261021102, SHR261021001, SHR261021002
    ✔ 4a a member number is looked up exactly as issued — BND26903
    ✔ 4b lower case, spaces and a stray dash are forgiven — BND26903
    ✔ 4c a member number issued under the old scheme still resolves — BND-M-0000123
@@ -411,7 +411,7 @@ Running as Certification super_admin (super_admin)
    ✔ a deactivated account disappears from the receiving-account list
    ✔ the accounts that are still active are unaffected
    ✔ a new receipt into a deactivated account is refused — ZZTEST Airtel Branch Two is inactive and cannot be used.
-   ✔ a historical transaction against a deactivated account is still readable, unchanged — SAV261021004
+   ✔ a historical transaction against a deactivated account is still readable, unchanged — SAV261021104
    ✔ its account entries are still there and still against that account — 1
    ✔ the deactivated account still names itself on the historical receipt
    ✔ no posted money movement anywhere has been left without its account — 0
@@ -445,16 +445,16 @@ Running as Certification super_admin (super_admin)
    ✔ accounts start at their opening balance of zero
    ✔ step 1: Cash at Merchant is UGX 100,000 — 100000.00
    ✔ step 1: member A savings is UGX 100,000
-   ✔ step 1: the ledger row names the merchant account and carries the provider reference — SAV261021003
+   ✔ step 1: the ledger row names the merchant account and carries the provider reference — SAV261021103
    ✔ step 1: one account entry, a debit of UGX 100,000
-   ✔ step 1: an RCT receipt number is issued — RCT261021007
+   ✔ step 1: an RCT receipt number is issued — RCT261021107
    ✔ step 1: the collection is in the audit log
    ✔ step 2: Cash at Merchant is UGX 150,000 — 150000.00
    ✔ a replayed submission posts nothing new
    ✔ a duplicate provider reference is refused — Reference mtn-test-0001 has already been recorded against another transaction.
    ✔ mobile money into a cash account is refused — TEST Till is a cash account and cannot handle a mobile money payment.
    ✔ a merchant collection without a reference is refused — Enter the mobile money transaction reference from the confirmation message.
-   ✔ step 3: a manager's transfer completes without waiting — {"id": "5e9d28fc-5143-4af8-919f-a2383eafb1e8", "kind": "merchant_to_bank", "amount": 120000.00, "status": "completed", "duplicate": false, "transfer_no": "TRF261021001", "source_account": "TEST Merchant", "source_balance": 30000.00, "transaction_id": "38ead480-9b1a-4c36-b055-3270919bba4f", "requires_approval": false, "destination_account": "TEST Bank", "destination_balance": 120000.00}
+   ✔ step 3: a manager's transfer completes without waiting — {"id": "57c771f1-62d8-4cd2-b96f-8ce99f8bd2dc", "kind": "merchant_to_bank", "amount": 120000.00, "status": "completed", "duplicate": false, "transfer_no": "TRF261021001", "source_account": "TEST Merchant", "source_balance": 30000.00, "transaction_id": "e8219ba6-8afc-4464-8154-a8cbd207c2bd", "requires_approval": false, "destination_account": "TEST Bank", "destination_balance": 120000.00}
    ✔ step 3: Cash at Merchant UGX 30,000, Cash at Bank UGX 120,000 — 30000.00 / 120000.00
    ✔ step 3: total SACCO funds unchanged
    ✔ step 3: the transfer is not income, not expense, not savings
@@ -481,7 +481,7 @@ Running as Certification super_admin (super_admin)
    ✔ nobody approves their own entry under four eyes — You recorded this entry, so a different person has to approve it.
    ✔ a waiting transfer can be cancelled, and no money moved
    ✔ a variance must be explained — The actual balance differs from the system balance by UGX -1,000. Explain the variance.
-   ✔ a variance is recorded, and the system balance is not adjusted — {"id": "a29913c1-490b-446a-b9a7-2091ffdbdca5", "outcome": "variance", "variance": -1000.00, "actual_balance": 17000.00, "system_balance": 18000.00, "reconciliation_no": "REC261021001"}
+   ✔ a variance is recorded, and the system balance is not adjusted — {"id": "ea0c4986-e4b8-441f-8c7b-a698cbbba578", "outcome": "variance", "variance": -1000.00, "actual_balance": 17000.00, "system_balance": 18000.00, "reconciliation_no": "REC261021001"}
    ✔ the dashboard flags the variance
    ✔ a matching balance reconciles cleanly
    ✔ Cash & Bank report: opening + in - out = closing = ledger balance, for every account

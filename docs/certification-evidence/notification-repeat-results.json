@@ -1,50 +1,50 @@
 {
-  "date": "2026-10-21T07:54:46.713Z",
+  "date": "2026-10-21T10:01:20.029Z",
   "results": [
     {
       "name": "member_a mobile: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 234
+      "completionMs": 252
     },
     {
       "name": "member_a mobile: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 237
+      "completionMs": 241
     },
     {
       "name": "member_a mobile: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 275
+      "completionMs": 243
     },
     {
       "name": "member_a mobile: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 259
+      "completionMs": 245
     },
     {
       "name": "member_a mobile: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 241
+      "completionMs": 248
     },
     {
       "name": "member_a desktop: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 237
+      "completionMs": 232
     },
     {
       "name": "member_a desktop: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 242
+      "completionMs": 258
     },
     {
       "name": "member_a desktop: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 230
+      "completionMs": 245
     },
     {
       "name": "member_a desktop: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 258
+      "completionMs": 243
     },
     {
       "name": "member_a desktop: notification action 5/5 completes and preserves peer unread state",
@@ -54,167 +54,167 @@
     {
       "name": "cashier mobile: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 252
+      "completionMs": 244
     },
     {
       "name": "cashier mobile: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 249
+      "completionMs": 233
     },
     {
       "name": "cashier mobile: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 236
+      "completionMs": 242
     },
     {
       "name": "cashier mobile: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 233
+      "completionMs": 237
     },
     {
       "name": "cashier mobile: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 233
+      "completionMs": 250
     },
     {
       "name": "cashier desktop: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 241
+      "completionMs": 237
     },
     {
       "name": "cashier desktop: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 244
+      "completionMs": 239
     },
     {
       "name": "cashier desktop: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 238
+      "completionMs": 234
     },
     {
       "name": "cashier desktop: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 245
+      "completionMs": 257
     },
     {
       "name": "cashier desktop: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 239
+      "completionMs": 290
     },
     {
       "name": "manager mobile: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 246
+      "completionMs": 236
     },
     {
       "name": "manager mobile: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 250
+      "completionMs": 236
     },
     {
       "name": "manager mobile: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 229
+      "completionMs": 247
     },
     {
       "name": "manager mobile: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 230
+      "completionMs": 248
     },
     {
       "name": "manager mobile: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 231
+      "completionMs": 228
     },
     {
       "name": "manager desktop: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 253
+      "completionMs": 248
     },
     {
       "name": "manager desktop: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 241
+      "completionMs": 264
     },
     {
       "name": "manager desktop: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 228
+      "completionMs": 252
     },
     {
       "name": "manager desktop: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 238
+      "completionMs": 253
     },
     {
       "name": "manager desktop: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 228
+      "completionMs": 253
     },
     {
       "name": "super_admin mobile: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 262
+      "completionMs": 241
     },
     {
       "name": "super_admin mobile: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 250
+      "completionMs": 239
     },
     {
       "name": "super_admin mobile: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 244
+      "completionMs": 235
     },
     {
       "name": "super_admin mobile: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 254
+      "completionMs": 252
     },
     {
       "name": "super_admin mobile: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 234
+      "completionMs": 246
     },
     {
       "name": "super_admin desktop: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 254
+      "completionMs": 272
     },
     {
       "name": "super_admin desktop: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 263
+      "completionMs": 260
     },
     {
       "name": "super_admin desktop: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 245
+      "completionMs": 244
     },
     {
       "name": "super_admin desktop: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 229
+      "completionMs": 243
     },
     {
       "name": "super_admin desktop: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 241
+      "completionMs": 245
     },
     {
       "name": "accountant mobile: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 242
+      "completionMs": 229
     },
     {
       "name": "accountant mobile: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 233
+      "completionMs": 225
     },
     {
       "name": "accountant mobile: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 241
+      "completionMs": 255
     },
     {
       "name": "accountant mobile: notification action 4/5 completes and preserves peer unread state",
@@ -224,32 +224,32 @@
     {
       "name": "accountant mobile: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 233
+      "completionMs": 234
     },
     {
       "name": "accountant desktop: notification action 1/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 256
+      "completionMs": 244
     },
     {
       "name": "accountant desktop: notification action 2/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 247
+      "completionMs": 258
     },
     {
       "name": "accountant desktop: notification action 3/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 254
+      "completionMs": 253
     },
     {
       "name": "accountant desktop: notification action 4/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 252
+      "completionMs": 267
     },
     {
       "name": "accountant desktop: notification action 5/5 completes and preserves peer unread state",
       "pass": true,
-      "completionMs": 231
+      "completionMs": 250
     },
     {
       "name": "member_a: a second tap during the request posts no duplicate write",

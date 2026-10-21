@@ -1,11 +1,17 @@
 # Dashboard security remediation and release certification
 
-21 October 2026 · `claude/cool-mendel-3ey330` · baseline `96e1d54`.
+21 October 2026 · `claude/cool-mendel-3ey330` · baseline `e62a7c8`.
 
-**HOLD — BKC-01 to BKC-04 are fixed and every suite passes on a clean run, but
-the platform defect behind the last three is not itself fixed: it still reaches
-every other server-action form, and it was measured losing the on-screen
-confirmation of savings that had already been posted to the ledger (BKC-05).**
+**Isolated certification: PASS. Production release: HOLD.**
+
+BKC-01 to BKC-05 are resolved and verified repeatedly, not once: 102 and 42
+savings collections, 200/200 browser regression, 54 notification interactions in
+each of three runs, and 66 change-password checks in each of two. Every money
+form now states its outcome.
+
+Production release stays on HOLD for two things this branch cannot settle: the
+hosted database still runs the unremediated password function from BKC-01, and
+the cash near-duplicate safeguard proposed below needs its own authorization.
 
 No production mutation, migration, merge, deployment or Vercel change was made.
 The only application changes are verified password completion, financial
@@ -94,28 +100,58 @@ needs JavaScript, where the form action previously let it submit without it.
 [Investigation evidence](certification-evidence/blocker-investigation.json) ·
 [pre-fix reproduction](certification-evidence/baseline/bkc-04-baseline-trace.json).
 
-**BKC-05 — new, unresolved, and the reason this is still a HOLD.** BKC-02,
-BKC-03 and BKC-04 were each fixed by taking one control off the client
-tree-update path. The defect underneath is untouched, and every other form in
-the application still publishes its result through `useActionState`.
+**BKC-05 — fixed in the development branch.** The cause was the one behind
+BKC-02, BKC-03 and BKC-04. A server action's promise resolves with its result on
+every attempt; `useActionState` publishes that result through an app-router tree
+update, and on these pages the update commits only intermittently — measured at
+**2 of 10** real savings collections, where the money was taken and recorded and
+the person at the counter saw nothing. The same update clears `useFormStatus`,
+so a control could also stay on "Processing…" after an outcome already decided.
 
-That is not theoretical. On the stack that had already run a full certification,
-**2 of 10** real savings collections through the field officer screen posted to
-the ledger with **no "Savings recorded" dialog**: the money was taken and
-recorded, and the person at the counter saw nothing. The browser regression's own
-Collections check failed the same way once in two runs. On the final clean stack
-the same measurement was 15/15, so the rate varies with the state of the
-system — but the failures are real, and they are on the money-handling path.
-The per-form idempotency key stops a resubmission of the same open dialog; a
-re-entered collection carries a new key and would post twice. The forced
-first-password change was also seen redirecting only on a second attempt.
+`useSubmission` awaits the call and holds the outcome in component state;
+`ActionForm` wires it to a form; `SubmitButton` reads its pending state from that
+form. Converting a form is a two-line change at the call site, and the action,
+the RPC, the posting rules, the reference, the approval requirements and the
+calculations are untouched.
 
-None of this is changed here: it is outside BKC-04 and it belongs to the
-financial screens, so it needs its own review and regression. The remedy is the
-pattern proven three times in this branch — await the action, hold the result
-and the busy state locally — applied to the remaining server-action forms,
-financial confirmations first.
-[Evidence](certification-evidence/baseline/collection-confirmation-exposure.json).
+A money submission now ends in one of **three** stated outcomes, never silence:
+**carried out**, with reference and receipt; **refused**, with the server's own
+message; or **unresolved**, when the answer never came back. The third is not
+reported as a failure, because half the time it is not one. The submission keeps
+its identity — the same `FormData`, carrying the same idempotency key — and the
+only action offered re-sends exactly that. Every posting function returns the
+original row for a key it has already seen, so the re-send either reports the
+posting that happened or performs the one that never did: one ledger row either
+way, and nothing retries on its own. Actions carrying no key — an approval, a
+rejection, a reversal — show a notice pointing at the record instead, because
+re-sending those cannot be made safe from the browser.
+
+Sixteen forms were converted, including the ten screens behind `FinancialForm`.
+Nineteen configuration, member-record and account-administration forms were
+reviewed and deliberately left: none posts to the ledger, and each is
+recoverable by reloading. [The full audit](financial-form-audit.md) lists every
+one with its reason.
+
+While converting, both branches of the collection dialog came to render the same
+component, so React reused one DOM button and the clicked "Review" became
+`type="submit"` mid-click — posting a collection from the editing step. The new
+suite caught it; distinct keys and a phase guard fix it. It never left the
+branch. [Investigation evidence](certification-evidence/blocker-investigation.json).
+
+**Open, and not fixed here: the duplicate an idempotency key cannot stop.** The
+key protects one form instance. Close the dialog, reopen it and enter the same
+payment, and a new key is generated — the database has no reason to refuse it.
+Merchant and bank collections are already blocked, because they must carry the
+external reference from the confirmation message and that reference is refused
+if it is already recorded against a live transaction. **Cash collections require
+no reference, so nothing stops a second entry.** The proposal is to have the
+posting function refuse — or require an explicit override — when the same
+member, type, amount and value date are posted twice within a few minutes,
+refusing rather than silently de-duplicating so a genuine second payment of the
+same amount can still be recorded deliberately. It is **not implemented here**:
+it changes financial database behaviour and needs its own authorization and
+review. Until then the mitigation is procedural, and the unresolved screen says
+it: do not re-enter the payment, check the member's statement first.
 
 ## Final isolated results
 
@@ -132,7 +168,7 @@ financial confirmations first.
 | Role browser regression | PASS: **209/209** on the clean run (200 broad checks plus the merged chart rechecks), zero failures. Both staff and member profile password-form checks — the two that failed before — now pass unchanged. Collections, approvals, guarded routes, peer-URL refusals, logout, idle timeout and the temporary-password flow all pass. [Results](certification-evidence/browser-results.json). |
 | Change-password form | PASS: **66/66 checks in each of four runs** (two before the clean stack, two on it), **50 wrong-password submissions per run** — four staff roles and a member, each at 390px and 1440px. Every refusal was reported on the current-password field, with the account row, the audit count and both passwords re-checked against Auth afterwards. Also covered per run: confirmation mismatch, policy refusal, reusing the current password, an expired session, a dropped request, an injected HTTP 500, a duplicate submit posting once, and the successful change with its audit and the retirement of the old password. Retained pre-fix evidence: **7/16** displayed. [Run 1](certification-evidence/password-form-results.json), [run 2](certification-evidence/password-form-repeat-results.json), [pre-fix](certification-evidence/baseline/bkc-04-baseline-trace.json). |
 | Notification stability | PASS: **54/54 interactions in each of three independent runs** on the final production build — a member and four staff roles at 390px and 1440px, five attempts apiece, plus duplicate-tap refusal and dropped-request recovery per area. Every attempt checked database persistence, the peer account's notifications staying unread, and the control gone after a reload. [Run 1](certification-evidence/notification-results.json), [run 2](certification-evidence/notification-repeat-results.json), [run 3](certification-evidence/notification-recheck-results.json). Retained failures from the previous certification: the **6/10** pre-fix baseline and a **44/54** ordering run. [Baseline](certification-evidence/baseline/bkc-03-baseline-trace.json), [ordering run](certification-evidence/baseline/notification-order-results.json). |
-| Server-action confirmations outside the fixed controls | **FAIL (BKC-05): 2 of 10** real savings collections posted to the ledger with no on-screen confirmation on the stack that had already run a full certification; **15/15** confirmed on the final clean stack; the browser regression's Collections check failed the same way once in two runs. The ledger was correct in every case. [Evidence](certification-evidence/baseline/collection-confirmation-exposure.json). |
+| Savings collection (BKC-05) | PASS: **102/102** on the clean run and **42/42** on the final production build. The 102 are 90 ordinary collections — field officer, cashier and manager, each at 390px and 1440px, fifteen apiece — plus 12 failure-path cases at both viewports: a slow answer, three clicks during one slow request, a lost answer for a posting that happened, a lost answer for one that never arrived, a refusal, and a reload after a confirmed collection. Every attempt asserts the screen states an outcome, that **exactly one** ledger row carries the submission's idempotency key, that the reference shown is the ledger's reference, and that the member's balance moved by the amount recorded and no more. [Run](certification-evidence/collection-results.json), [repeat](certification-evidence/collection-repeat-results.json). Retained: an earlier run stopped mid-way by the operator, whose twenty recorded failures are all "browser has been closed" from that termination — 82 verified passes before it, not counted as a result. [Terminated run](certification-evidence/baseline/collection-terminated-run.json). |
 | Restrictions / lockout | PASS: **14/14**; anonymous reads, role finance access, suspended/inactive/archived/exited members and real-form generic errors/lockout. [Results](certification-evidence/restrictions-results.json). |
 | Accessibility / shared styling / preview layouts | PASS: **3/3 existing browser suites**, **80 reported groups**: keyboard/modal/menu, mobile branding, shared non-dashboard styling, loading/error/empty states, 40 staff width scenarios and 10 member widths plus restricted states. [Results](certification-evidence/preview-results.json). |
 | Lint / TypeScript / production build | PASS; all eight standard check groups. Dashboard invariants **5/5**, fixture arithmetic **5/5**, phone tests **36/36**, target safety guard **1/1** (six invalid-target variants). [Checks](certification-evidence/standards-results.json), [console](certification-evidence/standards-console.log). |
@@ -180,14 +216,21 @@ PASS does not mean production has been patched.
 - Native financial RPCs and SQL assertions cover the complete tested lifecycle;
   browser submission covers collection and expense approval, rather than every
   loan/reversal form. Network-outage/retry recovery remains unverified.
-- BKC-05 is a client-side display failure only. No server check, permission or
-  audit is bypassed by it, and the ledger was correct in every observed case —
-  the risk is that somebody acts on a screen that did not confirm work the
-  database had already done.
+- BKC-05 was a client-side display failure only. No server check, permission or
+  audit was ever bypassed by it, and the ledger was correct in every observed
+  case; the risk was that somebody acts on a screen that did not confirm work
+  the database had already done. That is now closed for every money form.
+- The cash near-duplicate gap above is **not** closed. It is a property of the
+  posting functions, not of the screens, and the proposal for it is deliberately
+  unimplemented pending authorization.
+- Nineteen configuration and account-administration forms still publish their
+  result through `useActionState` and remain exposed to a lost confirmation.
+  None posts to the ledger and each is recoverable by reloading; they are listed
+  with reasons in the [form audit](financial-form-audit.md).
 - A suite that exercises a flow once cannot clear an intermittent defect. That
-  is why the notification and change-password suites repeat their interactions
-  50+ times each, and why a single green Collections check is not read here as
-  evidence that BKC-05 is absent.
+  is why the collection, notification and change-password suites repeat their
+  interactions 50 to 102 times each, and why the single Collections check inside
+  the browser regression is not read here as evidence on its own.
 - Chromium desktop/mobile and keyboard behavior are checked. Real-device
   Safari/Firefox and assistive-technology/WCAG audits remain unverified. Native
   Auth access JWTs retain their normal expiry semantics; instant revocation of
@@ -197,12 +240,18 @@ PASS does not mean production has been patched.
 [Desktop/mobile screenshots](certification-evidence/README.md).
 
 Thirty dashboard and six chart review JPGs are included. No failed attempt was
-replaced by a passing retry: every failed run is kept, and the pre-fix
-reproductions for BKC-03 and BKC-04, the previous certification's focused
-notification retries and its retained ordering run live under
-`certification-evidence/baseline/`. **This is an isolated certification**: a
-disposable local stack of real GoTrue, PostgREST and PostgreSQL, seeded with
-synthetic accounts and money. It says nothing about the hosted project, which
-still runs the unremediated password function. The open BKC-05 failure and that
-unremediated production function prevent an overall PASS. The isolated database
-was disposable; no production transaction was executed.
+replaced by a passing retry: every failed and terminated run is kept, and the
+pre-fix reproductions for BKC-03 and BKC-04, the collection-confirmation
+measurement behind BKC-05, the terminated collection run, the previous
+certification's focused notification retries and its retained ordering run all
+live under `certification-evidence/baseline/`.
+
+**This is an isolated certification.** It ran against a disposable local stack
+of real GoTrue, PostgREST and PostgreSQL, seeded with synthetic accounts and
+synthetic money, on a branch that was never deployed. It says what the code in
+this branch does. It says nothing about the hosted project, which still runs the
+unremediated password function from BKC-01 and has not been verified against any
+of this. Hosted verification is a separate exercise under separate
+authorization, after the migration and the matching application are rolled out
+together. The isolated database was disposable; no production transaction was
+executed, and no production Supabase, Vercel or deployment setting was touched.

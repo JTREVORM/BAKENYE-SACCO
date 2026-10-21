@@ -1,14 +1,14 @@
 {
-  "capturedAt": "2026-10-21T08:02:30.823Z",
+  "capturedAt": "2026-10-21T10:12:33.407Z",
   "members": [
     {
       "member_no": "BND26001",
       "full_name": "Certification Member Alpha",
-      "savings_balance": "126250.00",
+      "savings_balance": "250624.00",
       "shares_owned": 10,
       "share_value": "100000.00",
       "loan_balance": "86000.00",
-      "total_equity": "226250.00"
+      "total_equity": "350624.00"
     },
     {
       "member_no": "BND26002",
@@ -99,7 +99,7 @@
     {
       "name": "Cash at Hand",
       "account_type": "cash",
-      "balance": "324750.00"
+      "balance": "449124.00"
     }
   ],
   "migrations": [

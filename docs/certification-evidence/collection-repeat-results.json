@@ -1,0 +1,203 @@
+{
+  "date": "2026-10-21T09:56:07.124Z",
+  "results": [
+    {
+      "name": "field_officer mobile: collection 1/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021106"
+    },
+    {
+      "name": "field_officer mobile: collection 2/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021107"
+    },
+    {
+      "name": "field_officer mobile: collection 3/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021108"
+    },
+    {
+      "name": "field_officer mobile: collection 4/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021109"
+    },
+    {
+      "name": "field_officer mobile: collection 5/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021110"
+    },
+    {
+      "name": "field_officer desktop: collection 1/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021111"
+    },
+    {
+      "name": "field_officer desktop: collection 2/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021112"
+    },
+    {
+      "name": "field_officer desktop: collection 3/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021113"
+    },
+    {
+      "name": "field_officer desktop: collection 4/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021114"
+    },
+    {
+      "name": "field_officer desktop: collection 5/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021115"
+    },
+    {
+      "name": "cashier mobile: collection 1/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021116"
+    },
+    {
+      "name": "cashier mobile: collection 2/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021117"
+    },
+    {
+      "name": "cashier mobile: collection 3/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021118"
+    },
+    {
+      "name": "cashier mobile: collection 4/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021119"
+    },
+    {
+      "name": "cashier mobile: collection 5/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021120"
+    },
+    {
+      "name": "cashier desktop: collection 1/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021121"
+    },
+    {
+      "name": "cashier desktop: collection 2/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021122"
+    },
+    {
+      "name": "cashier desktop: collection 3/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021123"
+    },
+    {
+      "name": "cashier desktop: collection 4/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021124"
+    },
+    {
+      "name": "cashier desktop: collection 5/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021125"
+    },
+    {
+      "name": "manager mobile: collection 1/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021126"
+    },
+    {
+      "name": "manager mobile: collection 2/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021127"
+    },
+    {
+      "name": "manager mobile: collection 3/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021128"
+    },
+    {
+      "name": "manager mobile: collection 4/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021129"
+    },
+    {
+      "name": "manager mobile: collection 5/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021130"
+    },
+    {
+      "name": "manager desktop: collection 1/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021131"
+    },
+    {
+      "name": "manager desktop: collection 2/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021132"
+    },
+    {
+      "name": "manager desktop: collection 3/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021133"
+    },
+    {
+      "name": "manager desktop: collection 4/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021134"
+    },
+    {
+      "name": "manager desktop: collection 5/5 is recorded, confirmed and receipted",
+      "pass": true,
+      "reference": "SAV261021135"
+    },
+    {
+      "name": "field_officer mobile: a slow answer still confirms, and the control stays busy until it does",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: three clicks during one slow request post one row",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: a lost answer is never called a failure, and the recheck finds the posting",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: a lost answer for a request that never arrived records it once on recheck",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: a refusal states the reason and posts nothing",
+      "pass": true
+    },
+    {
+      "name": "field_officer mobile: reloading after a confirmed collection does not post it again",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: a slow answer still confirms, and the control stays busy until it does",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: three clicks during one slow request post one row",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: a lost answer is never called a failure, and the recheck finds the posting",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: a lost answer for a request that never arrived records it once on recheck",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: a refusal states the reason and posts nothing",
+      "pass": true
+    },
+    {
+      "name": "field_officer desktop: reloading after a confirmed collection does not post it again",
+      "pass": true
+    }
+  ]
+}

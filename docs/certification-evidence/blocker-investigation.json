@@ -1,5 +1,5 @@
 {
-  "applicationBase": "96e1d54",
+  "applicationBase": "e62a7c8",
   "productionAssessment": {
     "date": "2026-10-20",
     "scope": "Read-only pg_proc function definition and execution privileges; no function invocation or account data reads",
@@ -280,18 +280,57 @@
       ]
     }
   },
-  "remainingExposure": {
-    "title": "BKC-05 - the same defect still reaches other server-action forms",
-    "scope": "Not fixed in this branch and outside the BKC-04 change",
-    "mechanism": "Every other form in the application still publishes its result through useActionState, which is the mechanism BKC-04 had to stop using.",
-    "financialObservation": {
+  "collectionInvestigation": {
+    "scope": "Savings collection through the field officer screen, in a real browser against the disposable stack; all postings synthetic",
+    "baselineComponent": "RecordCollectionDialog: useActionState(recordMemberCollection); the confirmation screen rendered from state.ok",
+    "baselineMeasurement": {
       "component": "RecordCollectionDialog - the field officer savings collection",
       "measured": "2 of 10 real postings on the stack that had already run a full certification; 15 of 15 confirmed on the final clean stack; the browser regression`s own Collections check failed once in two runs",
       "effect": "The transaction was written to the ledger every time. In the failures the \"Savings recorded\" dialog never appeared, so the person at the counter saw no confirmation for money that had been taken.",
       "risk": "The per-form idempotency key stops a resubmission of the same open dialog, but a fresh dialog carries a new key, so a re-entered collection would post twice.",
       "evidence": "baseline/collection-confirmation-exposure.json"
     },
-    "otherObservation": "The forced first-password change redirected only after a retry once, leaving must_change_password set; it succeeded on the next attempt.",
-    "proposedRemedy": "Apply the pattern proven here - await the action, hold the result and the busy state locally - to the remaining server-action forms, financial confirmations first. That is a separate change with its own review and regression."
+    "cause": "The same client tree-update defect as BKC-02, BKC-03 and BKC-04. The action posts and its promise resolves with the result; useActionState publishes that result through an app-router update which, on this page, commits only intermittently. The ledger was correct in every observed failure; only the confirmation was lost.",
+    "correction": "useSubmission awaits the call and holds the outcome in component state; ActionForm wires it to the form; SubmitButton reads its pending state from that form rather than from useFormStatus. The action, the RPC, the posting rules, the reference, the approval requirements and the calculations are unchanged.",
+    "outcomes": "Three, never silence: carried out (with reference and receipt), refused (with the server message), or unresolved. Unresolved keeps the submission FormData and its idempotency key and offers only a re-send of that same submission; the posting functions return the original row for a key already seen, so the re-send either reports the posting that happened or performs the one that never did.",
+    "regressionIntroducedAndFixed": "Converting both branches to the same component let React reuse one DOM button, so the clicked \"Review\" became type=\"submit\" mid-click and posted a collection from the editing step. Found by the new suite before release; fixed with distinct keys and a phase guard.",
+    "verification": {
+      "suite": "scripts/certification/collection-check.mjs",
+      "authoritativeRun": {
+        "interactions": 102,
+        "pass": 102,
+        "ordinaryCollections": 90,
+        "failurePathCases": 12,
+        "coverage": "field officer, cashier and manager at 390px and 1440px, fifteen apiece, plus a slow answer, three clicks during one slow request, a lost answer for a posting that happened, a lost answer for one that never arrived, a refusal and a reload after a confirmed collection, each at both viewports"
+      },
+      "repeatRun": {
+        "interactions": 42,
+        "pass": 42,
+        "note": "Final production build"
+      },
+      "assertedEveryAttempt": [
+        "the screen states an outcome",
+        "exactly one ledger row carries the submission idempotency key",
+        "the reference shown is the ledger reference",
+        "the member balance moved by the amount recorded and no more"
+      ],
+      "terminatedRun": {
+        "interactions": 102,
+        "verifiedPassesBeforeTermination": 82,
+        "abortedByOperator": 20,
+        "note": "An earlier run on the previous build was stopped by the operator mid-run; the twenty recorded failures are all \"browser has been closed\" from that termination, not product failures. Retained as baseline/collection-terminated-run.json and not counted as a result."
+      }
+    },
+    "limit": "No claim is made about the internal Next.js cause. The defect is localized to the client application of server-action results."
+  },
+  "remainingExposure": {
+    "title": "The duplicate an idempotency key cannot stop",
+    "scope": "Investigated and documented; no database change made",
+    "finding": "The key protects one form instance. Closing the dialog, reopening it and entering the same payment generates a new key, and the database has no reason to refuse it.",
+    "existingGuard": "Merchant and bank collections must carry the external reference from the confirmation message, and record_member_collection refuses a reference already recorded against a live transaction. Cash collections require no reference, so nothing stops a second entry.",
+    "proposal": "Have the posting function refuse - or require an explicit override - when the same member, type, amount and value date are posted twice within a few minutes. It should refuse rather than silently de-duplicate, so a genuine second payment of the same amount can still be recorded deliberately. Not implemented here: it changes financial database behaviour and needs its own authorization and review.",
+    "interimMitigation": "The unresolved screen tells the person not to re-enter the payment and to check the member statement first.",
+    "formsLeftOnUseActionState": 19,
+    "formsLeftNote": "Configuration, member-record and account-administration forms. None posts to the ledger; each is recoverable by reloading the page. Listed with reasons in docs/financial-form-audit.md."
   }
 }

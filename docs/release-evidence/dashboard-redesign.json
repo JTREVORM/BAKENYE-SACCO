@@ -1,0 +1,600 @@
+{
+  "date": "2026-10-21T17:10:22.560Z",
+  "branch": "release/dashboard-redesign",
+  "base": "main 5a1c81a (the commit production serves today)",
+  "schema": "48 migrations - main's, i.e. production's. The password-security migration is absent.",
+  "environment": "Disposable local stack: GoTrue v2.197.0, PostgREST v13.0.7, PostgreSQL 16, synthetic accounts and money. No hosted resource was read for testing or written.",
+  "harnessNote": "The certification harness was run from outside the repository, from the development branch's copy, and is not part of this release. Its seed was adapted to production's own password path (auth.updateUser then log_password_changed), because the development seed calls RPCs that only exist in the excluded migration.",
+  "results": {
+    "sql": {
+      "pass": 471,
+      "total": 471,
+      "note": "main's SQL suites. The development branch has 472: the extra one is the BKC-01 bypass-rejection assertion, correctly absent here."
+    },
+    "authRestRls": {
+      "pass": 56,
+      "total": 57,
+      "failures": [
+        {
+          "name": "temporary password cannot be bypassed by calling completion RPC",
+          "detail": "retired RPC must deny client execution"
+        }
+      ],
+      "expectedFailure": "temporary password cannot be bypassed by calling completion RPC - BKC-01. The legacy log_password_changed RPC is still executable on the production schema. Pre-existing in production; this release changes no auth or database file."
+    },
+    "sessionRefresh": {
+      "pass": 1,
+      "total": 1
+    },
+    "financialWorkflows": {
+      "pass": 6,
+      "total": 6,
+      "failures": []
+    },
+    "reconciliation": {
+      "pass": 11,
+      "total": 11,
+      "failures": []
+    },
+    "browserRegression": {
+      "pass": 198,
+      "total": 200,
+      "failures": [
+        {
+          "name": "member notifications persist read state without changing peer notifications",
+          "detail": "locator.waitFor: Timeout 30000ms exceeded."
+        },
+        {
+          "name": "member_b: profile password form verifies current password and records native change",
+          "detail": "locator.waitFor: Timeout 30000ms exceeded."
+        }
+      ],
+      "expectedFailures": "Both are excluded fixes in files byte-identical to production main: \"Mark all read\" never hides (BKC-03, src/components/MarkAllRead.tsx) and \"Your current password is incorrect.\" never appears (BKC-04, src/components/auth/ChangePasswordForm.tsx)."
+    },
+    "chartNavigation": {
+      "pass": 9,
+      "total": 9,
+      "failures": []
+    },
+    "accessibilityResponsive": {
+      "pass": 3,
+      "total": 3,
+      "failures": [],
+      "groups": 80
+    },
+    "restrictionsLockout": {
+      "pass": 14,
+      "total": 14,
+      "failures": []
+    },
+    "productionPreviewExclusion": {
+      "pass": 26,
+      "total": 26
+    },
+    "lint": {
+      "errors": 0,
+      "warnings": 1,
+      "warning": "unused Icon import in src/components/staff/FinancialActivity.tsx - left byte-identical to its certified version"
+    },
+    "typescript": "pass",
+    "productionBuild": "pass, 77 pages",
+    "unit": {
+      "dashboardFixtures": "5/5",
+      "dashboardCertification": "5/5",
+      "phoneValidation": "36/36"
+    }
+  },
+  "screenshots": {
+    "method": "Each of the 36 approved screenshots compared with the release run at the same viewport. pixelsChangedPct: share of pixels whose colour moved by more than 40/255. bandsChangedPct: share of 8px horizontal bands whose mean colour moved by more than 18/255 - a shifted, missing or restyled block changes whole bands, a changed figure does not.",
+    "compared": 36,
+    "total": 36,
+    "maxPixelsChangedPct": 1.32,
+    "maxBandsChangedPct": 0,
+    "files": [
+      {
+        "file": "accountant-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 0,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "accountant-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0.35,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "accountant-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0.29,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "admin-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 0.13,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "admin-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0.2,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "admin-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0.16,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "cashier-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 0.22,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "cashier-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0.59,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "cashier-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0.48,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "chart-manager-1440-12.jpg",
+        "approvedSize": [
+          354,
+          340
+        ],
+        "releaseSize": [
+          354,
+          340
+        ],
+        "pixelsChangedPct": 0.23,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "chart-manager-320-12.jpg",
+        "approvedSize": [
+          276,
+          387
+        ],
+        "releaseSize": [
+          276,
+          387
+        ],
+        "pixelsChangedPct": 0.24,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "chart-manager-390-12.jpg",
+        "approvedSize": [
+          346,
+          380
+        ],
+        "releaseSize": [
+          346,
+          380
+        ],
+        "pixelsChangedPct": 0.24,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "chart-super_admin-1440-12.jpg",
+        "approvedSize": [
+          354,
+          396
+        ],
+        "releaseSize": [
+          354,
+          396
+        ],
+        "pixelsChangedPct": 0.2,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "chart-super_admin-320-12.jpg",
+        "approvedSize": [
+          276,
+          344
+        ],
+        "releaseSize": [
+          276,
+          344
+        ],
+        "pixelsChangedPct": 0.18,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "chart-super_admin-390-12.jpg",
+        "approvedSize": [
+          346,
+          334
+        ],
+        "releaseSize": [
+          346,
+          334
+        ],
+        "pixelsChangedPct": 0.23,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "field_officer-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 0.12,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "field_officer-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0.19,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "field_officer-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0.22,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "loan_officer-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 0,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "loan_officer-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "loan_officer-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "manager-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 1.32,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "manager-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0.13,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "manager-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0.38,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "member_a-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 0.1,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "member_a-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0.2,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "member_a-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0.21,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "member_b-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 0,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "member_b-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "member_b-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "super_admin-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 1.09,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "super_admin-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0.52,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "super_admin-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0.56,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "viewer-1440.jpg",
+        "approvedSize": [
+          1440,
+          900
+        ],
+        "releaseSize": [
+          1440,
+          900
+        ],
+        "pixelsChangedPct": 1.28,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "viewer-320.jpg",
+        "approvedSize": [
+          320,
+          900
+        ],
+        "releaseSize": [
+          320,
+          900
+        ],
+        "pixelsChangedPct": 0.13,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      },
+      {
+        "file": "viewer-390.jpg",
+        "approvedSize": [
+          390,
+          900
+        ],
+        "releaseSize": [
+          390,
+          900
+        ],
+        "pixelsChangedPct": 0.38,
+        "bandsChangedPct": 0,
+        "status": "compared"
+      }
+    ]
+  }
+}

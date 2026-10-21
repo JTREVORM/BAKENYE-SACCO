@@ -21,12 +21,15 @@ export function LedgerTable({
   rows,
   showAccount = true,
   showBalance = true,
+  readable = false,
   emptyTitle = 'No transactions yet',
   emptyBody = 'Collections, transfers and payments will appear here once they are recorded.',
 }: {
   rows: AccountMovementRow[];
   showAccount?: boolean;
   showBalance?: boolean;
+  /** Dashboard presentation: full descriptions and explicit scroll controls. */
+  readable?: boolean;
   emptyTitle?: string;
   emptyBody?: string;
 }) {
@@ -85,9 +88,11 @@ export function LedgerTable({
       </ul>
 
       {/* Tablet and up, and always in print: the ledger table. */}
-      <div className="hidden md:block print:block">
+      <div data-ledger-readable={readable || undefined} className="hidden md:block print:block">
         <DataTable
           dense
+          scrollLabel={readable ? 'Account ledger' : undefined}
+          scrollHint={readable ? 'Scroll horizontally to view balances, recorded by and status. You can also use the arrow keys.' : undefined}
           head={
             <>
               <th>Date</th>
@@ -95,9 +100,9 @@ export function LedgerTable({
               {showAccount ? <th>Account</th> : null}
               <th>Type</th>
               <th>Description</th>
-              <th className="text-right">Money in</th>
-              <th className="text-right">Money out</th>
-              {showBalance ? <th className="text-right">Balance</th> : null}
+              <th className="text-right">Money in{readable ? ' (UGX)' : ''}</th>
+              <th className="text-right">Money out{readable ? ' (UGX)' : ''}</th>
+              {showBalance ? <th className="text-right">Balance{readable ? ' (UGX)' : ''}</th> : null}
               <th>Recorded by</th>
               <th>Status</th>
             </>
@@ -137,11 +142,11 @@ export function LedgerTable({
                   {r.counter_account_name ? ` · ${r.money_in > 0 ? 'from' : 'to'} ${r.counter_account_name}` : ''}
                 </span>
               </td>
-              <td className="min-w-[200px] max-w-[320px]">
+              <td data-ledger-description className="min-w-[200px] max-w-[320px]">
                 {r.custom_expense ? (
                   <span className="block break-words font-semibold">{expenseCategoryLabel(r.category_label, r.custom_expense)}</span>
                 ) : null}
-                <span className="line-clamp-2">
+                <span className={readable ? 'whitespace-normal break-words' : 'line-clamp-2'}>
                   {r.member_name ? `${r.member_name} (${r.member_no}) · ` : ''}
                   {r.description ?? r.category_label}
                 </span>

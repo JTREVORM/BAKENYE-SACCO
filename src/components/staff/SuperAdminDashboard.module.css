@@ -1,0 +1,114 @@
+/* Applied only to the Super Admin dashboard; shared components retain defaults. */
+.dashboard { background: #f0f4fa; color: #0a1737; }
+.dashboard :global([data-app-header]) { background: #f8faff; box-shadow: 0 2px 8px #1233540c; }
+.dashboard :global([data-app-header] input) { background: linear-gradient(110deg,#e5ecf6,#eef3f9); box-shadow: none; }
+.dashboard :global([data-app-header] a[href='/staff/savings/record']) { background: linear-gradient(130deg,#123566,#041b3e); border-radius: 17px; box-shadow: 0 4px 10px #0c2c5640; }
+.dashboard :global([data-sidebar] nav a[aria-current='page']) { background: linear-gradient(100deg,#ffffff15 25%,#c8ad5238); box-shadow: inset 0 2px 12px #ffffff55,inset -2px 0 #e9b72c,0 4px 12px #0001; }
+.dashboard :global([data-sidebar] nav a[aria-current='page'] > span:first-child) { height: 36px; background: #ffc324; }
+.dashboard :global([data-sidebar] > div:last-child > div) { border: none; background: linear-gradient(110deg,#ffffff12 30%,#b887386f); box-shadow: inset 0 1px 8px #ffffff13; }
+.dashboard :global([data-sidebar] > div:last-child p) { color: white; }
+.dashboard :global([data-admin-dashboard].space-y-gutter > :not([hidden]) ~ :not([hidden])) { margin-top: 14px; }
+.dashboard :global([data-admin-dashboard].space-y-gutter > :not([hidden]) ~ [aria-label="Accounts and sign-in"]:not([hidden])) { margin-top: 19px; }
+.dashboard :global([data-hero]) { border-radius: 21px; box-shadow: 0 5px 16px #17395e0c; }
+.dashboard :global([data-hero] > img) { opacity: 1; filter: brightness(1.12); }
+.dashboard :global([data-hero] > div:nth-child(2)) { background: linear-gradient(90deg,#082750 0%,#0a2c57d9 30%,#0b2d5838 67%,transparent); }
+.dashboard :global([data-hero] > div:nth-child(3)) { background: linear-gradient(0deg,#061e3c40,transparent 65%); }
+.dashboard :global([data-hero] > div:last-child) { min-height: 170px; padding: 26px 36px 24px; align-items: flex-end; gap: 20px; }
+.dashboard :global([data-hero] h1) { font-size: 38px; letter-spacing: -.025em; }
+.dashboard :global([data-hero] p:first-child) { color: #ffc400; font-size: 16px; letter-spacing: .12em; }
+.dashboard :global([data-hero] p:last-of-type) { color: white; font-size: 18px; margin-top: 6px; }
+.dashboard :global([data-hero] a) { color: white; border: 1px solid #ffffffa0; border-radius: 20px; background: linear-gradient(110deg,#ffffff30,#061f41); backdrop-filter: blur(8px); box-shadow: 0 3px 8px #0003; }
+.dashboard :global([data-hero] .bg-gold-gradient) { width: 59px; height: 5px; background: #ffbf10; margin-top: 14px; }
+.dashboard :global([data-kpi]) { position: relative; border-radius: 21px; padding: 17px 18px; background: linear-gradient(125deg,#fff,#f7f9fd); box-shadow: 0 5px 22px #193f6c07; }
+.dashboard :global([data-kpi] > div:not([aria-hidden]):first-of-type),
+.dashboard :global([data-kpi] > div[aria-hidden] + div) { flex-wrap: nowrap; gap: 16px; }
+.dashboard :global([data-kpi] > div > span:first-child) { width: 50px; height: 50px; }
+.dashboard :global([data-kpi] > div > p) { font-size: 14px; font-weight: 500; min-width: 0; color: #283f66; }
+.dashboard :global([data-kpi] > div:last-child) { margin-top: -9px; padding-left: 66px; }
+.dashboard :global([data-kpi] > div:last-child > div > div) { font-size: 36px; line-height: 42px; color: #080e2d; }
+.dashboard :global([data-kpi] > div:last-child p) { font-size: 12px; font-weight: 400; line-height: 15px; margin-top: 3px; color: #5e7294; }
+.dashboard :global([aria-label='SACCO funds'] [data-kpi]) { min-height: 124px; }
+.dashboard :global([aria-label='SACCO funds'] [data-kpi] > div:last-child > div > div) { font-size: clamp(17px,1.15vw,22px); line-height: 30px; overflow-wrap: anywhere; }
+.dashboard :global([aria-label='SACCO funds'] [data-kpi]:first-child) { background: linear-gradient(120deg,#103b89,#08234b); box-shadow: 0 4px 10px #163e6a2a; }
+.dashboard :global([aria-label='SACCO funds'] [data-kpi]:first-child p),
+.dashboard :global([aria-label='SACCO funds'] [data-kpi]:first-child > div:last-child > div > div) { color: white; }
+.dashboard :global([aria-label='SACCO funds'] [data-kpi]:first-child > div:last-child > div > div) { font-size: clamp(20px,1.45vw,27px); }
+.dashboard :global([data-admin-panels] > div > section) { border-radius: 21px; background: linear-gradient(120deg,#fff,#f7f9fd); box-shadow: 0 4px 20px #12345c07; height: 100%; }
+.dashboard :global([data-admin-panels] section > header) { padding: 14px 18px 10px; min-height: 55px; border: none; }
+.dashboard :global([data-admin-panels] h3) { font-size: 16px; font-weight: 700; }
+.dashboard :global([data-admin-panels] header > div > span) { width: 33px; height: 33px; border-radius: 50%; }
+.dashboard :global([data-admin-panels] table) { font-size: 12px; }
+.dashboard :global([data-admin-panels] th) { background: #eaf0f7; color: #0b1735; padding: 6px 10px; font-size: 12px; text-transform: none; letter-spacing: 0; }
+.dashboard :global([data-admin-panels] td) { padding: 4px 10px; font-weight: 400; border-color: #e7edf5; }
+.dashboard :global([data-admin-panels] td:first-child span) { display: inline; font-size: 12px; font-weight: 400; }
+.dashboard :global([data-admin-panels] td:first-child span + span)::before { content: ', '; }
+.dashboard :global([data-admin-panels] td:last-child a) { height: 22px; width: 24px; }
+.dashboard :global([data-admin-panels] tbody tr:nth-child(even)) { background: #edf3fa65; }
+.dashboard :global([data-admin-panels] table [class*='rounded-full']) { padding-top: 2px; padding-bottom: 2px; }
+.dashboard :global([data-admin-panels] figure figcaption) { border: none; padding-top: 0; margin-top: 10px; gap: 24px; }
+.dashboard :global([data-admin-panels] figure svg rect) { opacity: .85; }
+@media (min-width: 1500px) {
+  .dashboard :global([data-sidebar][data-collapsed='false']) { width: 345px; }
+  .dashboard :global([data-sidebar][data-collapsed='false'] > div:nth-child(2)) { padding: 14px 20px; min-height: 92px; }
+  .dashboard :global([data-sidebar][data-collapsed='false'] > div:nth-child(2) a > span:first-child) { width: 66px; height: 66px; }
+  .dashboard :global([data-sidebar][data-collapsed='false'] > div:nth-child(2) a > span:last-child > span:first-child) { font-size: 16px; }
+  .dashboard :global([data-sidebar][data-collapsed='false'] nav a) { min-height: 47px; font-size: 16px; gap: 22px; padding-left: 22px; }
+  .dashboard :global([data-sidebar][data-collapsed='false'] > div:last-child > div) { min-height: 104px; border-radius: 24px; padding: 20px; }
+  .dashboard :global([data-sidebar][data-collapsed='false'] > div:last-child p) { font-size: 15px; font-weight: 500; }
+  .dashboard :global([data-app-header] > div) { max-width: none; }
+  .dashboard :global([data-app-header] > div > div:first-of-type) { max-width: 635px; }
+  .dashboard :global(main .max-w-content) { max-width: none; }
+  .dashboard :global(main .md\:p-container-margin-desktop) { padding-top: 21px; }
+  .dashboard :global([aria-label='Accounts and sign-in']) { gap: 24px; }
+  .dashboard :global([aria-label='SACCO funds']) { grid-template-columns: 1.15fr repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .dashboard :global([data-admin-panels]) { grid-template-columns: 1.86fr 1fr; gap: 18px; }
+  .dashboard :global([data-admin-panels] > div) { grid-column: auto; }
+  .dashboard :global([data-admin-panels] > div > section) { min-height: 262px; }
+  .dashboard :global([data-admin-panels] > div:first-child > section > div) { padding: 0 19px 18px; }
+  .dashboard :global([data-admin-panels] th:nth-child(4)),
+  .dashboard :global([data-admin-panels] td:nth-child(4)) { display: table-cell; }
+  .dashboard :global([data-admin-panels] figure svg) { max-height: 165px; }
+}
+@media (max-width: 767px) {
+  .dashboard :global([data-hero] > div:last-child) { padding: 22px; align-items: flex-start; }
+  .dashboard :global([data-hero] h1) { font-size: 28px; }
+  .dashboard :global([data-hero] p:last-of-type) { font-size: 14px; }
+  .dashboard :global([data-kpi] > div:not([aria-hidden]):first-of-type),
+  .dashboard :global([data-kpi] > div[aria-hidden] + div) { flex-wrap: wrap; gap: 8px; }
+  .dashboard :global([data-kpi] > div:last-child) { margin-top: 10px; padding-left: 0; }
+  .dashboard :global([aria-label='SACCO funds'] [data-kpi] > div:last-child > div > div) { font-size: 16px; }
+}
+/* Crop the existing community artwork to its scenic band, excluding the portrait
+   montage and decorative border while keeping the sunrise visible. */
+.dashboard :global([data-hero] > img) { width: 160% !important; max-width: none; object-position: left 62%; filter: brightness(1.06); }
+.dashboard :global([data-admin-panels] tbody > tr > td) { font-size: 13px; line-height: 1.5; padding: 8px 10px; vertical-align: middle; }
+.dashboard :global([data-admin-panels] thead > tr > th) { font-size: 12px; font-weight: 600; line-height: 1.5; padding: 8px 10px; }
+/* Descriptions use the available column width and grow the row naturally.
+   Keep metadata aligned while exposing the full text at every table width. */
+.dashboard :global([data-admin-panels] th:nth-child(4)),
+.dashboard :global([data-admin-panels] td:nth-child(4)) { display: table-cell; }
+.dashboard :global([data-admin-panels] td:nth-child(4)) { width: 28%; min-width: 12rem; max-width: none; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; }
+.dashboard :global([data-admin-panels] td:first-child span) { font-size: 12px; }
+.dashboard :global([data-admin-panels] td:nth-child(5)) { font-weight: 600; }
+.dashboard :global([aria-label='SACCO funds'] [data-kpi] > div:last-child > div > div) { overflow-wrap: normal; font-variant-numeric: tabular-nums; }
+.dashboard :global([data-admin-panels] table) { table-layout: auto; }
+.dashboard :global([data-admin-panels] table [class*='rounded-full']) { font-size: 12px; letter-spacing: 0; font-weight: 500; box-shadow: none; }
+.dashboard :global([data-admin-panels] figure svg text) { font-size: 10px; font-weight: 500; fill: #465b7b; }
+@media (min-width: 1500px) {
+  .dashboard :global([data-sidebar][data-collapsed='false'] nav a) { min-height: 43px; font-weight: 500; }
+  .dashboard :global([data-sidebar] nav .py-5) { padding-top: 18px; padding-bottom: 8px; }
+  .dashboard :global([data-app-header] > div > div:last-child) { flex: 1; }
+  .dashboard :global([data-app-header] > div > div:last-child > a:first-child) { margin-right: auto; margin-left: 4px; font-size: 16px; }
+  .dashboard :global([data-app-header] > div > div:last-child > a:nth-child(2)) { margin-right: 22px; }
+  .dashboard :global([data-app-header] button[aria-haspopup='menu']) { gap: 18px; }
+  .dashboard :global([data-app-header] button[aria-haspopup='menu'] > span:first-child) { width: 54px !important; height: 54px !important; font-size: 20px !important; }
+  .dashboard :global([data-app-header] button[aria-haspopup='menu'] > span:nth-child(2) > span:first-child) { font-size: 16px; }
+  .dashboard :global([data-kpi] > div:last-child) { margin-top: -12px; }
+  .dashboard :global([aria-label='Accounts and sign-in'] [data-kpi]) { min-height: 131px; }
+  .dashboard :global([data-admin-panels]) { margin-top: 14px; }
+}
+@media (min-width: 1500px) {
+  .dashboard :global(main .md\:p-container-margin-desktop) { padding-right: 16px; }
+  .dashboard :global([data-admin-panels] > div:last-child > section > div) { padding: 14px 20px 16px; }
+  .dashboard :global([data-admin-panels] figure svg) { height: 145px; max-height: 145px; }
+}

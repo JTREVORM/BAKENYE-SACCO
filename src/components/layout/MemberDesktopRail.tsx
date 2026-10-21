@@ -8,6 +8,7 @@ import { Icon } from '@/components/ui/primitives';
 import { ScrollArea } from '@/components/ui/scroll';
 import { MEMBER_NAV, MEMBER_MORE_NAV } from '@/lib/rbac';
 import { useBrand } from '@/components/brand/BrandProvider';
+import { RailBackdrop } from './RailBackdrop';
 import { splitName } from '@/lib/sacco-brand';
 
 /**
@@ -19,12 +20,12 @@ import { splitName } from '@/lib/sacco-brand';
  * treatment as the staff sidebar, just at the member's smaller nav surface.
  * Invisible below `md`, where the drawer behind the menu button is in charge.
  */
-export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number }) {
+export function MemberDesktopRail({ unreadCount = 0, homeActive = false }: { unreadCount?: number; homeActive?: boolean }) {
   const brand = useBrand();
   const [nameTop, nameBottom] = splitName(brand.legalName);
   const pathname = usePathname();
   function isActive(href: string) {
-    if (href === '/') return pathname === '/';
+    if (href === '/') return homeActive || pathname === '/';
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
@@ -35,20 +36,21 @@ export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number })
   return (
     <aside
       data-sidebar
-      className="hidden h-full w-sidebar shrink-0 flex-col bg-ink-gradient md:flex"
+      className="bg-ink-gradient relative isolate hidden h-full w-sidebar shrink-0 flex-col md:flex"
     >
+      <RailBackdrop />
       <Link
         href="/"
         className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-4"
       >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-1">
+        <span className="ring-secondary-fixed-dim/70 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-[0_2px_10px_rgba(4,16,40,0.45)] ring-2">
           <Image
             src="/brand/bnd-logo.png"
             alt=""
-            width={36}
-            height={36}
+            width={44}
+            height={44}
             priority
-            className="h-full w-full object-contain"
+            className="h-full w-full rounded-full object-contain"
           />
         </span>
         <span className="min-w-0">
@@ -57,7 +59,7 @@ export function MemberDesktopRail({ unreadCount = 0 }: { unreadCount?: number })
             <br />
             {nameBottom}
           </span>
-          <span className="mt-0.5 block truncate text-[10.5px] font-medium italic text-secondary-container/90">
+          <span className="text-secondary-fixed-dim mt-0.5 block text-[10.5px] font-medium italic leading-snug">
             {brand.motto}
           </span>
         </span>
@@ -124,14 +126,16 @@ function RailLink({
       href={href}
       aria-current={active ? 'page' : undefined}
       className={clsx(
-        'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-button-text transition-colors duration-150',
-        active ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white',
+        'group relative flex min-h-[46px] items-center gap-3 overflow-hidden rounded-xl px-3.5 text-button-text transition-colors duration-150',
+        active
+          ? 'bg-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]'
+          : 'text-white/65 hover:bg-white/[0.07] hover:text-white',
       )}
     >
       <span
         aria-hidden="true"
         className={clsx(
-          'absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-secondary-container transition-opacity',
+          'bg-gold-gradient absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-r-full transition-opacity',
           active ? 'opacity-100' : 'opacity-0',
         )}
       />
@@ -140,8 +144,8 @@ function RailLink({
         size={20}
         filled={active}
         className={clsx(
-          'shrink-0',
-          active ? 'text-secondary-container' : 'text-white/55 group-hover:text-white',
+          'shrink-0 transition-colors',
+          active ? 'text-secondary-fixed-dim' : 'text-white/55 group-hover:text-white',
         )}
       />
       <span className="flex-1 truncate">{label}</span>

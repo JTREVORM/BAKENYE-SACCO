@@ -1,14 +1,17 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { chargeMemberFee, payMemberFees, waiveMemberFee } from '@/app/actions/fees';
 import { Modal } from '@/components/ui/Modal';
 import { Alert } from '@/components/ui/states';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedNotice, UnresolvedSubmission } from '@/components/forms/UnresolvedSubmission';
 import { Button, Field, Input, MoneyInput, Select, SubmitButton, Textarea } from '@/components/ui/form';
 import { toISODate } from '@/lib/format';
 import { formatUGX } from '@/lib/money';
-import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
+import { newIdempotencyKey } from '@/lib/errors';
 import { RECEIVING_LABEL, methodForAccount, receivingAccountLabel } from '@/lib/receiving-accounts';
 import type { CollectionAccount, FeePaymentResult, MemberFeeRow } from '@/types/access';
 
@@ -87,7 +90,8 @@ function PayDialog({
   accounts: CollectionAccount[];
   onClose: () => void;
 }) {
-  const [state, action] = useActionState<ActionResult<FeePaymentResult> | null, FormData>(payMemberFees, null);
+  const submission = useSubmission<FeePaymentResult>(payMemberFees);
+  const state = submission.result;
   const [chosen, setChosen] = useState<Set<string>>(() => new Set(unpaid.map((c) => c.id)));
   const [accountId, setAccountId] = useState(
     (accounts.find((a) => a.account_type === 'cash' && a.is_default) ?? accounts[0])?.id ?? '',
@@ -125,7 +129,7 @@ function PayDialog({
 
   return (
     <Modal open onClose={onClose} title="Record a fee payment" description="One receipt for everything ticked.">
-      <form action={action} className="flex flex-col gap-5" noValidate>
+      <ActionForm submission={submission} className="flex flex-col gap-5" noValidate>
         <input type="hidden" name="member_id" value={memberId} />
         <input type="hidden" name="charge_ids" value={[...chosen].join(',')} />
         <input type="hidden" name="account_id" value={accountId} />
@@ -133,6 +137,7 @@ function PayDialog({
         {/* Derived from the chosen account by the one shared rule. */}
         <input type="hidden" name="method" value={methodForAccount(account)} />
         {err && !['reference', 'amount_received', 'account_id'].includes(err.field ?? '') ? <Alert tone="error">{err.error}</Alert> : null}
+        {submission.unresolved ? <UnresolvedSubmission busy={submission.busy} onRecheck={submission.recheck} noun="payment" /> : null}
 
         <ul className="flex flex-col gap-2">
           {unpaid.map((c) => (
@@ -204,7 +209,7 @@ function PayDialog({
             Record {formatUGX(total)}
           </SubmitButton>
         </div>
-      </form>
+      </ActionForm>
     </Modal>
   );
 }
@@ -218,7 +223,8 @@ function ChargeDialog({
   fees: ChargeableFee[];
   onClose: () => void;
 }) {
-  const [state, action] = useActionState<ActionResult<MemberFeeRow> | null, FormData>(chargeMemberFee, null);
+  const submission = useSubmission<MemberFeeRow>(chargeMemberFee);
+  const state = submission.result;
   const err = state && !state.ok ? state : null;
   useEffect(() => {
     if (state?.ok) onClose();
@@ -226,9 +232,10 @@ function ChargeDialog({
 
   return (
     <Modal open onClose={onClose} title="Charge a fee" description="The amount is the fee's current amount, from Settings → Fees.">
-      <form action={action} className="flex flex-col gap-5" noValidate>
+      <ActionForm submission={submission} className="flex flex-col gap-5" noValidate>
         <input type="hidden" name="member_id" value={memberId} />
         {err && !err.field ? <Alert tone="error">{err.error}</Alert> : null}
+        {submission.unresolved ? <UnresolvedNotice noun="charge" /> : null}
         <Field label="Fee" htmlFor="charge-fee" required error={err?.field === 'fee_id' ? err.error : null}>
           <Select id="charge-fee" name="fee_id" defaultValue={fees[0]?.id}>
             {fees.map((f) => (
@@ -249,7 +256,7 @@ function ChargeDialog({
             Charge fee
           </SubmitButton>
         </div>
-      </form>
+      </ActionForm>
     </Modal>
   );
 }
@@ -263,7 +270,8 @@ function WaiveDialog({
   charge: MemberFeeRow;
   onClose: () => void;
 }) {
-  const [state, action] = useActionState<ActionResult<MemberFeeRow> | null, FormData>(waiveMemberFee, null);
+  const submission = useSubmission<MemberFeeRow>(waiveMemberFee);
+  const state = submission.result;
   const err = state && !state.ok ? state : null;
   useEffect(() => {
     if (state?.ok) onClose();
@@ -276,10 +284,11 @@ function WaiveDialog({
       title={`Waive ${charge.fee_name}`}
       description={`${formatUGX(charge.amount)} will no longer be owed. The charge and the waiver both stay on the record.`}
     >
-      <form action={action} className="flex flex-col gap-5" noValidate>
+      <ActionForm submission={submission} className="flex flex-col gap-5" noValidate>
         <input type="hidden" name="member_id" value={memberId} />
         <input type="hidden" name="charge_id" value={charge.id} />
         {err && !err.field ? <Alert tone="error">{err.error}</Alert> : null}
+        {submission.unresolved ? <UnresolvedNotice noun="waiver" /> : null}
         <Field label="Reason" htmlFor="waive-reason" required hint="Kept in the audit log." error={err?.field === 'reason' ? err.error : null}>
           <Textarea id="waive-reason" name="reason" maxLength={500} />
         </Field>
@@ -291,7 +300,7 @@ function WaiveDialog({
             Waive fee
           </SubmitButton>
         </div>
-      </form>
+      </ActionForm>
     </Modal>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { recordMemberCollection } from '@/app/actions/treasury';
@@ -16,10 +16,12 @@ import {
   Field,
   Input,
   MoneyInput,
-  SubmitButton,
   Textarea,
 } from '@/components/ui/form';
-import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { UnresolvedSubmission } from '@/components/forms/UnresolvedSubmission';
+import { newIdempotencyKey } from '@/lib/errors';
 import { formatUGX, toNumber } from '@/lib/money';
 import { formatDate, toISODate } from '@/lib/format';
 import { RECEIVING_LABEL } from '@/lib/receiving-accounts';
@@ -35,6 +37,12 @@ import type { SavingsScheduleRow } from '@/types/db';
  * confirm the amount and the member, then post. The submit control is disabled
  * while the action is in flight and a stable idempotency key rides along, so a
  * double tap on a patchy connection settles into one ledger row.
+ *
+ * The outcome is awaited through `useSubmission` rather than published by
+ * `useActionState`, because certification caught savings reaching the ledger
+ * while this dialog showed nothing at all. A lost answer now has its own
+ * screen, and keeps the submission's key so it can be asked about rather than
+ * entered again.
  *
  * Choosing a merchant or bank account here means *a transfer that already
  * happened*. Nothing in this dialog contacts MTN, Airtel or any gateway; the
@@ -56,10 +64,8 @@ export function RecordCollectionDialog({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const [state, formAction] = useActionState<
-    ActionResult<MemberCollectionResult> | null,
-    FormData
-  >(recordMemberCollection, null);
+  const submission = useSubmission<MemberCollectionResult>(recordMemberCollection);
+  const state = submission.result;
 
   const [confirming, setConfirming] = useState(false);
   const [amount, setAmount] = useState<number | null>(null);
@@ -79,22 +85,41 @@ export function RecordCollectionDialog({
     into.setReference('');
     setPaidOn(toISODate());
     setIdemKey(newIdempotencyKey('collect'));
+    submission.reset();
     // `into` is re-created every render; only its setter is used here, and that
     // setter is stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, row]);
 
   useEffect(() => {
-    if (state?.ok) {
-      setConfirming(false);
+    if (!state) return;
+    setConfirming(false);
+    // A new key only once the ledger is known to hold this one. An unresolved
+    // submission keeps its key, so re-sending it asks about the entry that may
+    // already exist instead of making a second one.
+    if (state.ok) {
       setIdemKey(newIdempotencyKey('collect'));
+      // Best effort: the panel behind this dialog is stale now. The dialog
+      // states the outcome itself and does not wait on this.
       router.refresh();
-    } else if (state && !state.ok) {
-      setConfirming(false);
     }
   }, [state, router]);
 
   if (!row) return null;
+
+  /* --------------------------------------------------- answer never came */
+  if (submission.unresolved) {
+    return (
+      <Modal open={open} onClose={onClose} title="Savings not confirmed">
+        <UnresolvedSubmission
+          busy={submission.busy}
+          onRecheck={submission.recheck}
+          onClose={onClose}
+          noun="payment"
+        />
+      </Modal>
+    );
+  }
 
   const savedThisMonth = toNumber(row.saved_amount);
   const monthAfter = savedThisMonth + (amount ?? 0);
@@ -152,7 +177,12 @@ export function RecordCollectionDialog({
       title={confirming ? 'Confirm these savings' : 'Record savings'}
       description={confirming ? undefined : `${row.member_name} · ${row.period_label}`}
     >
-      <form action={formAction} noValidate>
+      <ActionForm
+        submission={submission}
+        noValidate
+        // Nothing posts from the editing step, whatever reaches this form.
+        guard={() => confirming}
+      >
         <input type="hidden" name="collection_type" value="savings" />
         {/* The month this screen is settling, so a payment dated in another
             month still lands on the row the cashier opened. */}
@@ -273,9 +303,16 @@ export function RecordCollectionDialog({
               >
                 Back
               </Button>
-              <SubmitButton size="lg" className="flex-[2]" pendingLabel="Recording…" icon="check">
-                Record savings
-              </SubmitButton>
+              <Button
+                key="post"
+                type="submit"
+                size="lg"
+                className="flex-[2]"
+                icon="check"
+                loading={submission.busy}
+              >
+                {submission.busy ? 'Recording…' : 'Record savings'}
+              </Button>
             </>
           ) : (
             <>
@@ -283,6 +320,7 @@ export function RecordCollectionDialog({
                 Cancel
               </Button>
               <Button
+                key="review"
                 size="lg"
                 className="flex-[2]"
                 iconEnd="arrow_forward"
@@ -297,7 +335,7 @@ export function RecordCollectionDialog({
             </>
           )}
         </div>
-      </form>
+      </ActionForm>
     </Modal>
   );
 }

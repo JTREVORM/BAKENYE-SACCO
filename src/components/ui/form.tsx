@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useSubmissionStatus } from '@/components/forms/ActionForm';
 import { clsx } from '@/lib/clsx';
 import { groupDigits, ungroupDigits } from '@/lib/money';
 import { Icon } from './primitives';
@@ -129,6 +130,11 @@ export function Spinner({ className }: { className?: string }) {
  * server action is in flight the control is disabled and reads "Processing…",
  * so the member cannot tap twice. The idempotency key on the RPC is the second
  * line, for the case where the first response never arrives at all.
+ *
+ * Inside an `ActionForm` the pending state comes from the awaited call. Under a
+ * plain form action it comes from `useFormStatus`, which clears only when the
+ * router commits the action's update - reliable on small pages, and the reason
+ * every money form now uses `ActionForm`.
  */
 export function SubmitButton({
   children,
@@ -136,9 +142,23 @@ export function SubmitButton({
   ...rest
 }: React.ComponentProps<typeof Button> & { pendingLabel?: string }) {
   const { pending } = useFormStatus();
+  const submission = useSubmissionStatus();
+  // With several submit buttons the pressed one shows the work; the others only
+  // lock, so "Save as draft" never reads "Processing…" for a posting.
+  const mine =
+    submission === null ||
+    submission.intent === null ||
+    rest.value === undefined ||
+    submission.intent === rest.value;
+  const busy = submission ? submission.busy && mine : pending;
   return (
-    <Button type="submit" loading={pending} {...rest}>
-      {pending ? pendingLabel : children}
+    <Button
+      type="submit"
+      {...rest}
+      loading={busy}
+      disabled={rest.disabled || (submission?.busy ?? false)}
+    >
+      {busy ? pendingLabel : children}
     </Button>
   );
 }

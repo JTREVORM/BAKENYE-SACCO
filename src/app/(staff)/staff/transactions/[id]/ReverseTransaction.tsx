@@ -1,13 +1,15 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useState } from 'react';
 import { reverseTransaction } from '@/app/actions/financial';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, SubmitButton, Textarea } from '@/components/ui/form';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedNotice } from '@/components/forms/UnresolvedSubmission';
 import { formatUGX } from '@/lib/money';
 import { toISODate } from '@/lib/format';
-import type { ActionResult } from '@/lib/errors';
 
 /**
  * Reverse a posted transaction.
@@ -35,10 +37,8 @@ export function ReverseTransaction({
   occurredOn?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [state, action] = useActionState<
-    ActionResult<{ reversal_reference: string; original_reference: string }> | null,
-    FormData
-  >(reverseTransaction, null);
+  const submission = useSubmission<{ reversal_reference: string; original_reference: string }>(reverseTransaction);
+  const state = submission.result;
 
   const err = state && !state.ok ? state : null;
 
@@ -71,10 +71,11 @@ export function ReverseTransaction({
             </Button>
           </div>
         ) : (
-          <form action={action} className="flex flex-col gap-5" noValidate>
+          <ActionForm submission={submission} className="flex flex-col gap-5" noValidate>
             <input type="hidden" name="transaction_id" value={transactionId} />
 
             {err && !err.field ? <Alert tone="error">{err.error}</Alert> : null}
+            {submission.unresolved ? <UnresolvedNotice noun="reversal" /> : null}
 
             <Alert tone="warning" title="This cannot be undone">
               A reversing entry of {formatUGX(amount)} will be posted. Balances, savings periods and
@@ -125,7 +126,7 @@ export function ReverseTransaction({
                 Confirm reversal
               </SubmitButton>
             </div>
-          </form>
+          </ActionForm>
         )}
       </Modal>
     </>

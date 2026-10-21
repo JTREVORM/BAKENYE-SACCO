@@ -1,12 +1,15 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { applyForLoan } from '@/app/actions/financial';
 import { createClient } from '@/lib/supabase/client';
 import { MemberPicker, type PickedMember } from '@/components/forms/MemberPicker';
 import { Icon, Money, Avatar } from '@/components/ui/primitives';
 import { Alert, Skeleton } from '@/components/ui/states';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedSubmission } from '@/components/forms/UnresolvedSubmission';
 import {
   Button,
   Field,
@@ -17,7 +20,7 @@ import {
   Textarea,
 } from '@/components/ui/form';
 import { formatUGX, toNumber } from '@/lib/money';
-import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
+import { newIdempotencyKey } from '@/lib/errors';
 import { clsx } from '@/lib/clsx';
 import { REPAYMENT_FREQUENCY_LABELS, type LoanProductRow, type LoanQuote } from '@/types/db';
 import type { IconName } from '@/lib/icons';
@@ -119,10 +122,8 @@ export function LoanWizard({
   const [quoting, setQuoting] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
-  const [state, formAction] = useActionState<ActionResult<{ loan_id: string; loan_no: string }> | null, FormData>(
-    applyForLoan,
-    null,
-  );
+  const submission = useSubmission<{ loan_id: string; loan_no: string }>(applyForLoan);
+  const state = submission.result;
   const [idemKey] = useState(() => newIdempotencyKey('loan-apply'));
 
   const product = useMemo(
@@ -269,7 +270,14 @@ export function LoanWizard({
 
   /* ------------------------------------------------------------------ form */
   return (
-    <form action={formAction} noValidate>
+    <ActionForm submission={submission} noValidate>
+      {submission.unresolved ? (
+        <UnresolvedSubmission
+          busy={submission.busy}
+          onRecheck={submission.recheck}
+          noun="application"
+        />
+      ) : null}
       <input type="hidden" name="member_id" value={memberId} />
       <input type="hidden" name="product_id" value={productId} />
       <input type="hidden" name="principal" value={principal ?? ''} />
@@ -785,7 +793,7 @@ export function LoanWizard({
           </SubmitButton>
         )}
       </StickyActions>
-    </form>
+    </ActionForm>
   );
 }
 

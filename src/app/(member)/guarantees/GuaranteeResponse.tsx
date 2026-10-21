@@ -1,11 +1,13 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useState } from 'react';
 import { respondToGuarantee } from '@/app/actions/financial';
 import { Alert } from '@/components/ui/states';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedNotice } from '@/components/forms/UnresolvedSubmission';
 import { Button, SubmitButton, Textarea, Field } from '@/components/ui/form';
 import { formatUGX } from '@/lib/money';
-import type { ActionResult } from '@/lib/errors';
 
 /**
  * Accept or decline a guarantee request.
@@ -23,10 +25,8 @@ export function GuaranteeResponse({
   borrowerName: string;
   amount: number;
 }) {
-  const [state, action] = useActionState<ActionResult<{ status: string }> | null, FormData>(
-    respondToGuarantee,
-    null,
-  );
+  const submission = useSubmission<{ status: string }>(respondToGuarantee);
+  const state = submission.result;
   const [mode, setMode] = useState<'idle' | 'accept' | 'decline'>('idle');
 
   if (state?.ok) {
@@ -55,11 +55,12 @@ export function GuaranteeResponse({
   }
 
   return (
-    <form action={action} className="flex flex-col gap-3" noValidate>
+    <ActionForm submission={submission} className="flex flex-col gap-3" noValidate>
       <input type="hidden" name="guarantor_id" value={guarantorId} />
       <input type="hidden" name="status" value={mode === 'accept' ? 'accepted' : 'declined'} />
 
       {state && !state.ok ? <Alert tone="error">{state.error}</Alert> : null}
+      {submission.unresolved ? <UnresolvedNotice noun="answer" /> : null}
 
       {mode === 'accept' ? (
         <Alert tone="warning" title={`You are agreeing to back ${formatUGX(amount)}`}>
@@ -88,6 +89,6 @@ export function GuaranteeResponse({
           {mode === 'accept' ? 'Yes, I accept' : 'Decline request'}
         </SubmitButton>
       </div>
-    </form>
+    </ActionForm>
   );
 }

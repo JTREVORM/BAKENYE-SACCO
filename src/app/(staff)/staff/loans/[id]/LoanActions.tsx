@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { setLoanStatus } from '@/app/actions/financial';
 import { recordMemberCollection } from '@/app/actions/treasury';
@@ -12,10 +12,13 @@ import { Alert } from '@/components/ui/states';
 import { Icon } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, SubmitButton, Textarea } from '@/components/ui/form';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedNotice, UnresolvedSubmission } from '@/components/forms/UnresolvedSubmission';
 import { formatUGX } from '@/lib/money';
 import { toISODate } from '@/lib/format';
 import { PAYING_LABEL } from '@/lib/receiving-accounts';
-import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
+import { newIdempotencyKey } from '@/lib/errors';
 import type { CollectionAccount } from '@/types/access';
 import type { MemberCollectionResult } from '@/types/treasury';
 import type { LoanStatus } from '@/types/db';
@@ -215,10 +218,8 @@ function StatusDialog({
   reasonHint?: string;
   tone?: 'primary' | 'danger';
 }) {
-  const [state, action] = useActionState<
-    ActionResult<{ loan_no: string; status: string }> | null,
-    FormData
-  >(setLoanStatus, null);
+  const submission = useSubmission<{ loan_no: string; status: string }>(setLoanStatus);
+  const state = submission.result;
   const err = state && !state.ok ? state : null;
 
   return (
@@ -231,11 +232,12 @@ function StatusDialog({
           </Button>
         </div>
       ) : (
-        <form action={action} className="flex flex-col gap-5" noValidate>
+        <ActionForm submission={submission} className="flex flex-col gap-5" noValidate>
           <input type="hidden" name="loan_id" value={loanId} />
           <input type="hidden" name="status" value={status} />
 
           {err && !err.field ? <Alert tone="error">{err.error}</Alert> : null}
+          {submission.unresolved ? <UnresolvedNotice noun="decision" /> : null}
 
           <Field
             label={reasonLabel}
@@ -266,7 +268,7 @@ function StatusDialog({
               {submitLabel}
             </SubmitButton>
           </div>
-        </form>
+        </ActionForm>
       )}
     </Modal>
   );
@@ -297,10 +299,8 @@ function DisburseDialog({
   memberName: string;
   accounts: CollectionAccount[];
 }) {
-  const [state, action] = useActionState<ActionResult<MemberCollectionResult> | null, FormData>(
-    recordMemberCollection,
-    null,
-  );
+  const submission = useSubmission<MemberCollectionResult>(recordMemberCollection);
+  const state = submission.result;
   const [idemKey] = useState(() => newIdempotencyKey('disburse'));
   const outOf = useReceivingAccount(accounts, 'out');
   const err = state && !state.ok ? state : null;
@@ -328,8 +328,15 @@ function DisburseDialog({
             Close
           </Button>
         </div>
+      ) : submission.unresolved ? (
+        <UnresolvedSubmission
+          busy={submission.busy}
+          onRecheck={submission.recheck}
+          onClose={onClose}
+          noun="disbursement"
+        />
       ) : (
-        <form action={action} className="flex flex-col gap-5" noValidate>
+        <ActionForm submission={submission} className="flex flex-col gap-5" noValidate>
           <input type="hidden" name="collection_type" value="loan_disbursement" />
           <input type="hidden" name="loan_id" value={loanId} />
           <input type="hidden" name="member_id" value={memberId} />
@@ -385,7 +392,7 @@ function DisburseDialog({
               Confirm disbursement
             </SubmitButton>
           </div>
-        </form>
+        </ActionForm>
       )}
     </Modal>
   );

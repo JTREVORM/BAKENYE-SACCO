@@ -1,14 +1,17 @@
 'use client';
 
-import { useActionState, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { collectMembershipFee } from '@/app/actions/fees';
 import { Modal } from '@/components/ui/Modal';
 import { Alert } from '@/components/ui/states';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedSubmission } from '@/components/forms/UnresolvedSubmission';
 import { Button, Field, Input, MoneyInput, Select, SubmitButton, Textarea } from '@/components/ui/form';
 import { toISODate } from '@/lib/format';
 import { formatUGX } from '@/lib/money';
-import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
+import { newIdempotencyKey } from '@/lib/errors';
 import { RECEIVING_LABEL, methodForAccount, receivingAccountLabel } from '@/lib/receiving-accounts';
 import type { CollectionAccount, FeePaymentResult } from '@/types/access';
 
@@ -38,10 +41,8 @@ export function CollectMembershipFeeDialog({
   accounts: CollectionAccount[];
   onClose: () => void;
 }) {
-  const [state, action] = useActionState<ActionResult<FeePaymentResult> | null, FormData>(
-    collectMembershipFee,
-    null,
-  );
+  const submission = useSubmission<FeePaymentResult>(collectMembershipFee);
+  const state = submission.result;
   const [amount, setAmount] = useState(String(outstanding));
   const [accountId, setAccountId] = useState(
     (accounts.find((a) => a.account_type === 'cash' && a.is_default) ?? accounts[0])?.id ?? '',
@@ -53,6 +54,19 @@ export function CollectMembershipFeeDialog({
   const typed = Number(amount);
   const valid = Number.isFinite(typed) && typed > 0 && typed <= outstanding;
   const left = valid ? outstanding - typed : outstanding;
+
+  if (submission.unresolved) {
+    return (
+      <Modal open onClose={onClose} title="Fee not confirmed">
+        <UnresolvedSubmission
+          busy={submission.busy}
+          onRecheck={submission.recheck}
+          onClose={onClose}
+          noun="payment"
+        />
+      </Modal>
+    );
+  }
 
   if (state?.ok) {
     return (
@@ -83,7 +97,7 @@ export function CollectMembershipFeeDialog({
       title="Collect membership fee"
       description={`${memberName} — ${formatUGX(outstanding)} outstanding`}
     >
-      <form action={action} className="flex flex-col gap-5" noValidate>
+      <ActionForm submission={submission} className="flex flex-col gap-5" noValidate>
         <input type="hidden" name="member_id" value={memberId} />
         <input type="hidden" name="account_id" value={accountId} />
         <input type="hidden" name="idempotency_key" value={key.current} />
@@ -189,7 +203,7 @@ export function CollectMembershipFeeDialog({
             Cancel
           </Button>
         </div>
-      </form>
+      </ActionForm>
     </Modal>
   );
 }

@@ -1,11 +1,13 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useState } from 'react';
 import { approveExpense } from '@/app/actions/financial';
 import { Alert } from '@/components/ui/states';
 import { Button, Field, SubmitButton, Textarea } from '@/components/ui/form';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedNotice } from '@/components/forms/UnresolvedSubmission';
 import { formatUGX } from '@/lib/money';
-import type { ActionResult } from '@/lib/errors';
 
 /**
  * Approve or reject a pending expense.
@@ -23,10 +25,8 @@ export function ExpenseApproval({
   amount: number;
   description: string;
 }) {
-  const [state, action] = useActionState<ActionResult<{ approval: string }> | null, FormData>(
-    approveExpense,
-    null,
-  );
+  const submission = useSubmission<{ approval: string }>(approveExpense);
+  const state = submission.result;
   const [mode, setMode] = useState<'idle' | 'approve' | 'reject'>('idle');
 
   if (state?.ok) {
@@ -52,11 +52,12 @@ export function ExpenseApproval({
   }
 
   return (
-    <form action={action} className="flex flex-col gap-3" noValidate>
+    <ActionForm submission={submission} className="flex flex-col gap-3" noValidate>
       <input type="hidden" name="expense_id" value={expenseId} />
       <input type="hidden" name="approve" value={mode === 'approve' ? 'true' : 'false'} />
 
       {state && !state.ok && !state.field ? <Alert tone="error">{state.error}</Alert> : null}
+      {submission.unresolved ? <UnresolvedNotice noun="decision" /> : null}
 
       {mode === 'approve' ? (
         <Alert tone="warning" title={`Approving releases ${formatUGX(amount)}`}>
@@ -93,6 +94,6 @@ export function ExpenseApproval({
           {mode === 'approve' ? `Approve ${formatUGX(amount)}` : 'Reject expense'}
         </SubmitButton>
       </div>
-    </form>
+    </ActionForm>
   );
 }

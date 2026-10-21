@@ -42,6 +42,7 @@ CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/browser-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/chart-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/password-form-check.mjs
+CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/collection-check.mjs
 NODE_ENV=production node scripts/dashboard-production-check.mjs http://localhost:3100
 
 # Stop the production app, run the existing fixture suites with the same local
@@ -60,6 +61,8 @@ NOTIFICATION_RESULT_FILE=notification-recheck-results.json \
   CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
 PASSWORD_FORM_RESULT_FILE=password-form-repeat-results.json \
   CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/password-form-check.mjs
+COLLECTION_RESULT_FILE=collection-repeat-results.json \
+  CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/collection-check.mjs
 
 # The lockout suite leaves a member identifier paused, so it runs after every
 # suite that signs in:
@@ -94,6 +97,17 @@ re-checks the audit count, the account row and both passwords against Auth.
 It changes the `accountant` and `member_a` passwords on success and writes them
 back to `accounts.json`, the same way the browser suite does.
 `PASSWORD_FORM_RESULT_FILE` names its result file.
+
+`collection-check` performs **102 independent savings collections** by default:
+three roles at 390px and 1440px, fifteen apiece, plus a slow answer, three
+clicks during one slow request, a lost answer for a posting that happened, a
+lost answer for one that never arrived, a refusal and a reload after a confirmed
+collection. Every attempt asserts the screen states an outcome, that exactly one
+ledger row carries the submission's key, that the reference shown is the
+ledger's, and that the balance moved by the amount recorded and no more.
+`COLLECTION_ATTEMPTS` sets the repeat count and `COLLECTION_RESULT_FILE` names
+its result file. It posts real synthetic savings, so run it before the amount
+assertions in `metrics-check` or re-run those after.
 
 `restrictions-check` intentionally locks one synthetic identifier; run it last.
 For a targeted browser retry use, for example, `browser-check.mjs super_admin`.

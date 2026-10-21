@@ -1,7 +1,10 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useState } from 'react';
 import { Alert } from '@/components/ui/states';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedNotice } from '@/components/forms/UnresolvedSubmission';
 import { Modal } from '@/components/ui/Modal';
 import { Button, SubmitButton } from '@/components/ui/form';
 import { Icon } from '@/components/ui/primitives';
@@ -100,7 +103,8 @@ export function IssuePasswordButton({
   size?: 'sm' | 'md';
 }) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState<ActionResult<TemporaryPassword> | null, FormData>(action, null);
+  const submission = useSubmission<TemporaryPassword>(action);
+  const state = submission.result;
   const err = state && !state.ok ? state : null;
 
   return (
@@ -117,7 +121,8 @@ export function IssuePasswordButton({
             </Button>
           </div>
         ) : (
-          <form action={formAction} className="flex flex-col gap-4">
+          <ActionForm submission={submission} className="flex flex-col gap-4">
+            {submission.unresolved ? <UnresolvedNotice noun="reset" /> : null}
             {Object.entries(fields).map(([k, v]) => (
               <input key={k} type="hidden" name={k} value={v} />
             ))}
@@ -134,7 +139,7 @@ export function IssuePasswordButton({
                 {confirmLabel}
               </SubmitButton>
             </div>
-          </form>
+          </ActionForm>
         )}
       </Modal>
     </>

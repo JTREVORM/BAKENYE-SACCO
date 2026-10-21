@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   cancelPayment,
@@ -12,6 +12,9 @@ import {
 } from '@/app/actions/treasury';
 import { approveExpense } from '@/app/actions/financial';
 import { Button, Field, SubmitButton, Textarea } from '@/components/ui/form';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { UnresolvedNotice } from '@/components/forms/UnresolvedSubmission';
 import { Alert } from '@/components/ui/states';
 import { formatUGX } from '@/lib/money';
 import type { ActionResult } from '@/lib/errors';
@@ -64,9 +67,13 @@ export function ApprovalControls({
 }) {
   const router = useRouter();
   const set = ACTIONS[kind];
-  const [decideState, decide] = useActionState<ActionResult<unknown> | null, FormData>(set.decide, null);
-  const [cancelState, cancel] = useActionState<ActionResult<unknown> | null, FormData>(set.cancel ?? noop, null);
-  const [submitState, submit] = useActionState<ActionResult<unknown> | null, FormData>(set.submit ?? noop, null);
+  const decide = useSubmission<unknown>(set.decide);
+  const cancel = useSubmission<unknown>(set.cancel ?? noop);
+  const submit = useSubmission<unknown>(set.submit ?? noop);
+  const decideState = decide.result;
+  const cancelState = cancel.result;
+  const submitState = submit.result;
+  const unresolved = decide.unresolved || cancel.unresolved || submit.unresolved;
   const [mode, setMode] = useState<'idle' | 'approve' | 'reject' | 'cancel'>('idle');
 
   const done = [decideState, cancelState, submitState].find((s) => s?.ok) ?? null;
@@ -94,6 +101,7 @@ export function ApprovalControls({
     return (
       <div className="flex flex-col gap-2">
         {failed ? <Alert tone="error">{failed.error}</Alert> : null}
+        {unresolved ? <UnresolvedNotice noun="decision" /> : null}
         <div className="flex flex-wrap gap-2">
           {showApprove ? (
             <>
@@ -106,12 +114,12 @@ export function ApprovalControls({
             </>
           ) : null}
           {showSubmit ? (
-            <form action={submit}>
+            <ActionForm submission={submit}>
               <input type="hidden" name="id" value={id} />
               <SubmitButton size="sm" icon="send" pendingLabel="Submitting…">
                 Submit
               </SubmitButton>
-            </form>
+            </ActionForm>
           ) : null}
           {showCancel ? (
             <Button size="sm" variant="ghost" icon="cancel" onClick={() => setMode('cancel')}>
@@ -125,12 +133,13 @@ export function ApprovalControls({
 
   const isCancel = mode === 'cancel';
   return (
-    <form action={isCancel ? cancel : decide} className="flex flex-col gap-3" noValidate>
+    <ActionForm submission={isCancel ? cancel : decide} className="flex flex-col gap-3" noValidate>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="expense_id" value={id} />
       {!isCancel ? <input type="hidden" name="approve" value={mode === 'approve' ? 'true' : 'false'} /> : null}
 
       {failed && !failed.field ? <Alert tone="error">{failed.error}</Alert> : null}
+      {unresolved ? <UnresolvedNotice noun="decision" /> : null}
 
       {mode === 'approve' ? (
         <Alert tone="warning" title={`Approving ${number} moves ${formatUGX(amount)}`}>
@@ -156,6 +165,6 @@ export function ApprovalControls({
           {mode === 'approve' ? `Approve ${formatUGX(amount)}` : isCancel ? 'Cancel entry' : 'Reject'}
         </SubmitButton>
       </div>
-    </form>
+    </ActionForm>
   );
 }

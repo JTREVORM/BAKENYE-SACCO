@@ -1,10 +1,13 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Icon, Money } from '@/components/ui/primitives';
 import { Alert } from '@/components/ui/states';
-import { Button, SubmitButton, StickyActions } from '@/components/ui/form';
+import { Button, StickyActions } from '@/components/ui/form';
+import { useSubmission } from '@/components/forms/useSubmission';
+import { ActionForm } from '@/components/forms/ActionForm';
+import { UnresolvedSubmission } from '@/components/forms/UnresolvedSubmission';
 import { newIdempotencyKey, type ActionResult } from '@/lib/errors';
 import { clsx } from '@/lib/clsx';
 
@@ -22,12 +25,16 @@ import { clsx } from '@/lib/clsx';
  *   7. the transaction reference is shown
  *   8. the receipt is one tap away
  *
- * Nobody is ever left wondering whether their money moved.
+ * Nobody is ever left wondering whether their money moved. Step 6 is why the
+ * result is awaited through `useSubmission` rather than published by
+ * `useActionState`: a result that reaches the browser but never reaches the
+ * screen is exactly somebody left wondering. A lost answer is its own outcome
+ * here, told apart from a refusal and never guessed at.
  */
 
 export type FinancialSummaryLine = { label: string; value: React.ReactNode; emphasis?: boolean };
 
-type Phase = 'edit' | 'confirm' | 'done';
+type Phase = 'edit' | 'confirm';
 
 export function FinancialForm<T extends { reference?: string | null; transaction_id?: string | null }>({
   action,
@@ -77,10 +84,10 @@ export function FinancialForm<T extends { reference?: string | null; transaction
   /** Client-side gate before the confirmation step. Return an error message. */
   validate?: () => string | null;
 }) {
-  const [state, formAction] = useActionState<ActionResult<T> | null, FormData>(action, null);
+  const submission = useSubmission<T>(action);
+  const state = submission.result;
   const [phase, setPhase] = useState<Phase>('edit');
   const [clientError, setClientError] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
 
   /**
    * One key per form instance. It is regenerated only after a successful post,
@@ -90,20 +97,31 @@ export function FinancialForm<T extends { reference?: string | null; transaction
   const [idemKey, setIdemKey] = useState(() => newIdempotencyKey(idempotencyPrefix));
 
   useEffect(() => {
-    if (state?.ok) {
-      setPhase('done');
-      setIdemKey(newIdempotencyKey(idempotencyPrefix));
-    } else if (state && !state.ok) {
-      // Send the user back to the fields so they can fix what was rejected.
-      setPhase('edit');
-    }
+    // A new key only after the ledger is known to have this one. While the
+    // outcome is unresolved the submission keeps its identity, so re-sending it
+    // asks about the entry that may already exist rather than making another.
+    if (state?.ok) setIdemKey(newIdempotencyKey(idempotencyPrefix));
+    // Send the user back to the fields so they can fix what was rejected.
+    else if (state && !state.ok) setPhase('edit');
   }, [state, idempotencyPrefix]);
 
   const lines = useMemo(() => (phase === 'confirm' ? summary() : []), [phase, summary]);
   const confirmAmount = phase === 'confirm' ? amount() : null;
 
+  /* ----------------------------------------------------- answer never came */
+  if (submission.unresolved) {
+    return (
+      <UnresolvedSubmission
+        busy={submission.busy}
+        onRecheck={submission.recheck}
+        onClose={doneHref ? undefined : () => submission.reset()}
+        closeLabel="Back to the form"
+      />
+    );
+  }
+
   /* ----------------------------------------------------------------- done */
-  if (phase === 'done' && state?.ok) {
+  if (state?.ok) {
     const href = receiptHref?.(state.data) ?? null;
     return (
       <div className="animate-slide-up flex flex-col items-center py-8 text-center">
@@ -155,13 +173,15 @@ export function FinancialForm<T extends { reference?: string | null; transaction
 
   /* -------------------------------------------------------------- confirm */
   return (
-    <form
-      ref={formRef}
-      action={formAction}
+    <ActionForm
+      submission={submission}
       noValidate
-      onSubmit={() => {
+      // Nothing posts from the editing step, whatever reaches this form.
+      guard={() => {
+        if (phase !== 'confirm') return false;
         // The confirmation step has already been passed at this point.
         setClientError(null);
+        return true;
       }}
     >
       <input type="hidden" name="idempotency_key" value={idemKey} />
@@ -235,32 +255,38 @@ export function FinancialForm<T extends { reference?: string | null; transaction
             >
               Back
             </Button>
-            <SubmitButton
+            <Button
+              key="post"
+              type="submit"
               size="lg"
               className="flex-[2]"
-              pendingLabel={pendingLabel}
               icon="check"
               name="intent"
               value="submit"
+              loading={submission.busy && submission.intent !== 'draft'}
+              disabled={submission.busy}
             >
-              {submitLabel}
-            </SubmitButton>
+              {submission.busy && submission.intent !== 'draft' ? pendingLabel : submitLabel}
+            </Button>
             {draftLabel ? (
-              <SubmitButton
+              <Button
+                type="submit"
                 variant="ghost"
                 size="md"
                 className="basis-full"
-                pendingLabel="Saving…"
                 icon="draft"
                 name="intent"
                 value="draft"
+                loading={submission.busy && submission.intent === 'draft'}
+                disabled={submission.busy}
               >
-                {draftLabel}
-              </SubmitButton>
+                {submission.busy && submission.intent === 'draft' ? 'Saving…' : draftLabel}
+              </Button>
             ) : null}
           </>
         ) : (
           <Button
+            key="review"
             size="lg"
             block
             iconEnd="arrow_forward"
@@ -275,6 +301,6 @@ export function FinancialForm<T extends { reference?: string | null; transaction
           </Button>
         )}
       </StickyActions>
-    </form>
+    </ActionForm>
   );
 }

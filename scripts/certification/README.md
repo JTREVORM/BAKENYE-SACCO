@@ -41,6 +41,7 @@ node scripts/certification/metrics-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/browser-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/chart-check.mjs
 CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
+CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/password-form-check.mjs
 NODE_ENV=production node scripts/dashboard-production-check.mjs http://localhost:3100
 
 # Stop the production app, run the existing fixture suites with the same local
@@ -57,6 +58,8 @@ NOTIFICATION_RESULT_FILE=notification-repeat-results.json \
   CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
 NOTIFICATION_RESULT_FILE=notification-recheck-results.json \
   CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/notification-check.mjs
+PASSWORD_FORM_RESULT_FILE=password-form-repeat-results.json \
+  CHROMIUM_PATH=/usr/bin/chromium node scripts/certification/password-form-check.mjs
 
 # The lockout suite leaves a member identifier paused, so it runs after every
 # suite that signs in:
@@ -80,6 +83,17 @@ refusal and a dropped-request recovery for each area. It never signs in as the
 peer account whose notifications it checks stay unread, so it is independent of
 the lockout suite. `NOTIFICATION_RESULT_FILE` names its result file, so repeat
 runs are kept beside the first rather than overwriting it.
+
+`password-form-check` performs **66 independent checks** of the signed-in
+change-password form: **50 wrong-password submissions** (four staff roles and a
+member, each at 390px and 1440px, five apiece), then confirmation mismatch,
+policy refusal, password reuse, an expired session, a dropped request, an
+injected server failure, a duplicate submit, and finally the successful change
+with its audit and the retirement of the old password. Every refusal also
+re-checks the audit count, the account row and both passwords against Auth.
+It changes the `accountant` and `member_a` passwords on success and writes them
+back to `accounts.json`, the same way the browser suite does.
+`PASSWORD_FORM_RESULT_FILE` names its result file.
 
 `restrictions-check` intentionally locks one synthetic identifier; run it last.
 For a targeted browser retry use, for example, `browser-check.mjs super_admin`.

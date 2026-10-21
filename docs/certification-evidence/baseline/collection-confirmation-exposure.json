@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-21T08:01:12.911Z",
+  "component": "RecordCollectionDialog (useActionState)",
+  "note": "Real browser savings collections through the field officer screen. \"posted\" is the transaction in the ledger, keyed by the form's idempotency key; \"confirmedOnScreen\" is the \"Savings recorded\" dialog the cashier sees.",
+  "attempts": 15,
+  "posted": 15,
+  "confirmedOnScreen": 15,
+  "postedWithoutConfirmation": 0,
+  "results": [
+    {
+      "round": 1,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 2,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 3,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 4,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 5,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 6,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 7,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 8,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 9,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 10,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 11,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 12,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 13,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 14,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    },
+    {
+      "round": 15,
+      "posted": true,
+      "confirmedOnScreen": true,
+      "detail": ""
+    }
+  ]
+}

@@ -1,7 +1,6 @@
 {
-  "date": "2026-10-20T19:18:14.296Z",
+  "date": "2026-10-21T08:02:30.792Z",
   "rechecks": [
-    "browser-sessions-profile-password-form-results.json",
     "browser-chart-results.json"
   ],
   "results": [
@@ -795,23 +794,11 @@
     },
     {
       "name": "viewer: profile password form verifies current password and records native change",
-      "pass": false,
-      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.') to be visible\u001b[22m\n",
-      "previousAttempt": {
-        "name": "viewer: profile password form verifies current password and records native change",
-        "pass": false,
-        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.') to be visible\u001b[22m\n"
-      }
+      "pass": true
     },
     {
       "name": "member_b: profile password form verifies current password and records native change",
-      "pass": false,
-      "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.') to be visible\u001b[22m\n",
-      "previousAttempt": {
-        "name": "member_b: profile password form verifies current password and records native change",
-        "pass": false,
-        "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Your current password is incorrect.') to be visible\u001b[22m\n"
-      }
+      "pass": true
     },
     {
       "name": "temporary password: redirects, required form change, old password rejected",

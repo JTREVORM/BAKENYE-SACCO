@@ -1,15 +1,17 @@
 # Dashboard security remediation and release certification
 
-20 October 2026 · `claude/cool-mendel-3ey330` · baseline `ca83791`.
+21 October 2026 · `claude/cool-mendel-3ey330` · baseline `96e1d54`.
 
-**HOLD — BKC-01, BKC-02 and BKC-03 are fixed and their regressions pass, but
-rerunning the full suite found that the signed-in change-password form usually
-shows no error for a wrong current password (BKC-04).**
+**HOLD — BKC-01 to BKC-04 are fixed and every suite passes on a clean run, but
+the platform defect behind the last three is not itself fixed: it still reaches
+every other server-action form, and it was measured losing the on-screen
+confirmation of savings that had already been posted to the ledger (BKC-05).**
 
 No production mutation, migration, merge, deployment or Vercel change was made.
 The only application changes are verified password completion, financial
-chart range navigation/scroll restoration and dense-range labels, and the
-notification control's loading, duplicate and error handling. Approved dashboard layouts, styles,
+chart range navigation/scroll restoration and dense-range labels, the
+notification control's loading, duplicate and error handling, and the
+change-password form's result and busy state. Approved dashboard layouts, styles,
 role definitions, permission predicates and financial calculations are unchanged.
 
 ## Blockers
@@ -67,22 +69,53 @@ mutation, its RPC, revalidation and permissions are unchanged. No internal
 Next.js cause is claimed. [Investigation evidence](certification-evidence/blocker-investigation.json) ·
 [pre-fix reproduction](certification-evidence/baseline/bkc-03-baseline-trace.json).
 
-**BKC-04 — new, unresolved. The change-password form usually shows no error for
-a wrong current password.** This is the same intermittent client tree-update
-defect, in a form that was not changed in this branch. Across **16** real
-submissions at 390px on `/staff/profile` and `/profile`, "Your current password
-is incorrect." was displayed **5** times; in the other 11 nothing was displayed
-at all. The server was correct in all 16: HTTP 200, the
-`auth.password_changed` audit count unchanged and the new password never valid.
-The attempts that showed the message were the ones where a tree update followed
-the response. The error text and selectors are correct, so the previous
-certification's attribution of these two browser failures to an icon-prefixed
-selector mistake does not hold — the broad run **and** the documented focused
-recheck both fail here. A native navigation cannot carry a transient validation
-message, so the likely remedy is to verify the current password without relying
-on a server-action tree update. Because this form is part of the BKC-01 security
-remediation, it is left unchanged pending its own review.
-[Evidence](certification-evidence/baseline/change-password-error-display.json).
+**BKC-04 — fixed in the development branch.** An unchanged build, instrumented
+only to log the value the action's promise resolved with, settled the question:
+across **16** submissions of a wrong current password the promise resolved with
+"Your current password is incorrect." **16/16**, while the form displayed it
+**7/16** — and display matched, one for one, the attempts where a client tree
+update followed the 200 response. The server refused all 16: the
+`auth.password_changed` audit never moved and the new password never became
+valid. So `useActionState` does not render the value its own action function has
+already returned to the client; it publishes that value through an app-router
+update, and on these profile pages the update commits only intermittently.
+
+Moving the result into component state while keeping the form's `action` prop
+fixed the message and left a second fault behind: `useFormStatus` clears its
+pending state through the same update, so the button stayed disabled on
+"Saving…" after an error that had already rendered. The form therefore handles
+its own submission in `onSubmit` and holds both the result and the busy state
+locally. A synchronous in-flight ref refuses a second submit. Field errors, the
+success banner, dropped requests and server failures all render from the
+awaited result. The action, its server-side re-authentication, the one-use
+verified-completion proof, the audit and the session handling are unchanged, and
+no password check moved into the browser. The cost is that this one form now
+needs JavaScript, where the form action previously let it submit without it.
+[Investigation evidence](certification-evidence/blocker-investigation.json) ·
+[pre-fix reproduction](certification-evidence/baseline/bkc-04-baseline-trace.json).
+
+**BKC-05 — new, unresolved, and the reason this is still a HOLD.** BKC-02,
+BKC-03 and BKC-04 were each fixed by taking one control off the client
+tree-update path. The defect underneath is untouched, and every other form in
+the application still publishes its result through `useActionState`.
+
+That is not theoretical. On the stack that had already run a full certification,
+**2 of 10** real savings collections through the field officer screen posted to
+the ledger with **no "Savings recorded" dialog**: the money was taken and
+recorded, and the person at the counter saw nothing. The browser regression's own
+Collections check failed the same way once in two runs. On the final clean stack
+the same measurement was 15/15, so the rate varies with the state of the
+system — but the failures are real, and they are on the money-handling path.
+The per-form idempotency key stops a resubmission of the same open dialog; a
+re-entered collection carries a new key and would post twice. The forced
+first-password change was also seen redirecting only on a second attempt.
+
+None of this is changed here: it is outside BKC-04 and it belongs to the
+financial screens, so it needs its own review and regression. The remedy is the
+pattern proven three times in this branch — await the action, hold the result
+and the busy state locally — applied to the remaining server-action forms,
+financial confirmations first.
+[Evidence](certification-evidence/baseline/collection-confirmation-exposure.json).
 
 ## Final isolated results
 
@@ -96,8 +129,10 @@ remediation, it is left unchanged pending its own review.
 | Dashboard reconciliation | PASS: **11/11**, including seven metrics for all eight staff roles, account counts, member collection figures and ledger-derived Finance balances. [Results](certification-evidence/metrics-results.json). |
 | Browser expiry / refresh | PASS: native browser JWT expiry with successful SSR refresh; normal token issuance restored to 3600 seconds with rotation and documented 10-second reuse interval. [Evidence](certification-evidence/refresh-results.json). |
 | Chart interactions | PASS: **9/9**, **36 transitions** (6/12/6/12/6), Super Admin/Admin/Manager at 1440/390/320px. Rendered bucket count and every tooltip amount equal real RPC results; keyboard Enter, viewport retention and no overflow checked. [Results](certification-evidence/browser-chart-results.json). |
-| Role browser regression | **FAIL: 207/209.** The two staff/member profile password-form checks fail in the broad run **and** in the documented focused recheck (0/2), waiting for an error the form does not display. This is BKC-04 above, not a selector mistake. Everything else passes, including collections, approvals, guarded routes, peer-URL refusals, logout and temporary-password flows. [Results](certification-evidence/browser-results.json), [focused recheck](certification-evidence/browser-sessions-profile-password-form-results.json). |
-| Notification stability | PASS: **54/54 interactions in each of three independent runs** on the final production build — a member and four staff roles at 390px and 1440px, five attempts apiece, plus duplicate-tap refusal and dropped-request recovery per area. Completion **229–299ms**, never the 30-second limit. Every attempt checked database persistence, the peer account's notifications staying unread, and the control gone after a reload. [Run 1](certification-evidence/notification-results.json), [run 2](certification-evidence/notification-repeat-results.json), [run 3](certification-evidence/notification-recheck-results.json). Retained failures: the **6/10** pre-fix baseline and a **44/54** run whose ten member failures were all sign-ins refused by the lockout suite's paused identifier, which is why that suite now runs after every suite that signs in. [Baseline](certification-evidence/baseline/bkc-03-baseline-trace.json), [ordering run](certification-evidence/notification-order-results.json). |
+| Role browser regression | PASS: **209/209** on the clean run (200 broad checks plus the merged chart rechecks), zero failures. Both staff and member profile password-form checks — the two that failed before — now pass unchanged. Collections, approvals, guarded routes, peer-URL refusals, logout, idle timeout and the temporary-password flow all pass. [Results](certification-evidence/browser-results.json). |
+| Change-password form | PASS: **66/66 checks in each of four runs** (two before the clean stack, two on it), **50 wrong-password submissions per run** — four staff roles and a member, each at 390px and 1440px. Every refusal was reported on the current-password field, with the account row, the audit count and both passwords re-checked against Auth afterwards. Also covered per run: confirmation mismatch, policy refusal, reusing the current password, an expired session, a dropped request, an injected HTTP 500, a duplicate submit posting once, and the successful change with its audit and the retirement of the old password. Retained pre-fix evidence: **7/16** displayed. [Run 1](certification-evidence/password-form-results.json), [run 2](certification-evidence/password-form-repeat-results.json), [pre-fix](certification-evidence/baseline/bkc-04-baseline-trace.json). |
+| Notification stability | PASS: **54/54 interactions in each of three independent runs** on the final production build — a member and four staff roles at 390px and 1440px, five attempts apiece, plus duplicate-tap refusal and dropped-request recovery per area. Every attempt checked database persistence, the peer account's notifications staying unread, and the control gone after a reload. [Run 1](certification-evidence/notification-results.json), [run 2](certification-evidence/notification-repeat-results.json), [run 3](certification-evidence/notification-recheck-results.json). Retained failures from the previous certification: the **6/10** pre-fix baseline and a **44/54** ordering run. [Baseline](certification-evidence/baseline/bkc-03-baseline-trace.json), [ordering run](certification-evidence/baseline/notification-order-results.json). |
+| Server-action confirmations outside the fixed controls | **FAIL (BKC-05): 2 of 10** real savings collections posted to the ledger with no on-screen confirmation on the stack that had already run a full certification; **15/15** confirmed on the final clean stack; the browser regression's Collections check failed the same way once in two runs. The ledger was correct in every case. [Evidence](certification-evidence/baseline/collection-confirmation-exposure.json). |
 | Restrictions / lockout | PASS: **14/14**; anonymous reads, role finance access, suspended/inactive/archived/exited members and real-form generic errors/lockout. [Results](certification-evidence/restrictions-results.json). |
 | Accessibility / shared styling / preview layouts | PASS: **3/3 existing browser suites**, **80 reported groups**: keyboard/modal/menu, mobile branding, shared non-dashboard styling, loading/error/empty states, 40 staff width scenarios and 10 member widths plus restricted states. [Results](certification-evidence/preview-results.json). |
 | Lint / TypeScript / production build | PASS; all eight standard check groups. Dashboard invariants **5/5**, fixture arithmetic **5/5**, phone tests **36/36**, target safety guard **1/1** (six invalid-target variants). [Checks](certification-evidence/standards-results.json), [console](certification-evidence/standards-console.log). |
@@ -145,9 +180,14 @@ PASS does not mean production has been patched.
 - Native financial RPCs and SQL assertions cover the complete tested lifecycle;
   browser submission covers collection and expense approval, rather than every
   loan/reversal form. Network-outage/retry recovery remains unverified.
-- BKC-04 is a client-side display failure only. No server check, permission or
-  audit is bypassed by it: a wrong current password is refused every time, and
-  the certification suite verifies that independently of the browser.
+- BKC-05 is a client-side display failure only. No server check, permission or
+  audit is bypassed by it, and the ledger was correct in every observed case —
+  the risk is that somebody acts on a screen that did not confirm work the
+  database had already done.
+- A suite that exercises a flow once cannot clear an intermittent defect. That
+  is why the notification and change-password suites repeat their interactions
+  50+ times each, and why a single green Collections check is not read here as
+  evidence that BKC-05 is absent.
 - Chromium desktop/mobile and keyboard behavior are checked. Real-device
   Safari/Firefox and assistive-technology/WCAG audits remain unverified. Native
   Auth access JWTs retain their normal expiry semantics; instant revocation of
@@ -158,7 +198,11 @@ PASS does not mean production has been patched.
 
 Thirty dashboard and six chart review JPGs are included. No failed attempt was
 replaced by a passing retry: every failed run is kept, and the pre-fix
-notification baseline and the previous certification's focused notification
-retries are retained under `certification-evidence/baseline/`. The open BKC-04
-failure and the unremediated production function prevent an overall PASS. The
-isolated database was disposable; no production transaction was executed.
+reproductions for BKC-03 and BKC-04, the previous certification's focused
+notification retries and its retained ordering run live under
+`certification-evidence/baseline/`. **This is an isolated certification**: a
+disposable local stack of real GoTrue, PostgREST and PostgreSQL, seeded with
+synthetic accounts and money. It says nothing about the hosted project, which
+still runs the unremediated password function. The open BKC-05 failure and that
+unremediated production function prevent an overall PASS. The isolated database
+was disposable; no production transaction was executed.

@@ -3,14 +3,14 @@ Running as Certification super_admin (super_admin)
 ── audit_fixes_test.sql
    ✔ 1 the database keeps Uganda time — Africa/Kampala
    ✔ 2a a withdrawal below the minimum balance is refused — Members must keep at least UGX 20,000 in savings. The most that can be withdrawn now is UGX 30,000.
-   ✔ 2b a withdrawal that keeps the minimum goes through — WDL261020001
+   ✔ 2b a withdrawal that keeps the minimum goes through — WDL261021001
    ✔ 3a two deposits in one month add up, and neither is a part payment — 73500.00
    ✔ 3b a month with savings in it expects nothing and owes nothing — paid
    ✔ 4a a savings target cannot be set — Monthly savings are open: a member saves any amount they choose, so there is no savings target to set.
    ✔ 4b no plan was written — 0 plan(s)
    ✔ 5 with decision notices off, approving a loan notifies nobody — 0 notice(s)
    ✔ 6a the till pays out the loan less its fee — 198000.00
-   ✔ 6b a disbursement with repayments on it cannot be reversed — Loan LN261020001 has repayments recorded against it. Reverse those first, then the disbursement.
+   ✔ 6b a disbursement with repayments on it cannot be reversed — Loan LN261021001 has repayments recorded against it. Reverse those first, then the disbursement.
    ✔ 6c reversing the disbursement puts the till back exactly — 967000.00 vs 967000.00
    ✔ 6d the loan is Approved again — approved
    ✔ 6e its repayment schedule is gone — 0 row(s)
@@ -30,7 +30,7 @@ Running as Certification super_admin (super_admin)
    ✔ 2c a member can save UGX 20,000 — 25000.00
    ✔ 2d a member can save UGX 73,500 - no amount is rounded or refused — 98500.00
    ✔ 2e three deposits in one month are three transactions in one period — 3 deposit(s)
-   ✔ 2f every deposit is recorded by member, date, amount and reference — SAV261020003 5,000, SAV261020004 20,000, SAV261020005 73,500
+   ✔ 2f every deposit is recorded by member, date, amount and reference — SAV261021003 5,000, SAV261021004 20,000, SAV261021005 73,500
    ✔ 2g a member who saved nothing has no missed or partial period — 0 row(s)
    ✔ 2h no arrears, penalty or outstanding savings is raised against anyone — 0 period(s) expecting money
    ✔ 2m a monthly savings target cannot be set — Monthly savings are open: a member saves any amount they choose, so there is no savings target to set.
@@ -212,8 +212,8 @@ Running as Certification super_admin (super_admin)
    ✔ 2c a member registered now carries no savings or share category
    ✔ 2d paid in full, so the member is active — active
    ✔ 2e Cash at Merchant rose by UGX 25,000 — 25000.00
-   ✔ 2f one fee transaction of UGX 25,000 into the merchant account, with the MoMo reference — FEE261020003
-   ✔ 2g a receipt is issued — RCT261020007
+   ✔ 2f one fee transaction of UGX 25,000 into the merchant account, with the MoMo reference — FEE261021003
+   ✔ 2g a receipt is issued — RCT261021007
    ✔ 2h the receipt carries both fee lines and the membership title
    ✔ 2i the SACCO books both fees as income, separately
    ✔ 2j the audit log records the registration, the payment and the activation
@@ -281,7 +281,7 @@ Running as Certification super_admin (super_admin)
    ✔ 1b a new member is charged the current fee at registration — 20,000
    ✔ 2a a fee paid in full reads Paid with nothing outstanding — 20,000 paid, 0 outstanding, status paid
    ✔ 2b paying the whole fee activates the member — active
-   ✔ 2c the payment produced a receipt — RCT261020007
+   ✔ 2c the payment produced a receipt — RCT261021007
    ✔ 3a paying 5,000 of the fee reads Partial — partial
    ✔ 3b the balance is measured against what the member was charged — 20,000 charged, 5,000 paid, 15,000 outstanding
    ✔ 3c a part payment does not activate the member — pending
@@ -337,26 +337,26 @@ Running as Certification super_admin (super_admin)
    ✔ 1g a number a member already holds is skipped, never reissued — BND26901
    ✔ 1h the 999th member of a year is BND26999 — BND26999
    ✔ 1i the 1000th widens to four digits rather than repeating 001 — BND261000
-   ✔ 2a a reference is PREFIX + YYMMDD + 3 digits — SAV261020001
-   ✔ 2b the date in a reference is today — 261020
-   ✔ 2c the daily sequence counts up — SAV261020001, SAV261020002
+   ✔ 2a a reference is PREFIX + YYMMDD + 3 digits — SAV261021001
+   ✔ 2b the date in a reference is today — 261021
+   ✔ 2c the daily sequence counts up — SAV261021001, SAV261021002
    ✔ 2d each kind of document counts separately
    ✔ 2e the sequence starts again at 001 the next day
    ✔ 2f past 999 in a day the number widens rather than repeating
-   ✔ 2g a bank withdrawal asked for by its old prefix comes out as WDL — WDL261020002
+   ✔ 2g a bank withdrawal asked for by its old prefix comes out as WDL — WDL261021002
    ✔ 2h a member number asked for by its old prefix is a member number
    ✔ 2i a reference is never issued without a prefix — A document prefix is required to issue a reference.
    ✔ 2j every kind of money movement carries the agreed prefix
    ✔ 2k no kind of money movement is left without a prefix — share_purchase=SHR, weekly_savings=SAV, monthly_savings=SAV, loan_disbursement=LDS, loan_repayment=LRP, deposit=DEP, withdrawal=WDL, income=INC, expense=EXP, fee=FEE, penalty=PEN, transfer=TRF, payment=PAY
    ✔ 3a registering a member issues BND + YY + sequence — BND26903
    ✔ 3b every member number in the register is unique
-   ✔ 3c a deposit is numbered DEP + YYMMDD + sequence — DEP261020001
-   ✔ 3d the receipt issued for it is RCT + YYMMDD + sequence — RCT261020007
-   ✔ 3e the printed receipt shows that number, not a UUID — RCT261020007
-   ✔ 3f nothing on the printed receipt is a UUID — DEP261020001
-   ✔ 3g a reversal is its own document, REV + YYMMDD + sequence — REV261020001
+   ✔ 3c a deposit is numbered DEP + YYMMDD + sequence — DEP261021001
+   ✔ 3d the receipt issued for it is RCT + YYMMDD + sequence — RCT261021007
+   ✔ 3e the printed receipt shows that number, not a UUID — RCT261021007
+   ✔ 3f nothing on the printed receipt is a UUID — DEP261021001
+   ✔ 3g a reversal is its own document, REV + YYMMDD + sequence — REV261021001
    ✔ 3h no two ledger rows share a reference
-   ✔ 3i every ledger reference is in the new form — DEP261020001, FEE261020001, FEE261020002, REV261020001, SAV261020001, SAV261020002, SHR261020001, SHR261020002
+   ✔ 3i every ledger reference is in the new form — DEP261021001, FEE261021001, FEE261021002, REV261021001, SAV261021001, SAV261021002, SHR261021001, SHR261021002
    ✔ 4a a member number is looked up exactly as issued — BND26903
    ✔ 4b lower case, spaces and a stray dash are forgiven — BND26903
    ✔ 4c a member number issued under the old scheme still resolves — BND-M-0000123
@@ -411,7 +411,7 @@ Running as Certification super_admin (super_admin)
    ✔ a deactivated account disappears from the receiving-account list
    ✔ the accounts that are still active are unaffected
    ✔ a new receipt into a deactivated account is refused — ZZTEST Airtel Branch Two is inactive and cannot be used.
-   ✔ a historical transaction against a deactivated account is still readable, unchanged — SAV261020004
+   ✔ a historical transaction against a deactivated account is still readable, unchanged — SAV261021004
    ✔ its account entries are still there and still against that account — 1
    ✔ the deactivated account still names itself on the historical receipt
    ✔ no posted money movement anywhere has been left without its account — 0
@@ -445,24 +445,24 @@ Running as Certification super_admin (super_admin)
    ✔ accounts start at their opening balance of zero
    ✔ step 1: Cash at Merchant is UGX 100,000 — 100000.00
    ✔ step 1: member A savings is UGX 100,000
-   ✔ step 1: the ledger row names the merchant account and carries the provider reference — SAV261020003
+   ✔ step 1: the ledger row names the merchant account and carries the provider reference — SAV261021003
    ✔ step 1: one account entry, a debit of UGX 100,000
-   ✔ step 1: an RCT receipt number is issued — RCT261020007
+   ✔ step 1: an RCT receipt number is issued — RCT261021007
    ✔ step 1: the collection is in the audit log
    ✔ step 2: Cash at Merchant is UGX 150,000 — 150000.00
    ✔ a replayed submission posts nothing new
    ✔ a duplicate provider reference is refused — Reference mtn-test-0001 has already been recorded against another transaction.
    ✔ mobile money into a cash account is refused — TEST Till is a cash account and cannot handle a mobile money payment.
    ✔ a merchant collection without a reference is refused — Enter the mobile money transaction reference from the confirmation message.
-   ✔ step 3: a manager's transfer completes without waiting — {"id": "3f1e551d-2b9f-4976-a008-21e410c1133d", "kind": "merchant_to_bank", "amount": 120000.00, "status": "completed", "duplicate": false, "transfer_no": "TRF261020001", "source_account": "TEST Merchant", "source_balance": 30000.00, "transaction_id": "8974e19f-fc1d-4b1c-a619-c36ebbfb50c6", "requires_approval": false, "destination_account": "TEST Bank", "destination_balance": 120000.00}
+   ✔ step 3: a manager's transfer completes without waiting — {"id": "5e9d28fc-5143-4af8-919f-a2383eafb1e8", "kind": "merchant_to_bank", "amount": 120000.00, "status": "completed", "duplicate": false, "transfer_no": "TRF261021001", "source_account": "TEST Merchant", "source_balance": 30000.00, "transaction_id": "38ead480-9b1a-4c36-b055-3270919bba4f", "requires_approval": false, "destination_account": "TEST Bank", "destination_balance": 120000.00}
    ✔ step 3: Cash at Merchant UGX 30,000, Cash at Bank UGX 120,000 — 30000.00 / 120000.00
    ✔ step 3: total SACCO funds unchanged
    ✔ step 3: the transfer is not income, not expense, not savings
    ✔ step 3: ONE linked ledger row carries both accounts
    ✔ a transfer larger than the balance is refused — TEST Merchant holds UGX 30,000. It cannot send UGX 50,000.
    ✔ a deposit slip cannot be banked twice — Reference slip-0001 has already been recorded on TEST Bank.
-   ✔ step 4: bank UGX 90,000, cash UGX 30,000, total unchanged — WDL261020001
-   ✔ step 5: an expense request moves no money until approved, and is numbered EXP — EXP261020001
+   ✔ step 4: bank UGX 90,000, cash UGX 30,000, total unchanged — WDL261021001
+   ✔ step 5: an expense request moves no money until approved, and is numbered EXP — EXP261021001
    ✔ step 5: approved, Cash at Hand falls to UGX 20,000 — 20000.00
    ✔ step 5: total funds fall by UGX 10,000 and expenses rise by UGX 10,000
    ✔ a reversal cannot overdraw an account — TEST Bank holds UGX 90,000. Taking out UGX 120,000 would leave it below zero.
@@ -481,7 +481,7 @@ Running as Certification super_admin (super_admin)
    ✔ nobody approves their own entry under four eyes — You recorded this entry, so a different person has to approve it.
    ✔ a waiting transfer can be cancelled, and no money moved
    ✔ a variance must be explained — The actual balance differs from the system balance by UGX -1,000. Explain the variance.
-   ✔ a variance is recorded, and the system balance is not adjusted — {"id": "28d14752-71e4-4117-b252-00bba0296339", "outcome": "variance", "variance": -1000.00, "actual_balance": 17000.00, "system_balance": 18000.00, "reconciliation_no": "REC261020001"}
+   ✔ a variance is recorded, and the system balance is not adjusted — {"id": "a29913c1-490b-446a-b9a7-2091ffdbdca5", "outcome": "variance", "variance": -1000.00, "actual_balance": 17000.00, "system_balance": 18000.00, "reconciliation_no": "REC261021001"}
    ✔ the dashboard flags the variance
    ✔ a matching balance reconciles cleanly
    ✔ Cash & Bank report: opening + in - out = closing = ledger balance, for every account

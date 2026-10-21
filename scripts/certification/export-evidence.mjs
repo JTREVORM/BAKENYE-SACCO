@@ -8,7 +8,7 @@ const passwordSecrets=JSON.parse(await readFile(`${root}/password-test-secrets.j
 const secrets=[s.secret,s.anon,s.service,s.database.password,s.token,...Object.values(users).map(u=>u.password),...passwordSecrets].filter(Boolean);
 function sanitized(text){for(const secret of secrets)text=text.replaceAll(secret,'[REDACTED]');return text;}
 try{
- for(const file of ['blocker-investigation.json','api-results.json','password-results.json','notification-results.json','notification-order-results.json','notification-repeat-results.json','notification-recheck-results.json','workflow-results.json','metrics-results.json','refresh-results.json','restrictions-results.json','preview-results.json','standards-results.json','standards-console.log','database-suites.log']){
+ for(const file of ['blocker-investigation.json','api-results.json','password-results.json','notification-results.json','notification-repeat-results.json','notification-recheck-results.json','password-form-results.json','password-form-repeat-results.json','workflow-results.json','metrics-results.json','refresh-results.json','restrictions-results.json','preview-results.json','standards-results.json','standards-console.log','database-suites.log']){
   let text=sanitized(await readFile(`${root}/${file}`,'utf8'));
   if(file.endsWith('.log'))text=text.replace(/\r\n?/g,'\n').replace(/[ \t]+$/gm,'');
   await writeFile(`${target}/${file}`,text);

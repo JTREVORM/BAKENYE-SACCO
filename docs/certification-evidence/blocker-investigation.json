@@ -1,5 +1,5 @@
 {
-  "applicationBase": "ca83791",
+  "applicationBase": "96e1d54",
   "productionAssessment": {
     "date": "2026-10-20",
     "scope": "Read-only pg_proc function definition and execution privileges; no function invocation or account data reads",
@@ -244,20 +244,54 @@
       "retainedFailedRun": "notification-order-results.json (44/54)"
     }
   },
-  "passwordFormFinding": {
-    "scope": "Real browser submissions of the signed-in change-password form at 390x900, staff /staff/profile and member /profile",
-    "attempts": 16,
-    "errorShown": 5,
-    "errorAbsent": 11,
-    "breakdown": "Two independent runs of eight attempts: 4/8 and 1/8 displayed the error",
-    "serverBehaviour": "Correct in all 16 attempts: the action POST returned HTTP 200, the auth.password_changed audit count was unchanged and the new password never became valid",
-    "clientBehaviour": "The attempts that displayed \"Your current password is incorrect.\" were the ones where a tree update followed the POST response; in the others no error was displayed at all",
-    "finding": "The same intermittent client tree-update defect behind BKC-03 also suppresses this form’s validation errors, so a wrong current password usually produces no visible feedback. The error text and selectors are correct; the previous certification attributed these two browser failures to an icon-prefixed selector mistake, which this run does not reproduce — the broad run and the documented focused recheck both fail.",
-    "scopeNote": "Outside BKC-03 and not changed in this branch: the form is part of the BKC-01 security remediation, so a remedy needs its own review. A native navigation cannot carry a transient validation message, so the likely remedy is to verify the current password without relying on a server-action tree update.",
-    "evidence": [
-      "browser-results.json",
-      "browser-sessions-profile-password-form-results.json",
-      "baseline/change-password-error-display.json"
-    ]
+  "passwordFormInvestigation": {
+    "scope": "Real browser submissions of the signed-in change-password form against the disposable stack; all writes synthetic",
+    "baselineComponent": "ChangePasswordForm: useActionState(changePassword); the form action also drove useFormStatus",
+    "instrumentation": "An unchanged build with one added client log of the value the action promise resolved with",
+    "baselineReproduction": {
+      "build": "96e1d54 unchanged",
+      "attempts": 16,
+      "errorDisplayed": 7,
+      "actionPromiseResolvedWithError": 16,
+      "serverRefusedEveryAttempt": true,
+      "finding": "The action promise resolved with \"Your current password is incorrect.\" on all 16 attempts, so the result reached the browser every time. The form displayed it on 7. Display matched, one for one, the attempts where a client tree update followed the 200 response."
+    },
+    "cause": "useActionState does not render the value its own action function already returned to the client: it publishes that value through an app-router tree update, and on these profile pages the update commits only intermittently. The promise is reliable; the commit is not.",
+    "secondFinding": "Moving the result into component state but keeping the form`s `action` prop fixed the message and left the control stuck: `useFormStatus` clears its pending state through the same update, so the button stayed disabled on \"Saving…\" after an error that had already rendered. The submission is therefore handled in `onSubmit`, with both the result and the busy state held locally.",
+    "correction": "The form awaits the action, holds the result in component state and owns its busy state. A synchronous in-flight ref refuses a second submit. Field errors, the success banner, dropped requests and server failures are all rendered from that result. The action, its server-side re-authentication, the one-use verified-completion proof, the audit and the session handling are unchanged; no password check moved to the browser.",
+    "cost": "This form now needs JavaScript. The form action previously let it submit without it.",
+    "limit": "No claim is made about the internal Next.js cause. The defect is localized to the client application of server-action results, and is the same one behind BKC-02 and BKC-03.",
+    "verification": {
+      "suite": "scripts/certification/password-form-check.mjs",
+      "checksPerRun": 66,
+      "wrongPasswordSubmissionsPerRun": 50,
+      "runs": "two runs on the pre-clean stack and two on the final clean stack",
+      "result": "66/66 in all four runs",
+      "alsoCovered": [
+        "confirmation mismatch",
+        "password policy refusal",
+        "reusing the current password",
+        "expired session",
+        "dropped request",
+        "injected 500",
+        "duplicate submit",
+        "successful change with audit and old-password rejection",
+        "account row and permissions unchanged after every refusal"
+      ]
+    }
+  },
+  "remainingExposure": {
+    "title": "BKC-05 - the same defect still reaches other server-action forms",
+    "scope": "Not fixed in this branch and outside the BKC-04 change",
+    "mechanism": "Every other form in the application still publishes its result through useActionState, which is the mechanism BKC-04 had to stop using.",
+    "financialObservation": {
+      "component": "RecordCollectionDialog - the field officer savings collection",
+      "measured": "2 of 10 real postings on the stack that had already run a full certification; 15 of 15 confirmed on the final clean stack; the browser regression`s own Collections check failed once in two runs",
+      "effect": "The transaction was written to the ledger every time. In the failures the \"Savings recorded\" dialog never appeared, so the person at the counter saw no confirmation for money that had been taken.",
+      "risk": "The per-form idempotency key stops a resubmission of the same open dialog, but a fresh dialog carries a new key, so a re-entered collection would post twice.",
+      "evidence": "baseline/collection-confirmation-exposure.json"
+    },
+    "otherObservation": "The forced first-password change redirected only after a retry once, leaving must_change_password set; it succeeded on the next attempt.",
+    "proposedRemedy": "Apply the pattern proven here - await the action, hold the result and the busy state locally - to the remaining server-action forms, financial confirmations first. That is a separate change with its own review and regression."
   }
 }

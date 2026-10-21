@@ -1,0 +1,313 @@
+{
+  "date": "2026-10-21T06:29:11.934Z",
+  "build": "96e1d54 unchanged, with a probe that logged the action promise result",
+  "component": "ChangePasswordForm (useActionState)",
+  "viewport": "390x900",
+  "attempts": 16,
+  "displayed": 7,
+  "actionPromiseResolvedWithError": 16,
+  "serverRefusedEveryAttempt": true,
+  "note": "Retained pre-fix reproduction. The action promise resolved with the error on every attempt; the form displayed it only when a client tree update followed the response.",
+  "results": [
+    {
+      "round": 1,
+      "account": "viewer",
+      "path": "/staff/profile",
+      "displayed": true,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": true,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 251
+        },
+        {
+          "e": "treeUpdate",
+          "ms": 298
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "account": "member_a",
+      "path": "/profile",
+      "displayed": true,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": true,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 264
+        },
+        {
+          "e": "treeUpdate",
+          "ms": 325
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "account": "viewer",
+      "path": "/staff/profile",
+      "displayed": true,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": true,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 255
+        },
+        {
+          "e": "treeUpdate",
+          "ms": 305
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "account": "member_a",
+      "path": "/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 236
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "account": "viewer",
+      "path": "/staff/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 239
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "account": "member_a",
+      "path": "/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 228
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "account": "viewer",
+      "path": "/staff/profile",
+      "displayed": true,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": true,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 254
+        },
+        {
+          "e": "treeUpdate",
+          "ms": 296
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "account": "member_a",
+      "path": "/profile",
+      "displayed": true,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": true,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 239
+        },
+        {
+          "e": "treeUpdate",
+          "ms": 329
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "account": "viewer",
+      "path": "/staff/profile",
+      "displayed": true,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": true,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 219
+        },
+        {
+          "e": "treeUpdate",
+          "ms": 259
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "account": "member_a",
+      "path": "/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 229
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "account": "viewer",
+      "path": "/staff/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 230
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "account": "member_a",
+      "path": "/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 241
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "account": "viewer",
+      "path": "/staff/profile",
+      "displayed": true,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": true,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 233
+        },
+        {
+          "e": "treeUpdate",
+          "ms": 276
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "account": "member_a",
+      "path": "/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 237
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "account": "viewer",
+      "path": "/staff/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 236
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "account": "member_a",
+      "path": "/profile",
+      "displayed": false,
+      "actionPromiseResolvedWithError": true,
+      "treeUpdateAfterResponse": false,
+      "auditBefore": "1",
+      "auditAfter": "1",
+      "events": [
+        {
+          "e": "post",
+          "status": 200,
+          "ms": 229
+        }
+      ]
+    }
+  ]
+}

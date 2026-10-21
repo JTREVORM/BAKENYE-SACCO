@@ -28,7 +28,7 @@
      · optimizePackageImports
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 6.7s
+ ✓ Compiled successfully in 6.4s
    Linting and checking validity of types ...
 
 ./src/components/staff/FinancialActivity.tsx
@@ -69,7 +69,7 @@ Route (app)                                 Size  First Load JS
 ├ ƒ /more                                2.84 kB         172 kB
 ├ ƒ /no-member-record                    2.82 kB         168 kB
 ├ ƒ /notifications                         210 B         173 kB
-├ ƒ /profile                              1.3 kB         174 kB
+├ ƒ /profile                             1.47 kB         174 kB
 ├ ƒ /reports                               215 B         170 kB
 ├ ƒ /reset-password                      1.46 kB         170 kB
 ├ ƒ /savings                               215 B         170 kB
@@ -113,7 +113,7 @@ Route (app)                                 Size  First Load JS
 ├ ƒ /staff/members/new                   9.84 kB         173 kB
 ├ ƒ /staff/membership-fees               5.66 kB         169 kB
 ├ ƒ /staff/notifications                   189 B         163 kB
-├ ƒ /staff/profile                       1.28 kB         165 kB
+├ ƒ /staff/profile                       1.45 kB         165 kB
 ├ ƒ /staff/reports                       2.49 kB         108 kB
 ├ ƒ /staff/reports/members               3.31 kB         164 kB
 ├ ƒ /staff/reports/statement             2.27 kB         239 kB
@@ -149,31 +149,31 @@ TAP version 13
 # Subtest: seeded dashboard assignments and landing paths remain consistent
 ok 1 - seeded dashboard assignments and landing paths remain consistent
   ---
-  duration_ms: 3.674595
+  duration_ms: 4.079592
   type: 'test'
   ...
 # Subtest: custom Owner, Secretary and Treasurer assignments use the existing dashboard mapping
 ok 2 - custom Owner, Secretary and Treasurer assignments use the existing dashboard mapping
   ---
-  duration_ms: 0.34867
+  duration_ms: 0.262107
   type: 'test'
   ...
 # Subtest: navigation follows explicit permissions, never a display name or role-key shortcut
 ok 3 - navigation follows explicit permissions, never a display name or role-key shortcut
   ---
-  duration_ms: 1.23246
+  duration_ms: 1.168201
   type: 'test'
   ...
 # Subtest: UGX display keeps complete numeric values and Uganda date boundaries
 ok 4 - UGX display keeps complete numeric values and Uganda date boundaries
   ---
-  duration_ms: 0.455412
+  duration_ms: 0.421273
   type: 'test'
   ...
 # Subtest: every development preview page guards production before reading fixtures
 ok 5 - every development preview page guards production before reading fixtures
   ---
-  duration_ms: 113.687494
+  duration_ms: 98.546788
   type: 'test'
   ...
 1..5
@@ -184,38 +184,38 @@ ok 5 - every development preview page guards production before reading fixtures
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 124.114664
+# duration_ms 109.084601
 
 ## Fixture arithmetic
 TAP version 13
 # Subtest: member share figures and equity agree with the fixture share price
 ok 1 - member share figures and equity agree with the fixture share price
   ---
-  duration_ms: 0.565934
+  duration_ms: 0.534594
   type: 'test'
   ...
 # Subtest: collection months, dates and history describe the selected member
 ok 2 - collection months, dates and history describe the selected member
   ---
-  duration_ms: 0.910911
+  duration_ms: 0.898148
   type: 'test'
   ...
 # Subtest: cashier receipts use receipt date, excluding other dates and outgoing money
 ok 3 - cashier receipts use receipt date, excluding other dates and outgoing money
   ---
-  duration_ms: 1.228884
+  duration_ms: 1.106177
   type: 'test'
   ...
 # Subtest: rolling collection labels match dates at month/year/leap-day boundaries
 ok 4 - rolling collection labels match dates at month/year/leap-day boundaries
   ---
-  duration_ms: 2.263655
+  duration_ms: 2.184577
   type: 'test'
   ...
 # Subtest: Finance QA movements reconcile by account and use the source payment method
 ok 5 - Finance QA movements reconcile by account and use the source payment method
   ---
-  duration_ms: 1.099568
+  duration_ms: 1.187213
   type: 'test'
   ...
 1..5
@@ -226,224 +226,224 @@ ok 5 - Finance QA movements reconcile by account and use the source payment meth
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 13.368754
+# duration_ms 12.756398
 
 ## Phone validation
 TAP version 13
 # Subtest: Uganda keeps its existing format: 0772123456
 ok 1 - Uganda keeps its existing format: 0772123456
   ---
-  duration_ms: 1.139306
+  duration_ms: 1.044964
   type: 'test'
   ...
 # Subtest: Uganda keeps its existing format: 0772 123 456
 ok 2 - Uganda keeps its existing format: 0772 123 456
   ---
-  duration_ms: 0.141339
+  duration_ms: 0.140134
   type: 'test'
   ...
 # Subtest: Uganda keeps its existing format: (0772) 123-456
 ok 3 - Uganda keeps its existing format: (0772) 123-456
   ---
-  duration_ms: 0.061226
+  duration_ms: 0.062965
   type: 'test'
   ...
 # Subtest: Uganda keeps its existing format: 772123456
 ok 4 - Uganda keeps its existing format: 772123456
   ---
-  duration_ms: 0.058113
+  duration_ms: 2.283742
   type: 'test'
   ...
 # Subtest: Uganda keeps its existing format: 256772123456
 ok 5 - Uganda keeps its existing format: 256772123456
   ---
-  duration_ms: 0.106204
+  duration_ms: 0.175253
   type: 'test'
   ...
 # Subtest: Uganda keeps its existing format: +256 772 123 456
 ok 6 - Uganda keeps its existing format: +256 772 123 456
   ---
-  duration_ms: 0.098002
+  duration_ms: 0.1121
   type: 'test'
   ...
 # Subtest: Uganda keeps its existing format: 00256772123456
 ok 7 - Uganda keeps its existing format: 00256772123456
   ---
-  duration_ms: 2.012592
+  duration_ms: 0.11676
   type: 'test'
   ...
 # Subtest: Canada retains its international code and is idempotent
 ok 8 - Canada retains its international code and is idempotent
   ---
-  duration_ms: 3.0955
+  duration_ms: 3.025927
   type: 'test'
   ...
 # Subtest: UK retains its international code and is idempotent
 ok 9 - UK retains its international code and is idempotent
   ---
-  duration_ms: 1.286392
+  duration_ms: 1.280407
   type: 'test'
   ...
 # Subtest: Kenya retains its international code and is idempotent
 ok 10 - Kenya retains its international code and is idempotent
   ---
-  duration_ms: 0.554456
+  duration_ms: 0.5477
   type: 'test'
   ...
 # Subtest: Russia retains its international code and is idempotent
 ok 11 - Russia retains its international code and is idempotent
   ---
-  duration_ms: 0.342005
+  duration_ms: 0.4013
   type: 'test'
   ...
 # Subtest: Uganda landline retains its international code and is idempotent
 ok 12 - Uganda landline retains its international code and is idempotent
   ---
-  duration_ms: 0.431862
+  duration_ms: 0.487448
   type: 'test'
   ...
 # Subtest: Saint Helena (short international number) retains its international code and is idempotent
 ok 13 - Saint Helena (short international number) retains its international code and is idempotent
   ---
-  duration_ms: 0.227773
+  duration_ms: 0.221764
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: null
 ok 14 - invalid phone is rejected: null
   ---
-  duration_ms: 0.070151
+  duration_ms: 0.070273
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: undefined
 ok 15 - invalid phone is rejected: undefined
   ---
-  duration_ms: 0.028102
+  duration_ms: 0.088343
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: ""
 ok 16 - invalid phone is rejected: ""
   ---
-  duration_ms: 0.024986
+  duration_ms: 0.031716
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: " \\t "
 ok 17 - invalid phone is rejected: " \\t "
   ---
-  duration_ms: 0.02345
+  duration_ms: 0.024858
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "123"
 ok 18 - invalid phone is rejected: "123"
   ---
-  duration_ms: 0.027789
+  duration_ms: 0.027282
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "4165550123"
 ok 19 - invalid phone is rejected: "4165550123"
   ---
-  duration_ms: 0.02305
+  duration_ms: 0.024305
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "00442079460958"
 ok 20 - invalid phone is rejected: "00442079460958"
   ---
-  duration_ms: 0.02444
+  duration_ms: 0.025194
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+999123456789"
 ok 21 - invalid phone is rejected: "+999123456789"
   ---
-  duration_ms: 0.263571
+  duration_ms: 0.270885
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+1416"
 ok 22 - invalid phone is rejected: "+1416"
   ---
-  duration_ms: 0.165469
+  duration_ms: 0.172345
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+10125550123"
 ok 23 - invalid phone is rejected: "+10125550123"
   ---
-  duration_ms: 0.113075
+  duration_ms: 0.109546
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+1416555012345678"
 ok 24 - invalid phone is rejected: "+1416555012345678"
   ---
-  duration_ms: 0.0294
+  duration_ms: 0.039468
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+4402079460958"
 ok 25 - invalid phone is rejected: "+4402079460958"
   ---
-  duration_ms: 0.220548
+  duration_ms: 0.218159
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+254012345678"
 ok 26 - invalid phone is rejected: "+254012345678"
   ---
-  duration_ms: 0.060035
+  duration_ms: 0.062141
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+2560712123456"
 ok 27 - invalid phone is rejected: "+2560712123456"
   ---
-  duration_ms: 0.044612
+  duration_ms: 0.042433
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+772123456"
 ok 28 - invalid phone is rejected: "+772123456"
   ---
-  duration_ms: 0.090964
+  duration_ms: 0.071025
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "++14165550123"
 ok 29 - invalid phone is rejected: "++14165550123"
   ---
-  duration_ms: 0.025363
+  duration_ms: 0.02631
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+1+4165550123"
 ok 30 - invalid phone is rejected: "+1+4165550123"
   ---
-  duration_ms: 0.023895
+  duration_ms: 0.022535
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "call 0772123456"
 ok 31 - invalid phone is rejected: "call 0772123456"
   ---
-  duration_ms: 0.022607
+  duration_ms: 0.02257
   type: 'test'
   ...
 # Subtest: invalid phone is rejected: "+14165550123 ext 9"
 ok 32 - invalid phone is rejected: "+14165550123 ext 9"
   ---
-  duration_ms: 0.022224
+  duration_ms: 0.023664
   type: 'test'
   ...
 # Subtest: Unicode whitespace is trimmed consistently
 ok 33 - Unicode whitespace is trimmed consistently
   ---
-  duration_ms: 0.22371
+  duration_ms: 0.153775
   type: 'test'
   ...
 # Subtest: Uganda display remains local
 ok 34 - Uganda display remains local
   ---
-  duration_ms: 0.116043
+  duration_ms: 0.089853
   type: 'test'
   ...
 # Subtest: international display never loses the plus or resembles a Uganda local number
 ok 35 - international display never loses the plus or resembles a Uganda local number
   ---
-  duration_ms: 0.188065
+  duration_ms: 0.109216
   type: 'test'
   ...
 # Subtest: missing phone display remains unchanged
 ok 36 - missing phone display remains unchanged
   ---
-  duration_ms: 0.051954
+  duration_ms: 0.043702
   type: 'test'
   ...
 1..36
@@ -454,14 +454,14 @@ ok 36 - missing phone display remains unchanged
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 26.599779
+# duration_ms 26.511241
 
 ## Target safety guard
 TAP version 13
 # Subtest: mutation tooling refuses hosted or unrelated targets before opening a connection
 ok 1 - mutation tooling refuses hosted or unrelated targets before opening a connection
   ---
-  duration_ms: 298.72586
+  duration_ms: 256.611942
   type: 'test'
   ...
 1..1
@@ -472,7 +472,7 @@ ok 1 - mutation tooling refuses hosted or unrelated targets before opening a con
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 367.946873
+# duration_ms 314.965243
 
 ## Compiled production previews
 PASS compiled production 404 before data access: .next/server/app/dev/preview/certification/page.js

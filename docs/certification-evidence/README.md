@@ -1,6 +1,6 @@
 # Certification evidence
 
-20 October 2026. All accounts and financial records shown here are synthetic, generated in the isolated local database. Screenshots show the real authenticated application, not preview fixtures. Height: 900px.
+21 October 2026. All accounts and financial records shown here are synthetic, generated in the isolated local database. Screenshots show the real authenticated application, not preview fixtures. Height: 900px.
 
 | Dashboard / account | Desktop 1440px | Mobile 390px | Narrow mobile 320px |
 | --- | --- | --- | --- |
@@ -24,20 +24,31 @@ Chart review (12 months, all twelve buckets retained):
 | Super Admin | [JPG](screenshots/chart-super_admin-1440-12.jpg) | [JPG](screenshots/chart-super_admin-390-12.jpg) | [JPG](screenshots/chart-super_admin-320-12.jpg) |
 | Overview | [JPG](screenshots/chart-manager-1440-12.jpg) | [JPG](screenshots/chart-manager-390-12.jpg) | [JPG](screenshots/chart-manager-320-12.jpg) |
 
-Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [password security](password-results.json), notification stability [run 1](notification-results.json) / [run 2](notification-repeat-results.json) / [run 3](notification-recheck-results.json), [blocker investigation](blocker-investigation.json), [preview/accessibility suites](preview-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
+Machine-readable evidence: [browser checks](browser-results.json), [Auth/RLS API checks](api-results.json), [password security](password-results.json), notification stability [run 1](notification-results.json) / [run 2](notification-repeat-results.json) / [run 3](notification-recheck-results.json), change-password form [run 1](password-form-results.json) / [run 2](password-form-repeat-results.json), [blocker investigation](blocker-investigation.json), [preview/accessibility suites](preview-results.json), [financial workflows](workflow-results.json), [dashboard reconciliation](metrics-results.json), [account restrictions](restrictions-results.json), [SSR refresh](refresh-results.json), [standard checks](standards-results.json), [SQL suite output](database-suites.log), and [synthetic database snapshot](synthetic-snapshot.json).
 
 Focused browser retries are included separately. Failed previous attempts are retained in merged results; they are not erased. The report distinguishes confirmed failures from remaining coverage limits.
 
-This directory was regenerated from the current clean database run. The 209
-latest browser snapshots include the focused rechecks and retain failed previous
-attempts; two of them — the staff and member profile password forms — still fail,
-which is the open BKC-04 blocker and why certification remains on HOLD.
+This directory was regenerated from a clean database run in which every suite
+passed: **209/209** browser snapshots, including the two profile password-form
+checks that previously failed. Certification is nonetheless still a HOLD, for
+BKC-05: the client tree-update defect behind BKC-02, BKC-03 and BKC-04 is itself
+unfixed and still reaches every other server-action form.
 
 `baseline/` holds records the per-run exporter does not regenerate and must not
-clear: the [pre-fix BKC-03 reproduction](baseline/bkc-03-baseline-trace.json)
-(6/10), the previous certification's focused notification retries including its
+clear: the pre-fix reproductions for
+[BKC-03](baseline/bkc-03-baseline-trace.json) (6/10) and
+[BKC-04](baseline/bkc-04-baseline-trace.json) (7/16 displayed, 16/16 resolved on
+the promise), the earlier
+[change-password measurements](baseline/change-password-error-display.json),
+the [collection-confirmation exposure](baseline/collection-confirmation-exposure.json)
+behind BKC-05, the previous certification's focused notification retries
+including its
 [failed attempt](baseline/browser-sessions-member-notifications-stability-two-results.json),
-and the [BKC-04 measurements](baseline/change-password-error-display.json).
-The repeated notification suite itself now passes 54/54 in each of three runs;
-its retained [ordering failure](notification-order-results.json) is kept beside
-them.
+its retained [ordering failure](baseline/notification-order-results.json), and
+the previously failing
+[focused profile password recheck](baseline/browser-sessions-profile-password-form-results.json)
+(0/2), whose two checks now pass in the broad run.
+
+Repeated suites are the ones that can clear an intermittent defect: notifications
+run 54 interactions three times, and the change-password form runs 66 checks —
+50 of them wrong-password submissions — twice here and twice before this stack.

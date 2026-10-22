@@ -1,0 +1,496 @@
+Running as Clean Install Admin (super_admin)
+
+── audit_fixes_test.sql
+   ✔ 1 the database keeps Uganda time — Africa/Kampala
+   ✔ 2a a withdrawal below the minimum balance is refused — Members must keep at least UGX 20,000 in savings. The most that can be withdrawn now is UGX 30,000.
+   ✔ 2b a withdrawal that keeps the minimum goes through — WDL261022002
+   ✔ 3a two deposits in one month add up, and neither is a part payment — 73500.00
+   ✔ 3b a month with savings in it expects nothing and owes nothing — paid
+   ✔ 4a a savings target cannot be set — Monthly savings are open: a member saves any amount they choose, so there is no savings target to set.
+   ✔ 4b no plan was written — 0 plan(s)
+   ✔ 5 with decision notices off, approving a loan notifies nobody — 0 notice(s)
+   ✔ 6a the till pays out the loan less its fee — 198000.00
+   ✔ 6b a disbursement with repayments on it cannot be reversed — Loan LN261022009 has repayments recorded against it. Reverse those first, then the disbursement.
+   ✔ 6c reversing the disbursement puts the till back exactly — 55246666.69 vs 55246666.69
+   ✔ 6d the loan is Approved again — approved
+   ✔ 6e its repayment schedule is gone — 0 row(s)
+   ✔ 6f the fee taken at disbursement is reversed with it — 0 standing fee(s)
+   ✔ 7a paid in full, the guarantor is released — released
+   ✔ 7b reversing the final payment reopens the loan and restores the guarantor's real standing — active / pending
+   ✔ 8 dashboard income and expenses equal the cashbook, reversals excluded — dashboard 602000.00 / 2550000.00, cashbook 602000.00 / 2550000.00
+   ✔ 9 settings nothing enforces are no longer offered — 0 left
+
+── business_rules_2026_test.sql
+   ✔ 1a the mandatory registration fee is UGX 20,000 — 20,000
+   ✔ 1b a new member is charged UGX 20,000 at registration — 20,000
+   ✔ 1c the fee is configuration, not a constant in code — fees row, editable under Settings -> Fees
+   ✔ 1d paying UGX 20,000 activates the member — active
+   ✔ 2a a month expects nothing of a member — 0
+   ✔ 2b a member can save UGX 5,000 — 5000.00
+   ✔ 2c a member can save UGX 20,000 — 25000.00
+   ✔ 2d a member can save UGX 73,500 - no amount is rounded or refused — 98500.00
+   ✔ 2e three deposits in one month are three transactions in one period — 3 deposit(s)
+   ✔ 2f every deposit is recorded by member, date, amount and reference — SAV261022090 5,000, SAV261022091 20,000, SAV261022092 73,500
+   ✔ 2g a member who saved nothing has no missed or partial period — 0 row(s)
+   ✔ 2h no arrears, penalty or outstanding savings is raised against anyone — 0 period(s) expecting money
+   ✔ 2m a monthly savings target cannot be set — Monthly savings are open: a member saves any amount they choose, so there is no savings target to set.
+   ✔ 2n a zero saving is refused — Savings amount must be greater than zero.
+   ✔ 2o a negative saving is refused — Savings amount must be greater than zero.
+   ✔ 3a one share costs UGX 10,000 — 10,000
+   ✔ 3b 1 share costs UGX 10,000 — 10,000
+   ✔ 3c 10 shares cost UGX 100,000 — 100,000
+   ✔ 3d 100 shares cost UGX 1,000,000 — 1,000,000
+   ✔ 3e total share value is the number of shares times the one price — 111 shares worth 1,110,000
+   ✔ 3f there is no category limit on how many shares may be bought — no tier, no ceiling
+   ✔ 3g zero shares is refused — Number of shares must be a whole number of at least 1.
+   ✔ 3h a negative quantity is refused — Number of shares must be a whole number of at least 1.
+   ✔ 3i a fractional quantity is refused — function buy_shares(uuid, numeric, unknown, date, unknown, unknown) does not exist
+   ✔ 3j a client-supplied total that is not quantity x price is refused — The share price changed while this form was open. 25 share(s) now cost UGX 250,000. Review it and confirm again.
+   ✔ 3k 25 shares at UGX 10,000 total UGX 250,000, computed by the database — 250,000
+   ✔ 4a no active savings or share category remains — all retired, none deleted
+   ✔ 4b members registered now carry no category
+   ✔ 4c no read model exposes a savings or share category column
+   ✔ 4d the dashboard reports no category and no savings arrears
+   ✔ 4e the savings dashboard reports what came in, not what was owed — 98500.00
+   ✔ 4f the savings performance report counts deposits, not compliance
+   ✔ 5a the savings balance equals the ledger — 98,500
+   ✔ 5b the period totals equal the posted savings payments
+   ✔ 5c the share value equals the posted share lots — 1,360,000
+   ✔ 5d savings this month is taken from the ledger — 98,500
+   ✔ 6a a savings deposit can be reversed — reversed
+   ✔ 6b the period is recomputed from what is still posted — 25000.00
+   ✔ 6c the balance follows the reversal — 25,000
+   ✔ 6d a share purchase can be reversed and the holding follows — 135
+   ✔ 7a the statement lists every deposit and its reversal — 5
+   ✔ 7b the statement closes at the member's real balance
+   ✔ 7c the statement names no savings category or target
+   ✔ 8a no historical transaction was deleted or restated — 143 row(s) checked
+   ✔ 8b no historical share lot was deleted or repriced — 9 lot(s) checked
+   ✔ 8c no historical savings period was deleted or rewritten — 84 period(s) checked
+   ✔ 8e a savings waiver can no longer be created — waive_savings_schedule() no longer exists
+   ✔ 8f the waived status survives, for the months already waived — savings_status still carries waived
+   ✔ 8g no month waived before the change was reopened — 0 waived month(s), unchanged
+   ✔ 8d the retired category rows are kept, not deleted — 3 savings + 3 share categor(ies) kept, all inactive
+   ✔ 9a a member still sees only themselves — 1 row(s)
+   ✔ 9b a member still sees only their own financials — 1 row(s)
+   ✔ 9c a member cannot see anybody else's deposits — 0 row(s)
+   ✔ 9d a member cannot see anybody else's savings months — 0 row(s)
+   ✔ 9e a member cannot see anybody else's shareholding — 0 row(s)
+   ✔ 9f a member cannot record their own savings — You do not have permission to record savings.
+   ✔ 9g a member cannot sell themselves shares — You do not have permission to do this (sell shares). Ask a Super Admin if your role should allow it.
+   ✔ 9h a member cannot change the share price — You do not have permission to change share settings.
+   ✔ 8h a month waived before the change stays closed — This period has been waived. Remove the waiver before recording a payment.
+   ✔ 8i and a recompute leaves it waived — waived
+   ✔ 2i the nightly job marks no period missed and opens no schedule — {"loans_defaulted": 0, "schedules_opened": 0, "periods_marked_missed": 0}
+   ✔ 2j the nightly job puts no member into arrears — 0 missed month(s) before, 0 after — all of them historical
+   ✔ 2k no month raised under the new rules can be missed or partial — a month expecting nothing is never a shortfall
+
+── expense_categories_test.sql
+   ✔ all original expense categories remain
+   ✔ four additional expense categories are active and unique
+   ✔ historical Other without a custom type can still be approved
+   ✔ Stationery: request waits for approval without moving money
+   ✔ Stationery: approval posts one expense to the same account
+   ✔ Stationery: category reaches approvals and receipt details
+   ✔ Stationery: category appears in grouped reports
+   ✔ Printing & Photocopying: request waits for approval without moving money
+   ✔ Printing & Photocopying: approval posts one expense to the same account
+   ✔ Printing & Photocopying: category reaches approvals and receipt details
+   ✔ Printing & Photocopying: category appears in grouped reports
+   ✔ Registration Fees: request waits for approval without moving money
+   ✔ Registration Fees: approval posts one expense to the same account
+   ✔ Registration Fees: category reaches approvals and receipt details
+   ✔ Registration Fees: category appears in grouped reports
+   ✔ Permits & Licences: request waits for approval without moving money
+   ✔ Permits & Licences: approval posts one expense to the same account
+   ✔ Permits & Licences: category reaches approvals and receipt details
+   ✔ Permits & Licences: category appears in grouped reports
+   ✔ blank/missing/overlong Other type is rejected — Specify expense when choosing Other.
+   ✔ blank/missing/overlong Other type is rejected — Specify expense when choosing Other.
+   ✔ blank/missing/overlong Other type is rejected — Specify expense when choosing Other.
+   ✔ blank/missing/overlong Other type is rejected — Specify expense when choosing Other.
+   ✔ blank/missing/overlong Other type is rejected — Specify expense when choosing Other.
+   ✔ blank/missing/overlong Other type is rejected — Keep Specify expense under 160 characters.
+   ✔ invalid requests leave no expense behind
+   ✔ Other type is trimmed and saved separately from the description
+   ✔ pending Other is visible to approvals under the base Other category
+   ✔ retry returns the same Other expense without duplicating it
+   ✔ Other receipt and transaction details include the custom label
+   ✔ ledger retains base Other and the saved custom type
+   ✔ an expense cannot be approved twice
+   ✔ Other type is trimmed and saved separately from the description
+   ✔ pending Other is visible to approvals under the base Other category
+   ✔ retry returns the same Other expense without duplicating it
+   ✔ Other receipt and transaction details include the custom label
+   ✔ ledger retains base Other and the saved custom type
+   ✔ an expense cannot be approved twice
+   ✔ cashbook groups custom types together as Other
+   ✔ receipts/payments report also groups by the main Other category
+   ✔ a non-Other request discards a stale custom type
+   ✔ rejection keeps the custom type and posts no money
+   ✔ a 160-character custom type is accepted
+   ✔ custom expense types never add permanent categories
+   ✔ four-eyes still prevents self approval of Other
+
+── international_phones_test.sql
+   ✔ normalize 0772123456 — +256772123456
+   ✔ normalize (0772) 123-456 — +256772123456
+   ✔ normalize 772123456 — +256772123456
+   ✔ normalize 256772123456 — +256772123456
+   ✔ normalize +256 772 123 456 — +256772123456
+   ✔ normalize 00256772123456 — +256772123456
+   ✔ normalize +1 (416) 555-0123 — +14165550123
+   ✔ normalize +44 20 7946 0958 — +442079460958
+   ✔ normalize +254 712 123456 — +254712123456
+   ✔ normalize +7 912 3456789 — +79123456789
+   ✔ normalize +256 414 123456 — +256414123456
+   ✔ normalize  +1 416 555 0123﻿ — +14165550123
+   ✔ reject invalid phone NULL
+   ✔ reject invalid phone 
+   ✔ reject invalid phone    
+   ✔ reject invalid phone 123
+   ✔ reject invalid phone 4165550123
+   ✔ reject invalid phone 00442079460958
+   ✔ reject invalid phone +999123456789
+   ✔ reject invalid phone +1416
+   ✔ reject invalid phone +10125550123
+   ✔ reject invalid phone +1416555012345678
+   ✔ reject invalid phone +4402079460958
+   ✔ reject invalid phone +254012345678
+   ✔ reject invalid phone +2560712123456
+   ✔ reject invalid phone +772123456
+   ✔ reject invalid phone ++14165550123
+   ✔ reject invalid phone +1+4165550123
+   ✔ reject invalid phone call 0772123456
+   ✔ reject invalid phone +14165550123 ext 9
+   ✔ legacy normalizer RPC supports international callers
+   ✔ international display keeps the full plus/country code
+   ✔ the Uganda-only constraint is replaced with E.164
+   ✔ Uganda: registration saves E.164 and the international next of kin
+   ✔ Uganda: formatted duplicate is rejected
+   ✔ Canada: registration saves E.164 and the international next of kin
+   ✔ Canada: formatted duplicate is rejected
+   ✔ UK: registration saves E.164 and the international next of kin
+   ✔ UK: formatted duplicate is rejected
+   ✔ Kenya: registration saves E.164 and the international next of kin
+   ✔ Kenya: formatted duplicate is rejected
+   ✔ Saint Helena: registration saves E.164 and the international next of kin
+   ✔ Saint Helena: formatted duplicate is rejected
+   ✔ registration rejects an invalid calling code
+   ✔ Uganda: formatted phone resolves to its Auth login
+   ✔ Uganda: canonical phone and member number still resolve
+   ✔ Uganda: duplicate login phone is rejected
+   ✔ Canada: formatted phone resolves to its Auth login
+   ✔ Canada: canonical phone and member number still resolve
+   ✔ Canada: duplicate login phone is rejected
+   ✔ UK: formatted phone resolves to its Auth login
+   ✔ UK: canonical phone and member number still resolve
+   ✔ UK: duplicate login phone is rejected
+   ✔ Kenya: formatted phone resolves to its Auth login
+   ✔ Kenya: canonical phone and member number still resolve
+   ✔ Kenya: duplicate login phone is rejected
+   ✔ Saint Helena: formatted phone resolves to its Auth login
+   ✔ Saint Helena: canonical phone and member number still resolve
+   ✔ Saint Helena: duplicate login phone is rejected
+   ✔ editing rejects an international duplicate
+   ✔ editing saves canonical member and account phones without changing the member number
+   ✔ the edited international phone signs in and the old phone stops resolving
+   ✔ editing rejects an invalid calling code
+   ✔ direct account writes reject invalid international phones
+   ✔ invalid login identifiers have no candidates
+   ✔ international formatting shares one canonical login-attempt key
+   ✔ Auth metadata provisioning normalizes international account phones
+   ✔ the account phone-setting function stores an international number canonically
+   ✔ staff phone changes reject an international member duplicate
+   ✔ successful international sign-in is audited as a phone login
+   ✔ the existing authorised shared-phone workflow returns both international login candidates
+
+── members_access_test.sql
+   ✔ 1 the registration fee schedule is read from Settings -> Fees — 2 fees totalling 25000.00
+   ✔ 2a a unique BND + year + sequence member number is generated — BND26013
+   ✔ 2b the phone is stored in its one form — +256700000000
+   ✔ 2c a member registered now carries no savings or share category
+   ✔ 2d paid in full, so the member is active — active
+   ✔ 2e Cash at Merchant rose by UGX 25,000 — 25000.00
+   ✔ 2f one fee transaction of UGX 25,000 into the merchant account, with the MoMo reference — FEE261022015
+   ✔ 2g a receipt is issued — RCT261022133
+   ✔ 2h the receipt carries both fee lines and the membership title
+   ✔ 2i the SACCO books both fees as income, separately
+   ✔ 2j the audit log records the registration, the payment and the activation
+   ✔ 2k a retried submission returns the same member, not a second one
+   ✔ 3a the same phone in another format is refused — 0700 000 000 is already the phone number of John Bakenye (BND26013). Each member signs in with their own number.
+   ✔ 3b an invalid phone is refused — Enter a valid Uganda number or an international number starting with + and its country code.
+   ✔ 3c a member is registered with no category at all — BND26014
+   ✔ 3d a total the officer was not shown is refused — The registration fees changed while this form was open. The total is now UGX 20,000. Review it and confirm again.
+   ✔ 3e a mobile money payment needs its reference, and nothing is left half-made — Enter the mobile money transaction reference from the confirmation message.
+   ✔ 4a registered without payment, the member is pending — pending
+   ✔ 4b a pending member cannot be activated with fees unpaid — This member still owes UGX 20,000 in mandatory registration fees. Record the payment, or waive the fee, before activating them.
+   ✔ 4c paying the fee activates the member
+   ✔ 5a the new amount applies to the next registration
+   ✔ 5b John's charge and receipt keep UGX 20,000
+   ✔ 5c the amount change is audited with before and after
+   ✔ 6a the transfer completes — completed
+   ✔ 6b Cash at Merchant fell by UGX 25,000 and Cash at Bank rose by UGX 25,000
+   ✔ 6c total SACCO funds did not change — 104613166.69
+   ✔ 7a an admin can change a member's phone
+   ✔ 7b the change is recorded field by field, with the old and new values and the reason
+   ✔ 7c and in the audit log as a phone number change
+   ✔ 7d an edit without a reason is refused — Give a reason for this change - it is kept on the member's record.
+   ✔ 8a a new role can be created with chosen permissions — test_branch_supervisor
+   ✔ 8b a member role can never hold a staff permission — The Member role cannot hold "Edit member records": it belongs to the other side of the system.
+   ✔ 8c the Super Admin role cannot be edited — The Super Admin role always holds every permission and cannot be edited.
+   ✔ 8d withdrawing a permission is audited with what was withdrawn
+   ✔ 9a a login created in two steps, as Supabase does it, is linked to exactly one member and on a temporary password
+   ✔ 9b a staff account needs no email: its internal address is not kept and its phone is normalised — +256770000055
+   ✔ 9c a member number resolves to that member's login — BND26013
+   ✔ 9d typed in lower case it resolves to the same login — BND26013
+   ✔ 9e a member's phone, typed locally, resolves to the same login
+   ✔ 9f a staff phone resolves to the staff account
+   ✔ 9g an unknown identifier looks just like a known one: not locked, nothing to try — {"key": "BND99998", "locked": false, "candidates": []}
+   ✔ 9h five wrong passwords pause a real member number
+   ✔ 9i and an unknown one exactly the same way, so pausing reveals nothing
+   ✔ 9j failures are in the audit log, without any password
+   ✔ 9k on a temporary password the member reads nothing and holds no permission
+   ✔ 9l once they choose their own password, their records open up
+   ✔ 9m a staff reset puts the account back on a forced change, and is audited
+   ✔ 9n there are no setup codes any more
+   ✔ 9o a member number can never be changed — A member number is permanent and cannot be changed (BND26013).
+   ✔ 9p a fee can never be deleted — A fee is never deleted, so the records of what members paid stay whole. Make it inactive instead.
+   ✔ 9q a self sign-up claiming super_admin gets nothing: a switched-off member row — member / active=false
+   ✔ 10a John's session is a member session with portal permissions only — ["portal.view", "portal.loan_apply", "portal.guarantee_respond"]
+   ✔ 10b John reads exactly one member record: his own — 1 row(s)
+   ✔ 10c a direct update of his record is refused — permission denied for table members
+   ✔ 10d the edit function refuses him — You do not have permission to do this (edit member records). Ask a Super Admin if your role should allow it.
+   ✔ 10e he cannot register members — You do not have permission to do this (register members). Ask a Super Admin if your role should allow it.
+   ✔ 10f he cannot post to the ledger directly — permission denied for function post_transaction
+   ✔ 10g he cannot write to the audit log — permission denied for function write_audit
+   ✔ 10h he cannot change permissions — You do not have permission to do this (manage roles & permissions). Ask a Super Admin if your role should allow it.
+   ✔ 10i he sees his own fees and nobody else's — 2 row(s)
+   ✔ 10j he can read the lines of his own receipt — 2 line(s)
+   ✔ 10k the staff change history is not his to read — 0 row(s)
+   ✔ 10l he cannot read the audit log — 0 row(s)
+   ✔ 10m he cannot issue himself a temporary password — Change your own password from your profile.
+   ✔ 10n once suspended, even an existing session reads none of his records — 0 row(s)
+   ✔ 11a no internal helper is executable by anon or authenticated — none
+   ✔ 11b a signed-out caller can execute nothing but the public brand — none
+   ✔ 11c a signed-in caller cannot write to members, app_users, roles or fees directly
+
+── membership_fees_test.sql
+   ✔ 1a the membership fee is read from the fees table, not hard-coded — 20,000
+   ✔ 1b a new member is charged the current fee at registration — 20,000
+   ✔ 2a a fee paid in full reads Paid with nothing outstanding — 20,000 paid, 0 outstanding, status paid
+   ✔ 2b paying the whole fee activates the member — active
+   ✔ 2c the payment produced a receipt — RCT261022133
+   ✔ 3a paying 5,000 of the fee reads Partial — partial
+   ✔ 3b the balance is measured against what the member was charged — 20,000 charged, 5,000 paid, 15,000 outstanding
+   ✔ 3c a part payment does not activate the member — pending
+   ✔ 3d the charge itself reads partial, and names no settling payment — partial, paid_transaction_id null
+   ✔ 4a a member who has paid nothing reads Unpaid, owing the whole fee — 20,000 outstanding
+   ✔ 4b and is not active — pending
+   ✔ 5a two part payments accumulate — 10,000 paid, status partial
+   ✔ 5b the payment that closes the balance turns the fee to Paid — 20,000 paid, 0 outstanding
+   ✔ 5c settling the last of it activates the member — active
+   ✔ 5d the closed charge names the payment that closed it — paid_transaction_id set
+   ✔ 5e every part payment is kept in the payment history — 3 payment(s) recorded
+   ✔ 6a the counter refuses more than the outstanding balance — That is more than is owed. The membership fee balance is UGX 15,000.
+   ✔ 6b a fee already settled cannot be collected again — This member's membership fee is already settled.
+   ✔ 6c zero is not a payment — Enter an amount greater than zero.
+   ✔ 6d a retried submission does not take the money twice — 0 fee payment(s) before, 1 after
+   ✔ 6e and the member is credited once — 3,000 credited
+   ✔ 7a each collection posted one ledger transaction — 3 posted fee transaction(s)
+   ✔ 7b every collection produced a receipt — a receipt for every fee payment
+   ✔ 7c the income recognised equals the money received — 20,000 recognised as income
+   ✔ 7d the allocations add up to the ledger amount — 20,000 allocated
+   ✔ 7e no member owes a negative amount — no negative balances
+   ✔ 7f no member has paid more than they were charged — no overpaid members
+   ✔ 8a reversing the closing payment leaves the earlier ones standing — 10,000 still paid, status partial
+   ✔ 8b and returns the member to pending — pending
+   ✔ 8c the reversed payment is kept in the history, marked reversed — the reversal is visible, not erased
+   ✔ 9a the dashboard reports the configured fee — 20,000
+   ✔ 9b the dashboard counts paid, partial and unpaid members — 10 paid, 5 partial, 1 unpaid
+   ✔ 9c collected today never exceeds collected in total — 38000.00 today of 235000.00 in total
+   ✔ 9d the table can be filtered to the members who owe part of the fee — 5 partial member(s)
+   ✔ 9e the table can be searched by name — 1 match(es)
+   ✔ 9f the member profile card shows required, paid, outstanding and the history — 20000.00 required, 5000.00 paid, 1 payment(s) listed
+   ✔ 10a no pre-existing transaction changed amount, date or status — every pre-existing ledger row is as it was
+   ✔ 10b no pre-existing transaction was deleted — none deleted
+   ✔ 10c no pre-existing fee charge was re-priced — every charge keeps the amount it was raised with
+   ✔ 10d no pre-existing allocation line was altered — allocation history intact
+   ✔ 10e no receipt was re-numbered or re-pointed — receipts intact
+   ✔ 10f no duplicate receipt number exists — receipt numbers unique
+   ✔ 10g a charge is never settled by more money than it asked for — no charge over-allocated
+   ✔ 11a a member sees only their own membership fee row — 1 row(s) visible
+   ✔ 11b a member cannot see another member's fee payments — 0 row(s) visible
+   ✔ 11c a member cannot collect a fee — You do not have permission to do this (collect fees). Ask a Super Admin if your role should allow it.
+   ✔ 11d a member cannot open the membership fees dashboard — You do not have permission to view the membership fees dashboard.
+   ✔ 11e no membership fee function is reachable by a signed-out caller — 0 reachable by anon
+   ✔ 11f no membership fee view is readable by a signed-out caller — 0 grant(s) to anon
+
+── numbering_test.sql
+   ✔ 1a a member number is BND + YY + 3 digits — BND26013
+   ✔ 1b consecutive registrations get consecutive numbers — BND26013, BND26014, BND26015
+   ✔ 1c no member number is issued twice — BND26013 / BND26014 / BND26015
+   ✔ 1d the year is the year of registration — 26
+   ✔ 1e the sequence starts again at the first free number of the year — BND26013 (expected the first free: BND26013)
+   ✔ 1f every year keeps a counter of its own, so 2027 cannot continue 2026 — MEMBER-26=13
+   ✔ 1g a number a member already holds is skipped, never reissued — BND26901
+   ✔ 1h the 999th member of a year is BND26999 — BND26999
+   ✔ 1i the 1000th widens to four digits rather than repeating 001 — BND261000
+   ✔ 2a a reference is PREFIX + YYMMDD + 3 digits — SAV261022001
+   ✔ 2b the date in a reference is today — 261022
+   ✔ 2c the daily sequence counts up — SAV261022001, SAV261022002
+   ✔ 2d each kind of document counts separately
+   ✔ 2e the sequence starts again at 001 the next day
+   ✔ 2f past 999 in a day the number widens rather than repeating
+   ✔ 2g a bank withdrawal asked for by its old prefix comes out as WDL — WDL261022003
+   ✔ 2h a member number asked for by its old prefix is a member number
+   ✔ 2i a reference is never issued without a prefix — A document prefix is required to issue a reference.
+   ✔ 2j every kind of money movement carries the agreed prefix
+   ✔ 2k no kind of money movement is left without a prefix — share_purchase=SHR, weekly_savings=SAV, monthly_savings=SAV, loan_disbursement=LDS, loan_repayment=LRP, deposit=DEP, withdrawal=WDL, income=INC, expense=EXP, fee=FEE, penalty=PEN, transfer=TRF, payment=PAY
+   ✔ 3a registering a member issues BND + YY + sequence — BND26903
+   ✔ 3b every member number in the register is unique
+   ✔ 3c a deposit is numbered DEP + YYMMDD + sequence — DEP261022006
+   ✔ 3d the receipt issued for it is RCT + YYMMDD + sequence — RCT261022133
+   ✔ 3e the printed receipt shows that number, not a UUID — RCT261022133
+   ✔ 3f nothing on the printed receipt is a UUID — DEP261022006
+   ✔ 3g a reversal is its own document, REV + YYMMDD + sequence — REV261022002
+   ✔ 3h no two ledger rows share a reference
+   ✔ 3i every ledger reference is in the new form — DEP261022001, DEP261022002, DEP261022003, DEP261022004, DEP261022005, DEP261022006, EXP261022001, EXP261022002, EXP261022003, FEE261022001, FEE261022002, FEE261022003, FEE261022004, FEE261022005, FEE261022006, FEE261022007, FEE261022008, FEE261022009, FEE261022010, FEE261022011, FEE261022012, FEE261022013, FEE261022014, INC261022001, INC261022002, INC261022003, INC261022004, LDS261022001, LDS261022002, LDS261022003, LRP261022001, LRP261022002, LRP261022003, LRP261022004, LRP261022005, LRP261022006, LRP261022007, LRP261022008, LRP261022009, LRP261022010, LRP261022011, LRP261022012, LRP261022013, LRP261022014, REV261022001, REV261022002, SAV261022001, SAV261022002, SAV261022003, SAV261022004, SAV261022005, SAV261022006, SAV261022007, SAV261022008, SAV261022009, SAV261022010, SAV261022011, SAV261022012, SAV261022013, SAV261022014, SAV261022015, SAV261022016, SAV261022017, SAV261022018, SAV261022019, SAV261022020, SAV261022021, SAV261022022, SAV261022023, SAV261022024, SAV261022025, SAV261022026, SAV261022027, SAV261022028, SAV261022029, SAV261022030, SAV261022031, SAV261022032, SAV261022033, SAV261022034, SAV261022035, SAV261022036, SAV261022037, SAV261022038, SAV261022039, SAV261022040, SAV261022041, SAV261022042, SAV261022043, SAV261022044, SAV261022045, SAV261022046, SAV261022047, SAV261022048, SAV261022049, SAV261022050, SAV261022051, SAV261022052, SAV261022053, SAV261022054, SAV261022055, SAV261022056, SAV261022057, SAV261022058, SAV261022059, SAV261022060, SAV261022061, SAV261022062, SAV261022063, SAV261022064, SAV261022065, SAV261022066, SAV261022067, SAV261022068, SAV261022069, SAV261022070, SAV261022071, SAV261022072, SAV261022073, SAV261022074, SAV261022075, SAV261022076, SAV261022077, SAV261022078, SAV261022079, SAV261022080, SAV261022081, SAV261022082, SAV261022083, SAV261022084, SAV261022085, SAV261022086, SAV261022087, SAV261022088, SAV261022089, SHR261022001, SHR261022002, SHR261022003, SHR261022004, SHR261022005, SHR261022006, SHR261022007, SHR261022008, SHR261022009, WDL261022001
+   ✔ 4a a member number is looked up exactly as issued — BND26903
+   ✔ 4b lower case, spaces and a stray dash are forgiven — BND26903
+   ✔ 4c a member number issued under the old scheme still resolves — BND-M-0000123
+   ✔ 4d a phone number is still read as a phone number — +256779900901
+   ✔ 4e an email is still read as an email
+
+── qa_findings_test.sql
+   ✔ V-1a a savings payment can be reversed — no error
+   ✔ V-1b the balance falls by the reversed amount — 60000.00 -> 0.00
+   ✔ V-1c the period is recomputed and correctly typed — paid 0.00, status pending
+   ✔ V-1d the original is marked reversed — reversed
+   ✔ V-1e the reversal is audited — audit_logs
+   ✔ V-1f a second reversal is refused — refused
+   ✔ V-1g the recompute helper is not callable from the API — refused
+   ✔ V-8 the statement agrees with the dashboard after a reversal — statement 0.00, dashboard 0.00
+   ✔ V-6 a value date in the future is refused — 3 of 3 refused
+   ✔ V-5a a guarantor sees the borrower they guarantee — 1 row(s), borrower QA Borrower Test
+   ✔ V-5b a member cannot ask about another member's guarantees — 1 row(s) — still their own
+   ✔ V-5c a member who guarantees nothing sees nothing — 0 row(s)
+   ✔ V-5d and cannot enumerate through the parameter — 0 row(s)
+   ✔ V-5e row-level security on members is unchanged — 1 member row(s) visible
+   ✔ V-5f a caller with no member record sees nothing — 0 row(s)
+   ✔ V-1h a waived period stays waived — waived
+   ✔ 0044 a new waiver cannot be created at all — waive_savings_schedule() no longer exists
+
+── receiving_accounts_test.sql
+   ✔ cash appears in the receiving-account list
+   ✔ the configured Airtel merchant account appears, with its merchant code
+   ✔ no bank account appears, because none is configured
+   ✔ no MTN merchant account appears, because none is configured
+   ✔ the list is exactly the active financial accounts
+   ✔ adding a bank account makes it appear automatically
+   ✔ adding an MTN merchant account makes it appear automatically
+   ✔ a second Airtel merchant account appears individually, not merged into the first
+   ✔ the receiving-account list carries no balance
+   ✔ choosing cash posts the money into the cash account — ZZTEST Cash at Hand
+   ✔ the cash account's own entry is the amount received
+   ✔ choosing the second Airtel account posts to that account, not the first or the default — ZZTEST Airtel Branch Two
+   ✔ choosing a bank account posts to that bank account — ZZTEST Centenary Bank
+   ✔ shares use the same account source as savings, and post to the chosen MTN account — ZZTEST MTN Collections
+   ✔ a stale share price is refused — The share price changed while this sale was open. Reload and record it again.
+   ✔ a member fee uses the same account source and posts to the chosen account — ZZTEST Cash at Hand
+   ✔ a deposit uses the same account source and posts to the chosen account
+   ✔ a disbursement leaves the account that was chosen — ZZTEST Centenary Bank
+   ✔ the chosen account is the one that falls by the principal less the withheld fee — 198000.00
+   ✔ a Loan Officer can read the receiving accounts
+   ✔ loan repayments use the same account source and post to the chosen account — ZZTEST Airtel Collections
+   ✔ a Loan Officer still cannot record savings through the same function — You do not have permission to record savings.
+   ✔ a replayed submission creates no second transaction, receipt, income entry or ledger entry
+   ✔ each collection wrote exactly one ledger row and one receipt
+   ✔ a receipt into an account posts one entry against that account and no other
+   ✔ a deactivated account disappears from the receiving-account list
+   ✔ the accounts that are still active are unaffected
+   ✔ a new receipt into a deactivated account is refused — ZZTEST Airtel Branch Two is inactive and cannot be used.
+   ✔ a historical transaction against a deactivated account is still readable, unchanged — SAV261022091
+   ✔ its account entries are still there and still against that account — 1
+   ✔ the deactivated account still names itself on the historical receipt
+   ✔ no posted money movement anywhere has been left without its account — 0
+
+── rls_isolation_test.sql
+   ✔ 1 set-up complete — two members saving on the same open footing, one loan guaranteed by the other
+   ✔ 2a staff read loans without recursing — 9 loan(s)
+   ✔ 2b staff read member_financials — 14 member(s)
+   ✔ 2c staff read savings_schedules — 87 period(s)
+   ✔ 2d staff read member_share_progress — 14 member(s)
+   ✔ 3a member sees only themselves in members — 1 row(s)
+   ✔ 3b member sees only their own financials — 1 row(s)
+   ✔ 3c member cannot see schedules of others — 0 row(s)
+   ✔ 3d member cannot see payments of others — 0 row(s)
+   ✔ 3e member cannot see the ledger of others — 0 row(s)
+   ✔ 4a member sees only their own loans and the ones they guarantee — 0 other loan(s) visible
+   ✔ 4b and it is the right one — 1 match(es)
+   ✔ 4c loan_balances resolves without recursing — 1 row(s)
+   ✔ 4d member sees the guarantee naming them — 1 row(s)
+   ✔ 4e member sees no guarantee between other people — 0 row(s)
+   ✔ 5a member may still read the retired category register — 3 retired category(ies)
+   ✔ 5b member sees only their own share progress — 1 row(s)
+   ✔ 5d member cannot see the savings transactions of others — 0 row(s)
+   ✔ 5c member sees only their own schedule rows — 1 row(s), none belonging to anyone else
+   ✔ 6a member cannot see payment intents of others — 0 row(s)
+   ✔ 6b member cannot read the audit log — 0 row(s)
+   ✔ 6c member cannot read the SACCO books — 0 row(s)
+   ✔ 7 member cannot pull the statement of another — You may only view your own statement.
+
+── treasury_test.sql
+   ✔ accounts start at their opening balance of zero
+   ✔ step 1: Cash at Merchant is UGX 100,000 — 100000.00
+   ✔ step 1: member A savings is UGX 100,000
+   ✔ step 1: the ledger row names the merchant account and carries the provider reference — SAV261022090
+   ✔ step 1: one account entry, a debit of UGX 100,000
+   ✔ step 1: an RCT receipt number is issued — RCT261022133
+   ✔ step 1: the collection is in the audit log
+   ✔ step 2: Cash at Merchant is UGX 150,000 — 150000.00
+   ✔ a replayed submission posts nothing new
+   ✔ a duplicate provider reference is refused — Reference mtn-test-0001 has already been recorded against another transaction.
+   ✔ mobile money into a cash account is refused — TEST Till is a cash account and cannot handle a mobile money payment.
+   ✔ a merchant collection without a reference is refused — Enter the mobile money transaction reference from the confirmation message.
+   ✔ step 3: a manager's transfer completes without waiting — {"id": "d6bc5016-b243-409f-8ffc-8ff51650cac7", "kind": "merchant_to_bank", "amount": 120000.00, "status": "completed", "duplicate": false, "transfer_no": "TRF261022001", "source_account": "TEST Merchant", "source_balance": 30000.00, "transaction_id": "78092841-99c7-4bfb-b725-82af57966553", "requires_approval": false, "destination_account": "TEST Bank", "destination_balance": 120000.00}
+   ✔ step 3: Cash at Merchant UGX 30,000, Cash at Bank UGX 120,000 — 30000.00 / 120000.00
+   ✔ step 3: total SACCO funds unchanged
+   ✔ step 3: the transfer is not income, not expense, not savings
+   ✔ step 3: ONE linked ledger row carries both accounts
+   ✔ a transfer larger than the balance is refused — TEST Merchant holds UGX 30,000. It cannot send UGX 50,000.
+   ✔ a deposit slip cannot be banked twice — Reference slip-0001 has already been recorded on TEST Bank.
+   ✔ step 4: bank UGX 90,000, cash UGX 30,000, total unchanged — WDL261022002
+   ✔ step 5: an expense request moves no money until approved, and is numbered EXP — EXP261022005
+   ✔ step 5: approved, Cash at Hand falls to UGX 20,000 — 20000.00
+   ✔ step 5: total funds fall by UGX 10,000 and expenses rise by UGX 10,000
+   ✔ a reversal cannot overdraw an account — TEST Bank holds UGX 90,000. Taking out UGX 120,000 would leave it below zero.
+   ✔ a reversed transfer puts both accounts back
+   ✔ the transfer document is marked reversed and linked to the reversal
+   ✔ the original stays visible, marked reversed
+   ✔ account entries cannot be edited — permission denied for table account_ledger_entries
+   ✔ transactions cannot be deleted — permission denied for table transactions
+   ✔ an opening balance is fixed once money has moved — The opening balance of TEST Merchant cannot change once entries have been posted to it.
+   ✔ a cashier's transfer is submitted, and no money moves yet — submitted
+   ✔ a cashier cannot approve — You do not have permission to approve financial transactions.
+   ✔ a cashier's payment is submitted with a PAY number
+   ✔ a manager approves it and the money moves
+   ✔ an approved payment leaves the chosen account — 18000.00
+   ✔ under four eyes a manager's own transfer waits too
+   ✔ nobody approves their own entry under four eyes — You recorded this entry, so a different person has to approve it.
+   ✔ a waiting transfer can be cancelled, and no money moved
+   ✔ a variance must be explained — The actual balance differs from the system balance by UGX -1,000. Explain the variance.
+   ✔ a variance is recorded, and the system balance is not adjusted — {"id": "2f4cfb94-0fa0-40d2-9e19-36f25425305d", "outcome": "variance", "variance": -1000.00, "actual_balance": 17000.00, "system_balance": 18000.00, "reconciliation_no": "REC261022001"}
+   ✔ the dashboard flags the variance
+   ✔ a matching balance reconciles cleanly
+   ✔ Cash & Bank report: opening + in - out = closing = ledger balance, for every account
+   ✔ Cash & Bank report: merchant collections today are UGX 150,000
+   ✔ Receipts & Payments: internal transfers are not receipts or payments
+   ✔ the account statement runs by date and ends at the balance
+   ✔ an existing cash collection lands in the default Cash at Hand
+   ✔ a member cannot read the SACCO accounts — 0
+   ✔ a member cannot read the account ledger — 0
+   ✔ a member cannot open the finance dashboard — You do not have permission to view the finance dashboard.
+   ✔ a member cannot move SACCO money — You do not have permission to record transfers.
+
+471 passed, 0 failed

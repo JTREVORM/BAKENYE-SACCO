@@ -1,0 +1,33 @@
+
+########## receipt-print-check ##########
+PASS all 13 category-specific receipt details match their synthetic payloads.
+PASS staff shell standard: print chrome hidden, no clipping, all field values retained, one A4 page
+PASS staff shell long: print chrome hidden, no clipping, all field values retained
+PASS member shell standard: print chrome hidden, no clipping, all field values retained, one A4 page
+PASS member shell long: print chrome hidden, no clipping, all field values retained
+PASS 320 additional full-value financial-summary checks; no browser runtime errors.
+
+########## ui-refinement-check ##########
+PASS receipt type=monthly_savings: four viewports, source fields and A4 PDF
+PASS receipt type=weekly_savings: four viewports, source fields and A4 PDF
+PASS receipt type=deposit: four viewports, source fields and A4 PDF
+PASS receipt type=withdrawal: four viewports, source fields and A4 PDF
+PASS receipt type=share_purchase: four viewports, source fields and A4 PDF
+PASS receipt type=loan_repayment: four viewports, source fields and A4 PDF
+PASS receipt type=loan_disbursement: four viewports, source fields and A4 PDF
+PASS receipt type=fee: four viewports, source fields and A4 PDF
+PASS receipt type=income: four viewports, source fields and A4 PDF
+PASS receipt type=expense: four viewports, source fields and A4 PDF
+PASS receipt type=penalty: four viewports, source fields and A4 PDF
+PASS receipt type=transfer: four viewports, source fields and A4 PDF
+PASS receipt type=payment: four viewports, source fields and A4 PDF
+PASS receipt type=monthly_savings&status=reversed: four viewports, source fields and A4 PDF
+PASS receipt type=deposit&status=reversal: four viewports, source fields and A4 PDF
+PASS receipt long=1: four viewports, source fields and A4 PDF
+PASS receipt missing=1: four viewports, source fields and A4 PDF
+PASS receipt method=cash: four viewports, source fields and A4 PDF
+PASS receipt method=mobile_money: four viewports, source fields and A4 PDF
+PASS receipt method=bank_transfer: four viewports, source fields and A4 PDF
+PASS receipt method=cheque: four viewports, source fields and A4 PDF
+PASS receipt method=internal: four viewports, source fields and A4 PDF
+PASS: 194 layout checks, 22 PDF cases, print/PDF actions and keyboard focus.

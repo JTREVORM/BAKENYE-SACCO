@@ -1,0 +1,41 @@
+BEGIN
+DO
+-[ RECORD 1 ]--------+-----------------------------------------------------------
+step                 | 1. SETUP — account is on a staff-issued temporary password
+member_no            | BND26001
+role                 | member
+must_change_password | t
+password_set_at      | 
+
+-[ RECORD 1 ]--------------------------------------------------------------------------
+set_config | {"sub" : "90dd95db-75cb-4f35-a9a8-ede80d930523", "role" : "authenticated"}
+
+SET
+-[ RECORD 1 ]---------------+---------------------------------------------------
+step                        | 2. BEFORE — the forced-change lock closes the data
+lock_held                   | t
+own_member_record_reachable | f
+staff_access                | f
+transactions_visible        | 0
+
+-[ RECORD 1 ]+-
+exploit_call | 
+
+-[ RECORD 1 ]---------------+------------------------------------------------
+step                        | 3. AFTER — lock cleared, password never changed
+lock_held                   | f
+db_claims_pw_chosen         | t
+own_member_record_reachable | t
+transactions_visible        | 15
+
+RESET
+-[ RECORD 1 ]-----------------+------------------------------------------------------------------
+step                          | 4. CREDENTIAL — the temporary password is still the live password
+auth_users_encrypted_password | TEMP-PASSWORD-HASH-PLACEHOLDER
+
+-[ RECORD 1 ]-----------------------------------------------------
+step    | 5. AUDIT TRAIL — the SACCO is told a password was chosen
+action  | auth.password_changed
+summary | Changed their password
+
+ROLLBACK

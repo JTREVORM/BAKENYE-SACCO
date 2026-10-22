@@ -1,0 +1,44 @@
+########## money-test (paths fixed) ##########
+  ✔ 196666.67      -> 196666.67
+  ✔ 536666.65      -> 536666.65
+  ✔ 88333.33       -> 88333.33
+  ✔ 2360000        -> 2360000
+  ✔ 0.02           -> 0.02
+  ✔ 76666.67       -> 76666.67
+  ✔ 1              -> 1
+  ✔ 99999999.99    -> 99999999.99
+
+22 passed, 0 failed
+
+########## dashboard-production-check (NODE_ENV=production) ##########
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/home/user/BAKENYE-SACCO/.next/server/webpack-runtime.js:195:28)
+    at /home/user/BAKENYE-SACCO/.next/server/webpack-runtime.js:108:40 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/user/BAKENYE-SACCO/.next/server/webpack-runtime.js',
+    '/home/user/BAKENYE-SACCO/.next/server/app/dev/preview/certification/page.js',
+    '/home/user/BAKENYE-SACCO/scripts/dashboard-production-check.mjs'
+  ]
+}
+
+Node.js v22.22.0
+
+########## maintenance-check (against the production server :3100) ##########
+
+── the site is currently serving normally
+
+── maintenance is off, so the application must be untouched
+  ✔ the root answers normally — 307
+  ✔ /login loads — 200
+  ✔ and shows no trace of the maintenance page
+  ✔ a signed-out visitor to a dashboard is still sent to sign in — 307
+  ✔ to /login, with their destination remembered — /login?next=%2Fstaff%2Fdesk
+  ✔ /manifest.webmanifest still served — 200
+  ✔ /sw.js still served — 200
+  ✔ /icons/icon-192.png still served — 200
+  ✔ the bypass route mints nothing while maintenance is off — 307
+
+9 passed, 0 failed

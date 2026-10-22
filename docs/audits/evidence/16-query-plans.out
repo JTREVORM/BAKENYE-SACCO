@@ -1,0 +1,393 @@
+Pager usage is off.
+== P1. foreign keys with no supporting index (sequential scans on cascade/join) ==
+         table          |         column          
+------------------------+-------------------------
+ members                | created_by
+ transactions           | recorded_by
+ transactions           | reversed_by_id
+ transactions           | reverses_id
+ share_lots             | recorded_by
+ share_lots             | transaction_id
+ savings_payments       | recorded_by
+ savings_payments       | schedule_id
+ savings_payments       | transaction_id
+ loan_products          | updated_by
+ loans                  | approved_by
+ loans                  | created_by
+ loans                  | disbursed_by
+ loans                  | product_id
+ loans                  | rejected_by
+ loan_repayments        | recorded_by
+ loan_repayments        | transaction_id
+ loan_documents         | uploaded_by
+ income_entries         | loan_id
+ income_entries         | member_id
+ income_entries         | recorded_by
+ income_entries         | transaction_id
+ expense_entries        | approved_by
+ expense_entries        | payment_account_id
+ expense_entries        | recorded_by
+ expense_entries        | transaction_id
+ payment_intents        | initiated_by
+ payment_intents        | loan_id
+ payment_intents        | transaction_id
+ sacco_settings         | updated_by
+ system_settings        | updated_by
+ share_categories       | created_by
+ savings_categories     | created_by
+ financial_accounts     | created_by
+ financial_accounts     | updated_by
+ account_ledger_entries | created_by
+ receipts               | created_by
+ internal_transfers     | approved_by
+ internal_transfers     | cancelled_by
+ internal_transfers     | created_by
+ internal_transfers     | rejected_by
+ internal_transfers     | reversal_transaction_id
+ payments               | approved_by
+ payments               | cancelled_by
+ payments               | category_id
+ payments               | created_by
+ payments               | member_id
+ payments               | rejected_by
+ payments               | reversal_transaction_id
+ reconciliations        | reconciled_by
+ finance_documents      | uploaded_by
+ roles                  | created_by
+ roles                  | updated_by
+ role_permissions       | granted_by
+ member_profile_changes | changed_by
+ fees                   | created_by
+ fees                   | income_category_id
+ fees                   | updated_by
+ member_fees            | created_by
+ member_fees            | fee_id
+ member_fees            | waived_by
+ fee_payment_lines      | fee_id
+ login_attempts         | user_id
+(63 rows)
+
+== P2. index count per table ==
+ tablename | idx 
+-----------+-----
+(0 rows)
+
+== P3. plan for the staff dashboard metrics RPC ==
+ERROR:  You do not have permission to view the dashboard.
+CONTEXT:  PL/pgSQL function assert_capability(boolean,text) line 4 at RAISE
+SQL statement "SELECT assert_capability(can_view_operations(), 'view the dashboard')"
+PL/pgSQL function dashboard_metrics() line 5 at PERFORM
+== P4. plan for the member financials view (the portal dashboard) ==
+                                                                                 QUERY PLAN                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit (actual rows=12 loops=1)
+   Buffers: shared hit=316
+   ->  Nested Loop Left Join (actual rows=12 loops=1)
+         Buffers: shared hit=316
+         ->  Nested Loop Left Join (actual rows=12 loops=1)
+               Buffers: shared hit=280
+               ->  Merge Left Join (actual rows=12 loops=1)
+                     Merge Cond: (m.id = m_5.id)
+                     Buffers: shared hit=196
+                     ->  Merge Left Join (actual rows=12 loops=1)
+                           Merge Cond: (m.id = m_4.id)
+                           Buffers: shared hit=188
+                           ->  Merge Left Join (actual rows=12 loops=1)
+                                 Merge Cond: (m.id = sh.member_id)
+                                 Buffers: shared hit=124
+                                 ->  Nested Loop Left Join (actual rows=12 loops=1)
+                                       Join Filter: (m_1.id = m.id)
+                                       Rows Removed by Join Filter: 132
+                                       Buffers: shared hit=115
+                                       ->  Index Scan using members_pkey on members m (actual rows=12 loops=1)
+                                             Buffers: shared hit=2
+                                       ->  Materialize (actual rows=12 loops=12)
+                                             Buffers: shared hit=113
+                                             ->  Hash Left Join (actual rows=12 loops=1)
+                                                   Hash Cond: (m_1.id = sh_1.member_id)
+                                                   Buffers: shared hit=113
+                                                   ->  Seq Scan on members m_1 (actual rows=12 loops=1)
+                                                         Buffers: shared hit=1
+                                                   ->  Hash (actual rows=12 loops=1)
+                                                         Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                         Buffers: shared hit=9
+                                                         ->  Subquery Scan on sh_1 (actual rows=12 loops=1)
+                                                               Buffers: shared hit=9
+                                                               ->  HashAggregate (actual rows=12 loops=1)
+                                                                     Group Key: m_2.id
+                                                                     Batches: 1  Memory Usage: 40kB
+                                                                     Buffers: shared hit=9
+                                                                     ->  Hash Left Join (actual rows=12 loops=1)
+                                                                           Hash Cond: (sl.transaction_id = t.id)
+                                                                           Filter: ((sl.id IS NULL) OR (t.id IS NOT NULL))
+                                                                           Buffers: shared hit=9
+                                                                           ->  Hash Right Join (actual rows=12 loops=1)
+                                                                                 Hash Cond: (sl.member_id = m_2.id)
+                                                                                 Buffers: shared hit=2
+                                                                                 ->  Seq Scan on share_lots sl (actual rows=9 loops=1)
+                                                                                       Buffers: shared hit=1
+                                                                                 ->  Hash (actual rows=12 loops=1)
+                                                                                       Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                                                       Buffers: shared hit=1
+                                                                                       ->  Seq Scan on members m_2 (actual rows=12 loops=1)
+                                                                                             Buffers: shared hit=1
+                                                                           ->  Hash (actual rows=158 loops=1)
+                                                                                 Buckets: 1024  Batches: 1  Memory Usage: 16kB
+                                                                                 Buffers: shared hit=7
+                                                                                 ->  Seq Scan on transactions t (actual rows=158 loops=1)
+                                                                                       Filter: (status = 'posted'::txn_status)
+                                                                                       Rows Removed by Filter: 6
+                                                                                       Buffers: shared hit=7
+                                 ->  Sort (actual rows=12 loops=1)
+                                       Sort Key: sh.member_id
+                                       Sort Method: quicksort  Memory: 25kB
+                                       Buffers: shared hit=9
+                                       ->  Subquery Scan on sh (actual rows=12 loops=1)
+                                             Buffers: shared hit=9
+                                             ->  HashAggregate (actual rows=12 loops=1)
+                                                   Group Key: m_3.id
+                                                   Batches: 1  Memory Usage: 40kB
+                                                   Buffers: shared hit=9
+                                                   ->  Hash Left Join (actual rows=12 loops=1)
+                                                         Hash Cond: (sl_1.transaction_id = t_1.id)
+                                                         Filter: ((sl_1.id IS NULL) OR (t_1.id IS NOT NULL))
+                                                         Buffers: shared hit=9
+                                                         ->  Hash Right Join (actual rows=12 loops=1)
+                                                               Hash Cond: (sl_1.member_id = m_3.id)
+                                                               Buffers: shared hit=2
+                                                               ->  Seq Scan on share_lots sl_1 (actual rows=9 loops=1)
+                                                                     Buffers: shared hit=1
+                                                               ->  Hash (actual rows=12 loops=1)
+                                                                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                                     Buffers: shared hit=1
+                                                                     ->  Seq Scan on members m_3 (actual rows=12 loops=1)
+                                                                           Buffers: shared hit=1
+                                                         ->  Hash (actual rows=158 loops=1)
+                                                               Buckets: 1024  Batches: 1  Memory Usage: 16kB
+                                                               Buffers: shared hit=7
+                                                               ->  Seq Scan on transactions t_1 (actual rows=158 loops=1)
+                                                                     Filter: (status = 'posted'::txn_status)
+                                                                     Rows Removed by Filter: 6
+                                                                     Buffers: shared hit=7
+                           ->  GroupAggregate (actual rows=12 loops=1)
+                                 Group Key: m_4.id
+                                 Buffers: shared hit=64
+                                 ->  Sort (actual rows=12 loops=1)
+                                       Sort Key: m_4.id, s.due_on
+                                       Sort Method: quicksort  Memory: 25kB
+                                       Buffers: shared hit=64
+                                       ->  Hash Right Join (actual rows=12 loops=1)
+                                             Hash Cond: (l.member_id = m_4.id)
+                                             Buffers: shared hit=61
+                                             ->  Nested Loop Left Join (actual rows=8 loops=1)
+                                                   Buffers: shared hit=60
+                                                   ->  Nested Loop Left Join (actual rows=8 loops=1)
+                                                         Buffers: shared hit=52
+                                                         ->  Nested Loop Left Join (actual rows=8 loops=1)
+                                                               Buffers: shared hit=41
+                                                               ->  Seq Scan on loans l (actual rows=8 loops=1)
+                                                                     Buffers: shared hit=8
+                                                               ->  Aggregate (actual rows=1 loops=8)
+                                                                     Buffers: shared hit=33
+                                                                     ->  Hash Join (actual rows=2 loops=8)
+                                                                           Hash Cond: (t_2.id = r.transaction_id)
+                                                                           Buffers: shared hit=33
+                                                                           ->  Seq Scan on transactions t_2 (actual rows=119 loops=4)
+                                                                                 Filter: (status = 'posted'::txn_status)
+                                                                                 Rows Removed by Filter: 4
+                                                                                 Buffers: shared hit=22
+                                                                           ->  Hash (actual rows=2 loops=8)
+                                                                                 Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                                                 Buffers: shared hit=11
+                                                                                 ->  Bitmap Heap Scan on loan_repayments r (actual rows=2 loops=8)
+                                                                                       Recheck Cond: (loan_id = l.id)
+                                                                                       Heap Blocks: exact=3
+                                                                                       Buffers: shared hit=11
+                                                                                       ->  Bitmap Index Scan on loan_repayments_loan_idx (actual rows=2 loops=8)
+                                                                                             Index Cond: (loan_id = l.id)
+                                                                                             Buffers: shared hit=8
+                                                         ->  Limit (actual rows=0 loops=8)
+                                                               Buffers: shared hit=11
+                                                               ->  Index Scan using loan_schedule_due_idx on loan_schedule s (actual rows=0 loops=8)
+                                                                     Index Cond: ((loan_id = l.id) AND (due_on >= CURRENT_DATE))
+                                                                     Buffers: shared hit=11
+                                                   ->  Aggregate (actual rows=1 loops=8)
+                                                         Buffers: shared hit=8
+                                                         ->  Seq Scan on loan_schedule s_1 (actual rows=2 loops=8)
+                                                               Filter: ((loan_id = l.id) AND (due_on < CURRENT_DATE))
+                                                               Rows Removed by Filter: 28
+                                                               Buffers: shared hit=8
+                                             ->  Hash (actual rows=12 loops=1)
+                                                   Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                   Buffers: shared hit=1
+                                                   ->  Seq Scan on members m_4 (actual rows=12 loops=1)
+                                                         Buffers: shared hit=1
+                     ->  GroupAggregate (actual rows=12 loops=1)
+                           Group Key: m_5.id
+                           Buffers: shared hit=8
+                           ->  Sort (actual rows=113 loops=1)
+                                 Sort Key: m_5.id
+                                 Sort Method: quicksort  Memory: 31kB
+                                 Buffers: shared hit=8
+                                 ->  Hash Right Join (actual rows=113 loops=1)
+                                       Hash Cond: (t_3.member_id = m_5.id)
+                                       Buffers: shared hit=8
+                                       ->  Seq Scan on transactions t_3 (actual rows=110 loops=1)
+                                             Filter: ((status = 'posted'::txn_status) AND (type = ANY ('{weekly_savings,monthly_savings,deposit,withdrawal}'::txn_type[])))
+                                             Rows Removed by Filter: 54
+                                             Buffers: shared hit=7
+                                       ->  Hash (actual rows=12 loops=1)
+                                             Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                             Buffers: shared hit=1
+                                             ->  Seq Scan on members m_5 (actual rows=12 loops=1)
+                                                   Buffers: shared hit=1
+               ->  Aggregate (actual rows=1 loops=12)
+                     Buffers: shared hit=84
+                     ->  Seq Scan on transactions t_4 (actual rows=9 loops=12)
+                           Filter: ((type = ANY ('{weekly_savings,monthly_savings}'::txn_type[])) AND (member_id = m.id) AND (status = 'posted'::txn_status))
+                           Rows Removed by Filter: 155
+                           Buffers: shared hit=84
+         ->  Aggregate (actual rows=1 loops=12)
+               Buffers: shared hit=36
+               ->  Seq Scan on savings_periods s_2 (actual rows=7 loops=12)
+                     Filter: (member_id = m.id)
+                     Rows Removed by Filter: 77
+                     Buffers: shared hit=36
+ Planning:
+   Buffers: shared hit=1429
+ Planning Time: 4.613 ms
+ Execution Time: 2.234 ms
+(177 rows)
+
+== P5. plan for the account movements ledger view ==
+                                                                                       QUERY PLAN                                                                                        
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit (actual rows=50 loops=1)
+   Buffers: shared hit=1311
+   ->  Sort (actual rows=50 loops=1)
+         Sort Key: e.entry_date DESC
+         Sort Method: top-N heapsort  Memory: 75kB
+         Buffers: shared hit=1311
+         ->  WindowAgg (actual rows=164 loops=1)
+               Buffers: shared hit=1311
+               ->  Nested Loop Left Join (actual rows=164 loops=1)
+                     Join Filter: (t.type = 'fee'::txn_type)
+                     Buffers: shared hit=1311
+                     ->  Nested Loop Left Join (actual rows=164 loops=1)
+                           Join Filter: (t.type = 'payment'::txn_type)
+                           Buffers: shared hit=1136
+                           ->  Nested Loop Left Join (actual rows=164 loops=1)
+                                 Join Filter: (t.type = 'expense'::txn_type)
+                                 Buffers: shared hit=808
+                                 ->  Nested Loop Left Join (actual rows=164 loops=1)
+                                       Join Filter: (u.id = t.recorded_by)
+                                       Rows Removed by Join Filter: 8
+                                       Buffers: shared hit=634
+                                       ->  Nested Loop Left Join (actual rows=164 loops=1)
+                                             Join Filter: (t.type = 'income'::txn_type)
+                                             Rows Removed by Join Filter: 19
+                                             Buffers: shared hit=633
+                                             ->  Nested Loop Left Join (actual rows=164 loops=1)
+                                                   Buffers: shared hit=423
+                                                   ->  Nested Loop Left Join (actual rows=164 loops=1)
+                                                         Buffers: shared hit=401
+                                                         ->  Nested Loop Left Join (actual rows=164 loops=1)
+                                                               Buffers: shared hit=397
+                                                               ->  Nested Loop (actual rows=164 loops=1)
+                                                                     Buffers: shared hit=393
+                                                                     ->  Nested Loop (actual rows=164 loops=1)
+                                                                           Buffers: shared hit=65
+                                                                           ->  Index Scan using account_ledger_entries_account_idx on account_ledger_entries e (actual rows=164 loops=1)
+                                                                                 Buffers: shared hit=59
+                                                                           ->  Memoize (actual rows=1 loops=164)
+                                                                                 Cache Key: e.account_id
+                                                                                 Cache Mode: logical
+                                                                                 Hits: 161  Misses: 3  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                                                                 Buffers: shared hit=6
+                                                                                 ->  Index Scan using financial_accounts_pkey on financial_accounts a (actual rows=1 loops=3)
+                                                                                       Index Cond: (id = e.account_id)
+                                                                                       Buffers: shared hit=6
+                                                                     ->  Index Scan using transactions_pkey on transactions t (actual rows=1 loops=164)
+                                                                           Index Cond: (id = e.transaction_id)
+                                                                           Buffers: shared hit=328
+                                                               ->  Memoize (actual rows=0 loops=164)
+                                                                     Cache Key: t.source_account_id
+                                                                     Cache Mode: logical
+                                                                     Hits: 161  Misses: 3  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                                                     Buffers: shared hit=4
+                                                                     ->  Index Scan using financial_accounts_pkey on financial_accounts sa (actual rows=1 loops=3)
+                                                                           Index Cond: (id = t.source_account_id)
+                                                                           Buffers: shared hit=4
+                                                         ->  Memoize (actual rows=1 loops=164)
+                                                               Cache Key: t.destination_account_id
+                                                               Cache Mode: logical
+                                                               Hits: 161  Misses: 3  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                                               Buffers: shared hit=4
+                                                               ->  Index Scan using financial_accounts_pkey on financial_accounts da (actual rows=1 loops=3)
+                                                                     Index Cond: (id = t.destination_account_id)
+                                                                     Buffers: shared hit=4
+                                                   ->  Memoize (actual rows=1 loops=164)
+                                                         Cache Key: t.member_id
+                                                         Cache Mode: logical
+                                                         Hits: 152  Misses: 12  Evictions: 0  Overflows: 0  Memory Usage: 2kB
+                                                         Buffers: shared hit=22
+                                                         ->  Index Scan using members_pkey on members m (actual rows=1 loops=12)
+                                                               Index Cond: (id = t.member_id)
+                                                               Buffers: shared hit=22
+                                             ->  Limit (actual rows=0 loops=164)
+                                                   Buffers: shared hit=210
+                                                   ->  Nested Loop (actual rows=0 loops=164)
+                                                         Buffers: shared hit=210
+                                                         ->  Seq Scan on income_entries ie (actual rows=0 loops=164)
+                                                               Filter: (transaction_id = COALESCE(t.reverses_id, t.id))
+                                                               Rows Removed by Filter: 21
+                                                               Buffers: shared hit=164
+                                                         ->  Index Scan using income_categories_pkey on income_categories c (actual rows=1 loops=23)
+                                                               Index Cond: (id = ie.category_id)
+                                                               Buffers: shared hit=46
+                                       ->  Materialize (actual rows=1 loops=164)
+                                             Buffers: shared hit=1
+                                             ->  Seq Scan on app_users u (actual rows=5 loops=1)
+                                                   Buffers: shared hit=1
+                                 ->  Limit (actual rows=0 loops=164)
+                                       Buffers: shared hit=174
+                                       ->  Nested Loop (actual rows=0 loops=164)
+                                             Buffers: shared hit=174
+                                             ->  Seq Scan on expense_entries xe (actual rows=0 loops=164)
+                                                   Filter: (transaction_id = COALESCE(t.reverses_id, t.id))
+                                                   Rows Removed by Filter: 5
+                                                   Buffers: shared hit=164
+                                             ->  Index Scan using expense_categories_pkey on expense_categories c_1 (actual rows=1 loops=5)
+                                                   Index Cond: (id = xe.category_id)
+                                                   Buffers: shared hit=10
+                           ->  Limit (actual rows=0 loops=164)
+                                 Buffers: shared hit=328
+                                 ->  Nested Loop (actual rows=0 loops=164)
+                                       Buffers: shared hit=328
+                                       ->  Index Scan using payments_transaction_id_key on payments p (actual rows=0 loops=164)
+                                             Index Cond: (transaction_id = COALESCE(t.reverses_id, t.id))
+                                             Buffers: shared hit=328
+                                       ->  Index Scan using payment_categories_pkey on payment_categories c_2 (never executed)
+                                             Index Cond: (id = p.category_id)
+                     ->  Aggregate (actual rows=0 loops=164)
+                           Filter: (count(*) > 0)
+                           Rows Removed by Filter: 1
+                           Buffers: shared hit=175
+                           ->  Bitmap Heap Scan on fee_payment_lines l (actual rows=0 loops=164)
+                                 Recheck Cond: (transaction_id = COALESCE(t.reverses_id, t.id))
+                                 Heap Blocks: exact=11
+                                 Buffers: shared hit=175
+                                 ->  Bitmap Index Scan on fee_payment_lines_txn_idx (actual rows=0 loops=164)
+                                       Index Cond: (transaction_id = COALESCE(t.reverses_id, t.id))
+                                       Buffers: shared hit=164
+ Planning:
+   Buffers: shared hit=935
+ Planning Time: 4.426 ms
+ Execution Time: 2.709 ms
+(122 rows)
+
+== P6. plan for the treasury summary ==
+ERROR:  You do not have permission to view the finance dashboard.
+CONTEXT:  PL/pgSQL function assert_capability(boolean,text) line 4 at RAISE
+SQL statement "SELECT assert_capability(can_view_finance(), 'view the finance dashboard')"
+PL/pgSQL function treasury_summary(date) line 7 at PERFORM

@@ -1,0 +1,74 @@
+login             320px  PASS
+forgot-password   320px  PASS
+reset-password    320px  PASS
+help              320px  PASS
+preview           320px  2 issue(s)
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 168x28
+    · tiny-text: p.Receipt_documentTitle__9adsF "Official transaction receipt" 9px
+login             360px  PASS
+forgot-password   360px  PASS
+reset-password    360px  PASS
+help              360px  PASS
+preview           360px  2 issue(s)
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 208x28
+    · tiny-text: p.Receipt_documentTitle__9adsF "Official transaction receipt" 9px
+login             375px  PASS
+forgot-password   375px  PASS
+reset-password    375px  PASS
+help              375px  PASS
+preview           375px  2 issue(s)
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 223x28
+    · tiny-text: p.Receipt_documentTitle__9adsF "Official transaction receipt" 9px
+login             390px  PASS
+forgot-password   390px  PASS
+reset-password    390px  PASS
+help              390px  PASS
+preview           390px  2 issue(s)
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 238x28
+    · tiny-text: p.Receipt_documentTitle__9adsF "Official transaction receipt" 9px
+login             430px  PASS
+forgot-password   430px  PASS
+reset-password    430px  PASS
+help              430px  PASS
+preview           430px  2 issue(s)
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 22x28
+    · tiny-text: p.Receipt_documentTitle__9adsF "Official transaction receipt" 9px
+login             768px  PASS
+forgot-password   768px  PASS
+reset-password    768px  PASS
+help              768px  PASS
+preview           768px  3 issue(s)
+    · small-tap-target: button.hidden.h-8.w-8 "chevron_left" 32x32
+    · small-tap-target: button.hidden.h-8.w-8 "chevron_right" 32x32
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 232x28
+login            1024px  2 issue(s)
+    · small-tap-target: button.text-on-surface-variant.hover:text-primary.absolute "visibility" 37x36
+    · small-tap-target: a.text-primary.h-touch-target-min.inline-flex "Forgot Password?" 106x30
+forgot-password  1024px  PASS
+reset-password   1024px  PASS
+help             1024px  PASS
+preview          1024px  3 issue(s)
+    · small-tap-target: button.hidden.h-8.w-8 "chevron_left" 32x32
+    · small-tap-target: button.hidden.h-8.w-8 "chevron_right" 32x32
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 312x28
+login            1440px  2 issue(s)
+    · small-tap-target: button.text-on-surface-variant.hover:text-primary.absolute "visibility" 41x40
+    · small-tap-target: a.text-primary.h-touch-target-min.inline-flex "Forgot Password?" 117x30
+forgot-password  1440px  PASS
+reset-password   1440px  PASS
+help             1440px  PASS
+preview          1440px  1 issue(s)
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 312x28
+login            1920px  1 issue(s)
+    · small-tap-target: a.text-primary.h-touch-target-min.inline-flex "Forgot Password?" 156x30
+forgot-password  1920px  PASS
+reset-password   1920px  PASS
+help             1920px  PASS
+preview          1920px  1 issue(s)
+    · small-tap-target: a.text-headline-lg-mobile.font-headline-lg-mobile.text-primary "Nakabugo Christine Ssemakula" 312x28
+
+33/45 viewport checks clean. Screenshots in ./screenshots/
+
+By kind:
+    18  small-tap-target
+     5  tiny-text

@@ -1,0 +1,166 @@
+
+########## receipt-print-check ##########
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+browserType.launch: Failed to launch chromium because executable doesn't exist at /usr/bin/chromium
+    at /home/user/BAKENYE-SACCO/scripts/receipt-print-check.mjs:7:30 {
+  log: [],
+  name: 'Error'
+}
+
+Node.js v22.22.0
+   [exit=0]
+
+########## dashboard-accessibility-check ##########
+PASS keyboard navigation /dev/preview/staff/cashier
+PASS keyboard navigation /dev/preview/staff/loans
+PASS keyboard navigation /dev/preview/staff/finance
+PASS keyboard navigation /dev/preview/staff/collections
+PASS account menu permissions and keyboard administration
+PASS account menu permissions and keyboard administration?limited=1
+PASS account menu permissions and keyboard cashier
+PASS account menu permissions and keyboard loans
+PASS account menu permissions and keyboard finance
+PASS account menu permissions and keyboard collections
+PASS mobile branding 320px
+PASS mobile branding 360px
+PASS mobile branding 390px
+PASS mobile branding 600px
+PASS shared member components 320px
+PASS shared staff components 320px
+PASS shared member components 390px
+PASS shared staff components 390px
+PASS shared member components 1440px
+PASS shared staff components 1440px
+PASS loading, error and empty presentation 320px
+PASS loading, error and empty presentation 1440px
+   [exit=0]
+
+########## ui-refinement-check ##########
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+browserType.launch: Failed to launch chromium because executable doesn't exist at /usr/bin/chromium
+    at /home/user/BAKENYE-SACCO/scripts/ui-refinement-check.mjs:9:30 {
+  log: [],
+  name: 'Error'
+}
+
+Node.js v22.22.0
+   [exit=0]
+
+########## install-prompt-check ##########
+Set MEMBER_ID and MEMBER_PASSWORD (a member number and its password).
+   [exit=0]
+
+########## pwa-installability-check ##########
+Set MEMBER_ID and MEMBER_PASSWORD (a member number and its password).
+   [exit=0]
+
+########## member-dashboard-check ##########
+PASS Member 1855px: own balances, account actions, receipts and responsive navigation
+PASS Member 1440px: own balances, account actions, receipts and responsive navigation
+PASS Member 1280px: own balances, account actions, receipts and responsive navigation
+PASS Member 1024px: own balances, account actions, receipts and responsive navigation
+PASS Member 834px: own balances, account actions, receipts and responsive navigation
+PASS Member 768px: own balances, account actions, receipts and responsive navigation
+PASS Member 600px: own balances, account actions, receipts and responsive navigation
+PASS Member 390px: own balances, account actions, receipts and responsive navigation
+PASS Member 360px: own balances, account actions, receipts and responsive navigation
+PASS Member 320px: own balances, account actions, receipts and responsive navigation
+PASS Member 1855px: restricted apply, no loan, reversed receipt, pending and empty states
+PASS Member 320px: restricted apply, no loan, reversed receipt, pending and empty states
+PASS Member destinations retain signed-out guards; no browser errors or financial submissions
+   [exit=0]
+
+########## staff-dashboards-check ##########
+PASS loans 1024px: labels, amounts, navigation, no overflow or browser errors
+PASS loans 768px: labels, amounts, navigation, no overflow or browser errors
+PASS loans 600px: labels, amounts, navigation, no overflow or browser errors
+PASS loans 390px: labels, amounts, navigation, no overflow or browser errors
+PASS loans 320px: labels, amounts, navigation, no overflow or browser errors
+PASS finance 1855px: labels, amounts, navigation, no overflow or browser errors
+PASS finance 1440px: labels, amounts, navigation, no overflow or browser errors
+PASS finance 1280px: labels, amounts, navigation, no overflow or browser errors
+PASS finance 1024px: labels, amounts, navigation, no overflow or browser errors
+PASS finance 768px: labels, amounts, navigation, no overflow or browser errors
+PASS finance 600px: labels, amounts, navigation, no overflow or browser errors
+PASS finance 390px: labels, amounts, navigation, no overflow or browser errors
+PASS finance 320px: labels, amounts, navigation, no overflow or browser errors
+PASS collections 1855px: labels, amounts, navigation, no overflow or browser errors
+PASS collections 1440px: labels, amounts, navigation, no overflow or browser errors
+PASS collections 1280px: labels, amounts, navigation, no overflow or browser errors
+PASS collections 1024px: labels, amounts, navigation, no overflow or browser errors
+PASS collections 768px: labels, amounts, navigation, no overflow or browser errors
+PASS collections 600px: labels, amounts, navigation, no overflow or browser errors
+PASS collections 390px: labels, amounts, navigation, no overflow or browser errors
+PASS collections 320px: labels, amounts, navigation, no overflow or browser errors
+PASS all dashboard destination mappings, permission fallbacks, restricted fixture states and signed-out route guards
+   [exit=0]
+
+########## overview-check ##########
+PASS Overview 1855px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 1440px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 1280px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 768px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 767px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 600px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 480px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 390px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 360px: data, descriptions, chart, section order, navigation and no overflow
+PASS Overview 320px: data, descriptions, chart, section order, navigation and no overflow
+PASS existing Overview/admin navigation destinations and both signed-out route guards
+   [exit=0]
+
+########## finance-check ##########
+Set STAFF_EMAIL and STAFF_PASSWORD to a staff account to test with.
+   [exit=0]
+
+########## membership-fee-check ##########
+Set STAFF_EMAIL and STAFF_PASSWORD to a staff account to test with.
+   [exit=0]
+
+########## receiving-accounts-check ##########
+
+── no screen carries its own list of payment methods
+  ✖ no screen builds a list of payment methods — src/app/dev/preview/receipt/page.tsx
+  ✔ no screen renders payment-method labels as options — none
+  ✔ RecordSavingsForm.tsx uses the one shared receiving-account control
+  ✔ BuySharesForm.tsx uses the one shared receiving-account control
+  ✔ RecordRepaymentForm.tsx uses the one shared receiving-account control
+  ✔ CashMovementForm.tsx uses the one shared receiving-account control
+  ✔ RecordCollectionDialog.tsx uses the one shared receiving-account control
+  ✔ RecordSavingsForm.tsx posts through the one collection action
+  ✔ BuySharesForm.tsx posts through the one collection action
+  ✔ RecordRepaymentForm.tsx posts through the one collection action
+  ✔ CashMovementForm.tsx posts through the one collection action
+  ✔ RecordCollectionDialog.tsx posts through the one collection action
+  ✔ there is exactly one call site for the collection function
+  ✔ the account list is read in exactly one place — src/lib/access-queries.ts
+  ✔ one function names an account, shared by the counter and the finance screens — src/lib/receiving-accounts.ts
+
+  — browser checks skipped (set STAFF_ID and STAFF_PASSWORD)
+
+14 passed, 1 failed
+   [exit=0]
+
+########## access-check ##########
+Set STAFF_EMAIL and STAFF_PASSWORD to a staff account to test with.
+   [exit=0]
+
+########## super-admin-check ##########
+PASS 1855px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 1440px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 1280px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 768px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 390px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 320px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS protected dashboard redirects signed-out users to login
+   [exit=0]
+
+########## temp-password-check ##########
+Set STAFF_EMAIL and STAFF_PASSWORD to a staff account to test with.
+   [exit=0]

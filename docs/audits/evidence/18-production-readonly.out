@@ -1,0 +1,46 @@
+=== Read-only observation of https://www.bakenye-sacco.online (public surface only) ===
+--- response headers on the public sign-in page ---
+HTTP/1.1 200 Connection Established
+
+HTTP/2 200 
+age: 0
+cache-control: private, no-cache, no-store, max-age=0, must-revalidate
+content-type: text/html; charset=utf-8
+date: Thu, 22 Oct 2026 08:19:30 GMT
+link: </_next/static/media/e4af272ccee01ff0-s.p.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2", </_next/static/css/53b45e15fb011379.css>; rel=preload; as="style", </_next/static/css/bdbcc3f6e21d3185.css>; rel=preload; as="style"
+permissions-policy: camera=(), microphone=(), geolocation=()
+referrer-policy: strict-origin-when-cross-origin
+server: Vercel
+strict-transport-security: max-age=63072000
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-matched-path: /login
+x-vercel-cache: MISS
+x-vercel-id: iad1::iad1::ksr2h-1792657168287-f04d8bd59355
+
+
+--- root ---
+status=307 redirect=https://www.bakenye-sacco.online/login?next=%2F time=0.746891s
+
+--- are the dev design-preview routes reachable in production? (expect 404/redirect) ---
+  /dev/preview                     307
+  /dev/preview/dashboard           307
+  /dev/preview/receipt             307
+  /dev/preview/certification       307
+
+--- protected routes must not serve content anonymously ---
+  /staff                   307 -> https://www.bakenye-sacco.online/login?next=%2Fstaff
+  /staff/users             307 -> https://www.bakenye-sacco.online/login?next=%2Fstaff%2Fusers
+  /staff/finance           307 -> https://www.bakenye-sacco.online/login?next=%2Fstaff%2Ffinance
+  /staff/audit             307 -> https://www.bakenye-sacco.online/login?next=%2Fstaff%2Faudit
+  /transactions            307 -> https://www.bakenye-sacco.online/login?next=%2Ftransactions
+  /admin                   307 -> https://www.bakenye-sacco.online/login?next=%2Fadmin
+
+--- public manifest / service worker ---
+  /manifest.webmanifest    200 application/manifest+json
+  /sw.js                   200 application/javascript; charset=utf-8
+
+--- is any secret echoed into the public HTML? (anon key is public by design; service role must NOT appear) ---
+  page bytes: 36908
+  occurrences of "service_role": 0

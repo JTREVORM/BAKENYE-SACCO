@@ -1,0 +1,126 @@
+
+########## numbering-check ##########
+PASS  240 member numbers issued at once from 24 connections are all different   -- 240 distinct of 240
+PASS  every one of them is BND + YY + sequence   -- BND26044 … BND26247
+PASS  the numbers issued are a contiguous run - nothing skipped, nothing repeated   -- 13 … 252
+PASS  240 references issued at once from 24 connections are all different   -- 240 distinct of 240
+PASS  every one of them is PREFIX + YYMMDD + sequence   -- CCT261022001 … CCT261022228
+PASS  the references issued are a contiguous run   -- 1 … 240
+PASS  no reference collides with any member number
+
+7/7 passed
+
+########## receiving-accounts-check ##########
+  ✖ Record Withdrawal: the Airtel merchant account is offered
+  ✖ Record Withdrawal: the Airtel account is named by its merchant code
+  ✔ Record Withdrawal: no bare "Mobile Money", "Bank Transfer" or "Cheque" option
+  ✖ Record Withdrawal: no MTN merchant account, because none is configured — MTN Mobile Money Merchant — Demo Merchant Account
+  ✖ Record Withdrawal: the deactivated bank account is not offered
+  ✔ Record Withdrawal: the payment method rides along derived, not chosen — 1 hidden field(s)
+  ✔ Record Collection: asks where the money goes, not "Payment method"
+  ✔ Record Collection: the words "Payment method" are gone
+  ✔ Record Collection: the account selector is populated — MTN Mobile Money Merchant — Demo Merchant Account · UGX 1,815,000 | Demo Bank — ••••0000 · UGX 48,200,000 | Cash at Hand · UGX 55,024,499.69
+  ✔ Record Collection: cash is offered
+  ✖ Record Collection: the Airtel merchant account is offered
+  ✖ Record Collection: the Airtel account is named by its merchant code
+  ✔ Record Collection: no bare "Mobile Money", "Bank Transfer" or "Cheque" option
+  ✖ Record Collection: no MTN merchant account, because none is configured — MTN Mobile Money Merchant — Demo Merchant Account · UGX 1,815,000
+  ✖ Record Collection: the deactivated bank account is not offered
+  ✔ Record Collection: the payment method rides along derived, not chosen — 1 hidden field(s)
+  ✔ Other receipt: asks where the money goes, not "Payment method"
+  ✔ Other receipt: the words "Payment method" are gone
+  ✔ Other receipt: the account selector is populated — MTN Mobile Money Merchant — Demo Merchant Account · UGX 1,815,000 | Demo Bank — ••••0000 · UGX 48,200,000 | Cash at Hand · UGX 55,024,499.69
+  ✔ Other receipt: cash is offered
+  ✖ Other receipt: the Airtel merchant account is offered
+  ✖ Other receipt: the Airtel account is named by its merchant code
+  ✔ Other receipt: no bare "Mobile Money", "Bank Transfer" or "Cheque" option
+  ✖ Other receipt: no MTN merchant account, because none is configured — MTN Mobile Money Merchant — Demo Merchant Account · UGX 1,815,000
+  ✖ Other receipt: the deactivated bank account is not offered
+  ✔ Other receipt: the payment method rides along derived, not chosen — 1 hidden field(s)
+
+── a loan repayment, which is money in like any other
+  ✔ Record Repayment: asks "Payment received into"
+  ✖ Record Repayment: offers the same accounts and no method list — Cash at Hand | MTN Mobile Money Merchant — Demo Merchant Account | Demo Bank — ••••0000
+
+── a newly configured account appears with no code change
+  ✔ the account about to be created is not offered yet
+  ✔ a manager configures an MTN merchant account under Finance → Accounts — ZZCHECK MTN Collections 703067
+  ✔ the counter screen offers it at once, with no code change — Cash at Hand | MTN Mobile Money Merchant — Demo Merchant Account | MTN Merchant — ZZ703067 | Demo Bank — ••••0000
+  ✔ and names it as an MTN merchant account
+  ✔ nothing else in the list changed — 3 → 4
+  ✔ deactivating it removes it from new collections at once — Cash at Hand | MTN Mobile Money Merchant — Demo Merchant Account | Demo Bank — ••••0000
+
+57 passed, 26 failed
+
+########## install-prompt-check ##########
+
+── the PWA is installable at all
+  ✔ the manifest is served — 200
+  ✔ it has a name and a short name — Bakenye Unity and Development SACCO / BUD-SACCO
+  ✔ start URL and scope are the site root
+  ✔ display mode is standalone — standalone
+  ✔ theme and background colours are set — #0a2148 / #f9f9fc
+  ✔ there is a 192px icon
+  ✔ there is a 512px icon
+  ✔ there is a maskable icon
+  ✔ the icon /icons/icon-192.png is served as an image — 200 image/png
+  ✔ the icon /icons/icon-512.png is served as an image — 200 image/png
+  ✔ the icon /icons/maskable-512.png is served as an image — 200 image/png
+  ✔ the service worker is served without a session — 200
+  ✔ it is allowed to control the whole origin — /
+  ✔ it has a fetch handler, which is what installability requires
+  ✔ it caches no page and nothing that is not a GET for a static file
+
+── an eligible member
+  ✖ the member is signed in — /login
+  ✖ the install prompt appears after signing in
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.innerText: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('dialog:has-text("Install")').first()[22m
+
+    at /home/user/BAKENYE-SACCO/scripts/install-prompt-check.mjs:136:43 {
+  log: [ `  - waiting for locator('dialog:has-text("Install")').first()` ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.0
+
+########## pwa-installability-check ##########
+
+── Chrome's own verdict on this build
+  ✖ the service worker registers — 0 registration(s) 
+  ✖ it activates — undefined
+  ✖ and it is controlling the page — no controller
+  ✔ Chrome parses the manifest with no errors — []
+  ✔ from /manifest.webmanifest — http://localhost:3000/manifest.webmanifest
+  ✔ the test profile is a normal profile, not incognito — persistent context
+  ✔ Chrome reports NO installability errors — none
+  ✔ Chrome fires the real beforeinstallprompt — 1 event(s)
+  ✔ InstallEventCapture caught it before React hydrated
+  ✔ icon /icons/icon-192.png (192x192, any) is served as an image — 200 image/png
+  ✔ icon /icons/icon-512.png (512x512, any) is served as an image — 200 image/png
+  ✔ icon /icons/maskable-512.png (512x512, maskable) is served as an image — 200 image/png
+
+── a member signing in, with no stubs anywhere
+     (sign-in did not leave /login — the screen says: error Invalid login credentials. Please check your identifier and password. Member Number or Phone Number* person For international phone nu)
+  ✖ the member is signed in — /login
+  ✖ the sign-in armed the offer, and the page could read it — consumed into nonce null
+  ✖ the install modal appears
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.innerText: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('dialog:has-text("Install")').first()[22m
+
+    at /home/user/BAKENYE-SACCO/scripts/pwa-installability-check.mjs:207:35 {
+  log: [ `  - waiting for locator('dialog:has-text("Install")').first()` ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.0

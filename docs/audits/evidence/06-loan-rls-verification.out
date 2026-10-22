@@ -1,0 +1,15 @@
+probe member_id = bd3fcf0a-bd37-441a-93f5-64a397d67bbf 
+
+loans this member can SELECT: 8
+  LN261022001  principal=2000000.00  [own loan]
+  LN261022002  principal=500000.00  [guarantees]
+  LN261022003  principal=800000.00  [guarantees]
+  LN261022004  principal=2000000.00  [guarantees]
+  LN261022005  principal=500000.00  [guarantees]
+  LN261022006  principal=800000.00  [guarantees]
+  LN261022007  principal=2000000.00  [guarantees]
+  LN261022008  principal=500000.00  [guarantees]
+
+total loans in table = 8
+visible to this member = 8;  unauthorised = 0
+RESULT: loans RLS correct (own + guaranteed only)

@@ -1,0 +1,40 @@
+synthetic identities:
+   member         BND26001
+   member         BND26002
+   viewer         
+   accountant     
+   manager        
+   super_admin    
+   admin          
+   cashier        
+   field_officer  
+   loan_officer   
+
+probe                         member    viewer    cashier   field_off loan_offi accountan admin     manager   super_adm 
+------------------------------------------------------------------------------------------------------------------------
+read all members              1         12        12        12        12        12        12        12        12        
+read all transactions         33        162       162       162       162       162       162       162       162       
+read account_ledger_entries   0         0         162       0         0         162       162       162       162       
+read financial_accounts       0         0         3         0         0         3         3         3         3         
+read audit_logs               0         0         0         0         0         232       232       232       232       
+read app_users                1         11        11        11        11        11        11        11        11        
+read login_attempts           0         0         0         0         0         0         0         0         0         
+read other members loans      8         8         8         8         8         8         8         8         8         
+change share price            DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    ALLOWED   ALLOWED   ALLOWED   
+change SACCO settings         DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    err       err       err       
+create financial account      DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    ALLOWED   ALLOWED   ALLOWED   
+record a savings collection   DENIED    DENIED    ALLOWED   ALLOWED   DENIED    DENIED    ALLOWED   ALLOWED   ALLOWED   
+record an expense             DENIED    DENIED    ALLOWED   DENIED    DENIED    ALLOWED   ALLOWED   ALLOWED   ALLOWED   
+reverse a transaction         DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    ALLOWED   ALLOWED   ALLOWED   
+disburse a loan               DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    ALLOWED   ALLOWED   ALLOWED   
+grant itself a permission     DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    
+change its own role           DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    DENIED    
+issue a temporary password    err       err       err       err       err       err       err       err       err       
+read the whole ledger view    0         0         162       0         0         162       162       162       162       
+run the cashbook report       DENIED    DENIED    ALLOWED   DENIED    DENIED    ALLOWED   ALLOWED   ALLOWED   ALLOWED   
+
+-- cross-member isolation --
+   member: {"members_visible":"1","txns_visible":"33","which":"BND26001"}
+   member2: {"members_visible":"1","txns_visible":"14","which":"BND26002"}
+   member current_member_id -> bd3fcf0a-bd37-441a-93f5-64a397d67bbf
+   member reading ANOTHER member's statement -> DENIED: Member not found.

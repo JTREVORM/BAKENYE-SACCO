@@ -1,0 +1,92 @@
+
+########## finance-check ##########
+✔ 390 /staff/finance/accounts -> 200 
+✔ 390 /staff/finance/income-expenses -> 200 
+✔ 390 /staff/finance/new/collection -> 200 
+✔ 390 /staff/finance/new/collection?preset=merchant -> 200 
+✔ 390 /staff/finance/new/transfer?kind=merchant_to_bank -> 200 
+✔ 390 /staff/finance/new/transfer?kind=bank_to_cash -> 200 
+✔ 390 /staff/finance/new/payment -> 200 
+✔ 390 /staff/finance/new/expense -> 200 
+✔ 390 /staff/finance/new/receipt -> 200 
+✔ 390 /staff/settings?section=treasury -> 200 
+✔ 390 /staff/finance?tab=expenses -> 200 (→ /staff/finance/income-expenses?tab=expenses)
+✔ 1440 /staff -> 200 
+✔ 1440 /staff/finance -> 200 
+✔ 1440 /staff/finance/merchant -> 200 
+✔ 1440 /staff/finance/bank -> 200 
+✔ 1440 /staff/finance/cash -> 200 
+✔ 1440 /staff/finance/receipts -> 200 
+✔ 1440 /staff/finance/payments -> 200 
+✔ 1440 /staff/finance/expenses -> 200 
+✔ 1440 /staff/finance/transfers -> 200 
+✔ 1440 /staff/finance/reconciliation -> 200 
+✔ 1440 /staff/finance/reconciliation/new -> 200 
+✔ 1440 /staff/finance/ledger -> 200 
+✔ 1440 /staff/finance/reports -> 200 
+✔ 1440 /staff/finance/reports?view=position -> 200 
+✔ 1440 /staff/finance/reports?view=receipts-payments -> 200 
+✔ 1440 /staff/finance/reports?view=statement -> 200 
+✔ 1440 /staff/finance/accounts -> 200 
+✔ 1440 /staff/finance/income-expenses -> 200 
+✔ 1440 /staff/finance/new/collection -> 200 
+✔ 1440 /staff/finance/new/collection?preset=merchant -> 200 
+✔ 1440 /staff/finance/new/transfer?kind=merchant_to_bank -> 200 
+✔ 1440 /staff/finance/new/transfer?kind=bank_to_cash -> 200 
+✔ 1440 /staff/finance/new/payment -> 200 
+✔ 1440 /staff/finance/new/expense -> 200 
+✔ 1440 /staff/finance/new/receipt -> 200 
+✔ 1440 /staff/settings?section=treasury -> 200 
+✔ 1440 /staff/finance?tab=expenses -> 200 (→ /staff/finance/income-expenses?tab=expenses)
+
+0 problem page(s)
+
+########## membership-fee-check ##########
+✔ sidebar lists Membership Fees between Members and Savings
+✔ the Membership Fees page loads — 200
+✔ card: Collected in total
+✔ card: Collected this month
+✔ card: Collected today
+✔ card: Fully paid
+✔ card: Part paid
+✔ card: Unpaid
+✔ card: Membership fee to join today
+✔ the current membership fee reads UGX 20,000
+✔ part-paid and unpaid members are listed
+✔ a 5,000 payment against 20,000 shows 15,000 outstanding — found
+✔ the Unpaid filter narrows the list
+✔ the Part paid filter narrows the list
+✔ search by member number works
+✔ a member with a balance offers Collect
+✔ the collect dialog opens
+✔ the dialog shows required, paid and balance
+✔ the dialog says part payments are accepted
+✔ the member profile shows a Membership fee card
+✔ the card shows required, total paid and outstanding
+✔ the card shows the payment history
+✔ the reports index lists Membership fees
+✔ no sideways scroll at 390px — 0px
+
+24/24 passed
+
+########## expense-check ##########
+PASS 390px: original and new categories are available
+PASS 390px: Other reveals the required field with the requested placeholder
+PASS 390px: blank and whitespace-only Other cannot be reviewed
+PASS 390px: confirmation shows the trimmed custom expense
+PASS 390px: changing category removes the field and clears the custom value
+PASS 1440px: original and new categories are available
+PASS 1440px: Other reveals the required field with the requested placeholder
+PASS 1440px: blank and whitespace-only Other cannot be reviewed
+PASS 1440px: confirmation shows the trimmed custom expense
+PASS 1440px: changing category removes the field and clears the custom value
+PASS server rejects whitespace-only Other even when the client gate is bypassed
+PASS submission saves the trimmed custom type and waits for approval without posting money
+PASS Other filter, approval list and CSV retain both the main and custom expense category
+PASS existing approval workflow posts exactly the expense amount
+PASS receipt and transaction details display Other — Office cleaning
+PASS transaction list displays the specified expense
+PASS account ledger displays the custom type at desktop width
+PASS account statement report exports the main and custom type separately
+PASS income and expense approval/report screen displays the specified type
+19 expense browser checks passed; the test payment was reversed and category count is unchanged.

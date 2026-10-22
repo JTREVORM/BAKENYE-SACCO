@@ -1,0 +1,86 @@
+Pager usage is off.
+== I1. every posted cash-affecting transaction has a ledger entry ==
+ type | txns_without_ledger_entry 
+------+---------------------------
+(0 rows)
+
+== I2. ledger balance_after vs recomputed date-ordered running balance ==
+         name          |  code   | recomputed  | stored_latest_balance_after 
+-----------------------+---------+-------------+-----------------------------
+ Cash at Hand          | CSH-001 | 54553166.69 |                 54553166.69
+ Demo Bank Account     | BNK-001 | 48200000.00 |                 48200000.00
+ Demo Merchant Account | MER-001 |  1815000.00 |                  1815000.00
+(3 rows)
+
+== I3. financial_account_balances view vs ledger sum ==
+         name          | view_balance | ledger_balance 
+-----------------------+--------------+----------------
+ Cash at Hand          |  54553166.69 |    54553166.69
+ Demo Bank Account     |  48200000.00 |    48200000.00
+ Demo Merchant Account |   1815000.00 |     1815000.00
+(3 rows)
+
+== I4. balance_after is NOT date-monotonic where entries are backdated ==
+ entries_where_insert_order_differs_from_date_order 
+----------------------------------------------------
+                                                140
+(1 row)
+
+== I5. duplicate transaction references ==
+ reference | count 
+-----------+-------
+(0 rows)
+
+== I6. duplicate external references on non-reversed transactions ==
+ ref | count 
+-----+-------
+(0 rows)
+
+== I7. member savings balance negative, or below configured minimum ==
+ member_no | savings_balance 
+-----------+-----------------
+(0 rows)
+
+== I8. savings_periods.paid_amount vs posted savings_payments ==
+ id | member_no | cached | from_posted_payments 
+----+-----------+--------+----------------------
+(0 rows)
+
+== I9. loan_schedule sums vs loan totals ==
+ loan_no | principal | interest_amount | total_payable | sched_principal | sched_interest | sched_total 
+---------+-----------+-----------------+---------------+-----------------+----------------+-------------
+(0 rows)
+
+== I10. loan_balances outstanding vs total_payable minus posted repayments ==
+   loan_no   |  status   | outstanding | expected  
+-------------+-----------+-------------+-----------
+ LN261022006 | active    |   536666.65 | 536666.65
+ LN261022008 | completed |        0.00 |      0.00
+(2 rows)
+
+== I11. orphans ==
+                 k                 | count 
+-----------------------------------+-------
+ savings_payments without txn      |     0
+ share_lots without txn            |     0
+ loan_repayments without txn       |     0
+ members w/o membership fee charge |     0
+ receipts without txn              |     0
+ ledger entries w/o txn            |     0
+(6 rows)
+
+== I12. reversal pairing integrity ==
+                    k                     | count 
+------------------------------------------+-------
+ reversed without reversed_by             |     0
+ reversal without reverses_id             |     0
+ reversal amount mismatch                 |     0
+ reversed txn still has ledger net effect |     0
+(4 rows)
+
+== I13. share capital: lots vs posted share_purchase transactions ==
+ lots_value | txn_value  
+------------+------------
+ 3450000.00 | 3450000.00
+(1 row)
+

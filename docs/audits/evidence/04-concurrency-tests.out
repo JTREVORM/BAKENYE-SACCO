@@ -1,0 +1,14 @@
+PASS  T1 same idempotency key, two concurrent cashiers
+      rows posted=1 (want 1), cash moved=5000 (want 5000), results=["ok","ok"]
+PASS  T2 same idempotency key, sequential retry returns the original
+      rows=1 (want 1), refs SAV261022091 == SAV261022091, cash moved=7000 (want 7000)
+PASS  T3 identical collection under a DIFFERENT key posts twice (no near-duplicate guard)
+      second attempt => posted; cash moved=18000 (two 9,000 postings = 18,000 means a genuine double payment is accepted)
+PASS  T4 12 concurrent postings to one account keep balance_after exact
+      posted=12/12, cash moved=12000 (want 12000), balance_after rows disagreeing with the cumulative sum=0
+PASS  T5 concurrent double reversal creates exactly one reversal
+      reversal rows=1 (want 1), cash moved=-4000 (want -4000), results=["refused","reversed"]
+PASS  T6 two concurrent repayments of 80% each cannot overpay the loan
+      outstanding before=536666.65, each paid=429333, outstanding after=107333.65, status=active, results=["ok","refused: Payment of UGX 429,333 exceeds the outstanding balance of UG"]
+
+6 pass, 0 fail

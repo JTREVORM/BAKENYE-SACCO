@@ -1,0 +1,17 @@
+@media print {
+  @page memberRegister { size: A4 landscape; margin: 12mm; }
+  .register { page: memberRegister; }
+
+  /* The printed page must include all fetched rows, beyond the screen scroller. */
+  :global(body):has(.register) :global(main),
+  :global(body):has(.register) :global(div):has(.register) {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  .register table { width: 100%; min-width: 0 !important; font-size: 12px; }
+  .register th, .register td { padding: 6px; }
+}

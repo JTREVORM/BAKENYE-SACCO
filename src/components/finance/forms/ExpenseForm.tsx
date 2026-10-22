@@ -64,6 +64,7 @@ export function ExpenseForm({
 
   return (
     <FinancialForm
+      submissionKind="request"
       action={recordExpenseRequest}
       idempotencyPrefix="expense"
       submitLabel="Submit for approval"

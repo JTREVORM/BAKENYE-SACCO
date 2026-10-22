@@ -52,7 +52,7 @@ export function MemberCollectionPanel({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/staff/members/${member.id}`}
-              className="text-headline-lg-mobile font-headline-lg-mobile text-primary truncate hover:underline"
+              className="min-h-touch-target-min inline-flex items-center text-headline-lg-mobile font-headline-lg-mobile text-primary truncate hover:underline"
             >
               {member.full_name}
             </Link>

@@ -54,6 +54,9 @@ for(const shell of ['staff','member'])for(const long of [false,true]){
 // Financial summaries outside the shared KPI component, with every requested amount.
 if(!process.env.PRINT_ONLY) for(const path of ['dashboard','dashboard?variant=admin','staff/administration','member','staff/finance','staff/cashier','staff/loans','staff/collections'])for(const width of [320,390,768,1024,1280,1440,1600,1920]){
  await page.setViewportSize({width,height:1000});await page.goto(`${base}/dev/preview/${path}`,{waitUntil:'networkidle'});
+ // Wait before modifying synthetic DOM values so the harness cannot create
+ // its own server/client mismatch in a selectively hydrated Link subtree.
+ await page.waitForFunction(()=>[...document.querySelectorAll('[data-kpi-value],section[aria-labelledby^="card-"] > .tabular,section[aria-labelledby="total-funds"] > .tabular,[class*="MemberDashboard_amount"],[class*="MemberDashboard_updateAmount"],[data-staff-dashboard="collections"] section dd .tabular')].every(e=>Object.keys(e).some(k=>k.startsWith('__reactFiber$'))));
  for(const amount of ['UGX 0','UGX 20,000','UGX 1,160,000','UGX 45,500,000','UGX 1,250,000,000']){
   const issues=await page.evaluate(amount=>{
    const targets=[...document.querySelectorAll('[data-kpi-value],section[aria-labelledby^="card-"] > .tabular,section[aria-labelledby="total-funds"] > .tabular,[class*="MemberDashboard_amount"],[class*="MemberDashboard_updateAmount"],[data-staff-dashboard="collections"] section dd .tabular')];

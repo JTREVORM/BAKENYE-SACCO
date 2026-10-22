@@ -1,0 +1,10 @@
+PASS Recovery, login keyboard/touch areas and receipt 320px
+PASS Recovery, login keyboard/touch areas and receipt 390px
+PASS Recovery, login keyboard/touch areas and receipt 768px
+PASS Recovery, login keyboard/touch areas and receipt 1024px
+PASS Recovery, login keyboard/touch areas and receipt 1280px
+PASS Recovery, login keyboard/touch areas and receipt 1440px
+PASS Recovery, login keyboard/touch areas and receipt 1600px
+PASS Recovery, login keyboard/touch areas and receipt 1920px
+PASS Old recovery callback redirects to support
+PASS No browser runtime errors

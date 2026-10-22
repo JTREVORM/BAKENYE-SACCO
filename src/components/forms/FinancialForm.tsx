@@ -1,7 +1,10 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { submitWithFeedback, verifySubmission, type UncertainSubmission } from './submission-feedback';
+import type { SubmissionStatus } from '@/types/db';
 import { Icon, Money } from '@/components/ui/primitives';
 import { Alert } from '@/components/ui/states';
 import { Button, SubmitButton, StickyActions } from '@/components/ui/form';
@@ -27,7 +30,7 @@ import { clsx } from '@/lib/clsx';
 
 export type FinancialSummaryLine = { label: string; value: React.ReactNode; emphasis?: boolean };
 
-type Phase = 'edit' | 'confirm' | 'done';
+type Phase = 'edit' | 'confirm' | 'done' | 'uncertain';
 
 export function FinancialForm<T extends { reference?: string | null; transaction_id?: string | null }>({
   action,
@@ -46,6 +49,7 @@ export function FinancialForm<T extends { reference?: string | null; transaction
   doneHref,
   doneLabel = 'Done',
   canConfirm = true,
+  submissionKind = 'posting',
   validate,
 }: {
   action: (prev: ActionResult<T> | null, formData: FormData) => Promise<ActionResult<T>>;
@@ -74,13 +78,33 @@ export function FinancialForm<T extends { reference?: string | null; transaction
   doneHref?: string;
   doneLabel?: string;
   canConfirm?: boolean;
+  /** A missing transaction cannot disprove a saved draft or approval request. */
+  submissionKind?: 'posting' | 'request';
   /** Client-side gate before the confirmation step. Return an error message. */
   validate?: () => string | null;
 }) {
-  const [state, formAction] = useActionState<ActionResult<T> | null, FormData>(action, null);
+  const [state, formAction, pending] = useActionState<ActionResult<T> | UncertainSubmission | null, FormData>(
+    (prev, data) => submitWithFeedback(action, prev, data), null,
+  );
+  const router = useRouter();
+  const [verification, setVerification] = useState<SubmissionStatus | null>(null);
+  const [checking, startChecking] = useTransition();
+  const checkingRef = useRef(false);
+  const submittedKey = useRef('');
   const [phase, setPhase] = useState<Phase>('edit');
   const [clientError, setClientError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    // React resets even ok:false results during commit, when synthetic events
+    // are disabled. A native listener keeps visible controls and React state
+    // aligned, including the receiving account on a same-key retry.
+    const preserveFields = (event: Event) => event.preventDefault();
+    form.addEventListener('reset', preserveFields);
+    return () => form.removeEventListener('reset', preserveFields);
+  }, []);
 
   /**
    * One key per form instance. It is regenerated only after a successful post,
@@ -93,11 +117,19 @@ export function FinancialForm<T extends { reference?: string | null; transaction
     if (state?.ok) {
       setPhase('done');
       setIdemKey(newIdempotencyKey(idempotencyPrefix));
+      router.refresh();
+    } else if (state && 'uncertain' in state) {
+      setVerification(state.verification);
+      setPhase('uncertain');
+      if (state.verification?.found && !state.verification.reversed) {
+        setIdemKey(newIdempotencyKey(idempotencyPrefix));
+        router.refresh();
+      }
     } else if (state && !state.ok) {
       // Send the user back to the fields so they can fix what was rejected.
       setPhase('edit');
     }
-  }, [state, idempotencyPrefix]);
+  }, [state, idempotencyPrefix, router]);
 
   const lines = useMemo(() => (phase === 'confirm' ? summary() : []), [phase, summary]);
   const confirmAmount = phase === 'confirm' ? amount() : null;
@@ -106,7 +138,7 @@ export function FinancialForm<T extends { reference?: string | null; transaction
   if (phase === 'done' && state?.ok) {
     const href = receiptHref?.(state.data) ?? null;
     return (
-      <div className="animate-slide-up flex flex-col items-center py-8 text-center">
+      <div role="status" className="animate-slide-up flex flex-col items-center py-8 text-center">
         <div className="bg-tertiary-container mb-5 flex h-20 w-20 items-center justify-center rounded-full">
           <Icon name="check_circle" size={44} className="text-white" />
         </div>
@@ -123,7 +155,7 @@ export function FinancialForm<T extends { reference?: string | null; transaction
             <p className="text-label-md font-label-md text-on-surface-variant">
               {referenceLabel}
             </p>
-            <p className="text-button-text font-button-text text-on-surface tabular mt-1 select-all font-mono">
+            <p className="text-button-text font-button-text text-on-surface tabular mt-1 select-all break-all font-mono">
               {state.data.reference}
             </p>
           </div>
@@ -159,16 +191,17 @@ export function FinancialForm<T extends { reference?: string | null; transaction
       ref={formRef}
       action={formAction}
       noValidate
-      onSubmit={() => {
-        // The confirmation step has already been passed at this point.
+      onSubmit={(event) => {
+        if (pending || phase !== 'confirm') { event.preventDefault(); return; }
+        submittedKey.current = idemKey;
         setClientError(null);
       }}
     >
       <input type="hidden" name="idempotency_key" value={idemKey} />
 
-      {state && !state.ok ? (
+      {state && !state.ok && !('uncertain' in state) ? (
         <div className="mb-4">
-          <Alert tone="error" title="Transaction not completed">
+          <Alert tone="error" title="Submission rejected">
             {state.error}
           </Alert>
         </div>
@@ -180,10 +213,51 @@ export function FinancialForm<T extends { reference?: string | null; transaction
         </div>
       ) : null}
 
+      {phase === 'uncertain' ? (
+        <div className="space-y-4 py-4">
+          <Alert tone={verification?.found && !verification.reversed ? 'success' : 'warning'}
+            title={verification?.found ? (verification.reversed ? 'Transaction reversed' : 'Transaction recorded') : 'Submission verification'}>
+            {verification?.found
+              ? verification.reversed
+                ? `Transaction ${verification.reference} was recorded and later reversed${verification.reversal_reference ? ` by ${verification.reversal_reference}` : ''}. Do not submit this payment again. Ask an authorized officer to review the reversal.`
+                : `The transaction is recorded. Transaction reference: ${verification.reference}.`
+              : verification && !verification.found
+                ? submissionKind === 'request'
+                  ? 'No posted transaction was found. This does not tell us whether your request or draft was saved. Check the request list or ask an authorized officer to verify it before creating another request.'
+                  : 'No transaction was found for this submission key at the time of this check. Nothing has been automatically resubmitted. Check the transaction list before choosing to review and submit again with the same key.'
+                : 'We could not verify whether this submission was recorded. Do not start another payment. Check your transaction list or ask an authorized officer to verify it using the submission key below.'}
+          </Alert>
+          <div className="rounded-xl bg-surface-container-low p-4">
+            <p className="text-label-md">Submission key — keep this for verification</p>
+            <p className="mt-1 select-all break-all font-mono text-body-md">{submittedKey.current}</p>
+          </div>
+          {verification?.found ? <Link className="min-h-touch-target-min flex items-center justify-center rounded-full bg-primary px-4 py-3 font-semibold text-on-primary"
+            href={`/staff/transactions/${verification.transaction_id}`}>View transaction / receipt</Link> : null}
+          <Link className="min-h-touch-target-min flex items-center justify-center rounded-full px-4 py-3 font-semibold text-primary ring-1 ring-outline-variant" href={submissionKind === 'request' ? (doneHref ?? '/staff/finance') : '/staff/transactions'}>{submissionKind === 'request' ? 'Check request list' : 'Check transaction list'}</Link>
+          {!verification?.found ? <Button block variant="outline" loading={checking} onClick={() => {
+            if (checkingRef.current) return;
+            checkingRef.current = true;
+            startChecking(async () => {
+              try {
+                const next = await verifySubmission(submittedKey.current);
+                setVerification(next);
+                if (next?.found && !next.reversed) {
+                  setIdemKey(newIdempotencyKey(idempotencyPrefix));
+                  router.refresh();
+                }
+              } finally { checkingRef.current = false; }
+            });
+          }}>Verify again</Button> : null}
+          {verification && !verification.found && submissionKind === 'posting' ? <Button block disabled={checking} onClick={() => setPhase('edit')}>Review same submission</Button> : null}
+          {doneHref ? <Link className="min-h-touch-target-min flex items-center justify-center px-4 py-3 font-semibold text-primary" href={doneHref}>{doneLabel}</Link> : null}
+        </div>
+      ) : null}
+
+      <fieldset disabled={pending || checking || phase === 'uncertain'} className="min-w-0" aria-busy={pending || checking}>
       {/* The fields stay mounted through the confirmation step so their values
           are still in the form when it posts, and so going Back does not lose
           anything the user typed. */}
-      <div className={clsx(phase === 'confirm' && 'hidden')}>{children}</div>
+      <div className={clsx((phase === 'confirm' || phase === 'uncertain') && 'hidden')}>{children}</div>
 
       {phase === 'confirm' ? (
         <div className="animate-slide-up">
@@ -223,13 +297,13 @@ export function FinancialForm<T extends { reference?: string | null; transaction
         </div>
       ) : null}
 
-      <StickyActions className={draftLabel ? 'flex-wrap' : undefined}>
+      <StickyActions className={clsx('flex-col sm:flex-row', draftLabel && 'flex-wrap', phase === 'uncertain' && 'hidden')}>
         {phase === 'confirm' ? (
           <>
             <Button
               variant="outline"
               size="lg"
-              className="flex-1"
+              className="w-full sm:w-auto sm:flex-1"
               onClick={() => setPhase('edit')}
               icon="arrow_back"
             >
@@ -237,7 +311,7 @@ export function FinancialForm<T extends { reference?: string | null; transaction
             </Button>
             <SubmitButton
               size="lg"
-              className="flex-[2]"
+              className="w-full sm:w-auto sm:flex-[2]"
               pendingLabel={pendingLabel}
               icon="check"
               name="intent"
@@ -275,6 +349,7 @@ export function FinancialForm<T extends { reference?: string | null; transaction
           </Button>
         )}
       </StickyActions>
+      </fieldset>
     </form>
   );
 }

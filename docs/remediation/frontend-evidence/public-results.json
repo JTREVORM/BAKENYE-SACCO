@@ -1,0 +1,15 @@
+{
+  "passed": [
+    "Recovery, login keyboard/touch areas and receipt 320px",
+    "Recovery, login keyboard/touch areas and receipt 390px",
+    "Recovery, login keyboard/touch areas and receipt 768px",
+    "Recovery, login keyboard/touch areas and receipt 1024px",
+    "Recovery, login keyboard/touch areas and receipt 1280px",
+    "Recovery, login keyboard/touch areas and receipt 1440px",
+    "Recovery, login keyboard/touch areas and receipt 1600px",
+    "Recovery, login keyboard/touch areas and receipt 1920px",
+    "Old recovery callback redirects to support",
+    "No browser runtime errors"
+  ],
+  "errors": []
+}

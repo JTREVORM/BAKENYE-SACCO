@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { requirePermission } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
-import { PageTitle } from '@/components/ui/primitives';
+import { Icon, PageTitle } from '@/components/ui/primitives';
 import { MemberStatusBadge } from '@/components/ui/status';
 import { EmptyState, ErrorState } from '@/components/ui/states';
 import { ExportButtons } from '@/components/ExportButtons';
@@ -10,11 +11,12 @@ import { documentName } from '@/lib/print';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
 import type { MemberFinancialsRow, MemberRegisterTotals, MemberStatus } from '@/types/db';
+import styles from './MemberRegister.module.css';
 import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Member Register' };
 
-/** Members per page. A register prints as a register; the screen pages. */
+/** Screen and print show one page; the streaming CSV covers the full register. */
 const PAGE_SIZE = 250;
 
 /**
@@ -44,8 +46,10 @@ export default async function MemberRegisterPage({
 }) {
   const user = await requirePermission('members.view');
   const sp = await searchParams;
-  const status = sp.status ? (sp.status as MemberStatus) : null;
-  const page = Math.max(1, Number(sp.page) || 1);
+  const statuses: MemberStatus[] = ['pending', 'active', 'inactive', 'suspended', 'archived', 'exited'];
+  const status = statuses.includes(sp.status as MemberStatus) ? sp.status as MemberStatus : null;
+  const requestedPage = Number(sp.page);
+  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const from = (page - 1) * PAGE_SIZE;
 
   const supabase = await createClient();
@@ -83,8 +87,14 @@ export default async function MemberRegisterPage({
       page: String(n),
     }).toString()}`;
 
+  if (page > pageCount) redirect(pageHref(pageCount));
+  const firstRecord = rows.length ? from + 1 : 0;
+  const lastRecord = from + rows.length;
+  const rangeLabel = `Showing ${firstRecord.toLocaleString()}–${lastRecord.toLocaleString()} of ${totals.members.toLocaleString()} members`;
+  const pageLinkClass = 'min-h-touch-target-min inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant bg-surface px-4 py-2 text-body-md font-semibold text-primary hover:bg-surface-container focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+
   return (
-    <div>
+    <div className={styles.register} data-member-register>
       <div className="no-print">
         <PageTitle
           title="Member Register"
@@ -98,13 +108,13 @@ export default async function MemberRegisterPage({
               {/* The whole roll, streamed from the server, never just this page. */}
               <a
                 href={exportHref}
-                className="text-label-lg font-label-lg text-on-surface border-outline-variant min-h-touch-target-min inline-flex items-center rounded-full border px-4 py-2"
+                className="min-h-touch-target-min inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-body-md font-semibold text-on-primary shadow-card hover:bg-ink-soft"
               >
-                Download CSV
+                <Icon name="download" size={20} />Download full CSV
               </a>
               <ExportButtons
                 filename="bnd-member-register"
-                documentTitle={documentName('Member Register')}
+                documentTitle={documentName('Member Register', `Page ${page} of ${pageCount}`)}
                 showCsv={false}
               />
             </div>
@@ -114,22 +124,38 @@ export default async function MemberRegisterPage({
 
       <PrintLetterhead
         title="Member Register"
-        subtitle={sp.status ? `${sp.status} members` : 'All members'}
+        subtitle={`${status ? `${status} members` : 'All members'} — page ${page} of ${pageCount} · ${rangeLabel}`}
         generatedBy={user.fullName}
         meta={[
-          { label: 'Members', value: totals.members.toLocaleString() },
-          { label: 'Total savings', value: formatUGX(totals.savings) },
+          { label: 'All filtered members', value: totals.members.toLocaleString() },
+          { label: 'All-member savings', value: formatUGX(totals.savings) },
           { label: 'Share capital', value: formatUGX(totals.shares) },
           { label: 'Loans outstanding', value: formatUGX(totals.loans) },
         ]}
       />
+
+      <form action="/staff/reports/members" method="get" className="no-print mb-5 flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1 text-body-md font-semibold text-on-surface">
+          Member status
+          <select name="status" defaultValue={status ?? ''} className="min-h-touch-target-min rounded-xl border-outline-variant bg-surface py-2 pl-3 pr-9 font-normal">
+            <option value="">All statuses</option>
+            {statuses.map(value => <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>)}
+          </select>
+        </label>
+        <button className={pageLinkClass} type="submit">Apply filter</button>
+      </form>
+      <div className="mb-4 rounded-xl border-l-4 border-[#bf9644] bg-surface-container-low p-4 text-body-md text-on-surface">
+        <p className="font-semibold">{rangeLabel} · Page {page} of {pageCount}</p>
+        <p className="mt-1">This view and its printout contain only this page. Totals cover every member in the selected status filter. Download the full CSV for the complete filtered register.</p>
+      </div>
 
       {rows.length === 0 ? (
         <EmptyState icon="group" title="No members" description="The register is empty." />
       ) : (
         <div className="bg-surface shadow-card print-block overflow-hidden rounded-xl">
           <ScrollRow arrows="overlay" className="scroll-x" label="Table, scrolls sideways">
-            <table className="w-full border-collapse text-left">
+            <table className="w-full min-w-[960px] border-collapse text-left print:min-w-0">
+              <caption className="sr-only">Member register, page {page} of {pageCount}. {rangeLabel}. Financial totals cover all filtered members.</caption>
               <thead>
                 <tr className="bg-surface-container-low/50 text-on-surface-variant text-label-md font-label-md border-outline-variant border-b">
                   <th className="p-3 font-semibold">Member No</th>
@@ -149,14 +175,14 @@ export default async function MemberRegisterPage({
                     <td className="p-3 font-medium">{r.full_name}</td>
                     <td className="tabular p-3 whitespace-nowrap">{formatPhone(r.phone)}</td>
                     <td className="p-3 whitespace-nowrap">{formatDate(r.joined_on)}</td>
-                    <td className="tabular p-3 text-right">{formatUGX(r.savings_balance)}</td>
-                    <td className="tabular p-3 text-right">
+                    <td className="tabular whitespace-nowrap p-3 text-right">{formatUGX(r.savings_balance)}</td>
+                    <td className="tabular whitespace-nowrap p-3 text-right">
                       {formatUGX(r.share_value)}
                       <span className="text-on-surface-variant block text-xs">
                         {r.share_count} held
                       </span>
                     </td>
-                    <td className="tabular p-3 text-right">{formatUGX(r.loan_balance)}</td>
+                    <td className="tabular whitespace-nowrap p-3 text-right">{formatUGX(r.loan_balance)}</td>
                     <td className="p-3">
                       <MemberStatusBadge status={r.status} />
                     </td>
@@ -167,9 +193,9 @@ export default async function MemberRegisterPage({
                     {/* Every member the filter selects, not the rows above. */}
                     Totals — all {totals.members.toLocaleString()} members
                   </td>
-                  <td className="tabular p-3 text-right">{formatUGX(totals.savings)}</td>
-                  <td className="tabular p-3 text-right">{formatUGX(totals.shares)}</td>
-                  <td className="tabular p-3 text-right">{formatUGX(totals.loans)}</td>
+                  <td className="tabular whitespace-nowrap p-3 text-right">{formatUGX(totals.savings)}</td>
+                  <td className="tabular whitespace-nowrap p-3 text-right">{formatUGX(totals.shares)}</td>
+                  <td className="tabular whitespace-nowrap p-3 text-right">{formatUGX(totals.loans)}</td>
                   <td />
                 </tr>
               </tbody>
@@ -178,33 +204,15 @@ export default async function MemberRegisterPage({
         </div>
       )}
 
-      {pageCount > 1 ? (
-        <nav className="no-print mt-4 flex items-center justify-between gap-3" aria-label="Register pages">
-          {page > 1 ? (
-            <a
-              href={pageHref(page - 1)}
-              className="text-label-lg font-label-lg text-on-surface border-outline-variant min-h-touch-target-min inline-flex items-center rounded-full border px-4 py-2"
-            >
-              Previous
-            </a>
-          ) : (
-            <span />
-          )}
-          <span className="text-body-sm font-body-sm text-on-surface-variant">
-            Page {page} of {pageCount}
-          </span>
-          {page < pageCount ? (
-            <a
-              href={pageHref(page + 1)}
-              className="text-label-lg font-label-lg text-on-surface border-outline-variant min-h-touch-target-min inline-flex items-center rounded-full border px-4 py-2"
-            >
-              Next
-            </a>
-          ) : (
-            <span />
-          )}
-        </nav>
-      ) : null}
+      <nav className="no-print mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface p-4 shadow-card" aria-label="Register pages">
+        <p className="text-body-md text-on-surface-variant">Page <strong className="text-on-surface">{page}</strong> of {pageCount} · {totals.members.toLocaleString()} records</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {page > 1 ? <a href={pageHref(1)} className={pageLinkClass} aria-label="First page">First</a> : null}
+          {page > 1 ? <a href={pageHref(page - 1)} className={pageLinkClass} rel="prev"><Icon name="chevron_left" size={18} />Previous</a> : <span aria-disabled="true" className="inline-flex min-h-11 items-center px-4 text-body-md text-on-surface-variant">Previous</span>}
+          {page < pageCount ? <a href={pageHref(page + 1)} className={pageLinkClass} rel="next">Next<Icon name="chevron_right" size={18} /></a> : <span aria-disabled="true" className="inline-flex min-h-11 items-center px-4 text-body-md text-on-surface-variant">Next</span>}
+          {page < pageCount ? <a href={pageHref(pageCount)} className={pageLinkClass} aria-label="Last page">Last</a> : null}
+        </div>
+      </nav>
 
       <PrintFooter />
     </div>

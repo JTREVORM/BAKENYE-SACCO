@@ -21,7 +21,7 @@ export function IconWell({ icon, children }: { icon: IconName; children: React.R
     <div className="relative">
       <span
         aria-hidden="true"
-        className="text-on-surface-variant pointer-events-none absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface shadow-neu-sm"
+        className="text-on-surface-variant pointer-events-none absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface shadow-neu-sm"
       >
         <Icon name={icon} size={19} filled={false} />
       </span>
@@ -63,6 +63,7 @@ export function PasswordField({
           enterKeyHint="go"
           required
           invalid={invalid || !!error}
+          aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
           placeholder={placeholder}
           className="pl-14 pr-14"
         />
@@ -72,7 +73,7 @@ export function PasswordField({
           aria-label={show ? 'Hide password' : 'Show password'}
           aria-pressed={show}
           aria-controls={id}
-          className="text-on-surface-variant hover:text-primary absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface shadow-neu-sm transition-shadow active:shadow-neu-pressed"
+          className="text-on-surface-variant hover:text-primary absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface shadow-neu-sm transition-shadow active:shadow-neu-pressed"
         >
           <Icon name={show ? 'visibility_off' : 'visibility'} size={19} filled={false} />
         </button>
@@ -113,7 +114,7 @@ export function LoginForm({
       ) : null}
       {!state && notice === 'link_expired' ? (
         <Alert tone="error" title="Link expired">
-          That link has expired or was already used. Request a new one from Forgot password.
+          That link has expired or was already used. Please contact SACCO Support or visit the SACCO office for assistance.
         </Alert>
       ) : null}
 

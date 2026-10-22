@@ -1,4 +1,4 @@
-import { Icon, Panel } from '@/components/ui/primitives';
+import { Panel } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/ui/states';
 import { getMonthlyFlow } from '@/lib/treasury';
 import { formatCompactUGX, formatUGX, toNumber } from '@/lib/money';

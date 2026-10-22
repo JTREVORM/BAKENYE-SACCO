@@ -61,7 +61,7 @@
 .guidance { margin-top: calc(7 * var(--u)); color: #3d516f; font-size: calc(15.5 * var(--u)); line-height: 1.42; }
 .guidance span { display: block; }
 .recovery { display: flex; justify-content: flex-end; margin-top: calc(-20 * var(--u)); margin-bottom: calc(-12 * var(--u)); }
-.recovery a { min-height: 30px; height: auto; border-radius: 5px; padding: 0; font-size: calc(16 * var(--u)); font-weight: 500; color: #0038d3; text-decoration: underline; }
+.recovery a { min-height: 44px; height: auto; border-radius: 5px; padding: 0; font-size: calc(16 * var(--u)); font-weight: 500; color: #0038d3; text-decoration: underline; }
 .recovery a:hover { color: #001d80; background: transparent; box-shadow: none; }
 .form .submit { position: relative; height: calc(66 * var(--u)); border: 2px solid #f2c85a; border-radius: calc(18 * var(--u)); background: linear-gradient(110deg, #06437e, #001a3b); box-shadow: 0 5px 12px #08223d26, inset 0 1px 9px #9bc6ea30; font-size: calc(22 * var(--u)); font-weight: 700; }
 .submit > span:last-child { position: absolute; right: calc(25 * var(--u)); font-size: calc(29 * var(--u)) !important; }
@@ -124,7 +124,7 @@
   .form :global(.relative) > span[aria-hidden='true'] span, .form button[aria-controls='password'] span { font-size: 25px !important; }
   .guidance { font-size: 13px; }
   .recovery { margin-top: -14px; margin-bottom: -10px; }
-  .recovery a { font-size: 14px; min-height: 40px; }
+  .recovery a { font-size: 14px; min-height: 44px; }
   .form .submit { height: 58px; font-size: 20px; border-radius: 16px; }
   .divider { margin: 24px 0; }
   .security { gap: 12px; padding: 12px; min-height: 80px; border-radius: 17px; }
@@ -169,3 +169,6 @@
 @media (prefers-reduced-motion: reduce) {
   .scene *, .scene *::before, .scene *::after { animation: none !important; transition: none !important; }
 }
+
+/* Keep hit areas independent of the decorative desktop scale. */
+.form button[aria-controls="password"] { min-width: 44px; min-height: 44px; }

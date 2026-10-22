@@ -1,0 +1,7 @@
+{
+  "passed": [
+    "Staff creation destroys temporary-password state on dismissal",
+    "No browser runtime errors"
+  ],
+  "errors": []
+}

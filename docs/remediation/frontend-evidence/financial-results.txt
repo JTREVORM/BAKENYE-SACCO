@@ -1,0 +1,8 @@
+PASS Confirmed financial success shows actual reference and receipt link
+PASS Rejected collection keeps key and supports corrected manual retry
+PASS Lost posting response resolved by real submission_status reference
+PASS Verified absence never auto-posts; manual retry retains key
+PASS Failed verification retains uncertainty; real reversal is explained without repost
+PASS Real financial RPC same-key retry returns original id/reference
+PASS Lost approval-request response is not misreported as unrecorded or offered for repost
+PASS No browser runtime errors

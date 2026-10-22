@@ -73,7 +73,7 @@ export function Button({
   // reference. The padding is generous enough that the capsule reads as a shape
   // rather than as a rounded rectangle that lost its corners.
   const sizes = {
-    sm: 'h-9 px-4 text-label-md rounded-full gap-1.5',
+    sm: 'min-h-touch-target-min px-4 text-label-md rounded-full gap-1.5',
     md: 'h-touch-target-min px-5 text-button-text rounded-full gap-2',
     lg: 'h-touch-target-primary px-7 text-button-text rounded-full gap-2',
   }[size];
@@ -219,12 +219,13 @@ export function Field({
       </label>
       {children}
       {error ? (
-        <p className="text-body-md font-body-md text-error flex items-start gap-1">
+        <p id={htmlFor ? `${htmlFor}-error` : undefined} role="alert" className="text-body-md font-body-md text-error flex items-start gap-1">
           <Icon name="error" size={16} className="mt-0.5 shrink-0" />
           {error}
         </p>
       ) : hint ? (
         <p
+          id={htmlFor ? `${htmlFor}-hint` : undefined}
           className={clsx(
             // Explicitly normal weight: `text-label-md` carries a 600 weight in
             // the type scale, which is right for a label and wrong for the
@@ -272,6 +273,7 @@ export function Input({
 }: React.InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
   return (
     <input
+      aria-describedby={invalid && rest.id ? `${rest.id}-error` : undefined}
       aria-invalid={invalid || undefined}
       className={clsx(
         CONTROL_BASE,

@@ -1,0 +1,6 @@
+PASS Staff failure, active-password caveat and reveal-once dismissal
+PASS Temporary-password navigation restrictions hold
+PASS First-login field error, complete partial message, new credential and successful redirect
+PASS Profile field errors, partial message and successful change
+PASS Normal staff reset displays actual server message and password
+PASS No browser runtime errors

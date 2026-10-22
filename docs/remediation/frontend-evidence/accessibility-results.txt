@@ -1,0 +1,26 @@
+PASS keyboard navigation /dev/preview/member
+PASS keyboard navigation /dev/preview/dashboard?variant=admin
+PASS keyboard navigation /dev/preview/dashboard
+PASS keyboard navigation /dev/preview/staff/administration
+PASS keyboard navigation /dev/preview/staff/cashier
+PASS keyboard navigation /dev/preview/staff/loans
+PASS keyboard navigation /dev/preview/staff/finance
+PASS keyboard navigation /dev/preview/staff/collections
+PASS account menu permissions and keyboard administration
+PASS account menu permissions and keyboard administration?limited=1
+PASS account menu permissions and keyboard cashier
+PASS account menu permissions and keyboard loans
+PASS account menu permissions and keyboard finance
+PASS account menu permissions and keyboard collections
+PASS mobile branding 320px
+PASS mobile branding 360px
+PASS mobile branding 390px
+PASS mobile branding 600px
+PASS shared member components 320px
+PASS shared staff components 320px
+PASS shared member components 390px
+PASS shared staff components 390px
+PASS shared member components 1440px
+PASS shared staff components 1440px
+PASS loading, error and empty presentation 320px
+PASS loading, error and empty presentation 1440px

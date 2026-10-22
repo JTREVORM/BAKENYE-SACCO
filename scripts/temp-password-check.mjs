@@ -40,8 +40,20 @@ const MEMBER_NO = process.env.MEMBER_NO ?? 'BND26001';
 const CHOSEN = `Chosen${Math.floor(Math.random() * 9000 + 1000)}x`;
 
 const browser = await chromium.launch(
-  process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {},
+  { ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}),
+    proxy: process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: 'localhost,127.0.0.1' } : undefined },
 );
+// Auth checks do not need the separately tested installation offer.
+const newContext = browser.newContext.bind(browser);
+browser.newContext = async (...args) => {
+  const context = await newContext(...args);
+  await context.addInitScript(() => localStorage.setItem('bnd_app_installed', '1'));
+  context.on('page', page => {
+    page.setDefaultNavigationTimeout(120_000);
+    page.setDefaultTimeout(60_000);
+  });
+  return context;
+};
 let failures = 0;
 const ok = (pass, text) => {
   if (!pass) failures += 1;
@@ -53,7 +65,10 @@ async function signIn(page, identifier, password) {
   await page.fill('input[name="identifier"]', identifier);
   await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"]');
-  await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 45_000 }).catch(() => {});
+  await Promise.race([
+    page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 45_000 }),
+    page.getByRole('alert').filter({ hasText: 'Invalid login credentials.' }).waitFor({ state: 'visible', timeout: 45_000 }),
+  ]).catch(() => {});
   return new URL(page.url()).pathname;
 }
 
@@ -182,7 +197,18 @@ ok(new URL(m.url()).pathname === '/', `after choosing a password the member land
 await m.goto(`${BASE}/savings`, { waitUntil: 'load' });
 ok(new URL(m.url()).pathname === '/savings', 'and every member page opens');
 
-await m.evaluate(() => fetch('/auth/signout', { method: 'POST' }));
+// Match the application's native POST navigation. Fetch follows a redirect
+// across loopback host aliases as CORS, which is not the browser sign-out flow.
+await Promise.all([
+  m.waitForURL(u => u.pathname === '/login'),
+  m.evaluate(() => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/auth/signout';
+    document.body.appendChild(form);
+    form.submit();
+  }),
+]);
 await mctx.clearCookies();
 ok((await signIn(m, MEMBER_NO, temp)) === '/login', 'the temporary password no longer works');
 ok((await signIn(m, MEMBER_NO, CHOSEN)) === '/', 'their own password does');

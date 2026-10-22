@@ -195,7 +195,7 @@ function ScrollButton({
       data-scroll-control=""
 
       className={clsx(
-        'hidden h-8 w-8 shrink-0 items-center justify-center rounded-full md:flex',
+        'hidden h-11 w-11 shrink-0 items-center justify-center rounded-full md:flex',
         'transition-[opacity,box-shadow,background-color] duration-150',
         // The important modifier is not decoration. `group-hover:opacity-100`
         // fires from the wrapper, not the button, so hovering anywhere in the

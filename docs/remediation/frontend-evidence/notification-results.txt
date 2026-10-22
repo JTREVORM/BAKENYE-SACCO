@@ -1,0 +1,2 @@
+PASS Notification refusal remains unread; success refreshes count
+PASS No browser runtime errors

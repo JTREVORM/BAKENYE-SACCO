@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import { withPasswordFeedback } from '@/components/auth/password-feedback';
 import { changePassword } from '@/app/(auth)/actions';
 import { Alert } from '@/components/ui/states';
 import { Field, Input, SubmitButton } from '@/components/ui/form';
@@ -16,9 +17,11 @@ import type { ActionResult } from '@/lib/errors';
  * Requires the current password, so an unattended unlocked phone cannot be used
  * to take over the account.
  */
+const passwordAction = withPasswordFeedback(changePassword);
+
 export function ChangePasswordForm() {
   const [state, action] = useActionState<ActionResult<null> | null, FormData>(
-    changePassword,
+    passwordAction,
     null,
   );
   const err = state && !state.ok ? state : null;

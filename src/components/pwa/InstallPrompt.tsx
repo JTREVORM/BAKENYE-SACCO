@@ -125,16 +125,22 @@ export function InstallPrompt({
     // install event there is nothing to wait for; otherwise give Chromium a
     // short grace period to fire it, so the button works rather than falling
     // straight through to manual steps.
+    let timer: number | undefined;
     function offer() {
+      // Never cover a credential handover or an in-progress confirmation.
+      if (document.querySelector('dialog[open]')) {
+        timer = window.setTimeout(offer, 500);
+        return;
+      }
       rememberOffered(nonce!);
       clearCookie();
       setOpen(true);
     }
     if (captured()) {
       offer();
-      return;
+    } else {
+      timer = window.setTimeout(offer, 900);
     }
-    const timer = window.setTimeout(offer, 900);
     return () => window.clearTimeout(timer);
   }, [clearCookie, captured]);
 

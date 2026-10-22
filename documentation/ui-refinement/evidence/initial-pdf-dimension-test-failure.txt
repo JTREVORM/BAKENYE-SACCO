@@ -1,0 +1,54 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Page size:\s+595.*841/s. Input:
+
+'Title:           BUD-SACCO\n' +
+  'Creator:         Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36\n' +
+  'Producer:        Skia/PDF m154\n' +
+  'CreationDate:    Wed Oct 21 19:56:03 2026 UTC\n' +
+  'ModDate:         Wed Oct 21 19:56:03 2026 UTC\n' +
+  'Custom Metadata: no\n' +
+  'Metadata Stream: no\n' +
+  'Tagged:          no\n' +
+  'UserProperties:  no\n' +
+  'Suspects:        no\n' +
+  'Form:            none\n' +
+  'JavaScript:      no\n' +
+  'Pages:           1\n' +
+  'Encrypted:       no\n' +
+  'Page size:       594.96 x 841.92 pts (A4)\n' +
+  'Page rot:        0\n' +
+  'File size:       189029 bytes\n' +
+  'Optimized:       no\n' +
+  'PDF version:     1.4\n'
+
+    at file:///workspace/work/bakenye-ui/scripts/ui-refinement-check.mjs:72:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'Title:           BUD-SACCO\n' +
+    'Creator:         Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36\n' +
+    'Producer:        Skia/PDF m154\n' +
+    'CreationDate:    Wed Oct 21 19:56:03 2026 UTC\n' +
+    'ModDate:         Wed Oct 21 19:56:03 2026 UTC\n' +
+    'Custom Metadata: no\n' +
+    'Metadata Stream: no\n' +
+    'Tagged:          no\n' +
+    'UserProperties:  no\n' +
+    'Suspects:        no\n' +
+    'Form:            none\n' +
+    'JavaScript:      no\n' +
+    'Pages:           1\n' +
+    'Encrypted:       no\n' +
+    'Page size:       594.96 x 841.92 pts (A4)\n' +
+    'Page rot:        0\n' +
+    'File size:       189029 bytes\n' +
+    'Optimized:       no\n' +
+    'PDF version:     1.4\n',
+  expected: /Page size:\s+595.*841/s,
+  operator: 'match',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

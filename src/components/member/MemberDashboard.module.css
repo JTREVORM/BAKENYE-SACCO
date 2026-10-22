@@ -28,7 +28,7 @@
 .icon { display: grid; place-items: center; height: 48px; width: 48px; flex-shrink: 0; border-radius: 50%; background: #ffffff20; color: white; }
 .gold { background: #fff0c8; color: #a96e0c; }
 .blue { background: #e5edfa; color: #17458d; }
-.amount { display: block; font-size: clamp(23px,2vw,32px); font-weight: 750; letter-spacing: -.025em; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.amount { display: block; font-size: clamp(23px,2vw,32px); font-weight: 750; letter-spacing: -.025em; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: normal; }
 .cardFootnote { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #607391; margin-top: auto; }
 .savings { color: white; background: linear-gradient(120deg,#123e85,#08244c); border-color: #173d75; box-shadow: 0 4px 12px #12396925; }
 .savings h2,.savings .cardHeading > :last-child { color: white; }
@@ -40,7 +40,7 @@
 .updateLink h2 { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
 .updateLink h2 > span { color: #175a99; flex-shrink: 0; }
 .updateLink p { color: #64748e; font-size: 13px; line-height: 1.6; margin-top: 7px; }
-.updateAmount { font-size: 21px; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; color: #08764e; }
+.updateAmount { font-size: 21px; font-weight: 700; white-space: normal; font-variant-numeric: tabular-nums; color: #08764e; }
 .updateLink > :last-child:not(.updateAmount) { flex-shrink: 0; color: #50698b; }
 .overdue { background: linear-gradient(120deg,#fff,#fff5f1); border: 1px solid #e6b6ad55; }
 .overdue .updateLink h2 > span,.overdue .updateAmount { color: #ac3440; }
@@ -120,5 +120,5 @@
   .mobileTransactions > a > div:nth-child(2) { overflow-wrap: anywhere; }
   .mobileTransactions > a > div:last-child { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: space-between; align-items: center; text-align: left; }
   .mobileTransactions > a > div:last-child > div { margin: 0; }
-  .mobileTransactions > a > div:last-child > span { white-space: nowrap; }
+  .mobileTransactions > a > div:last-child > span { white-space: normal; }
 }

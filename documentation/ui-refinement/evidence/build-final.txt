@@ -1,0 +1,125 @@
+
+> bud-sacco@1.0.0 build
+> next build
+
+   ▲ Next.js 15.5.24
+   - Experiments (use with caution):
+     · serverActions
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 6.9s
+   Linting and checking validity of types ...
+
+./src/components/staff/FinancialActivity.tsx
+1:10  Warning: 'Icon' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/78) ...
+   Generating static pages (19/78)
+   Generating static pages (38/78)
+   Generating static pages (58/78)
+ ✓ Generating static pages (78/78)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                      752 B         170 kB
+├ ƒ /_not-found                            266 B         102 kB
+├ ƒ /admin/[[...path]]                     148 B         102 kB
+├ ƒ /auth/callback                         148 B         102 kB
+├ ƒ /auth/signout                          148 B         102 kB
+├ ƒ /change-password                     2.82 kB         171 kB
+├ ƒ /dev/preview                          2.1 kB         183 kB
+├ ƒ /dev/preview/certification             218 B         174 kB
+├ ƒ /dev/preview/dashboard               2.15 kB         172 kB
+├ ƒ /dev/preview/member                    752 B         170 kB
+├ ƒ /dev/preview/receipt                 3.81 kB         177 kB
+├ ƒ /dev/preview/staff/[dashboard]       2.98 kB         183 kB
+├ ƒ /forgot-password                     1.22 kB         169 kB
+├ ƒ /guarantees                          1.26 kB         173 kB
+├ ƒ /help                                  134 B         113 kB
+├ ƒ /loans                                 222 B         169 kB
+├ ƒ /loans/[id]                            213 B         169 kB
+├ ƒ /loans/apply                           227 B         248 kB
+├ ƒ /loans/repay                           718 B         170 kB
+├ ƒ /login                               2.35 kB         171 kB
+├ ƒ /maintenance-bypass                    148 B         102 kB
+├ ƒ /manifest.webmanifest                  148 B         102 kB
+├ ƒ /more                                2.85 kB         172 kB
+├ ƒ /no-member-record                    2.83 kB         168 kB
+├ ƒ /notifications                         219 B         172 kB
+├ ƒ /profile                             1.32 kB         174 kB
+├ ƒ /reports                               222 B         169 kB
+├ ƒ /reset-password                      1.48 kB         170 kB
+├ ƒ /savings                               222 B         169 kB
+├ ƒ /savings/deposit                       718 B         170 kB
+├ ƒ /shares                                222 B         169 kB
+├ ƒ /shares/buy                            718 B         170 kB
+├ ƒ /staff                               3.12 kB         114 kB
+├ ƒ /staff/admin                         3.12 kB         114 kB
+├ ƒ /staff/audit                         3.96 kB         164 kB
+├ ƒ /staff/desk                            135 B         113 kB
+├ ƒ /staff/finance                       1.97 kB         170 kB
+├ ƒ /staff/finance/[type]                1.07 kB         166 kB
+├ ƒ /staff/finance/accounts              5.78 kB         169 kB
+├ ƒ /staff/finance/documents/[id]          148 B         102 kB
+├ ƒ /staff/finance/expenses              5.95 kB         169 kB
+├ ƒ /staff/finance/income-expenses        2.3 kB         165 kB
+├ ƒ /staff/finance/ledger                1.03 kB         166 kB
+├ ƒ /staff/finance/new/collection        4.59 kB         241 kB
+├ ƒ /staff/finance/new/expense           2.06 kB         171 kB
+├ ƒ /staff/finance/new/payment           3.48 kB         240 kB
+├ ƒ /staff/finance/new/receipt           3.12 kB         240 kB
+├ ƒ /staff/finance/new/transfer          2.26 kB         171 kB
+├ ƒ /staff/finance/payments                140 B         169 kB
+├ ƒ /staff/finance/receipts              4.56 kB         164 kB
+├ ƒ /staff/finance/reconciliation           3 kB         166 kB
+├ ƒ /staff/finance/reconciliation/new    1.83 kB         171 kB
+├ ƒ /staff/finance/reports               3.99 kB         164 kB
+├ ƒ /staff/finance/transfers               141 B         169 kB
+├ ƒ /staff/loans                           664 B         166 kB
+├ ƒ /staff/loans-desk                      135 B         113 kB
+├ ƒ /staff/loans/[id]                     5.2 kB         168 kB
+├ ƒ /staff/loans/[id]/repay              2.93 kB         169 kB
+├ ƒ /staff/loans/new                       212 B         239 kB
+├ ƒ /staff/loans/products                2.37 kB         165 kB
+├ ƒ /staff/loans/products/[id]             208 B         170 kB
+├ ƒ /staff/loans/products/new              208 B         170 kB
+├ ƒ /staff/members                         893 B         166 kB
+├ ƒ /staff/members/[id]                  5.79 kB         169 kB
+├ ƒ /staff/members/[id]/edit             2.58 kB         166 kB
+├ ƒ /staff/members/[id]/ledger           3.97 kB         164 kB
+├ ƒ /staff/members/new                   9.88 kB         173 kB
+├ ƒ /staff/membership-fees               5.66 kB         169 kB
+├ ƒ /staff/notifications                   310 B         163 kB
+├ ƒ /staff/profile                        1.3 kB         164 kB
+├ ƒ /staff/reports                        2.6 kB         108 kB
+├ ƒ /staff/reports/members               3.33 kB         163 kB
+├ ƒ /staff/reports/statement             2.11 kB         239 kB
+├ ƒ /staff/roles                         5.09 kB         168 kB
+├ ƒ /staff/savings                       3.33 kB         163 kB
+├ ƒ /staff/savings/collect               1.33 kB         177 kB
+├ ƒ /staff/savings/performance           4.02 kB         164 kB
+├ ƒ /staff/savings/record                3.59 kB         237 kB
+├ ƒ /staff/savings/records               3.34 kB         166 kB
+├ ƒ /staff/settings                      8.54 kB         172 kB
+├ ƒ /staff/shares                         2.6 kB         108 kB
+├ ƒ /staff/shares/sell                   4.14 kB         238 kB
+├ ƒ /staff/transactions                  2.52 kB         165 kB
+├ ƒ /staff/transactions/[id]             3.52 kB         172 kB
+├ ƒ /staff/transactions/cash             4.11 kB         238 kB
+├ ƒ /staff/users                         4.56 kB         168 kB
+├ ƒ /statements                            224 B         173 kB
+├ ƒ /transactions                        2.47 kB         175 kB
+└ ƒ /transactions/[id]                    3.8 kB         173 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/2088-8681ad633a298449.js        46 kB
+  ├ chunks/fa4061ff-28fc7864c26b8b6c.js  54.2 kB
+  └ other shared chunks (total)          1.96 kB
+
+
+ƒ Middleware                             95.1 kB
+
+ƒ  (Dynamic)  server-rendered on demand

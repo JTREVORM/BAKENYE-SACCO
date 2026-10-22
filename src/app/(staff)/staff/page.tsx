@@ -1,3 +1,4 @@
+import { SavingsMonthFigures } from '@/components/staff/SavingsMonthFigures';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -573,28 +574,12 @@ async function SavingsThisMonth() {
         </Link>
       }
     >
-      <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
-        <PanelFigure label="Saved this month" value={<Money value={dash.collected_savings} />} />
-        <PanelFigure label="Deposits" value={String(dash.deposit_count)} />
-        <PanelFigure label="Members who saved" value={String(dash.saving_members)} />
-        <PanelFigure label="Average deposit" value={<Money value={dash.average_deposit} />} />
-      </dl>
+      <SavingsMonthFigures dash={dash} />
       <p className="text-label-md font-label-md text-on-surface-variant mt-5 normal-case">
         Savings are open: a member saves any amount they choose, whenever they choose. A month
         without a deposit raises no arrears and no penalty.
       </p>
     </Panel>
-  );
-}
-
-function PanelFigure({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-label-md font-label-md text-on-surface-variant truncate">{label}</dt>
-      <dd className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface tabular mt-0.5 truncate">
-        {value}
-      </dd>
-    </div>
   );
 }
 

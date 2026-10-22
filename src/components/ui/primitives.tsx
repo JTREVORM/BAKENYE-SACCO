@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import kpiStyles from './KpiCard.module.css';
 import { clsx } from '@/lib/clsx';
 import { formatUGX, formatCompactUGX } from '@/lib/money';
 import { initials } from '@/lib/format';
@@ -219,11 +220,8 @@ export function KpiCard({
 
   const body = (
     <>
-      {/* `flex-wrap` plus a minimum width on the label is what keeps a long
-          label readable on a 320px phone: when there is not room for it beside
-          the icon it takes a line of its own rather than being squeezed to two
-          clipped characters. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      {/* Header, figure and measured trend each occupy their own flow row. */}
+      <div data-kpi-header className={kpiStyles.header}>
         <span
           className={clsx(
             'flex h-10 w-10 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11',
@@ -232,7 +230,7 @@ export function KpiCard({
         >
           <Icon name={icon} size={20} />
         </span>
-        <p className="text-label-md text-on-surface-variant min-w-[7rem] flex-1 font-semibold">
+        <p className="text-label-md text-on-surface-variant min-w-0 flex-1 font-semibold">
           {label}
         </p>
         {delta ? <DeltaPill value={delta.value} label={delta.label} /> : null}
@@ -245,11 +243,9 @@ export function KpiCard({
         ) : null}
       </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
+      <div data-kpi-body className={kpiStyles.body}>
         <div className="min-w-0">
-          {/* The figure steps down on a phone so a nine-digit total still fits
-              a half-width card without truncating. */}
-          <div className="text-[24px] font-bold leading-8 tracking-tight text-on-surface sm:text-display-currency sm:font-display-currency">
+          <div data-kpi-value className={kpiStyles.value}>
             {value}
           </div>
           {footnote ? (
@@ -271,13 +267,14 @@ export function KpiCard({
           ) : null}
         </div>
         {series && series.length > 1 ? (
-          <MiniBars values={series} colour={bars} className="shrink-0" />
+          <MiniBars values={series} colour={bars} className={kpiStyles.chart} />
         ) : null}
       </div>
     </>
   );
 
   const shell = clsx(
+    kpiStyles.card,
     'group flex flex-col rounded-2xl bg-surface p-4 shadow-neu sm:p-5',
     href && 'card-interactive',
     className,
@@ -360,11 +357,11 @@ export function KpiCardFeature({
         aria-hidden="true"
         className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"
       />
-      <div className="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div data-kpi-header className={kpiStyles.header}>
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-inset ring-white/20 sm:h-11 sm:w-11">
           <Icon name={icon} size={20} />
         </span>
-        <p className="text-label-md text-primary-fixed-dim min-w-[7rem] flex-1 font-semibold">
+        <p className="text-label-md text-primary-fixed-dim min-w-0 flex-1 font-semibold">
           {label}
         </p>
         {href ? (
@@ -372,9 +369,9 @@ export function KpiCardFeature({
         ) : null}
       </div>
 
-      <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+      <div data-kpi-body className={kpiStyles.body}>
         <div className="min-w-0">
-          <div className="text-[24px] font-bold leading-8 tracking-tight text-white sm:text-display-currency sm:font-display-currency">
+          <div data-kpi-value className={kpiStyles.value}>
             {value}
           </div>
           {footnote ? (
@@ -400,14 +397,15 @@ export function KpiCardFeature({
           ) : null}
         </div>
         {series && series.length > 1 ? (
-          <MiniBars values={series} colour="#ffffff" className="shrink-0 opacity-90" />
+          <MiniBars values={series} colour="#ffffff" className={kpiStyles.chart} />
         ) : null}
       </div>
     </>
   );
 
   const shell = clsx(
-    'relative flex flex-col overflow-hidden rounded-2xl bg-brand-gradient p-4 shadow-brand sm:p-5',
+    kpiStyles.card,
+    'relative flex flex-col overflow-hidden rounded-2xl bg-brand-gradient p-4 text-white shadow-brand sm:p-5',
     href && 'transition-transform duration-150 hover:-translate-y-px',
     className,
   );

@@ -1,0 +1,19 @@
+PASS staff shell standard: print chrome hidden, no clipping, all field values retained, one A4 page
+PASS staff shell long: print chrome hidden, no clipping, all field values retained
+PASS member shell standard: print chrome hidden, no clipping, all field values retained, one A4 page
+PASS member shell long: print chrome hidden, no clipping, all field values retained
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.goto: Page crashed
+Call log:
+[2m  - navigating to "http://localhost:3000/dev/preview/staff/cashier", waiting until "networkidle"[22m
+
+    at /workspace/work/bakenye-ui/scripts/receipt-print-check.mjs:27:61 {
+  log: [
+    '  - navigating to "http://localhost:3000/dev/preview/staff/cashier", waiting until "networkidle"'
+  ]
+}
+
+Node.js v24.19.0

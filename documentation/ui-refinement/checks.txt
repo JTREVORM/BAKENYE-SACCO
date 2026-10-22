@@ -1,0 +1,25 @@
+Validation completed on the dedicated UI branch; synthetic local fixtures only.
+Base main commit: 19be8fa
+
+PASS ESLint: zero errors; one pre-existing unused Icon import warning in src/components/staff/FinancialActivity.tsx:1.
+PASS TypeScript: npm run typecheck.
+PASS Production build: npm run build, using a dummy localhost Supabase URL/key. No deployment.
+PASS Dashboard unit tests: 10 passed, zero failed.
+PASS Existing overview browser suite: 10 viewport widths, navigation and signed-out guards.
+PASS Existing Super Admin browser suite: 6 viewport widths, navigation and signed-out guard.
+PASS Existing staff browser suite: 5 dashboards at 8 widths, restricted states and signed-out guards.
+PASS Existing member browser suite: 10 widths, restricted states, destinations and signed-out guards.
+PASS New geometry checks: 106 dashboard/full-value/zoom cases plus 88 receipt cases = 194.
+PASS Financial summary stress: 320 cases across 8 dashboards and all 8 requested widths, using all 5 amounts.
+PASS Receipt PDF matrix: 22 scenarios; source detail fields retained, A4 dimensions, standard receipts on one page.
+PASS Receipt category details: all 13 supported transaction categories match their synthetic source payloads.
+PASS Application-shell print: staff/member, standard/long = 4 cases. No navigation, clipping or missing fields.
+PASS Print contrast: receipt text at least 4.5:1 against white.
+PASS Long print: description and sign-off remain together; long fixture uses two pages.
+PASS Print and Download PDF call the existing print path; keyboard focus works.
+PASS Browser console/runtime errors: none in final shell/summary checks.
+PASS Protected backend paths: no changes to supabase/, src/lib/, src/types/, src/app/actions/, src/middleware.ts, package.json, package-lock.json, next.config.ts or vercel.json.
+PASS git diff --check.
+
+Execution logs and initial failure evidence are retained in evidence/.
+No financial transactions were posted. No production database records were queried or modified. No merge or deployment was performed.

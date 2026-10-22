@@ -1,5 +1,6 @@
 import Image from 'next/image';
-import { Icon, Money } from '@/components/ui/primitives';
+import styles from './Receipt.module.css';
+import { Money } from '@/components/ui/primitives';
 import { TxnStatusBadge } from '@/components/ui/status';
 import { ReceiptActions } from './ReceiptActions';
 import { formatDateTime, formatDate, TXN_LABELS, PAYMENT_METHOD_LABELS } from '@/lib/format';
@@ -7,18 +8,8 @@ import { formatUGX } from '@/lib/money';
 import { documentName } from '@/lib/print';
 import type { ReceiptPayload } from '@/types/db';
 
-/**
- * Transaction receipt.
- *
- * Built in the language of `transaction_receipt_mobile/code.html` — the green
- * success mark, the ticket-style body, the mono-spaced reference that
- * DESIGN.md calls for — and extended with everything rule 17 requires: SACCO
- * name, crest, receipt number, member and member ID, type, amount, method,
- * timestamp and who recorded it.
- *
- * The print stylesheet in `globals.css` strips the app chrome, so "Print" and
- * "Save as PDF" both produce a clean A4 document from this same markup. That
- * is deliberately cheaper than shipping a PDF library to a low-end phone.
+/** Shared staff/member receipt; data, numbering and issuing rules stay upstream.
+ * Print and PDF use this same semantic document and the existing browser actions.
  */
 export function Receipt({
   payload,
@@ -38,60 +29,42 @@ export function Receipt({
   showBalance?: boolean;
 }) {
   const t = payload.transaction;
-  const reversed = t.status !== 'posted';
+  const reversed = t.status === 'reversed' || t.status === 'reversal';
+  const heading = receiptHeading(t.status, t.type);
   const feeLines = payload.fee_lines ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      {/* Status header */}
-      <div className="flex flex-col items-center py-6 text-center">
-        <div
-          className={`mb-4 flex h-20 w-20 items-center justify-center rounded-full ${
-            reversed ? 'bg-error-container' : 'bg-tertiary-container'
-          }`}
-        >
-          <Icon
-            name={reversed ? 'undo' : 'check_circle'}
-            size={44}
-            className={reversed ? 'text-error' : 'text-white'}
-          />
-        </div>
-        <h1 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">
-          {t.status === 'posted'
-            ? 'Payment Successful'
-            : t.status === 'reversed'
-              ? 'Transaction Reversed'
-              : 'Reversal Entry'}
-        </h1>
-        <Money
-          value={t.amount}
-          className="text-display-currency font-display-currency text-primary mt-2 block"
-        />
-        <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-          {TXN_LABELS[t.type]}
-        </p>
-      </div>
-
-      {/* Ticket */}
-      <div className="bg-surface print-block overflow-hidden rounded-xl shadow-sm">
+    <div className={styles.receipt} data-receipt>
+      <article className={styles.document} aria-label="Official transaction receipt">
         {/* Letterhead */}
-        <div className="border-outline-variant flex items-center gap-3 border-b p-4">
+        <header className={styles.letterhead}>
           <Image
             src="/brand/bnd-logo.png"
             alt=""
-            width={48}
-            height={48}
-            className="h-12 w-12 shrink-0 object-contain"
+            width={72}
+            height={72}
+            className={styles.logo}
           />
           <div className="min-w-0">
-            <p className="text-button-text font-button-text text-primary leading-tight">
+            <p className={styles.institution}>
               {(payload.sacco_name || 'Bakenye Unity and Development SACCO').toUpperCase()}
             </p>
-            <p className="text-label-md font-label-md text-on-surface-variant normal-case">
+            <p className={styles.documentTitle}>
               {payload.receipt_title ? payload.receipt_title.toUpperCase() : 'Official transaction receipt'}
             </p>
           </div>
-        </div>
+        </header>
+        <section className={styles.summary} aria-label="Transaction summary">
+          <div className={styles.status}>
+            <span className={styles.statusMark} data-status={t.status} aria-hidden="true">{reversed ? '↶' : t.status === 'posted' ? '✓' : '·'}</span>
+            <h1>{heading}</h1>
+          </div>
+          <Money value={t.amount} className={styles.amount} />
+          <div className={styles.summaryMeta}>
+            <p>{TXN_LABELS[t.type]}</p>
+            <p>{formatDate(t.occurred_on)}</p>
+          </div>
+        </section>
 
         {reversed ? (
           <div className="bg-error-container text-on-error-container border-outline-variant border-b p-3">
@@ -106,7 +79,8 @@ export function Receipt({
           </div>
         ) : null}
 
-        <dl className="divide-outline-variant/70 divide-y px-4">
+        <h2 className={styles.sectionTitle}>Transaction details</h2>
+        <dl className={styles.details}>
           <Line label="Receipt number" value={payload.receipt_no} mono />
           <Line label="Transaction reference" value={t.reference} mono />
           <Line label="Member" value={t.member_name ?? '—'} />
@@ -148,13 +122,13 @@ export function Receipt({
 
         {/* What a fee payment paid for, line by line. */}
         {feeLines.length > 0 ? (
-          <div className="border-outline-variant border-t px-4 py-3">
+          <div className={styles.detailSection}>
             <p className="text-label-md font-label-md text-on-surface-variant mb-2">
               {payload.receipt_title ?? 'Fees paid'}
             </p>
             <div className="font-mono text-[14px]">
               {feeLines.map((l, i) => (
-                <div key={`${l.description}-${i}`} className="flex justify-between gap-4 py-0.5">
+                <div key={`${l.description}-${i}`} className={styles.feeLine}>
                   <span className="text-on-surface">{l.description}</span>
                   <span className="tabular text-on-surface">{formatUGX(l.amount)}</span>
                 </div>
@@ -169,7 +143,7 @@ export function Receipt({
 
         {/* Share detail */}
         {payload.shares ? (
-          <div className="bg-secondary-container/30 border-outline-variant border-t px-4 py-3">
+          <div className={styles.detailSection}>
             <p className="text-label-md font-label-md text-on-secondary-container mb-1">
               Share purchase
             </p>
@@ -183,50 +157,52 @@ export function Receipt({
 
         {/* Loan detail */}
         {payload.loan ? (
-          <div className="bg-primary-fixed border-outline-variant border-t px-4 py-3">
+          <div className={styles.detailSection}>
             <p className="text-label-md font-label-md text-on-primary-fixed-variant mb-1">
               Loan {payload.loan.loan_no}
             </p>
             <p className="text-body-md font-body-md text-on-primary-fixed">
-              Outstanding balance <strong>{formatUGX(payload.loan.outstanding)}</strong>
+              Current outstanding balance <strong>{formatUGX(payload.loan.outstanding)}</strong>
               {payload.loan.next_due_on
                 ? ` · next payment due ${formatDate(payload.loan.next_due_on)}`
-                : ' · fully repaid'}
+                : ''}
             </p>
           </div>
         ) : null}
 
         {/* Savings balance after */}
-        {showBalance && ['weekly_savings', 'monthly_savings', 'deposit', 'withdrawal'].includes(t.type) ? (
-          <div className="bg-surface-container-low border-outline-variant border-t px-4 py-3">
-            <p className="text-label-md font-label-md text-on-surface-variant mb-1">
+        {showBalance && payload.balance_after != null && !reversed && ['weekly_savings', 'monthly_savings', 'deposit', 'withdrawal'].includes(t.type) ? (
+          <div className={styles.balance}>
+            <p className={styles.balanceLabel}>
               Savings balance after this transaction
             </p>
             <Money
               value={payload.balance_after}
-              className="text-button-text font-button-text text-on-surface"
+              className={styles.balanceAmount}
             />
           </div>
         ) : null}
 
         {t.description ? (
-          <div className="border-outline-variant border-t px-4 py-3">
+          <div className={styles.detailSection}>
             <p className="text-label-md font-label-md text-on-surface-variant mb-1">Description</p>
             <p className="text-body-md font-body-md text-on-surface">{t.description}</p>
           </div>
         ) : null}
 
-        <div className="border-outline-variant border-t px-4 py-4 text-center">
+        <footer className={styles.footer}>
+          <p className={styles.sectionTitle}>Issued electronically</p>
           <p className="text-label-md font-label-md text-on-surface-variant normal-case">
             This is a computer-generated receipt and is valid without a signature.
           </p>
           {footer ? (
-            <p className="text-label-md font-label-md text-on-surface-variant/70 mt-1 normal-case">
+            <p className="text-label-md font-label-md text-on-surface-variant mt-1 normal-case">
               {footer}
             </p>
           ) : null}
-        </div>
-      </div>
+          <p className={styles.footerReference}>{payload.receipt_no} · {t.reference}</p>
+        </footer>
+      </article>
 
       <ReceiptActions
         reference={t.reference}
@@ -251,11 +227,11 @@ function Line({
   emphasis?: boolean;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-3">
-      <dt className="text-body-md font-body-md text-on-surface-variant shrink-0">{label}</dt>
+    <div className={styles.line}>
+      <dt className={styles.label}>{label}</dt>
       <dd
         className={[
-          'text-body-md font-body-md min-w-0 break-words text-right',
+          styles.field,
           mono ? 'tabular select-all font-mono' : '',
           emphasis ? 'text-on-surface font-bold' : 'text-on-surface font-semibold',
         ].join(' ')}
@@ -264,4 +240,19 @@ function Line({
       </dd>
     </div>
   );
+}
+
+/** The heading describes the recorded category, never implies approval of a draft. */
+function receiptHeading(status: ReceiptPayload['transaction']['status'], type: ReceiptPayload['transaction']['type']) {
+  if (status === 'reversed') return 'Transaction reversed';
+  if (status === 'reversal') return 'Reversal entry';
+  if (status !== 'posted') return 'Transaction record';
+  switch (type) {
+    case 'loan_disbursement': return 'Loan disbursed';
+    case 'withdrawal': return 'Withdrawal completed';
+    case 'transfer': return 'Transfer completed';
+    case 'payment': return 'Payment issued';
+    case 'expense': return 'Expense paid';
+    default: return 'Payment successful';
+  }
 }

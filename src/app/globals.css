@@ -428,3 +428,19 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Receipt print mode releases the fixed-height application scroll containers.
+ * Scope to ancestors of the receipt so other reports keep their own layouts. */
+@media print {
+  body:has([data-receipt]) main,
+  body:has([data-receipt]) div:has([data-receipt]) {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    max-width: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+}

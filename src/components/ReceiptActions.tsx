@@ -59,11 +59,11 @@ export function ReceiptActions({
 
   return (
     <div className="no-print mt-6 flex flex-col gap-3">
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button
           variant="primary"
           size="lg"
-          className="flex-1"
+          className="min-w-[8rem] flex-1"
           icon="print"
           onClick={() => printDocument(documentTitle)}
         >
@@ -72,7 +72,7 @@ export function ReceiptActions({
         <Button
           variant="outline"
           size="lg"
-          className="flex-1"
+          className="min-w-[8rem] flex-1"
           icon="download"
           onClick={() => printDocument(documentTitle)}
           title="Choose “Save as PDF” in the print dialog"
@@ -81,11 +81,11 @@ export function ReceiptActions({
         </Button>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button
           variant="ghost"
           size="md"
-          className="flex-1"
+          className="min-w-[8rem] flex-1"
           icon={copied ? 'check' : 'content_copy'}
           onClick={copyReference}
         >
@@ -93,7 +93,7 @@ export function ReceiptActions({
         </Button>
 
         {canShare ? (
-          <Button variant="ghost" size="md" className="flex-1" icon="share" onClick={share}>
+          <Button variant="ghost" size="md" className="min-w-[8rem] flex-1" icon="share" onClick={share}>
             Share
           </Button>
         ) : null}
@@ -101,7 +101,8 @@ export function ReceiptActions({
 
       <p className="text-label-md font-label-md text-on-surface-variant text-center normal-case">
         <Icon name="info" size={14} className="mr-1 inline align-text-bottom" />
-        To save a PDF, choose “Save as PDF” as the destination in the print dialog.
+        To save a PDF, choose “Save as PDF” and A4 paper in the print dialog.
+        Turn off browser headers and footers to omit the page URL and print timestamp.
       </p>
     </div>
   );

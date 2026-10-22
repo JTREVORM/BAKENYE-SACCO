@@ -280,9 +280,12 @@ second Supabase project, a re-scope and a key rotation.
 
 ### 3. The browser suite is not stable enough for CI
 
-It passes, and it passed six of eight runs during this work. Twice it failed at
-the pre-existing step *"a wrong temporary password is refused"* because the
-error alert had not rendered inside its 45-second window. GoTrue answers that
+It passes, but not reliably enough. Counting only the runs made with both
+selector fixes in place — the state that is committed — **five of seven came
+back clean, and two failed** at the pre-existing step *"a wrong temporary
+password is refused"*, because the error alert had not rendered inside its
+45-second window. (Earlier runs, before those fixes, failed more often; they are
+not counted here because that code is not what shipped.) GoTrue answers that
 request correctly and quickly — its log shows the expected 400 on `/token` — so
 the race is in the client render, not in Auth and not in the remediation. The
 two selector fixes removed most of it; the remainder belongs to whoever owns the

@@ -60,10 +60,40 @@ if (!process.env.REST_ALLOW_WRITES) {
 }
 
 let failures = 0;
-const ok = (pass, text) => {
+
+/**
+ * Every assertion carries a stable id as well as a sentence.
+ *
+ * The sentence is for a person reading the log. The id is for
+ * `.github/scripts/ci-verify-detection.sh`, which re-runs this check against
+ * the F-01 defect deliberately restored and has to tell two very different
+ * non-zero exits apart: the security assertions failing (which is the proof it
+ * wants) and the script falling over for some unrelated reason - a missing
+ * module, a refused database connection, a typo - which proves nothing at all.
+ * Comparing ids is how it knows which happened.
+ */
+const results = [];
+const ok = (id, pass, text) => {
   if (!pass) failures += 1;
-  console.log(`${pass ? '✔' : '✖'} ${text}`);
+  results.push({ id, pass: !!pass, text });
+  console.log(`${pass ? '✔' : '✖'} [${id}] ${text}`);
 };
+
+/**
+ * Write the machine-readable report, if asked for one.
+ *
+ * `completed` is the important field: it is written only here, at the very end
+ * of a run that reached the end. A crash leaves no report at all, and a report
+ * without `completed: true` is not a result.
+ */
+function writeReport(completed) {
+  const path = process.env.REST_REPORT;
+  if (!path) return;
+  fs.writeFileSync(
+    path,
+    `${JSON.stringify({ completed, failures, assertions: results }, null, 2)}\n`,
+  );
+}
 
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 
@@ -134,6 +164,7 @@ try {
     [userId],
   );
   ok(
+    'provisioned',
     provisioned.rows[0]?.must_change_password === true && provisioned.rows[0]?.is_active === true,
     'a member login was provisioned on a temporary password',
   );
@@ -143,6 +174,7 @@ try {
   // ---- [2] the session reports the lock -----------------------------------
   const session = await rest('/rpc/my_session', jwt, { method: 'POST', body: '{}' });
   ok(
+    'session-locked',
     session.status === 200 && session.body?.must_change_password === true,
     `my_session() reports the lock (must_change_password=${session.body?.must_change_password})`,
   );
@@ -151,6 +183,7 @@ try {
   const before = await rest('/transactions?select=id', jwt);
   const membersBefore = await rest('/members?select=id', jwt);
   ok(
+    'lock-holds-before',
     Array.isArray(before.body) && before.body.length === 0 &&
       Array.isArray(membersBefore.body) && membersBefore.body.length === 0,
     `the temporary password reads nothing (${before.body?.length} transactions, ${membersBefore.body?.length} members)`,
@@ -159,6 +192,7 @@ try {
   // ---- [4] THE ATTACK -----------------------------------------------------
   const attack = await rest('/rpc/log_password_changed', jwt, { method: 'POST', body: '{}' });
   ok(
+    'bypass-refused',
     attack.status === 404 || attack.status === 403 || attack.status === 401,
     `POST /rpc/log_password_changed is refused over REST (HTTP ${attack.status}${
       attack.body?.code ? `, ${attack.body.code}` : ''
@@ -175,6 +209,7 @@ try {
     body: JSON.stringify({ p_user_id: userId, p_nonce: '00000000-0000-0000-0000-000000000000' }),
   });
   ok(
+    'halves-unreachable',
     begin.status >= 400 && complete.status >= 400,
     `neither half of a verified password change is reachable with a member token (HTTP ${begin.status}/${complete.status})`,
   );
@@ -184,11 +219,12 @@ try {
     method: 'POST',
     body: JSON.stringify({ p_user_id: userId }),
   });
-  ok(issue.status >= 400, `the retired issue_temporary_password() is refused (HTTP ${issue.status})`);
+  ok('issue-retired', issue.status >= 400, `the retired issue_temporary_password() is refused (HTTP ${issue.status})`);
 
   // ---- [5] and [6] the lock must be exactly where it was ------------------
   const after = await rest('/rpc/my_session', jwt, { method: 'POST', body: '{}' });
   ok(
+    'lock-holds-after',
     after.body?.must_change_password === true,
     `after the attempt the lock still holds (must_change_password=${after.body?.must_change_password})`,
   );
@@ -197,6 +233,7 @@ try {
   const membersAfter = await rest('/members?select=id', jwt);
   const ledgerAfter = await rest('/account_ledger_entries?select=id', jwt);
   ok(
+    'reads-nothing-after',
     txnsAfter.body?.length === 0 && membersAfter.body?.length === 0 && ledgerAfter.body?.length === 0,
     `and it still reads nothing (${txnsAfter.body?.length} transactions, ${membersAfter.body?.length} members, ${ledgerAfter.body?.length} ledger entries)`,
   );
@@ -206,6 +243,7 @@ try {
     [userId],
   );
   ok(
+    'flag-untouched',
     flag.rows[0]?.must_change_password === true && flag.rows[0]?.password_set_at === null,
     'the database agrees: the flag was never cleared and no password change was stamped',
   );
@@ -214,12 +252,13 @@ try {
     "select count(*)::int n from audit_logs where action = 'auth.password_changed' and record_id = $1",
     [userId],
   );
-  ok(audit.rows[0].n === 0, `and no audit row claims a password change (${audit.rows[0].n} rows)`);
+  ok('no-false-audit', audit.rows[0].n === 0, `and no audit row claims a password change (${audit.rows[0].n} rows)`);
 
   const credential = await client.query('select encrypted_password from auth.users where id = $1', [
     userId,
   ]);
   ok(
+    'credential-untouched',
     credential.rows[0]?.encrypted_password === HASH,
     'the temporary password is untouched, as it should be - nothing changed it',
   );
@@ -228,16 +267,30 @@ try {
   const proofs = await rest('/change_proofs?select=user_id', jwt);
   const reservations = await rest('/reset_reservations?select=user_id', jwt);
   ok(
+    'stores-private',
     proofs.status >= 400 && reservations.status >= 400,
     `the proof and reservation stores are not exposed through the API (HTTP ${proofs.status}/${reservations.status})`,
   );
+} catch (error) {
+  // The run did not reach the end, so whatever it had asserted so far is not a
+  // result. Say so in the report, loudly, rather than letting a crash be
+  // mistaken for the security assertions failing.
+  writeReport(false);
+  console.error(`\n✖ the check did not complete: ${error instanceof Error ? error.message : error}`);
+  if (userId) {
+    await client.query('delete from auth.users where id = $1', [userId]).catch(() => {});
+    await client.query('delete from app_users where id = $1', [userId]).catch(() => {});
+  }
+  await client.end().catch(() => {});
+  process.exit(2);
 } finally {
   if (userId) {
     await client.query('delete from auth.users where id = $1', [userId]).catch(() => {});
     await client.query('delete from app_users where id = $1', [userId]).catch(() => {});
   }
-  await client.end();
+  await client.end().catch(() => {});
 }
 
+writeReport(true);
 console.log(`\n${failures} problem(s)`);
 process.exit(failures ? 1 : 0);

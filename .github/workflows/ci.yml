@@ -174,7 +174,11 @@ jobs:
         run: npm run test:phone
 
       - name: Money formatting unit suite
-        run: node documentation/source/test-stack/money-test.mjs
+        # Transpiles src/lib/money.ts and runs the real module, so it cannot
+        # pass while the application's money formatting drifts. It used to
+        # import an absolute path into /var/tmp left behind by a local run,
+        # which did not exist on the runner.
+        run: npm run test:money
 
   rest-security:
     name: Password-security control over a real PostgREST
@@ -221,9 +225,10 @@ jobs:
       - name: And the check itself can still detect the defect
         # The whole point of F-14: a security test that cannot fail when the
         # control is broken proves nothing. This puts the vulnerable function
-        # back on a throwaway copy of the database and asserts that the check
-        # FAILS - so a future change that quietly re-opens the hole, or that
-        # declaws this test, is caught here.
+        # back on a throwaway copy of the database and requires the check to
+        # report the specific security assertions that defect breaks - by name,
+        # not by exit code, so a crash or a database error cannot be mistaken
+        # for proof. See .github/scripts/assert-detection-report.mjs.
         env:
           REST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/budsacco_ci_vuln
         run: bash .github/scripts/ci-verify-detection.sh

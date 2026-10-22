@@ -31,7 +31,7 @@ CONF
 /tmp/postgrest/postgrest /tmp/postgrest.conf > /tmp/postgrest.log 2>&1 &
 
 for i in $(seq 1 30); do
-  if curl -fsS -o /dev/null "http://127.0.0.1:3001/"; then
+  if curl -fsS -o /dev/null "http://127.0.0.1:3001/" 2>/dev/null; then
     echo "✔ PostgREST ${VERSION} is answering"
     exit 0
   fi

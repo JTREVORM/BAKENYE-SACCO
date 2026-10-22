@@ -14,7 +14,6 @@ live data.
 | `gateway.mjs` | A small service answering the slice of the Supabase API this application calls: GoTrue-shaped auth, a proxy to PostgREST, and Storage (upload, signed links, download) |
 | `postgrest.conf` | PostgREST pointed at the local database |
 | `clean-install.sh` | Empty database → every migration → first administrator → seed, then reports what the result holds |
-| `money-test.mjs` | Unit checks over `groupDigits()` / `ungroupDigits()` (finding V-2) |
 
 ## Running it
 
@@ -41,11 +40,16 @@ they are JWTs signed with `JWT_SECRET`, which is also what PostgREST verifies.
 ```bash
 bash clean-install.sh                                   # clean installation
 PGSSLMODE=disable DATABASE_URL=... node ../../../scripts/test-db.mjs   # SQL suites
-node money-test.mjs                                     # money unit checks
 ```
 
 `PGSSLMODE=disable` is needed because the repository's scripts require TLS,
 which a hosted Supabase provides and a local Postgres does not.
+
+The money-formatting checks used to live here, alongside a hand-made copy of
+two functions from `src/lib/money.ts`. They are now `scripts/money.test.mjs`
+(`npm run test:money`), which transpiles the real module the way
+`scripts/phone.test.mjs` always has - so there is no copy to keep in step, and
+nothing in CI depends on a file this directory happened to leave behind.
 
 ## What it is not
 

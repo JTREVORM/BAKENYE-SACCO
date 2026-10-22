@@ -90,7 +90,7 @@ try {
     await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('menu').count(), 0);
     await page.locator('details summary').click();
-    assert.equal(await page.getByRole('link', { name: '12 months', exact: true }).getAttribute('href'), '/dev/preview/dashboard?flow=12');
+    assert.equal(await page.getByRole('link', { name: '12 months', exact: true }).getAttribute('href'), '/dev/preview/dashboard?flow=12#financial-activity');
     await page.locator('details summary').click();
     await page.addStyleTag({ content: 'nextjs-portal { display: none; }' });
     await page.screenshot({ path: `${out}/super-admin-${width}.png` });

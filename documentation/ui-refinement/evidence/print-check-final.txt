@@ -1,0 +1,6 @@
+PASS all 13 category-specific receipt details match their synthetic payloads.
+PASS staff shell standard: print chrome hidden, no clipping, all field values retained, one A4 page
+PASS staff shell long: print chrome hidden, no clipping, all field values retained
+PASS member shell standard: print chrome hidden, no clipping, all field values retained, one A4 page
+PASS member shell long: print chrome hidden, no clipping, all field values retained
+PASS 320 additional full-value financial-summary checks; no browser runtime errors.

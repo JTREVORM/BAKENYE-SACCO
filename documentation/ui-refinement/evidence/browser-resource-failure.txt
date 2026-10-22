@@ -1,0 +1,14 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.getAttribute: Target crashed
+Call log:
+[2m  - waiting for locator('[data-source]')[22m
+
+    at /workspace/work/bakenye-ui/scripts/ui-refinement-check.mjs:56:64 {
+  log: [ "  - waiting for locator('[data-source]')" ],
+  name: 'Error'
+}
+
+Node.js v24.19.0

@@ -1,0 +1,18 @@
+✔ seeded dashboard assignments and landing paths remain consistent (5.701174ms)
+✔ custom Owner, Secretary and Treasurer assignments use the existing dashboard mapping (0.44937ms)
+✔ navigation follows explicit permissions, never a display name or role-key shortcut (0.710569ms)
+✔ UGX display keeps complete numeric values and Uganda date boundaries (0.422339ms)
+✔ every development preview page guards production before reading fixtures (83.612308ms)
+✔ member share figures and equity agree with the fixture share price (0.506335ms)
+✔ collection months, dates and history describe the selected member (0.550169ms)
+✔ cashier receipts use receipt date, excluding other dates and outgoing money (0.542869ms)
+✔ rolling collection labels match dates at month/year/leap-day boundaries (1.443301ms)
+✔ Finance QA movements reconcile by account and use the source payment method (0.810958ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 660.410461

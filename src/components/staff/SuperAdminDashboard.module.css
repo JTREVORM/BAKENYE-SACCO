@@ -19,20 +19,6 @@
 .dashboard :global([data-hero] p:last-of-type) { color: white; font-size: 18px; margin-top: 6px; }
 .dashboard :global([data-hero] a) { color: white; border: 1px solid #ffffffa0; border-radius: 20px; background: linear-gradient(110deg,#ffffff30,#061f41); backdrop-filter: blur(8px); box-shadow: 0 3px 8px #0003; }
 .dashboard :global([data-hero] .bg-gold-gradient) { width: 59px; height: 5px; background: #ffbf10; margin-top: 14px; }
-.dashboard :global([data-kpi]) { position: relative; border-radius: 21px; padding: 17px 18px; background: linear-gradient(125deg,#fff,#f7f9fd); box-shadow: 0 5px 22px #193f6c07; }
-.dashboard :global([data-kpi] > div:not([aria-hidden]):first-of-type),
-.dashboard :global([data-kpi] > div[aria-hidden] + div) { flex-wrap: nowrap; gap: 16px; }
-.dashboard :global([data-kpi] > div > span:first-child) { width: 50px; height: 50px; }
-.dashboard :global([data-kpi] > div > p) { font-size: 14px; font-weight: 500; min-width: 0; color: #283f66; }
-.dashboard :global([data-kpi] > div:last-child) { margin-top: -9px; padding-left: 66px; }
-.dashboard :global([data-kpi] > div:last-child > div > div) { font-size: 36px; line-height: 42px; color: #080e2d; }
-.dashboard :global([data-kpi] > div:last-child p) { font-size: 12px; font-weight: 400; line-height: 15px; margin-top: 3px; color: #5e7294; }
-.dashboard :global([aria-label='SACCO funds'] [data-kpi]) { min-height: 124px; }
-.dashboard :global([aria-label='SACCO funds'] [data-kpi] > div:last-child > div > div) { font-size: clamp(17px,1.15vw,22px); line-height: 30px; overflow-wrap: anywhere; }
-.dashboard :global([aria-label='SACCO funds'] [data-kpi]:first-child) { background: linear-gradient(120deg,#103b89,#08234b); box-shadow: 0 4px 10px #163e6a2a; }
-.dashboard :global([aria-label='SACCO funds'] [data-kpi]:first-child p),
-.dashboard :global([aria-label='SACCO funds'] [data-kpi]:first-child > div:last-child > div > div) { color: white; }
-.dashboard :global([aria-label='SACCO funds'] [data-kpi]:first-child > div:last-child > div > div) { font-size: clamp(20px,1.45vw,27px); }
 .dashboard :global([data-admin-panels] > div > section) { border-radius: 21px; background: linear-gradient(120deg,#fff,#f7f9fd); box-shadow: 0 4px 20px #12345c07; height: 100%; }
 .dashboard :global([data-admin-panels] section > header) { padding: 14px 18px 10px; min-height: 55px; border: none; }
 .dashboard :global([data-admin-panels] h3) { font-size: 16px; font-weight: 700; }
@@ -73,10 +59,6 @@
   .dashboard :global([data-hero] > div:last-child) { padding: 22px; align-items: flex-start; }
   .dashboard :global([data-hero] h1) { font-size: 28px; }
   .dashboard :global([data-hero] p:last-of-type) { font-size: 14px; }
-  .dashboard :global([data-kpi] > div:not([aria-hidden]):first-of-type),
-  .dashboard :global([data-kpi] > div[aria-hidden] + div) { flex-wrap: wrap; gap: 8px; }
-  .dashboard :global([data-kpi] > div:last-child) { margin-top: 10px; padding-left: 0; }
-  .dashboard :global([aria-label='SACCO funds'] [data-kpi] > div:last-child > div > div) { font-size: 16px; }
 }
 /* Crop the existing community artwork to its scenic band, excluding the portrait
    montage and decorative border while keeping the sunrise visible. */
@@ -90,7 +72,6 @@
 .dashboard :global([data-admin-panels] td:nth-child(4)) { width: 28%; min-width: 12rem; max-width: none; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; }
 .dashboard :global([data-admin-panels] td:first-child span) { font-size: 12px; }
 .dashboard :global([data-admin-panels] td:nth-child(5)) { font-weight: 600; }
-.dashboard :global([aria-label='SACCO funds'] [data-kpi] > div:last-child > div > div) { overflow-wrap: normal; font-variant-numeric: tabular-nums; }
 .dashboard :global([data-admin-panels] table) { table-layout: auto; }
 .dashboard :global([data-admin-panels] table [class*='rounded-full']) { font-size: 12px; letter-spacing: 0; font-weight: 500; box-shadow: none; }
 .dashboard :global([data-admin-panels] figure svg text) { font-size: 10px; font-weight: 500; fill: #465b7b; }
@@ -103,8 +84,6 @@
   .dashboard :global([data-app-header] button[aria-haspopup='menu']) { gap: 18px; }
   .dashboard :global([data-app-header] button[aria-haspopup='menu'] > span:first-child) { width: 54px !important; height: 54px !important; font-size: 20px !important; }
   .dashboard :global([data-app-header] button[aria-haspopup='menu'] > span:nth-child(2) > span:first-child) { font-size: 16px; }
-  .dashboard :global([data-kpi] > div:last-child) { margin-top: -12px; }
-  .dashboard :global([aria-label='Accounts and sign-in'] [data-kpi]) { min-height: 131px; }
   .dashboard :global([data-admin-panels]) { margin-top: 14px; }
 }
 @media (min-width: 1500px) {
@@ -112,3 +91,6 @@
   .dashboard :global([data-admin-panels] > div:last-child > section > div) { padding: 14px 20px 16px; }
   .dashboard :global([data-admin-panels] figure svg) { height: 145px; max-height: 145px; }
 }
+/* Size tracks by readable content width rather than the viewport alone. */
+.dashboard :global(section:has(> [data-kpi])) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.dashboard :global([data-kpi]) { border-radius: 21px; }

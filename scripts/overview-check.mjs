@@ -93,10 +93,9 @@ try {
     if (width >= 768) {
       assert.equal(await page.locator('[data-sidebar] a[aria-current="page"]').count(), 1);
       await page.getByRole('button', { name: 'Collapse navigation', exact: true }).click();
-      await page.waitForTimeout(250);
-      assert.equal(Math.round((await page.locator('[data-sidebar]').boundingBox()).width), 76);
+      await page.waitForFunction(() => Math.round(document.querySelector('[data-sidebar]').getBoundingClientRect().width) === 76);
       await page.getByRole('button', { name: 'Expand navigation', exact: true }).click();
-      await page.waitForTimeout(250);
+      await page.waitForFunction(() => document.querySelector('[data-sidebar]').getAttribute('data-collapsed') === 'false');
     } else {
       await page.getByRole('button', { name: 'Open menu', exact: true }).click();
       assert.ok(await page.getByRole('dialog', { name: 'Navigation' }).isVisible());
@@ -108,7 +107,7 @@ try {
     assert.ok(await page.getByRole('menu').isVisible());
     await page.keyboard.press('Escape');
     await page.locator('details summary').click();
-    assert.equal(await page.getByRole('link', { name: '12 months', exact: true }).getAttribute('href'), '/dev/preview/dashboard?flow=12');
+    assert.equal(await page.getByRole('link', { name: '12 months', exact: true }).getAttribute('href'), '/dev/preview/dashboard?flow=12#financial-activity');
     await page.locator('details summary').click();
     await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
     await page.locator('main .overflow-y-auto').evaluate(el => { el.scrollTop = 0; });

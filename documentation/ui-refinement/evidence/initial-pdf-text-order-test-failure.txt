@@ -1,0 +1,18 @@
+PASS staff shell standard: print chrome hidden, no clipping, all field values retained, one A4 page
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Print retains Synthetic Member Alexandra Namutebi of the Community Savings Association
+    at file:///workspace/work/bakenye-ui/scripts/receipt-print-check.mjs:19:86
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processImmediate (node:internal/timers:502:9) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

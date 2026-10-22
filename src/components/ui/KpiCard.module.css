@@ -1,0 +1,12 @@
+/* Shared geometry: dashboard themes must not reposition the value or chart. */
+.card { min-width: 0; height: 100%; gap: 18px; border-radius: 21px; }
+.header { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.header p { font-size: 14px; line-height: 1.45; }
+.body { position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.body > div { width: 100%; min-width: 0; }
+.value { font-size: clamp(24px, 1.8vw, 32px); font-weight: 700; line-height: 1.25; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
+.value > span { max-width: 100%; flex-wrap: wrap; }
+.body p { align-items: flex-start; line-height: 1.5; }
+.body p > span:first-child { margin-top: 2px; }
+.chart { align-self: flex-end; opacity: .65; }
+@media (max-width: 479px) { .chart { display: none; } }

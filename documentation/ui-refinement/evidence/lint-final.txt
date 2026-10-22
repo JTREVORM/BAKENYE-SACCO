@@ -1,0 +1,9 @@
+
+> bud-sacco@1.0.0 lint
+> eslint .
+
+
+/workspace/work/bakenye-ui/src/components/staff/FinancialActivity.tsx
+  1:10  warning  'Icon' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)

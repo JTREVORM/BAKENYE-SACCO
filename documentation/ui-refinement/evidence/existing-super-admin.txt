@@ -1,0 +1,7 @@
+PASS 1855px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 1440px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 1280px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 768px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 390px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS 320px: full descriptions, aligned columns, readable chart labels, balanced cards, navigation, no overflow or browser errors
+PASS protected dashboard redirects signed-out users to login

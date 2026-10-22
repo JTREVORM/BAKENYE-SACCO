@@ -1,3 +1,5 @@
+import { SavingsMonthFigures } from '@/components/staff/SavingsMonthFigures';
+import { Panel } from '@/components/ui/primitives';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -212,7 +214,8 @@ export default async function DashboardPreview({
         </div>
         {!admin ? funds : null}
       </div>
-    </StaffShell>
+    <div className="mt-6 lg:w-2/3" data-savings-review><Panel title="Savings this month" subtitle="UGX 1,160,000 from 22 members" icon="savings"><SavingsMonthFigures dash={{collected_savings:1160000,deposit_count:30,saving_members:22,average_deposit:38667}} /></Panel></div>
+</StaffShell>
     </div>
   );
 }

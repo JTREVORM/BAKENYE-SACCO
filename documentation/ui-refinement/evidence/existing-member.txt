@@ -1,0 +1,13 @@
+PASS Member 1855px: own balances, account actions, receipts and responsive navigation
+PASS Member 1440px: own balances, account actions, receipts and responsive navigation
+PASS Member 1280px: own balances, account actions, receipts and responsive navigation
+PASS Member 1024px: own balances, account actions, receipts and responsive navigation
+PASS Member 834px: own balances, account actions, receipts and responsive navigation
+PASS Member 768px: own balances, account actions, receipts and responsive navigation
+PASS Member 600px: own balances, account actions, receipts and responsive navigation
+PASS Member 390px: own balances, account actions, receipts and responsive navigation
+PASS Member 360px: own balances, account actions, receipts and responsive navigation
+PASS Member 320px: own balances, account actions, receipts and responsive navigation
+PASS Member 1855px: restricted apply, no loan, reversed receipt, pending and empty states
+PASS Member 320px: restricted apply, no loan, reversed receipt, pending and empty states
+PASS Member destinations retain signed-out guards; no browser errors or financial submissions

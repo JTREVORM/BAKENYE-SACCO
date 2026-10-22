@@ -1,0 +1,20 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '/dev/preview/dashboard?flow=12#financial-activity'
+- '/dev/preview/dashboard?flow=12'
+
+    at file:///workspace/work/bakenye-ui/scripts/overview-check.mjs:111:12 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '/dev/preview/dashboard?flow=12#financial-activity',
+  expected: '/dev/preview/dashboard?flow=12',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

@@ -8,7 +8,7 @@ Bakenye Unity and Development SACCO backend, against the findings of the
 | --- | --- |
 | Repository | `JTREVORM/BAKENYE-SACCO` |
 | Branch | `claude/happy-knuth-y3gay4` |
-| Commit | `806ff7b655696ea8fe421612a631ea69ff8b7f01` (this report is amended into it, so the SHA names the tree it describes) |
+| Commit | `a4772be7e3ba53aafa579ee7f972f1baed615249` carries the full remediation. This report's own SHA is its child — a file cannot name the commit that contains it, so `git log -1 claude/happy-knuth-y3gay4` is the authority for the branch head. |
 | Base | `main` at `0cf56aba7d22bc946128fb9bd20ebe7b80ff39c4` — verified identical to the audited and deployed commit |
 | Audit implemented | `docs/audits/full-system-diagnostic-2026-10-22.md` (branch `claude/cool-sagan-afkvit`, commit `a87331b451cd237c411fd3884f8050156c1f858a`) |
 | Prior work reviewed | `claude/cool-mendel-3ey330` at `7b954cacee3e7f754e23472b1f5abee3b4d78b0f` |

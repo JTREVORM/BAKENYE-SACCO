@@ -1,0 +1,26 @@
+Native GoTrue lifecycle suite — can it detect a broken control?
+==============================================================
+
+A passing security suite proves nothing unless it can fail (the audit's F-14).
+So the F-01 defect is restored on the native-auth database and the same suite
+is re-run. It must fail, and fail on the security assertions.
+
+-- restoring the pre-0049 log_password_changed() ---------------------
+   restored
+
+-- the suite against the restored defect -----------------------------
+✖ [bypass-refused] the retired log_password_changed() is refused to a real session (NOT REFUSED)
+✖ [lock-holds-after] and after the attempt the lock is exactly where it was
+✖ [no-false-audit] with no audit row claiming a password change
+✖ [audit-once] and the change is recorded exactly once
+✖ [recovery-cannot-unlock] but a recovery session cannot lift the forced-change lock by any route, and the lock holds
+✖ [recovery-reads-nothing] and it reads no records while the account is confined (13)
+34 passed, 6 failed
+
+-- re-applying migration 0049 ---------------------------------------
+   log_password_changed retired again: t
+   callable by authenticated: f
+
+-- and the suite passes again ---------------------------------------
+
+40 passed, 0 failed

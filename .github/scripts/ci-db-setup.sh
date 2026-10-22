@@ -14,6 +14,13 @@ ST=documentation/source/test-stack
 PSQL="psql -v ON_ERROR_STOP=1 -q"
 
 echo "── creating a clean database"
+# A session on the database blocks DROP DATABASE. On a CI runner the container
+# is fresh so there is never one, but the same oversight is what broke the
+# detection job on run 39789916492, so clear them here too rather than rely on
+# the environment being pristine.
+$PSQL "$ADMIN_URL" -c "
+  select pg_terminate_backend(pid) from pg_stat_activity
+   where datname = 'budsacco_ci' and pid <> pg_backend_pid();" > /dev/null
 $PSQL "$ADMIN_URL" -c "drop database if exists budsacco_ci;" > /dev/null
 $PSQL "$ADMIN_URL" -c "create database budsacco_ci;" > /dev/null
 

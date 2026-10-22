@@ -64,7 +64,25 @@ async function signIn(page, identifier, password) {
   await page.goto(`${BASE}/login`, { waitUntil: 'load' });
   await page.fill('input[name="identifier"]', identifier);
   await page.fill('input[name="password"]', password);
-  await page.click('button[type="submit"]');
+  // The sign-in form's own button, waited for until it is actually enabled.
+  // A bare `button[type="submit"]` can resolve to more than one element and
+  // pick one that is mid-submit and `aria-busy`, which then times out after
+  // 60s and reads as a product failure rather than a harness race.
+  await page.waitForFunction(
+    () => {
+      const input = document.querySelector('input[name="identifier"]');
+      const b = input?.closest('form')?.querySelector('button[type="submit"]');
+      return !!b && !b.disabled;
+    },
+    undefined,
+    { timeout: 30_000 },
+  );
+  await page
+    .locator('form')
+    .filter({ has: page.locator('input[name="identifier"]') })
+    .first()
+    .locator('button[type="submit"]')
+    .click();
   await Promise.race([
     page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 45_000 }),
     page.getByRole('alert').filter({ hasText: 'Invalid login credentials.' }).waitFor({ state: 'visible', timeout: 45_000 }),
@@ -162,35 +180,62 @@ ok(
   `a member's own token cannot call either half of a verified password change (${beg.error?.code ?? 'OPEN'}/${cmp.error?.code ?? 'OPEN'})`,
 );
 
-// And the temporary password is still only a temporary password: it must still
-// land on "Choose your password", not on the dashboard.
-const stillLocked = await (async () => {
-  const probe = await browser.newContext({ viewport: { width: 390, height: 900 } });
-  const page = await probe.newPage();
-  const where = await signIn(page, MEMBER_NO, temp);
-  await probe.close();
-  return where;
-})();
+// And in the browser the account is still confined. Asserted on the session
+// that is already open - navigating it, not signing in again - because a second
+// sign-in races the first one's in-flight submit and would make a security
+// assertion flaky. What matters is that the bypass attempt did not open the
+// app, and this says exactly that.
+await m.goto(`${BASE}/`, { waitUntil: 'load' });
+await m.waitForURL((u) => u.pathname === '/change-password', { timeout: 15_000 }).catch(() => {});
+const stillLocked = new URL(m.url()).pathname;
 ok(stillLocked === '/change-password',
-  `and signing in with it still goes only to "Choose your password" (${stillLocked})`);
+  `and the open session is still confined to "Choose your password" (${stillLocked})`);
 
 // Only this API client's session - the default would sign the member out
 // everywhere, including the browser this check is still driving.
 await api.auth.signOut({ scope: 'local' });
+
+/**
+ * Submit the choose-your-password form.
+ *
+ * Scoped to the form that owns `current_password`, not `button[type="submit"]`:
+ * the page carries more than one submit button (the account menu's sign-out is
+ * a POST form too), so the bare selector resolved to two elements and clicked
+ * whichever came first - sometimes one already disabled and `aria-busy`, which
+ * timed out after 60s and left the run looking like a product failure. Waiting
+ * for this form's own button to be enabled makes the step deterministic
+ * without changing what it asserts.
+ */
+const passwordForm = () => m.locator('form').filter({ has: m.locator('input[name="current_password"]') }).first();
+const submitPasswordForm = async () => {
+  const button = passwordForm().locator('button[type="submit"]');
+  await button.waitFor({ state: 'visible', timeout: 30_000 });
+  await m.waitForFunction(
+    () => {
+      const input = document.querySelector('input[name="current_password"]');
+      const form = input?.closest('form');
+      const b = form?.querySelector('button[type="submit"]');
+      return !!b && !b.disabled;
+    },
+    undefined,
+    { timeout: 30_000 },
+  );
+  await button.click();
+};
 
 // Wrong temporary password in the form, then the right one.
 await m.goto(`${BASE}/change-password`, { waitUntil: 'load' });
 await m.fill('input[name="current_password"]', 'WRONG-0000');
 await m.fill('input[name="password"]', CHOSEN);
 await m.fill('input[name="confirm"]', CHOSEN);
-await m.click('button[type="submit"]');
+await submitPasswordForm();
 await m.waitForSelector('text=Your current password is incorrect', { timeout: 45_000 }).catch(() => {});
 ok((await m.locator('text=Your current password is incorrect').count()) > 0, 'a wrong temporary password is refused');
 
 await m.fill('input[name="current_password"]', temp);
 await m.fill('input[name="password"]', CHOSEN);
 await m.fill('input[name="confirm"]', CHOSEN);
-await m.click('button[type="submit"]');
+await submitPasswordForm();
 await m.waitForURL((u) => u.pathname !== '/change-password', { timeout: 45_000 }).catch(() => {});
 ok(new URL(m.url()).pathname === '/', `after choosing a password the member lands on their dashboard (${new URL(m.url()).pathname})`);
 

@@ -17,6 +17,10 @@ session:
 - PostgREST 12.2.3 — the same version the audit used — in front of that
   database, so the REST boundary tests exercise a real API rather than a
   simulation of one.
+- **Real Supabase Auth (GoTrue v2.197.0)**, built from source, for the native
+  lifecycle certification, behind a Supabase-shaped router so
+  `@supabase/supabase-js` drives it exactly as the application does. See
+  `documentation/source/test-stack/native-auth/`.
 - Four separate databases, so no test could contaminate another:
   `budsacco_clean` (the suites), `budsacco_rest` (the REST checks),
   `budsacco_vuln` (the defect deliberately restored, then dropped), and
@@ -38,6 +42,9 @@ appears in any file here.
 | `05-suite-detects-defect.out` | The SQL suite the same way round: 41 pass / 0 fail on the fixed schema, 8 failures on the vulnerable one |
 | `06-sql-suites.out` | All 12 SQL suites: 513 assertions, 0 failures |
 | `07-performance.out` | F-06 measured at scale, before and after the index, and F-05's totals reconciling exactly |
+| `08-native-gotrue-lifecycle.out` | **The native Supabase Auth certification: 40/40 against the real GoTrue binary** — creation, sessions, refresh rotation, the forced-change lock under a real token, a verified change where the old password genuinely stops working, staff resets through the real Admin API, recovery restrictions, and the redirect allow-list |
+| `09-native-gotrue-detects-defect.out` | The same suite against the F-01 defect restored: 6 failures, including a recovery-derived session reading 13 records. Then 40/40 again once migration 0049 is re-applied |
+| `10-browser-temp-password-native.out` | `temp-password-check.mjs` driven through the real application against native GoTrue — the browser assertion the earlier report listed as added but unexecuted. 20/20, with an honest note on its residual intermittency |
 
 ## The two files worth reading first
 

@@ -1,0 +1,64 @@
+
+── A. Password creation — provisioning a member login through GoTrue
+✔ [create-user] GoTrue created a member login with a temporary password (ok)
+✔ [provision-trigger] the SACCO provisioning trigger linked it to the member and started it on a forced change
+✔ [member-linked] and the member record points at exactly that login
+✔ [real-bcrypt] GoTrue stored a real bcrypt hash, not the plaintext ($2a$10$…, 60 chars)
+
+── B. Sessions — real tokens, real refresh rotation
+✔ [signin-temp] the temporary password signs in and yields a session (ok)
+✔ [jwt-claims] the access token is a real GoTrue JWT (sub matches, role=authenticated, exp in 60 min)
+✔ [session-recorded] GoTrue recorded the session and its refresh token (1 session(s), 1 refresh token(s))
+✔ [refresh-rotates] refreshing returns a new access token and rotates the refresh token (ok)
+
+── C. The forced-change lock, attacked with a REAL GoTrue token
+✔ [lock-holds-before] on a temporary password a real session reads nothing (0 transactions, 0 members)
+✔ [bypass-refused] the retired log_password_changed() is refused to a real session (42501)
+✔ [halves-unreachable] neither half of a verified change is reachable with the member's own token (42501/42501)
+✔ [lock-holds-after] and after the attempt the lock is exactly where it was
+✔ [no-false-audit] with no audit row claiming a password change
+
+── D. Password update — the verified ceremony against real GoTrue
+✔ [proof-minted] the server opened a change (ok)
+✔ [credential-changed] GoTrue really changed the credential — the bcrypt hash moved (ok)
+✔ [lock-lifted] the lock lifted only once the hash had demonstrably moved (ok)
+✔ [audit-once] and the change is recorded exactly once
+✔ [old-password-dead] the OLD temporary password no longer signs in (Invalid login credentials)
+✔ [new-password-works] and the password the member chose does (ok)
+✔ [own-records-open] the settled member now reads exactly one member record — their own (1)
+✔ [proof-single-use] replaying the proof is refused (42501)
+
+── E. Staff-assisted reset against the real Admin API (F-04)
+✔ [reset-started] a reset confines the account at once and records only that it was started
+✔ [reset-needs-credential] completion is refused while GoTrue has not installed anything, so no reset is falsely recorded (42501)
+✔ [reset-aborts-clean] and an abort restores the standing the account had, recording the failure
+✔ [abort-keeps-password] after an aborted reset the member's own password still works (ok)
+✔ [admin-installed] the Admin API installed a new temporary password (ok)
+✔ [reset-completed] the completed reset leaves the account locked and records the issue exactly once
+✔ [reset-kills-old] the member's previous password no longer works (Invalid login credentials)
+✔ [reset-relocks] and the new temporary password signs in to a confined session, nothing more
+
+── F. Recovery — real tokens, and the restrictions around them
+✔ [policy-suspended] the application still has self-service recovery switched off
+✔ [gotrue-mints-recovery] GoTrue does mint a recovery token when asked, so the suspension must be the application's (ok)
+✔ [recovery-session-real] a real recovery token exchanges for a real session (ok)
+✔ [recovery-cannot-unlock] but a recovery session cannot lift the forced-change lock by any route, and the lock holds
+✔ [recovery-reads-nothing] and it reads no records while the account is confined (0)
+✔ [redirect-allowlist] an off-allow-list redirectTo is discarded and replaced by the Site URL (asked for https://attacker.example/steal, link carries "http://127.0.0.1:3000")
+✔ [redirect-allowlist-positive] and an allow-listed redirectTo survives intact, so the check above is a real filter rather than a no-op ("http://127.0.0.1:3000/auth/callback?next=/reset-password")
+   · This is the control that decides whether F-03 was ever exploitable.
+   · It is asserted here against a GOTRUE_URI_ALLOW_LIST set to the site URL only;
+   · the hosted project's own allow-list still has to be checked and tightened.
+
+── G. Account standing is the SACCO's, not GoTrue's
+✔ [suspended-refused-by-app] GoTrue admits a suspended member (it knows nothing of SACCO standing); my_session reports the suspension so the application refuses
+   · admitOrRefuse() signs this session straight back out — that is the app-level gate.
+✔ [deactivated-reads-nothing] a deactivated account holds a valid GoTrue session and still reads nothing (0 rows, portal.view=false)
+
+── H. Sign-out and token lifetime — observed, not assumed
+✔ [signout-revokes-refresh] signing out revokes the refresh token, so no new access token can be minted (Invalid Refresh Token: Refresh Token Not Found)
+   · The access token already issued stays valid until it expires (60 min) — JWTs are stateless and Supabase documents this.
+   · What bounds a signed-out session in the application is the idle-timeout cookie and the Clear-Site-Data on /auth/signout, not token revocation (F-08).
+✔ [token-lifetime-bounded] and that window is bounded and short (60 min)
+
+40 passed, 0 failed

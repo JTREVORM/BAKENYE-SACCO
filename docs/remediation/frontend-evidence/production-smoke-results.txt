@@ -1,0 +1,4 @@
+PASS Local production recovery, reset and back navigation 390px
+PASS Local production recovery, reset and back navigation 1440px
+PASS Local production legacy recovery callback
+PASS Production fixture guard suppresses receipt preview (HTTP 200)

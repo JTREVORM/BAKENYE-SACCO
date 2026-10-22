@@ -1,0 +1,11 @@
+{
+  "backend_base": "7735712b8d229adff0a8779f9a7efc7dfaa07616",
+  "branch": "fix/frontend-reliability-support",
+  "protected_paths_changed": [],
+  "migrations": {
+    "0049_verified_password_changes.sql": "877c5d9b6e8a260713538fa81b21038cf752c961",
+    "0050_submission_status_lookup.sql": "7baabd3dd2c7bca20a607e5b9fbf6cacf8b92684",
+    "0051_register_totals_and_scale.sql": "93db9ed21fb94ab9f0900655e75424830a304ad5",
+    "0052_retire_dead_role_helpers.sql": "f595fe55fc1c4988231bb3c1f09b2a91fa63baa7"
+  }
+}

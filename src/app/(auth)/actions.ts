@@ -3,7 +3,12 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
-import { RECOVERY_COOKIE } from '@/lib/recovery';
+import {
+  RECOVERY_COOKIE,
+  RECOVERY_SUSPENDED_MESSAGE,
+  SELF_SERVICE_RECOVERY_ENABLED,
+  siteUrl,
+} from '@/lib/recovery';
 import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE, sessionCookieOptions } from '@/lib/session-timeout';
 import { INSTALL_PROMPT_COOKIE, installPromptCookieOptions, newLoginNonce } from '@/lib/pwa';
 import { z } from 'zod';
@@ -222,7 +227,14 @@ export async function signOut() {
   const supabase = await createClient();
   await supabase.rpc('log_logout');
   await supabase.auth.signOut();
-  (await cookies()).delete(INSTALL_PROMPT_COOKIE);
+  // Everything the sign-in path set, cleared here too. The `/auth/signout`
+  // route already did this; the action only cleared the install-prompt cookie,
+  // so a session ended through the action left its idle clock behind (F-08).
+  const jar = await cookies();
+  jar.delete(INSTALL_PROMPT_COOKIE);
+  jar.delete(LAST_SEEN_COOKIE);
+  jar.delete(IDLE_LIMIT_COOKIE);
+  jar.delete(RECOVERY_COOKIE);
   revalidatePath('/', 'layout');
   redirect('/login');
 }
@@ -252,15 +264,27 @@ const forgotSchema = z.object({
 });
 
 /**
- * Where an account has a real email address, Supabase sends it a reset link.
- * Many members have none; they get a reset code from the SACCO office. The
- * answer is the same sentence either way, so the form reveals nothing about
- * which identifiers exist.
+ * SUSPENDED. Self-service recovery is a SACCO business decision, and the
+ * decision is currently "no": a forgotten password is handled in person by an
+ * officer who can identify the holder. See `lib/recovery.ts` for the switch,
+ * the reasoning, and what must be true before it is turned back on.
+ *
+ * The refusal happens here, in the action, not in the screen - so a direct
+ * POST from a script reaches the same closed door as the form does. Nothing is
+ * resolved, nothing is emailed, nothing is logged against an identifier, and
+ * the answer is one fixed sentence whether or not the account exists.
  */
 export async function requestPasswordReset(
   _prev: ActionResult<null> | null,
   formData: FormData,
 ): Promise<ActionResult<null>> {
+  if (!SELF_SERVICE_RECOVERY_ENABLED) {
+    // Validated but discarded: the shape of what was typed must not change the
+    // answer, or the answer becomes an oracle. Nothing touches the database.
+    forgotSchema.safeParse({ identifier: formData.get('identifier') });
+    return { ok: false, error: RECOVERY_SUSPENDED_MESSAGE };
+  }
+
   const parsed = forgotSchema.safeParse({ identifier: formData.get('identifier') });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message, field: 'identifier' };
@@ -285,8 +309,9 @@ export async function requestPasswordReset(
   const resolution = data as LoginResolution | null;
   if (!resolution || resolution.locked) return done;
 
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ?? (await headers()).get('origin') ?? 'http://localhost:3000';
+  // The redirect host comes from configuration, never from a request header:
+  // a link built from a header can be aimed anywhere (F-03).
+  const origin = siteUrl();
   const supabase = await createClient();
 
   for (const c of resolution.candidates) {
@@ -307,11 +332,24 @@ export async function requestPasswordReset(
   return done;
 }
 
-/** Set a new password from an emailed reset link. The session comes from the link. */
+/**
+ * Set a new password from an emailed reset link. The session comes from the
+ * link, which is why this path may skip the current password.
+ *
+ * SUSPENDED with the rest of self-service recovery. A link emailed before the
+ * suspension must not still be spendable, so this refuses before looking at
+ * the session at all - `/auth/callback` also declines to open one. Staff
+ * resets, first-sign-in changes and profile password changes are unaffected:
+ * none of them come through here.
+ */
 export async function resetPassword(
   _prev: ActionResult<null> | null,
   formData: FormData,
 ): Promise<ActionResult<null>> {
+  if (!SELF_SERVICE_RECOVERY_ENABLED) {
+    return { ok: false, error: RECOVERY_SUSPENDED_MESSAGE };
+  }
+
   const password = String(formData.get('password') ?? '');
   const confirm = String(formData.get('confirm') ?? '');
 
@@ -334,13 +372,72 @@ export async function resetPassword(
     return { ok: false, error: 'This reset link has expired. Please request a new one.' };
   }
 
+  const changed = await updateVerifiedPassword(supabase, user.id, password);
+  if (!changed.ok) return changed;
+
+  jar.delete(RECOVERY_COOKIE);
+  revalidatePath('/', 'layout');
+  return succeed(null, 'Your password has been changed.');
+}
+
+/**
+ * Change a password through native Supabase Auth, with the database verifying
+ * that the credential really moved before it lifts the temporary-password lock
+ * (F-01, migration 0049).
+ *
+ *   begin_password_change     snapshot the current Auth hash, mint a nonce
+ *   auth.updateUser()         the real credential change
+ *   complete_password_change  refuses unless the hash differs from the snapshot
+ *
+ * Both database halves are service-role only, so a member's bearer token
+ * cannot call either and cannot clear the flag on its own. The account ID
+ * always comes from the server's own `getUser()`, never from a form field.
+ *
+ * Failure semantics, in the order they can happen:
+ *
+ *   the snapshot fails      nothing changed; ask them to try again
+ *   updateUser() fails      nothing changed; the proof expires unused
+ *   the completion fails    the password HAS changed, but the lock is still
+ *                           on. Say so plainly: the new password works, and
+ *                           signing in again takes them back to the same
+ *                           screen, which will then complete cleanly. The
+ *                           account is never left open on a credential
+ *                           somebody else was shown.
+ */
+async function updateVerifiedPassword(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  password: string,
+): Promise<ActionResult<null>> {
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { ok: false, error: 'The password could not be changed just now. Please try again.' };
+  }
+
+  const { data: nonce, error: proofError } = await admin.rpc('begin_password_change', {
+    p_user_id: userId,
+  });
+  if (proofError || !nonce) {
+    return { ok: false, error: 'The password could not be changed just now. Please try again.' };
+  }
+
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return fail(error, 'password');
 
-  jar.delete(RECOVERY_COOKIE);
-  await supabase.rpc('log_password_changed');
-  revalidatePath('/', 'layout');
-  return succeed(null, 'Your password has been changed.');
+  const { error: completionError } = await admin.rpc('complete_password_change', {
+    p_user_id: userId,
+    p_nonce: nonce,
+  });
+  if (completionError) {
+    return {
+      ok: false,
+      error:
+        'Your password was changed, but your account could not be opened just now. Please sign in with your new password and finish the step again.',
+    };
+  }
+  return succeed(null);
 }
 
 /** Replace the signed-in person's password. Shared by both change-password forms. */
@@ -382,11 +479,10 @@ async function replacePassword(formData: FormData): Promise<ActionResult<null>> 
     return { ok: false, error: 'Your current password is incorrect.', field: 'current_password' };
   }
 
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) return fail(error, 'password');
-
-  // Records the change and lifts the temporary-password lock.
-  await supabase.rpc('log_password_changed');
+  // Changes the credential, and lifts the temporary-password lock only once
+  // the database has seen that the credential really changed.
+  const changed = await updateVerifiedPassword(supabase, user.id, password);
+  if (!changed.ok) return changed;
   return succeed(null, 'Your password has been changed. Use the new one next time you sign in.');
 }
 

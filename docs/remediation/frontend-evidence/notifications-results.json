@@ -1,0 +1,7 @@
+{
+  "passed": [
+    "Notification refusal remains unread; success refreshes count",
+    "No browser runtime errors"
+  ],
+  "errors": []
+}

@@ -1,0 +1,7 @@
+{
+  "passed": [
+    "Register >1,000 records, 250/page, totals, filter navigation and streamed CSV",
+    "No browser runtime errors"
+  ],
+  "errors": []
+}

@@ -12,8 +12,8 @@ const features: { title: string; detail: string; icon: IconName }[] = [
   { title: 'Member Focused', detail: 'Your success is our priority', icon: 'handshake' },
 ];
 
-/** Login-only presentation; the shared password screens retain their own shell. */
-export async function LoginScene({ children }: { children: React.ReactNode }) {
+/** Premium signed-out presentation shared by sign-in and recovery support. */
+export async function LoginScene({ children, heading = 'Welcome Back', introduction = 'Sign in to access your SACCO account' }: { children: React.ReactNode; heading?: string; introduction?: string }) {
   const brand = await getBrand();
   const [nameTop, nameBottom] = splitName(brand.legalName);
 
@@ -57,8 +57,8 @@ export async function LoginScene({ children }: { children: React.ReactNode }) {
           <header className={styles.cardHeader}>
             <Image src="/brand/bnd-logo.png" alt={brand.legalName} width={128} height={128} priority className={styles.cardLogo} />
             <div className={styles.cardAccent} aria-hidden="true" />
-            <h2 id="login-heading">Welcome Back</h2>
-            <p>Sign in to access your SACCO account</p>
+            <h2 id="login-heading">{heading}</h2>
+            <p>{introduction}</p>
           </header>
           {children}
           <div className={styles.divider} aria-hidden="true"><span /><span /></div>

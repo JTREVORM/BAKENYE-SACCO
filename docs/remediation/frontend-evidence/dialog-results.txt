@@ -1,0 +1,1 @@
+PASS Install offer waits for credential dialog dismissal, then remains available

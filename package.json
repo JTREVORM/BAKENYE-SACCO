@@ -14,6 +14,7 @@
     "db:exec": "node scripts/db-exec.mjs",
     "test:db": "node scripts/test-db.mjs",
     "test:phone": "node --test scripts/phone.test.mjs",
+    "test:money": "node --test scripts/money.test.mjs",
     "test:phone:db": "node scripts/phone-metadata-check.mjs",
     "bootstrap:admin": "node scripts/bootstrap-admin.mjs"
   },

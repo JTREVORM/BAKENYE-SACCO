@@ -66,6 +66,7 @@ export function PaymentForm({
 
   return (
     <FinancialForm
+      submissionKind="request"
       action={createPayment}
       idempotencyPrefix="payment"
       submitLabel="Record payment"

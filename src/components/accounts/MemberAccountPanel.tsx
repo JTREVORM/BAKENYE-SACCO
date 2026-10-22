@@ -57,30 +57,20 @@ export async function MemberAccountPanel({
           </Badge>
         </div>
         <div className="flex flex-wrap gap-2">
-          {member.user_id && mayReset && !barred ? (
+          {!barred && (member.user_id ? mayReset : mayCreate) ? (
             <IssuePasswordButton
-              action={resetUserPassword}
-              fields={{ user_id: member.user_id }}
-              label="Reset password"
-              title="Reset password"
-              description={`Give ${member.full_name} a new temporary password. Check who they are first - their current password stops working at once.`}
-              confirmLabel="Reset password"
+              action={member.user_id ? resetUserPassword : createMemberLogin}
+              fields={member.user_id ? { user_id: member.user_id } : { member_id: member.id }}
+              label={member.user_id ? 'Reset password' : 'Create login'}
+              icon={member.user_id ? 'key' : 'person_add'}
+              title={member.user_id ? 'Reset password' : 'Create a login'}
+              description={member.user_id
+                ? `Give ${member.full_name} a new temporary password. Check who they are first - their current password stops working at once.`
+                : `Create ${member.full_name}'s login with a temporary password, which they change at first sign-in.`}
+              confirmLabel={member.user_id ? 'Reset password' : 'Create login'}
               who={member.full_name}
               identifier={member.member_no}
-            />
-          ) : null}
-          {!member.user_id && mayCreate && !barred ? (
-            <IssuePasswordButton
-              action={createMemberLogin}
-              fields={{ member_id: member.id }}
-              label="Create login"
-              icon="person_add"
-              title="Create a login"
-              description={`Create ${member.full_name}'s login with a temporary password, which they change at first sign-in.`}
-              confirmLabel="Create login"
-              who={member.full_name}
-              identifier={member.member_no}
-              variant="primary"
+              variant={member.user_id ? 'outline' : 'primary'}
             />
           ) : null}
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createStaffUser } from '@/app/actions/members';
 import { Alert } from '@/components/ui/states';
 import { Modal } from '@/components/ui/Modal';
@@ -22,28 +23,38 @@ type RoleOption = { key: string; name: string; description: string | null };
  */
 export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
   const [open, setOpen] = useState(false);
+  return <>
+    <Button icon="person_add" onClick={() => setOpen(true)}>
+      <span className="hidden sm:inline">Add staff account</span>
+      <span className="sm:hidden">Add</span>
+    </Button>
+    {open ? <CreateStaffDialog roles={roles} onClose={() => setOpen(false)} /> : null}
+  </>;
+}
+
+function CreateStaffDialog({ roles, onClose }: { roles: RoleOption[]; onClose: () => void }) {
+  const router = useRouter();
   // Held in state so the hint under the picker describes the role actually
   // selected — roles are not self-explanatory from their names alone.
   const [role, setRole] = useState<string>(
     roles.find((r) => r.key === 'cashier')?.key ?? roles[0]?.key ?? '',
   );
-  const [state, action] = useActionState<
+  const [state, action, pending] = useActionState<
     ActionResult<{ user_id: string; temporary: TemporaryPassword }> | null,
     FormData
   >(createStaffUser, null);
 
   const err = state && !state.ok ? state : null;
+  const close = () => {
+    if (pending) return;
+    onClose();
+    if (state?.ok) router.refresh();
+  };
 
   return (
-    <>
-      <Button icon="person_add" onClick={() => setOpen(true)}>
-        <span className="hidden sm:inline">Add staff account</span>
-        <span className="sm:hidden">Add</span>
-      </Button>
-
       <Modal
-        open={open}
-        onClose={() => setOpen(false)}
+        open
+        onClose={close}
         title="Add a staff account"
         description="Give a colleague access to the SACCO system."
       >
@@ -55,7 +66,7 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
 
             <TemporaryPasswordCard temporary={state.data.temporary} who="them" />
 
-            <Button size="lg" block onClick={() => setOpen(false)}>
+            <Button size="lg" block onClick={close}>
               Done
             </Button>
           </div>
@@ -132,7 +143,7 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
             </Alert>
 
             <div className="flex gap-3">
-              <Button variant="outline" size="lg" className="flex-1" onClick={() => setOpen(false)}>
+              <Button variant="outline" size="lg" className="flex-1" disabled={pending} onClick={close}>
                 Cancel
               </Button>
               <SubmitButton size="lg" className="flex-1" pendingLabel="Creating...">
@@ -142,6 +153,5 @@ export function CreateStaffButton({ roles }: { roles: RoleOption[] }) {
           </form>
         )}
       </Modal>
-    </>
   );
 }

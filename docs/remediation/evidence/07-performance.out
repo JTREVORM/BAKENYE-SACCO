@@ -1,0 +1,41 @@
+F-06 / F-05 performance measurements
+====================================
+
+Synthetic scale database: 3,012 members / 300,143 transactions.
+Synthetic shapes only - no real names, no real figures. Measured on
+PostgreSQL 16.15, warm cache, three runs each.
+
+members | 3012
+transactions | 300143
+
+-- WITHOUT transactions_member_status_type_idx ------------------------
+Execution Time: 1581.672 ms
+Execution Time: 1630.415 ms
+Execution Time: 1510.427 ms
+
+-- WITH transactions_member_status_type_idx ---------------------------
+Execution Time: 263.970 ms
+Execution Time: 236.483 ms
+Execution Time: 250.552 ms
+
+-- the register page as it now runs: one page of 250, with the index --
+Execution Time: 241.486 ms
+Execution Time: 294.390 ms
+Execution Time: 254.724 ms
+
+-- member_register_totals() over the complete roll --------------------
+Execution Time: 111.673 ms
+Execution Time: 120.879 ms
+Execution Time: 105.740 ms
+
+-- totals reconcile exactly with the per-member rows ------------------
+(1 row)
+
+ figure  | totals_function |  sum_of_rows  | reconciles 
+---------+-----------------+---------------+------------
+ members | 3012            | 3012          | t
+ savings | 4504354000.00   | 4504354000.00 | t
+ shares  | 3450000.00      | 3450000.00    | t
+ loans   | 2503333.31      | 2503333.31    | t
+(4 rows)
+

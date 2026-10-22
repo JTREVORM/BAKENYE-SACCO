@@ -98,6 +98,7 @@ export type AccountLedgerEntryRow = {
   entry_date: string;
   debit: number;
   credit: number;
+  /** Posting-order artefact — see `AccountMovementRow.balance_after` (F-15). */
   balance_after: number;
   created_by: string | null;
   created_at: string;
@@ -114,6 +115,21 @@ export type AccountMovementRow = {
   entry_date: string;
   money_in: number;
   money_out: number;
+  /**
+   * DO NOT DISPLAY THIS, AND DO NOT RECONCILE AGAINST IT (F-15).
+   *
+   * A posting-order artefact, not the balance after this entry by value date.
+   * `post_account_entry()` computes it from the most recent entry by `id` —
+   * insertion order — and backdated entries are permitted, so for any account
+   * that has one this value is not a chronological running balance. In the
+   * seeded data 140 of 164 entries are out of date order and this column
+   * visibly falls across successive money-in entries.
+   *
+   * Use `running_balance` below, which is a window function ordered by
+   * `(entry_date, id)`. Every screen, statement, report and CSV already does.
+   * The stored column is left alone because `account_ledger_entries` is
+   * immutable by design; see the column comment in migration 0051.
+   */
   balance_after: number;
   created_at: string;
   reference: string;

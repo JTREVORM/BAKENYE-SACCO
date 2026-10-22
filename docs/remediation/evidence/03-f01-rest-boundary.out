@@ -1,0 +1,14 @@
+✔ a member login was provisioned on a temporary password
+✔ my_session() reports the lock (must_change_password=true)
+✔ the temporary password reads nothing (0 transactions, 0 members)
+✔ POST /rpc/log_password_changed is refused over REST (HTTP 403, 42501)
+✔ neither half of a verified password change is reachable with a member token (HTTP 403/403)
+✔ the retired issue_temporary_password() is refused (HTTP 403)
+✔ after the attempt the lock still holds (must_change_password=true)
+✔ and it still reads nothing (0 transactions, 0 members, 0 ledger entries)
+✔ the database agrees: the flag was never cleared and no password change was stamped
+✔ and no audit row claims a password change (0 rows)
+✔ the temporary password is untouched, as it should be - nothing changed it
+✔ the proof and reservation stores are not exposed through the API (HTTP 404/404)
+
+0 problem(s)

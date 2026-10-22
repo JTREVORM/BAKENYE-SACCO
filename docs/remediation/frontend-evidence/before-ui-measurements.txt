@@ -1,0 +1,5 @@
+Login controls [
+  { text: 'Show password', rect: [ 37.4375, 35.875 ] },
+  { text: 'Forgot Password?', rect: [ 105.546875, 30 ] }
+]
+Receipt title 9px

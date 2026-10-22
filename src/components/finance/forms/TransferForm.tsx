@@ -80,6 +80,7 @@ export function TransferForm({
 
   return (
     <FinancialForm
+      submissionKind="request"
       action={createTransfer}
       idempotencyPrefix={`transfer-${kind}`}
       submitLabel={meta.title}

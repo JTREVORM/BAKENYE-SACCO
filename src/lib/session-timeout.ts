@@ -12,7 +12,18 @@
 export const IDLE_LIMIT_COOKIE = 'bnd_idle_min';
 export const LAST_SEEN_COOKIE = 'bnd_last_seen';
 
-/** Used when a session predates the cookie, or the setting failed to load. */
+/**
+ * Only for a session that predates the cookie, or one whose cookie was lost.
+ *
+ * Every path that opens a session now writes the SACCO's configured value:
+ * `admitOrRefuse()` on the ordinary sign-in, and `/auth/callback` for a
+ * session created from an emailed link. Before F-08 was fixed the callback
+ * wrote neither cookie, so those sessions silently ran on this number however
+ * the SACCO had configured the timeout - which is the inconsistency this
+ * constant must not reintroduce. It matches the shipped default of
+ * `security.session_timeout_minutes` so that a session falling back to it is
+ * governed no more loosely than a freshly configured one.
+ */
 export const DEFAULT_IDLE_MINUTES = 60;
 
 /** A sane range: 0 or less switches the timeout off; the cap is a day. */

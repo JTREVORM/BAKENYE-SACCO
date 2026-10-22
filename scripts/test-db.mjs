@@ -41,6 +41,31 @@ if (suites.length === 0) {
   process.exit(1);
 }
 
+/**
+ * Suites that must run, and must produce assertions, or this is a failed run.
+ *
+ * F-13/F-14: the danger is not a suite that fails, it is a suite that does not
+ * run and is counted as a pass. A renamed file, a syntax error swallowed
+ * somewhere, an empty result set - each of those used to leave the run green
+ * with nothing having been checked. These are named explicitly so that losing
+ * one is loud. Security suites first, because they are the ones whose silent
+ * absence let F-01 survive a prior certification.
+ */
+const REQUIRED_SUITES = [
+  'password_security_test.sql',
+  'members_access_test.sql',
+  'rls_isolation_test.sql',
+  'treasury_test.sql',
+  'business_rules_2026_test.sql',
+];
+
+const missing = REQUIRED_SUITES.filter((s) => !suites.includes(s));
+if (missing.length > 0) {
+  console.error(`Required suite(s) not found in ${dir}: ${missing.join(', ')}`);
+  console.error('A security suite that does not run must never be reported as a pass.');
+  process.exit(1);
+}
+
 const client = new pg.Client({
   connectionString: process.env.DATABASE_URL,
   ssl: SSL,
@@ -50,6 +75,8 @@ await client.connect();
 
 let failed = 0;
 let passed = 0;
+/** Assertions seen per suite, so a suite that ran but checked nothing is caught. */
+const assertionsBySuite = new Map();
 
 try {
   const { rows: admins } = await client.query(
@@ -82,16 +109,33 @@ try {
       continue;
     }
 
+    assertionsBySuite.set(suite, results.length);
     for (const row of results) {
       const ok = row.ok === true || row.result === 'PASS';
       if (ok) passed += 1;
       else failed += 1;
       console.log(`   ${ok ? '✔' : '✖'} ${row.step}${row.detail ? ` — ${row.detail}` : ''}`);
     }
+    if (results.length === 0) {
+      console.log('   ✖ this suite produced no assertions');
+      failed += 1;
+    }
     console.log('');
   }
 } finally {
   await client.end();
+}
+
+// A required suite that ran but asserted nothing is a failure, not a pass.
+for (const suite of REQUIRED_SUITES) {
+  const n = assertionsBySuite.get(suite);
+  if (n === undefined) {
+    console.error(`✖ required suite ${suite} did not run`);
+    failed += 1;
+  } else if (n === 0) {
+    console.error(`✖ required suite ${suite} produced no assertions`);
+    failed += 1;
+  }
 }
 
 console.log(`${passed} passed, ${failed} failed`);

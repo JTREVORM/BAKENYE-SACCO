@@ -41,6 +41,9 @@ try{
  // Stress the rendered layout with complete values, including cards normally using compact summaries.
  for(const width of [320,390,768,1024,1280,1440,1600,1920]){
   await visit('/dev/preview/dashboard',width);
+  // Direct stress mutations must wait for selective React hydration; otherwise
+  // the test itself changes server text before Link children hydrate.
+  await page.waitForFunction(()=>[...document.querySelectorAll('[data-kpi-value], [data-savings-figures] dd')].every(e=>Object.keys(e).some(k=>k.startsWith('__reactFiber$'))));
   for(const amount of ['UGX 0','UGX 20,000','UGX 1,160,000','UGX 45,500,000','UGX 1,250,000,000']){
    await page.locator('[data-kpi-value], [data-savings-figures] dd').evaluateAll((els,value)=>els.forEach(el=>{el.textContent=value;}),amount);
    await geometry(`Full values ${amount} ${width}px`);

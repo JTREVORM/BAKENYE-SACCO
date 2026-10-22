@@ -1,14 +1,17 @@
 'use client';
 
 import { useActionState } from 'react';
+import { withPasswordFeedback } from '@/components/auth/password-feedback';
 import { chooseFirstPassword } from '../actions';
 import { SubmitButton } from '@/components/ui/form';
 import { Alert } from '@/components/ui/states';
 import { PasswordField } from '../login/LoginForm';
 import type { ActionResult } from '@/lib/errors';
 
+const passwordAction = withPasswordFeedback(chooseFirstPassword);
+
 export function FirstPasswordForm({ minLength }: { minLength: number }) {
-  const [state, action] = useActionState<ActionResult<null> | null, FormData>(chooseFirstPassword, null);
+  const [state, action] = useActionState<ActionResult<null> | null, FormData>(passwordAction, null);
   const error = state && !state.ok ? state : null;
   const at = (f: string) => (error?.field === f ? error.error : null);
 

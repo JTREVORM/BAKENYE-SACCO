@@ -50,12 +50,82 @@ export function isMaintenanceEnabled(): boolean {
 /**
  * The maintainer's bypass token, or null when no bypass exists.
  *
- * Leaving `MAINTENANCE_BYPASS_TOKEN` unset is a valid choice: there is then no
- * way past the page at all.
+ * Anything under 16 characters is treated as absent rather than accepted, so a
+ * placeholder left in an environment variable is never a usable token. There is
+ * deliberately no default: a default bypass token is a published one.
  */
 export function maintenanceBypassToken(): string | null {
   const token = (process.env.MAINTENANCE_BYPASS_TOKEN ?? '').trim();
   return token.length >= 16 ? token : null;
+}
+
+/**
+ * Has somebody deliberately asked for a maintenance window with no way in?
+ *
+ * The original design allowed it, and it is occasionally what you want - a
+ * window where nobody, maintainer included, should reach the application. But
+ * it is also what you get by *forgetting* the token, and those two must not
+ * look the same. This makes the deliberate version say so out loud.
+ */
+export function totalLockoutRequested(): boolean {
+  const raw = (process.env.MAINTENANCE_ALLOW_TOTAL_LOCKOUT ?? '').trim().toLowerCase();
+  return raw === 'true' || raw === '1' || raw === 'on';
+}
+
+/**
+ * Should the maintenance gate actually close?
+ *
+ * F-10. `MAINTENANCE_MODE` was configured; `MAINTENANCE_BYPASS_TOKEN` was not.
+ * In that state switching maintenance on returned 503 to *everybody* - SACCO
+ * staff and whoever was performing the maintenance included - and the only way
+ * back was to edit an environment variable and redeploy, which is precisely
+ * what you least want to be doing in the middle of a maintenance window. The
+ * tool existed to make database work safe and using it was a self-inflicted
+ * outage.
+ *
+ * So the gate now refuses to close unless there is a way back through it:
+ *
+ *   token set                      maintenance engages, maintainer can get in
+ *   no token, lockout requested    maintenance engages, nobody gets in - which
+ *                                  is what was explicitly asked for
+ *   no token, nothing requested    maintenance does NOT engage, and the reason
+ *                                  is logged loudly
+ *
+ * The last case fails towards "the site stays up", which is the recoverable
+ * direction: the operator sees the site still serving, reads the log, sets a
+ * token and tries again - seconds, not a redeploy under pressure. Failing the
+ * other way would mean the one mistake nobody can undo quickly.
+ *
+ * It does not make maintenance mode weaker. Nothing past the gate is reachable
+ * without a real Supabase session and RLS still decides every row, so the gate
+ * is a courtesy page, not an access control.
+ */
+export function maintenanceGateDecision(): {
+  engage: boolean;
+  bypassToken: string | null;
+  refusalReason: string | null;
+} {
+  if (!isMaintenanceEnabled()) {
+    return { engage: false, bypassToken: null, refusalReason: null };
+  }
+
+  const bypassToken = maintenanceBypassToken();
+  if (bypassToken) return { engage: true, bypassToken, refusalReason: null };
+
+  if (totalLockoutRequested()) {
+    return { engage: true, bypassToken: null, refusalReason: null };
+  }
+
+  return {
+    engage: false,
+    bypassToken: null,
+    refusalReason:
+      'MAINTENANCE_MODE is on but MAINTENANCE_BYPASS_TOKEN is not set (it must be at least 16 characters), ' +
+      'so engaging maintenance would lock out the SACCO and whoever is performing the maintenance. ' +
+      'The gate has been left open. Set a strong MAINTENANCE_BYPASS_TOKEN and redeploy, or set ' +
+      'MAINTENANCE_ALLOW_TOTAL_LOCKOUT=true if a window with no way in is genuinely intended. ' +
+      'See docs/remediation/release-runbook.md.',
+  };
 }
 
 /**

@@ -65,6 +65,7 @@ export function ReconcileForm({
 
   return (
     <FinancialForm
+      submissionKind="request"
       action={recordReconciliation}
       idempotencyPrefix="reconcile"
       submitLabel="Record reconciliation"

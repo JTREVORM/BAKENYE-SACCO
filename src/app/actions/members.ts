@@ -9,7 +9,11 @@ import { can } from '@/lib/rbac';
 import { fail, succeed, type ActionResult } from '@/lib/errors';
 import { normalisePhone, PHONE_ERROR } from '@/lib/phone';
 import { provisionMemberLogin, staffAuthEmail, temporaryPassword } from '@/lib/accounts';
-import type { RegistrationResult, TemporaryPassword } from '@/types/access';
+import type {
+  PasswordResetReservation,
+  RegistrationResult,
+  TemporaryPassword,
+} from '@/types/access';
 
 /**
  * Member and staff-account administration.
@@ -286,7 +290,34 @@ export async function createMemberLogin(
 /**
  * Reset a member's or colleague's password: a new temporary password, shown
  * once, which they must change at their next sign-in. The database checks the
- * officer may do this (and records it) before anything changes.
+ * officer may do this, and records it.
+ *
+ * WHY THIS IS THREE STEPS AND NOT ONE (F-04)
+ *
+ * A Supabase Auth call and a PostgreSQL transaction cannot be made atomic with
+ * each other, so the only honest design is one where every way it can break
+ * leaves a state somebody can see and recover from:
+ *
+ *   begin_temporary_password_reset     takes the forced-change lock, snapshots
+ *                                      the standing the account had, records
+ *                                      that a reset was *started*
+ *   admin.updateUserById()             installs the new temporary password
+ *   complete_temporary_password_reset  refuses unless the Auth password hash
+ *                                      actually moved, then writes the
+ *                                      definitive `account.password_reset` row
+ *   abort_temporary_password_reset     puts the account back, exactly, and
+ *                                      records that nothing was changed
+ *
+ * The lock is taken first on purpose. Of the two partial states the window can
+ * produce, "locked, with the old password still live" is recoverable and safe,
+ * and "a new temporary password live with no forced change" is neither. What
+ * the old single-step version got wrong was not the order but the record: it
+ * committed an `account.password_reset` audit row before the credential had
+ * followed, so a failed reset was indistinguishable from a successful one.
+ *
+ * The plaintext password exists only in this function and in the response to
+ * the officer who asked for it. It is never written to the database, never
+ * logged, and never returned unless the whole ceremony succeeded.
  */
 export async function resetUserPassword(
   _prev: ActionResult<unknown> | null,
@@ -297,17 +328,65 @@ export async function resetUserPassword(
   if (!userId.success) return { ok: false, error: 'That account could not be found.' };
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc('issue_temporary_password', { p_user_id: userId.data });
-  if (error) return fail(error);
 
+  // Step 1. Authorised, and the account confined, before any credential moves.
+  const { data: reservation, error } = await supabase.rpc('begin_temporary_password_reset', {
+    p_user_id: userId.data,
+  });
+  if (error) return fail(error);
+  const token = (reservation as PasswordResetReservation | null)?.token;
+  if (!token) return { ok: false, error: 'The password could not be reset just now. Please try again.' };
+
+  const settle = async () => {
+    revalidatePath('/staff/users');
+    revalidatePath('/staff/members', 'layout');
+  };
+
+  // Step 2. The credential itself.
   const password = temporaryPassword();
-  const { error: authError } = await createAdminClient().auth.admin.updateUserById(userId.data, { password });
+  const { error: authError } = await createAdminClient().auth.admin.updateUserById(userId.data, {
+    password,
+  });
   if (authError) {
-    return { ok: false, error: 'The password could not be reset just now. Please try again.' };
+    // Nothing was installed, so put the account back the way it was and say so
+    // in the audit trail. The officer is told plainly that no password changed,
+    // so they do not walk away believing they have one to hand over.
+    const { error: abortError } = await supabase.rpc('abort_temporary_password_reset', {
+      p_user_id: userId.data,
+      p_token: token,
+    });
+    await settle();
+    if (abortError) {
+      return {
+        ok: false,
+        error:
+          'The password was not reset, and this account is now locked until a reset succeeds. Their old password still works. Please try the reset again.',
+      };
+    }
+    return { ok: false, error: 'The password could not be reset just now. Please try again. No password was changed.' };
   }
 
-  revalidatePath('/staff/users');
-  revalidatePath('/staff/members', 'layout');
+  // Step 3. The database confirms the hash moved, then records the reset.
+  const { error: completionError } = await supabase.rpc('complete_temporary_password_reset', {
+    p_user_id: userId.data,
+    p_token: token,
+  });
+  await settle();
+  if (completionError) {
+    // The credential did change, so the password below is live - but the SACCO
+    // record of the reset did not complete. Withholding the password would
+    // leave nobody able to sign in; showing it without saying so would leave
+    // the officer thinking the record is clean. So: show it, and say what to
+    // check. The account stays locked either way, which is the part that
+    // matters.
+    return {
+      ok: true,
+      data: { password },
+      message:
+        'The temporary password below is active, but the reset could not be fully recorded. Give it to the account holder, then ask an administrator to confirm the reset in the audit log.',
+    };
+  }
+
   return succeed({ password }, 'Password reset. It is shown only now.');
 }
 

@@ -1,0 +1,16 @@
+Fixed schema (52 migrations):
+41
+  PASS assertions above, FAIL:
+0
+=== supabase/tests/password_security_test.sql against the VULNERABLE pre-0049 schema ===
+(log_password_changed() restored to its 0034 definition and re-granted to authenticated)
+
+  3 | 2a calling the retired log_password_changed() is refused                                                        | FAIL   | 
+  4 | 2b and the lock still holds: no data, no permission, flag untouched                                             | FAIL   | 
+  6 | 2d a signed-in caller holds no grant on either half of a password change, nor on the retired RPCs               | FAIL   | 
+ 10 | 4b and the account is left locked, not opened                                                                   | FAIL   | 
+ 13 | 4e an account whose verification failed stays restricted                                                        | FAIL   | 
+ 15 | 4g and only then is the change recorded, once                                                                   | FAIL   | 
+ 17 | 4i and the replay adds no second audit row                                                                      | FAIL   | 
+ 40 | 9b the retired helpers are stubs that raise, not silent no-ops, and nobody may call them                        | FAIL   | 
+(41 rows)

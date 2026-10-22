@@ -301,19 +301,43 @@ type FeePayload = {
   sort_order?: number | null;
 };
 
+/** What `begin_temporary_password_reset()` hands back to the officer's screen. */
+export type PasswordResetReservation = {
+  token: string;
+  user_id: string;
+  full_name: string | null;
+  member_no: string | null;
+};
+
 export type AccessFunctions = {
   normalize_phone: { Args: { p: string | null }; Returns: string | null };
   valid_e164_phone: { Args: { p: string | null }; Returns: boolean };
   format_phone: { Args: { p: string | null }; Returns: string | null };
   my_session: { Args: Record<PropertyKey, never>; Returns: SessionPayload | null };
   log_logout: { Args: Record<PropertyKey, never>; Returns: undefined };
-  log_password_changed: { Args: Record<PropertyKey, never>; Returns: undefined };
+  /**
+   * The two halves of a verified password change (migration 0049). Service
+   * role only: the database lifts the temporary-password lock only once the
+   * account's Auth password hash has demonstrably changed from the snapshot
+   * `begin_password_change` took. The retired `log_password_changed()` raises.
+   */
+  begin_password_change: { Args: { p_user_id: string }; Returns: string };
+  complete_password_change: { Args: { p_user_id: string; p_nonce: string }; Returns: undefined };
   login_resolve: { Args: { p_identifier: string; p_client?: string | null }; Returns: LoginResolution };
   login_record: {
     Args: { p_identifier: string; p_client: string | null; p_user_id: string | null; p_succeeded: boolean; p_reason?: string | null };
     Returns: undefined;
   };
-  issue_temporary_password: { Args: { p_user_id: string }; Returns: undefined };
+  /**
+   * A staff-assisted reset, as a reservation (migration 0049): begin takes the
+   * lock and snapshots the standing, the server installs the new temporary
+   * password through Supabase Auth, then complete confirms it - or abort puts
+   * the account back exactly as it was. The audit trail distinguishes all
+   * three outcomes, so a failed reset is never recorded as a successful one.
+   */
+  begin_temporary_password_reset: { Args: { p_user_id: string }; Returns: PasswordResetReservation };
+  complete_temporary_password_reset: { Args: { p_user_id: string; p_token: string }; Returns: undefined };
+  abort_temporary_password_reset: { Args: { p_user_id: string; p_token: string }; Returns: undefined };
   account_login_status: { Args: { p_user_id: string }; Returns: AccountLoginStatus | null };
   security_overview: { Args: Record<PropertyKey, never>; Returns: SecurityOverview };
   assert_login_phone_available: { Args: { p_phone: string; p_except_user: string | null }; Returns: string | null };

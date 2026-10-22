@@ -1,0 +1,229 @@
+name: CI
+
+# F-13 / F-14 of the 22 October 2026 diagnostic: there was no CI of any kind,
+# so 471 SQL assertions and ~20 browser suites were run only when somebody
+# remembered. This runs them on every push and every pull request, before the
+# manual production promotion the release runbook describes.
+#
+# THREE RULES THIS WORKFLOW IS BUILT AROUND
+#
+#  1. A suite that does not run is NOT a pass. `scripts/test-db.mjs` names the
+#     suites that must exist and must produce assertions, and fails the run if
+#     one is missing, empty or renamed. Nothing here uses `continue-on-error`,
+#     nothing is `|| true`, and no step swallows an exit code.
+#  2. No production credential ever reaches CI. Every job builds its own
+#     throwaway PostgreSQL and its own synthetic data. There are no repository
+#     secrets referenced anywhere in this file, so a fork, a pull request from
+#     a fork, and a push by anybody all get exactly the same sealed
+#     environment. CI cannot reach the SACCO's Supabase project because it is
+#     never told where it is.
+#  3. Jobs are independent. Each sets up its own database and runs its own
+#     suites, so one failing tells you which thing broke, and an
+#     order-dependent suite cannot make a later one fail (F-13).
+#
+# WHAT IS DELIBERATELY NOT HERE
+#
+# The browser suites that need a signed-in staff account against a running
+# GoTrue (`temp-password-check`, `access-check`, `finance-check` and the rest)
+# are not run here yet. They need the test-stack gateway, and wiring that into
+# CI is its own piece of work - see the remediation report. Standing them up
+# against a half-configured environment and letting them no-op would be worse
+# than their absence, which is the F-14 mistake in a different costume. The
+# security *assertions* they carry are covered here by the SQL suite and by
+# `password-security-rest-check.mjs`, which exercises the same control over a
+# real PostgREST.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Synthetic, and local to the runner. Not a secret, and not reachable from
+  # outside the job.
+  PGPASSWORD: postgres
+  CI_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/budsacco_ci
+  PGSSLMODE: disable
+
+jobs:
+  static:
+    name: TypeScript, ESLint and production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: ESLint
+        run: npx eslint . --max-warnings 1
+
+      - name: Production build
+        # Synthetic values: the build only needs these to be present and
+        # well-formed. NEXT_PUBLIC_SITE_URL is set so the build exercises the
+        # configured-host path rather than the one F-03 was about.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-synthetic-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-synthetic-service-role-key
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+        run: npm run build
+
+  migrations:
+    name: Migrations apply to an empty database
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Clean install - bootstrap, every migration in order, then the seed
+        run: bash .github/scripts/ci-db-setup.sh
+
+      - name: Every migration is numbered, unique and in sequence
+        run: node .github/scripts/check-migration-order.mjs
+
+      - name: The remediation migrations can be safely re-applied
+        # Only 0049 and later. The chain as a whole is not re-runnable from
+        # 0001 and is not meant to be - `create type` has no `if not exists`,
+        # and Supabase applies each migration once and records that it did.
+        #
+        # What matters here is narrower and real: a migration about to be
+        # applied by hand to the live database may be interrupted and retried,
+        # so the ones this remediation adds are written to be idempotent, and
+        # that claim is checked rather than asserted in a comment.
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          applied=0
+          for f in supabase/migrations/*.sql; do
+            n=$(basename "$f" | cut -c1-4)
+            [ "$n" -ge 49 ] 2>/dev/null || continue
+            psql -v ON_ERROR_STOP=1 -q "$CI_DATABASE_URL" -f "$f" > /dev/null
+            applied=$((applied+1))
+          done
+          if [ "$applied" -eq 0 ]; then
+            echo "✖ no migrations at 0049 or later were re-applied; this check asserted nothing" >&2
+            exit 1
+          fi
+          echo "✔ $applied remediation migration(s) re-applied cleanly"
+
+  database:
+    name: SQL, RLS, authentication and financial suites
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install the PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Clean install
+        run: bash .github/scripts/ci-db-setup.sh
+
+      - name: SQL suites - RLS isolation, access, treasury, business rules, password security
+        # test-db.mjs fails the run if a required suite is missing, renamed, or
+        # produced no assertions. See REQUIRED_SUITES in that file.
+        env:
+          DATABASE_URL: ${{ env.CI_DATABASE_URL }}
+        run: npm run test:db
+
+      - name: Phone validation unit suite
+        run: npm run test:phone
+
+      - name: Money formatting unit suite
+        run: node documentation/source/test-stack/money-test.mjs
+
+  rest-security:
+    name: Password-security control over a real PostgREST
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Local to this job, and never a production value.
+      REST_JWT_SECRET: ci-only-postgrest-jwt-secret-0123456789abcdef
+      REST_URL: http://127.0.0.1:3001
+      REST_ALLOW_WRITES: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install the PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Clean install
+        run: bash .github/scripts/ci-db-setup.sh
+
+      - name: Start PostgREST
+        run: bash .github/scripts/ci-postgrest.sh
+
+      - name: F-01 - the temporary-password lock holds under attempted bypass
+        env:
+          REST_DATABASE_URL: ${{ env.CI_DATABASE_URL }}
+        run: node scripts/password-security-rest-check.mjs
+
+      - name: And the check itself can still detect the defect
+        # The whole point of F-14: a security test that cannot fail when the
+        # control is broken proves nothing. This puts the vulnerable function
+        # back on a throwaway copy of the database and asserts that the check
+        # FAILS - so a future change that quietly re-opens the hole, or that
+        # declaws this test, is caught here.
+        env:
+          REST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/budsacco_ci_vuln
+        run: bash .github/scripts/ci-verify-detection.sh

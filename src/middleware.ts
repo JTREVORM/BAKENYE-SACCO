@@ -1,11 +1,11 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { IDLE_LIMIT_COOKIE, LAST_SEEN_COOKIE, idleMinutes, sessionCookieOptions } from '@/lib/session-timeout';
+import { buildCsp, cspHeaderName, cspMode, newNonce } from '@/lib/csp';
 import {
   MAINTENANCE_BYPASS_COOKIE,
-  isMaintenanceEnabled,
   isMaintenanceExempt,
-  maintenanceBypassToken,
+  maintenanceGateDecision,
   maintenanceHeaders,
   maintenanceHtml,
   safeEqual,
@@ -41,10 +41,15 @@ export async function middleware(request: NextRequest) {
   // Before anything else, and deliberately before the Supabase client is built:
   // maintenance is most useful while the database is being worked on, so the
   // page must not depend on it. See lib/maintenance.ts.
-  if (isMaintenanceEnabled() && !isMaintenanceExempt(pathname)) {
-    const token = maintenanceBypassToken();
+  const gate = maintenanceGateDecision();
+  if (gate.refusalReason) {
+    // Loud, and on every request, because a silent one would be missed by the
+    // person who most needs to see it (F-10).
+    console.error(`[maintenance] ${gate.refusalReason}`);
+  }
+  if (gate.engage && !isMaintenanceExempt(pathname)) {
     const carried = request.cookies.get(MAINTENANCE_BYPASS_COOKIE)?.value;
-    const maintainer = !!token && !!carried && safeEqual(carried, token);
+    const maintainer = !!gate.bypassToken && !!carried && safeEqual(carried, gate.bypassToken);
     if (!maintainer) {
       return new NextResponse(maintenanceHtml(), {
         status: 503,
@@ -53,7 +58,28 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // ---- Content-Security-Policy ---------------------------------------------
+  //
+  // Built here because a nonce has to be minted per request, and set on the
+  // request as well as the response so Next can stamp it onto its own inline
+  // scripts. Report-only unless CSP_MODE says otherwise. See lib/csp.ts.
+  const mode = cspMode();
+  const nonce = mode === 'off' ? null : newNonce();
+  const csp = nonce ? buildCsp(nonce) : null;
+  if (csp) {
+    // The enforcing name, on the request, is where Next looks for the nonce -
+    // whichever name the browser is eventually sent.
+    request.headers.set('content-security-policy', csp);
+    request.headers.set('x-nonce', nonce!);
+  }
+
   let response = NextResponse.next({ request });
+
+  const applyCsp = (res: NextResponse): NextResponse => {
+    const header = cspHeaderName(mode);
+    if (csp && header) res.headers.set(header, csp);
+    return res;
+  };
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,7 +91,7 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
+          response = applyCsp(NextResponse.next({ request }));
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
           );
@@ -84,7 +110,7 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('next', pathname);
-    return NextResponse.redirect(url);
+    return applyCsp(NextResponse.redirect(url));
   }
 
   // Idle sign-out: a session untouched for longer than the SACCO's timeout is
@@ -100,7 +126,7 @@ export async function middleware(request: NextRequest) {
       url.search = '';
       url.searchParams.set('reason', 'timeout');
       if (!isPublic) url.searchParams.set('next', pathname);
-      const redirect = NextResponse.redirect(url);
+      const redirect = applyCsp(NextResponse.redirect(url));
       // Carry the cleared Supabase session cookies onto the redirect.
       for (const c of response.cookies.getAll()) redirect.cookies.set(c);
       redirect.cookies.delete(LAST_SEEN_COOKIE);
@@ -113,7 +139,7 @@ export async function middleware(request: NextRequest) {
   // whether the account is still in good standing; redirecting here could
   // bounce a suspended account between /login and the dashboard forever.
 
-  return response;
+  return applyCsp(response);
 }
 
 export const config = {

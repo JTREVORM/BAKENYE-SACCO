@@ -312,6 +312,8 @@ declare
   v_user    app_users;
   v_err     text;
   v_admin   text := current_setting('request.jwt.claims', true);
+  v_nonce   uuid;
+  v_reset   jsonb;
   i         integer;
 begin
   -- John's login, created the way Supabase Auth's admin API really does it:
@@ -405,7 +407,26 @@ begin
           current_member_id() is null and not has_permission('portal.view')
           and (my_session() ->> 'must_change_password')::boolean, null);
 
-  perform log_password_changed();
+  -- The lock lifts only through the verified server flow of migration 0049:
+  -- a snapshot of the Auth password, the real credential change, then a
+  -- completion the database refuses unless the credential moved. Bypassing it
+  -- is what `password_security_test.sql` tries, at length.
+  begin
+    perform log_password_changed();
+    insert into t_result (step, ok) values ('9l1 the bookkeeping half cannot be called on its own', false);
+  exception when insufficient_privilege then
+    insert into t_result (step, ok) values ('9l1 the bookkeeping half cannot be called on its own', true);
+  end;
+
+  perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  update auth.users set encrypted_password = 'synthetic-temporary-hash' where id = v_uid;
+  v_nonce := begin_password_change(v_uid);
+  -- Stands in for supabase.auth.updateUser(): the native Auth write is
+  -- exercised against real GoTrue by scripts/temp-password-check.mjs.
+  update auth.users set encrypted_password = 'synthetic-chosen-hash' where id = v_uid;
+  perform complete_password_change(v_uid, v_nonce);
+
+  perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
   insert into t_result (step, ok, detail)
   values ('9l once they choose their own password, their records open up',
           current_member_id() = v_john_id and has_permission('portal.view')
@@ -414,14 +435,18 @@ begin
   perform set_config('request.jwt.claims', v_admin, true);
 
   -- ---- Reset password: a new temporary password, and a forced change -----
-  perform issue_temporary_password(v_uid);
+  v_reset := begin_temporary_password_reset(v_uid);
+  update auth.users set encrypted_password = 'synthetic-reset-hash' where id = v_uid;
+  perform complete_temporary_password_reset(v_uid, (v_reset ->> 'token')::uuid);
   insert into t_result (step, ok, detail)
   values ('9m a staff reset puts the account back on a forced change, and is audited',
           (select must_change_password from app_users where id = v_uid)
           and exists (select 1 from audit_logs where action = 'account.password_reset' and record_id = v_uid::text), null);
 
-  perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
-  perform log_password_changed();
+  perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  v_nonce := begin_password_change(v_uid);
+  update auth.users set encrypted_password = 'synthetic-chosen-again-hash' where id = v_uid;
+  perform complete_password_change(v_uid, v_nonce);
   perform set_config('request.jwt.claims', v_admin, true);
   insert into t_result (step, ok, detail)
   values ('9n there are no setup codes any more', to_regclass('public.account_setup_codes') is null

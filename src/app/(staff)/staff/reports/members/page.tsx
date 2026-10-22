@@ -9,82 +9,105 @@ import { PrintFooter, PrintLetterhead } from '@/components/print/PrintLetterhead
 import { documentName } from '@/lib/print';
 import { formatDate, formatPhone } from '@/lib/format';
 import { formatUGX, toNumber } from '@/lib/money';
-import type { MemberFinancialsRow, MemberStatus } from '@/types/db';
+import type { MemberFinancialsRow, MemberRegisterTotals, MemberStatus } from '@/types/db';
 import { ScrollRow } from '@/components/ui/scroll';
 
 export const metadata: Metadata = { title: 'Member Register' };
+
+/** Members per page. A register prints as a register; the screen pages. */
+const PAGE_SIZE = 250;
 
 /**
  * Member register.
  *
  * The full statutory list, formatted to print on A4 in landscape and to export
- * as CSV for Excel. This is the one report that deliberately fetches every
- * active member rather than paging — a register with page breaks in it is not a
- * register — so it is capped and the cap is stated.
+ * as CSV for Excel.
+ *
+ * F-05 changed three things about how this page gets its numbers, and none of
+ * them is cosmetic:
+ *
+ *  - **The totals come from the database**, over every member the filter
+ *    selects, through `member_register_totals()`. They used to be summed from
+ *    the rows this page had fetched, which was capped at 1,000 — so past 1,000
+ *    members the register would have shown a SACCO-wide-looking total that
+ *    understated savings, share capital and the loan book. A total computed
+ *    from a page is not a total.
+ *  - **The table pages** rather than being capped and left to say so in its
+ *    heading.
+ *  - **The CSV is a streaming download** (`./export`) covering the whole roll,
+ *    instead of being built in the browser from the rows on screen.
  */
 export default async function MemberRegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; page?: string }>;
 }) {
   const user = await requirePermission('members.view');
   const sp = await searchParams;
+  const status = sp.status ? (sp.status as MemberStatus) : null;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const from = (page - 1) * PAGE_SIZE;
 
   const supabase = await createClient();
   let query = supabase
     .from('member_financials')
     .select('*')
     .order('member_no')
-    .limit(1000);
+    .range(from, from + PAGE_SIZE - 1);
 
-  if (sp.status) query = query.eq('status', sp.status as MemberStatus);
+  if (status) query = query.eq('status', status);
 
-  const { data, error } = await query;
+  // The page of rows, and the totals for the whole filtered set, together.
+  const [{ data, error }, { data: totalsData, error: totalsError }] = await Promise.all([
+    query,
+    supabase.rpc('member_register_totals', { p_status: status }),
+  ]);
 
-  if (error) {
+  if (error || totalsError) {
     return <ErrorState title="Unable to load the member register" />;
   }
 
   const rows = (data ?? []) as MemberFinancialsRow[];
-  const totals = rows.reduce(
-    (acc, r) => ({
-      savings: acc.savings + toNumber(r.savings_balance),
-      shares: acc.shares + toNumber(r.share_value),
-      loans: acc.loans + toNumber(r.loan_balance),
-    }),
-    { savings: 0, shares: 0, loans: 0 },
-  );
-
-  const csv = [
-    ['Member No', 'Name', 'Phone', 'National ID', 'Joined', 'Status', 'Savings', 'Shares', 'Share value', 'Loan balance'],
-    ...rows.map((r) => [
-      r.member_no,
-      r.full_name,
-      r.phone,
-      r.national_id ?? '',
-      r.joined_on,
-      r.status,
-      String(toNumber(r.savings_balance)),
-      String(r.share_count),
-      String(toNumber(r.share_value)),
-      String(toNumber(r.loan_balance)),
-    ]),
-  ];
+  const registerTotals = (totalsData ?? null) as MemberRegisterTotals | null;
+  const totals = {
+    members: registerTotals ? Number(registerTotals.members) : rows.length,
+    savings: toNumber(registerTotals?.savings_balance ?? 0),
+    shares: toNumber(registerTotals?.share_value ?? 0),
+    loans: toNumber(registerTotals?.loan_balance ?? 0),
+  };
+  const pageCount = Math.max(1, Math.ceil(totals.members / PAGE_SIZE));
+  const exportHref = `/staff/reports/members/export${status ? `?status=${status}` : ''}`;
+  const pageHref = (n: number) =>
+    `/staff/reports/members?${new URLSearchParams({
+      ...(status ? { status } : {}),
+      page: String(n),
+    }).toString()}`;
 
   return (
     <div>
       <div className="no-print">
         <PageTitle
           title="Member Register"
-          subtitle={`${rows.length} ${rows.length === 1 ? 'member' : 'members'}${
-            rows.length === 1000 ? ' (showing the first 1,000)' : ''
-          }`}
+          subtitle={
+            pageCount > 1
+              ? `${totals.members.toLocaleString()} members — page ${page} of ${pageCount}`
+              : `${totals.members.toLocaleString()} ${totals.members === 1 ? 'member' : 'members'}`
+          }
           action={
-            <ExportButtons
-              rows={csv}
-              filename="bnd-member-register"
-              documentTitle={documentName('Member Register')}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              {/* The whole roll, streamed from the server, never just this page. */}
+              <a
+                href={exportHref}
+                className="text-label-lg font-label-lg text-on-surface border-outline-variant min-h-touch-target-min inline-flex items-center rounded-full border px-4 py-2"
+              >
+                Download CSV
+              </a>
+              <ExportButtons
+                filename="bnd-member-register"
+                documentTitle={documentName('Member Register')}
+                showCsv={false}
+              />
+            </div>
           }
         />
       </div>
@@ -94,7 +117,7 @@ export default async function MemberRegisterPage({
         subtitle={sp.status ? `${sp.status} members` : 'All members'}
         generatedBy={user.fullName}
         meta={[
-          { label: 'Members', value: rows.length.toLocaleString() },
+          { label: 'Members', value: totals.members.toLocaleString() },
           { label: 'Total savings', value: formatUGX(totals.savings) },
           { label: 'Share capital', value: formatUGX(totals.shares) },
           { label: 'Loans outstanding', value: formatUGX(totals.loans) },
@@ -141,7 +164,8 @@ export default async function MemberRegisterPage({
                 ))}
                 <tr className="bg-surface-container-low/50 font-bold">
                   <td className="p-3" colSpan={4}>
-                    Totals
+                    {/* Every member the filter selects, not the rows above. */}
+                    Totals — all {totals.members.toLocaleString()} members
                   </td>
                   <td className="tabular p-3 text-right">{formatUGX(totals.savings)}</td>
                   <td className="tabular p-3 text-right">{formatUGX(totals.shares)}</td>
@@ -153,6 +177,34 @@ export default async function MemberRegisterPage({
           </ScrollRow>
         </div>
       )}
+
+      {pageCount > 1 ? (
+        <nav className="no-print mt-4 flex items-center justify-between gap-3" aria-label="Register pages">
+          {page > 1 ? (
+            <a
+              href={pageHref(page - 1)}
+              className="text-label-lg font-label-lg text-on-surface border-outline-variant min-h-touch-target-min inline-flex items-center rounded-full border px-4 py-2"
+            >
+              Previous
+            </a>
+          ) : (
+            <span />
+          )}
+          <span className="text-body-sm font-body-sm text-on-surface-variant">
+            Page {page} of {pageCount}
+          </span>
+          {page < pageCount ? (
+            <a
+              href={pageHref(page + 1)}
+              className="text-label-lg font-label-lg text-on-surface border-outline-variant min-h-touch-target-min inline-flex items-center rounded-full border px-4 py-2"
+            >
+              Next
+            </a>
+          ) : (
+            <span />
+          )}
+        </nav>
+      ) : null}
 
       <PrintFooter />
     </div>

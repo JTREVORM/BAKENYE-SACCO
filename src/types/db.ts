@@ -627,6 +627,51 @@ export type PaymentIntentRow = {
 
 // --- Views -----------------------------------------------------------------
 
+/**
+ * What `submission_status()` returns: whether the posting submitted under one
+ * idempotency key landed, and what it became.
+ *
+ * `found: false` means nothing was posted under that key — the submission can
+ * be made again with the same key. `found: true` means it landed, and
+ * `reference` is the document number to show; if `reversed` is true it landed
+ * and has since been reversed, so it is a reversal to explain rather than a
+ * posting to retry. `amount` is a string for the same reason as elsewhere: a
+ * shilling amount must not be rounded through a float.
+ */
+export type SubmissionStatus =
+  | { found: false }
+  | {
+      found: true;
+      status: TxnStatus;
+      transaction_id: string;
+      reference: string;
+      type: TxnType;
+      method: PaymentMethod;
+      amount: string;
+      occurred_on: string;
+      recorded_at: string;
+      description: string | null;
+      receipt_no: string | null;
+      reversed: boolean;
+      reversal_reference: string | null;
+    };
+
+/**
+ * What `member_register_totals()` returns: the member register's totals over
+ * the complete filtered set, not over the page on screen (F-05).
+ *
+ * The money figures arrive as strings so a shilling amount is never rounded
+ * through a float on the way to a screen. Put them through `toNumber()`.
+ */
+export type MemberRegisterTotals = {
+  members: number;
+  savings_balance: string;
+  share_count: number;
+  share_value: string;
+  loan_balance: string;
+  overdue_amount: string;
+};
+
 export type MemberFinancialsRow = {
   id: string;
   member_no: string;
@@ -1147,6 +1192,20 @@ export type Database = {
      * nobody.
      */
     Functions: {
+      /** Register totals over every member the filter selects (F-05). */
+      member_register_totals: {
+        Args: { p_status?: MemberStatus | null };
+        Returns: MemberRegisterTotals;
+      };
+      /**
+       * What became of the posting made under this idempotency key - the
+       * read-only answer to an uncertain submission (migration 0050). Never
+       * posts, reverses or repairs anything.
+       */
+      submission_status: {
+        Args: { p_idempotency_key: string };
+        Returns: SubmissionStatus;
+      };
       buy_shares: {
         Args: {
           p_member_id: string;

@@ -126,10 +126,14 @@ stale copy and the old runner are deleted so nothing can point at them again.
 
 | Run | Commit | Result |
 | --- | --- | --- |
-| [39789916492](https://github.com/JTREVORM/BAKENYE-SACCO/actions/runs/39789916492) | `a70cac4` | 2 of 4 jobs **failed** |
-| [39808943154](https://github.com/JTREVORM/BAKENYE-SACCO/actions/runs/39808943154) | `1374509` | **all 4 jobs passed** |
+| [39789916492](https://github.com/JTREVORM/BAKENYE-SACCO/actions/runs/39789916492) | `a70cac4` (the combined branch) | 2 of 4 jobs **failed** |
+| [39808943154](https://github.com/JTREVORM/BAKENYE-SACCO/actions/runs/39808943154) | `1374509` (the CI fixes) | **all 4 jobs passed** |
+| [39816980810](https://github.com/JTREVORM/BAKENYE-SACCO/actions/runs/39816980810) | `4341ef3` (native Auth certification) | **all 4 jobs passed** |
 
-The final run and SHA for this branch are recorded at the end of this document.
+A document cannot name the run for the commit that contains it, so the run for
+any later commit on this branch is the newest one on
+[the branch's Actions page](https://github.com/JTREVORM/BAKENYE-SACCO/actions?query=branch%3Afix%2Fci-corrections-native-auth).
+Every commit pushed to this branch has been green from `1374509` onward.
 
 All four jobs were also reproduced locally against the same scripts: 52
 migrations applying from empty, 513 SQL assertions, 36 phone, 23 money,
